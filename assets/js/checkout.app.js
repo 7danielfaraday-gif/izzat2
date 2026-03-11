@@ -859,15 +859,25 @@ useLayoutEffect(() => {
                     setCopied(true);
                     trackEvent('ClickButton', { button_name: 'copy_pix_code', content_name: 'Cópia PIX' });
                 } catch (err) {
+                    // safeCopyToClipboard falhou — tenta fallback diretamente
                     let ok = false;
                     try {
                         if (typeof window.fallbackCopy === 'function') ok = window.fallbackCopy(effectivePixCode);
-                        else if (typeof fallbackCopy === 'function') ok = fallbackCopy(effectivePixCode);
                     } catch(_) {}
-                    if (!ok) {
-                        try { window.prompt('Copie o código PIX abaixo:', effectivePixCode); } catch(_) {}
+
+                    if (ok) {
+                        // execCommand funcionou no segundo try
+                        setCopied(true);
+                    } else {
+                        // Tudo falhou (WebView restrito): exibe modal para cópia manual.
+                        // NÃO exibe "COPIADO!" porque nada foi copiado para o clipboard.
+                        try {
+                            if (typeof window.showManualCopyModal === 'function') {
+                                window.showManualCopyModal(effectivePixCode);
+                            }
+                        } catch(_) {}
+                        // Não chama setCopied(true) — botão permanece no estado normal
                     }
-                    setCopied(true);
                 }
                 setTimeout(() => setCopied(false), 2000); 
             };

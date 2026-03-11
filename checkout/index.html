@@ -415,50 +415,91 @@
         }
     }
     
-    function isTikTokWebView() {
-        // TikTok in-app browser adiciona "https://" no início ao usar navigator.clipboard.writeText
-        // Detectamos pelo userAgent para usar o método alternativo (textarea)
-        return /musical_ly|tiktok|bytedancewebview|musical\.ly/i.test(navigator.userAgent);
+    // ─────────────────────────────────────────────────────────────────────────
+    // DETECÇÃO DE WEBVIEWS PROBLEMÁTICOS
+    // TikTok, Instagram, WhatsApp e Facebook in-app adicionam "https://" no
+    // início do texto ao usar navigator.clipboard.writeText — bug confirmado.
+    // Nesses casos, pulamos o clipboard nativo e usamos execCommand diretamente.
+    // ─────────────────────────────────────────────────────────────────────────
+    function isProblematicWebView() {
+        var ua = navigator.userAgent || '';
+        return (
+            // TikTok / ByteDance (todas as variantes conhecidas)
+            /musical_ly|tiktok|bytedancewebview|bytedance|aweme|ByteLocale/i.test(ua) ||
+            // Instagram in-app browser
+            /Instagram/i.test(ua) ||
+            // Facebook / Messenger in-app browser
+            /FBAN|FBAV|FB_IAB|Facebook|Messenger/i.test(ua) ||
+            // WhatsApp in-app browser
+            /WhatsApp/i.test(ua) ||
+            // Snapchat in-app browser
+            /Snapchat/i.test(ua)
+        );
     }
+    // mantém alias para compatibilidade com código legado
+    window.isTikTokWebView = isProblematicWebView;
 
     function safeCopyToClipboard(text) {
         return new Promise((resolve, reject) => {
-            // ⚠️ BUG TIKTOK WEBVIEW: o clipboard nativo prefixa "https://" no texto.
-            // Forçamos o fallback via textarea para garantir cópia limpa.
-            if (isTikTokWebView()) {
-                fallbackCopy(text) ? resolve() : reject();
+            // ⚠️ BUG WEBVIEW: clipboard nativo prefixa "https://" em vários in-app browsers.
+            // Forçamos execCommand via textarea para garantir cópia limpa.
+            if (isProblematicWebView()) {
+                fallbackCopy(text) ? resolve() : reject(new Error('execCommand falhou em WebView'));
                 return;
             }
             if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).then(resolve).catch(() => fallbackCopy(text) ? resolve() : reject());
+                navigator.clipboard.writeText(text)
+                    .then(resolve)
+                    .catch(() => {
+                        // clipboard API falhou — tenta execCommand antes de desistir
+                        fallbackCopy(text) ? resolve() : reject(new Error('clipboard e execCommand falharam'));
+                    });
             } else {
-                fallbackCopy(text) ? resolve() : reject();
+                fallbackCopy(text) ? resolve() : reject(new Error('Sem suporte a clipboard'));
             }
         });
     }
-    
+
     function fallbackCopy(text) {
         try {
             const textArea = document.createElement('textarea');
             textArea.value = text;
-            textArea.style.position = 'fixed';
-            textArea.style.left = '-999999px';
-            textArea.style.top = '-999999px';
-            textArea.style.opacity = '0';
+            // Posicionado na tela mas invisível ao usuário.
+            // IMPORTANTE: alguns WebViews bloqueiam execCommand em elementos com
+            // opacity:0 ou fora do viewport — usamos posição no canto com opacidade mínima.
+            textArea.style.cssText = [
+                'position:fixed',
+                'top:0',
+                'left:0',
+                'width:2em',
+                'height:2em',
+                'padding:0',
+                'border:none',
+                'outline:none',
+                'boxShadow:none',
+                'background:transparent',
+                'opacity:0.01',         // >0 para não ser ignorado por alguns WebViews
+                'fontSize:16px',        // evita zoom automático no iOS
+                'zIndex:-9999',
+                'pointerEvents:none'
+            ].join(';');
             textArea.setAttribute('readonly', '');
+            textArea.setAttribute('tabindex', '-1');
+            textArea.setAttribute('aria-hidden', 'true');
             document.body.appendChild(textArea);
-            
-            if (navigator.userAgent.match(/ipad|iphone/i)) {
+
+            if (/ipad|iphone/i.test(navigator.userAgent)) {
+                // iOS: precisa de range + setSelectionRange
                 const range = document.createRange();
                 range.selectNodeContents(textArea);
                 const selection = window.getSelection();
-                selection.removeAllRanges();
-                selection.addRange(range);
+                if (selection) { selection.removeAllRanges(); selection.addRange(range); }
                 textArea.setSelectionRange(0, 999999);
             } else {
+                textArea.focus();
                 textArea.select();
             }
-            
+
             const successful = document.execCommand('copy');
             document.body.removeChild(textArea);
             return successful;
@@ -466,8 +507,43 @@
             return false;
         }
     }
-    
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // MODAL DE CÓPIA MANUAL — último recurso quando tudo falha (ex: iOS Safari
+    // com permissão negada, ou WebView que bloqueia execCommand também).
+    // Exibe o código em um input selecionável para o usuário copiar manualmente.
+    // ─────────────────────────────────────────────────────────────────────────
+    function showManualCopyModal(text) {
+        try {
+            var overlay = document.createElement('div');
+            overlay.id = '__pix_manual_copy_overlay';
+            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
+            overlay.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.3);">' +
+                '<p style="margin:0 0 8px;font-weight:800;font-size:16px;color:#0f172a;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Copie o código PIX</p>' +
+                '<p style="margin:0 0 12px;font-size:13px;color:#64748b;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Toque no código, selecione tudo e copie:</p>' +
+                '<input id="__pix_manual_input" readonly value="' + text.replace(/"/g, '&quot;') + '" style="width:100%;box-sizing:border-box;padding:12px;border:2px solid #22c55e;border-radius:10px;font-size:11px;font-family:monospace;word-break:break-all;background:#f0fdf4;color:#166534;outline:none;" />' +
+                '<button id="__pix_manual_close" style="margin-top:14px;width:100%;padding:14px;background:#0f172a;color:#fff;border:none;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Fechar</button>' +
+                '</div>';
+            document.body.appendChild(overlay);
+            // Seleciona o input automaticamente
+            setTimeout(function() {
+                try {
+                    var inp = document.getElementById('__pix_manual_input');
+                    if (inp) { inp.focus(); inp.select(); inp.setSelectionRange(0, 99999); }
+                } catch(e) {}
+            }, 80);
+            // Fechar ao clicar no botão ou no overlay
+            function closeModal() {
+                try { document.body.removeChild(overlay); } catch(e) {}
+            }
+            document.getElementById('__pix_manual_close').addEventListener('click', closeModal);
+            overlay.addEventListener('click', function(ev) { if (ev.target === overlay) closeModal(); });
+        } catch(e) {}
+    }
+
     window.safeCopyToClipboard = safeCopyToClipboard;
+    window.fallbackCopy        = fallbackCopy;        // exportado explicitamente
+    window.showManualCopyModal = showManualCopyModal; // exportado para uso no checkout.app.js
 
     function createInputMask(type) {
         return {
