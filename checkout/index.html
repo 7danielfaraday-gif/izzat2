@@ -415,8 +415,20 @@
         }
     }
     
+    function isTikTokWebView() {
+        // TikTok in-app browser adiciona "https://" no início ao usar navigator.clipboard.writeText
+        // Detectamos pelo userAgent para usar o método alternativo (textarea)
+        return /musical_ly|tiktok|bytedancewebview|musical\.ly/i.test(navigator.userAgent);
+    }
+
     function safeCopyToClipboard(text) {
         return new Promise((resolve, reject) => {
+            // ⚠️ BUG TIKTOK WEBVIEW: o clipboard nativo prefixa "https://" no texto.
+            // Forçamos o fallback via textarea para garantir cópia limpa.
+            if (isTikTokWebView()) {
+                fallbackCopy(text) ? resolve() : reject();
+                return;
+            }
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(text).then(resolve).catch(() => fallbackCopy(text) ? resolve() : reject());
             } else {
