@@ -329,6 +329,7 @@
     // (Compliance) Analytics de terceiros desativado nesta página.
 
     let INITIAL_HEIGHT = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    let activeKeyboardField = null;
 
     function updateFooterHeightVar() {
         try {
@@ -339,64 +340,107 @@
         } catch(e) {}
     }
 
-    
-    function setupKeyboardDetection() {
-        const isVisualViewportSupported = typeof window.visualViewport !== 'undefined';
-        
-        if (isVisualViewportSupported) {
-            const visualViewport = window.visualViewport;
-            const handleResize = () => {
-                const currentHeight = visualViewport.height;
-                if (currentHeight > INITIAL_HEIGHT) INITIAL_HEIGHT = currentHeight;
-                const diff = INITIAL_HEIGHT - currentHeight;
-                
-                if (diff > 150) { 
-                    document.documentElement.style.setProperty('--keyboard-height', diff + 'px');
-                    document.body.classList.add('keyboard-open');
-                } else {
-                    document.body.classList.remove('keyboard-open');
-                    document.documentElement.style.setProperty('--keyboard-height', '0px');
-                }
-            };
-            visualViewport.addEventListener('resize', handleResize);
-        }
+    function getKeyboardMetrics() {
+        const vv = window.visualViewport;
+        const viewportHeight = vv ? vv.height : window.innerHeight;
+        const viewportOffsetTop = vv ? vv.offsetTop : 0;
+        const diff = Math.max(0, INITIAL_HEIGHT - viewportHeight);
+        return {
+            viewportHeight,
+            viewportOffsetTop,
+            keyboardHeight: diff,
+            isOpen: diff > 120 || viewportOffsetTop > 0
+        };
+    }
 
-        window.addEventListener('resize', () => {
-            if (isVisualViewportSupported) return; 
-            const currentHeight = window.innerHeight;
-            const diff = INITIAL_HEIGHT - currentHeight;
-            if (diff > 150) {
+    function syncKeyboardState() {
+        try {
+            const metrics = getKeyboardMetrics();
+            document.documentElement.style.setProperty('--keyboard-height', metrics.keyboardHeight + 'px');
+            document.documentElement.style.setProperty('--visual-viewport-offset-top', metrics.viewportOffsetTop + 'px');
+            if (metrics.isOpen) {
                 document.body.classList.add('keyboard-open');
             } else {
                 document.body.classList.remove('keyboard-open');
             }
+            return metrics;
+        } catch (_) {
+            return { viewportHeight: window.innerHeight, viewportOffsetTop: 0, keyboardHeight: 0, isOpen: false };
+        }
+    }
+
+    function keepFieldVisible(target) {
+        try {
+            if (!target || !target.getBoundingClientRect) return;
+            updateFooterHeightVar();
+            const footerH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--footer-height')) || 0;
+            const metrics = syncKeyboardState();
+            const rect = target.getBoundingClientRect();
+            const safeTop = metrics.viewportOffsetTop + 12;
+            const safeBottom = metrics.viewportOffsetTop + metrics.viewportHeight - footerH - 12;
+
+            if (rect.bottom > safeBottom) {
+                window.scrollBy({ top: rect.bottom - safeBottom, left: 0, behavior: 'auto' });
+                return;
+            }
+            if (rect.top < safeTop) {
+                window.scrollBy({ top: rect.top - safeTop, left: 0, behavior: 'auto' });
+            }
+        } catch (_) {}
+    }
+
+    function setupKeyboardDetection() {
+        const isVisualViewportSupported = typeof window.visualViewport !== 'undefined';
+        const visualViewport = isVisualViewportSupported ? window.visualViewport : null;
+
+        const handleViewportChange = () => {
+            if (visualViewport) {
+                const currentHeight = visualViewport.height;
+                if (currentHeight > INITIAL_HEIGHT) INITIAL_HEIGHT = currentHeight;
+            } else {
+                const currentHeight = window.innerHeight;
+                if (currentHeight > INITIAL_HEIGHT) INITIAL_HEIGHT = currentHeight;
+            }
+
+            syncKeyboardState();
+            if (activeKeyboardField) {
+                setTimeout(() => keepFieldVisible(activeKeyboardField), 0);
+            }
+        };
+
+        if (visualViewport) {
+            visualViewport.addEventListener('resize', handleViewportChange);
+            visualViewport.addEventListener('scroll', handleViewportChange);
+        }
+
+        window.addEventListener('resize', () => {
+            if (isVisualViewportSupported) return;
+            handleViewportChange();
         });
 
         document.addEventListener('focusin', (e) => {
-            if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
+            if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) {
+                activeKeyboardField = e.target;
                 document.body.classList.add('keyboard-open');
-
-                const adjustForFooter = () => {
-                    try {
-                        const footerH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--footer-height')) || 0;
-                        const vvH = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-                        const rect = e.target.getBoundingClientRect();
-                        const bottomLimit = vvH - footerH - 12;
-                        if (rect.bottom > bottomLimit) {
-                            window.scrollBy(0, rect.bottom - bottomLimit);
-                        }
-                    } catch (_) {}
-                };
-
-                setTimeout(adjustForFooter, 60);
-                setTimeout(adjustForFooter, 260);
+                syncKeyboardState();
+                setTimeout(() => keepFieldVisible(e.target), 60);
+                setTimeout(() => keepFieldVisible(e.target), 220);
+                setTimeout(() => keepFieldVisible(e.target), 420);
             }
         });
-        
+
         document.addEventListener('focusout', (e) => {
-            if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
+            if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) {
                setTimeout(() => {
-                   if (document.activeElement && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+                   const ae = document.activeElement;
+                   if (ae && ['INPUT', 'TEXTAREA', 'SELECT'].includes(ae.tagName)) {
+                       activeKeyboardField = ae;
+                       keepFieldVisible(ae);
+                       return;
+                   }
+                   activeKeyboardField = null;
+                   syncKeyboardState();
+                   if (document.activeElement && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
                        document.body.classList.remove('keyboard-open');
                    }
                }, 150);
@@ -404,14 +448,25 @@
         });
 
         window.addEventListener('orientationchange', () => {
-            setTimeout(() => { INITIAL_HEIGHT = window.visualViewport ? window.visualViewport.height : window.innerHeight; updateFooterHeightVar(); }, 200);
+            setTimeout(() => {
+                INITIAL_HEIGHT = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                updateFooterHeightVar();
+                syncKeyboardState();
+                if (activeKeyboardField) keepFieldVisible(activeKeyboardField);
+            }, 200);
         });
 
         updateFooterHeightVar();
-        window.addEventListener('load', updateFooterHeightVar);
+        syncKeyboardState();
+        window.addEventListener('load', () => {
+            updateFooterHeightVar();
+            syncKeyboardState();
+            if (activeKeyboardField) keepFieldVisible(activeKeyboardField);
+        });
         window.addEventListener('resize', () => setTimeout(updateFooterHeightVar, 50));
         if (isVisualViewportSupported) {
             window.visualViewport.addEventListener('resize', () => setTimeout(updateFooterHeightVar, 50));
+            window.visualViewport.addEventListener('scroll', () => setTimeout(updateFooterHeightVar, 50));
         }
     }
     
