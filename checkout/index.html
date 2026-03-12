@@ -6,62 +6,58 @@
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no, interactive-widget=overlays-content" name="viewport"/>
 <script>
 // ── Correção: TikTok in-app browser – teclado cobre o campo focado ──────────
-// O WebView do TikTok não faz scroll automático quando o teclado abre.
-// Usamos a visualViewport API para detectar a abertura do teclado e
-// rolar manualmente o campo ativo para ficar visível acima do teclado.
 (function(){
-  var PADDING_ABOVE_KEYBOARD = 16; // px de espaço entre o campo e o topo do teclado
+  var PADDING_ABOVE_KEYBOARD = 16;
   var lastFocused = null;
+  // Flag: usuário está tocando → não interromper scroll manual
+  var userTouching = false;
+  // Só executa a correção UMA vez por foco (evita snap-back contínuo)
+  var correctionDone = false;
 
   function scrollActiveIntoView() {
+    if (userTouching || correctionDone) return;
     var el = lastFocused || document.activeElement;
     if (!el || (el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA' && el.tagName !== 'SELECT')) return;
 
-    // Aguarda um frame para o layout estabilizar
     requestAnimationFrame(function() {
+      if (userTouching || correctionDone) return;
       var vv = window.visualViewport;
       if (!vv) {
-        // Fallback sem visualViewport (Android muito antigo)
-        try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch(e) {}
+        try { el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch(e) {}
+        correctionDone = true;
         return;
       }
-
       var rect = el.getBoundingClientRect();
-      // Posição do campo em relação ao viewport visual atual
       var fieldBottom = rect.bottom;
-      var viewportBottom = vv.height; // altura visível (já excluindo o teclado via visualViewport)
-
+      var viewportBottom = vv.height;
       if (fieldBottom > viewportBottom - PADDING_ABOVE_KEYBOARD) {
         var overflowAmount = fieldBottom - (viewportBottom - PADDING_ABOVE_KEYBOARD);
         var currentScrollY = window.scrollY || window.pageYOffset;
-        window.scrollTo({
-          top: currentScrollY + overflowAmount,
-          behavior: 'smooth'
-        });
+        window.scrollTo({ top: currentScrollY + overflowAmount, behavior: 'smooth' });
       }
+      correctionDone = true;
     });
   }
 
-  // Guarda referência ao campo focado (focusin dispara antes do teclado abrir)
+  // Suspende auto-scroll enquanto o dedo está na tela
+  document.addEventListener('touchstart', function(){ userTouching = true; }, { passive: true, capture: true });
+  document.addEventListener('touchend',   function(){ setTimeout(function(){ userTouching = false; }, 200); }, { passive: true, capture: true });
+  document.addEventListener('touchcancel',function(){ userTouching = false; }, { passive: true, capture: true });
+
+  // Novo foco → reseta flags e agenda correção após o teclado abrir
   document.addEventListener('focusin', function(e) {
     var t = e.target;
     if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT')) {
       lastFocused = t;
-      // Pequeno delay para o teclado ter tempo de abrir antes de calcular
+      correctionDone = false;
       setTimeout(scrollActiveIntoView, 350);
     }
   }, true);
 
-  // visualViewport resize = teclado abriu ou fechou
+  // visualViewport resize = teclado abriu/fechou (dispara uma vez, correctionDone impede repetição)
   if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', function() {
-      scrollActiveIntoView();
-    });
-
-    // Quando o viewport rola (ex.: TikTok ajusta offset), revalida
-    window.visualViewport.addEventListener('scroll', function() {
-      scrollActiveIntoView();
-    });
+    window.visualViewport.addEventListener('resize', scrollActiveIntoView);
+    // REMOVIDO: listener 'scroll' do visualViewport — era o causador do snap-back
   }
 })();
 // ────────────────────────────────────────────────────────────────────────────
