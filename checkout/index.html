@@ -3,7 +3,69 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content" name="viewport"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no, interactive-widget=overlays-content" name="viewport"/>
+<script>
+// ── Correção: TikTok in-app browser – teclado cobre o campo focado ──────────
+// O WebView do TikTok não faz scroll automático quando o teclado abre.
+// Usamos a visualViewport API para detectar a abertura do teclado e
+// rolar manualmente o campo ativo para ficar visível acima do teclado.
+(function(){
+  var PADDING_ABOVE_KEYBOARD = 16; // px de espaço entre o campo e o topo do teclado
+  var lastFocused = null;
+
+  function scrollActiveIntoView() {
+    var el = lastFocused || document.activeElement;
+    if (!el || (el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA' && el.tagName !== 'SELECT')) return;
+
+    // Aguarda um frame para o layout estabilizar
+    requestAnimationFrame(function() {
+      var vv = window.visualViewport;
+      if (!vv) {
+        // Fallback sem visualViewport (Android muito antigo)
+        try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch(e) {}
+        return;
+      }
+
+      var rect = el.getBoundingClientRect();
+      // Posição do campo em relação ao viewport visual atual
+      var fieldBottom = rect.bottom;
+      var viewportBottom = vv.height; // altura visível (já excluindo o teclado via visualViewport)
+
+      if (fieldBottom > viewportBottom - PADDING_ABOVE_KEYBOARD) {
+        var overflowAmount = fieldBottom - (viewportBottom - PADDING_ABOVE_KEYBOARD);
+        var currentScrollY = window.scrollY || window.pageYOffset;
+        window.scrollTo({
+          top: currentScrollY + overflowAmount,
+          behavior: 'smooth'
+        });
+      }
+    });
+  }
+
+  // Guarda referência ao campo focado (focusin dispara antes do teclado abrir)
+  document.addEventListener('focusin', function(e) {
+    var t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT')) {
+      lastFocused = t;
+      // Pequeno delay para o teclado ter tempo de abrir antes de calcular
+      setTimeout(scrollActiveIntoView, 350);
+    }
+  }, true);
+
+  // visualViewport resize = teclado abriu ou fechou
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', function() {
+      scrollActiveIntoView();
+    });
+
+    // Quando o viewport rola (ex.: TikTok ajusta offset), revalida
+    window.visualViewport.addEventListener('scroll', function() {
+      scrollActiveIntoView();
+    });
+  }
+})();
+// ────────────────────────────────────────────────────────────────────────────
+</script>
 <link crossorigin="" href="https://analytics.tiktok.com" rel="preconnect"/>
 <link href="//analytics.tiktok.com" rel="dns-prefetch"/>
 <title>Checkout - Fritadeira Elétrica Forno Oven 12L</title>
