@@ -5,62 +5,65 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no, interactive-widget=overlays-content" name="viewport"/>
 <script>
-// ── Correção: TikTok in-app browser – teclado cobre o campo focado ──────────
-(function(){
-  var PADDING_ABOVE_KEYBOARD = 16;
-  var lastFocused = null;
-  // Flag: usuário está tocando → não interromper scroll manual
-  var userTouching = false;
-  // Só executa a correção UMA vez por foco (evita snap-back contínuo)
-  var correctionDone = false;
+// ── Fix: TikTok / in-app browser – teclado cobre o campo focado ─────────────
+// Problema raiz: no iOS WebView (TikTok, Instagram etc.) visualViewport.height
+// e window.innerHeight NAO diminuem quando o teclado abre — qualquer calculo
+// baseado nessas medidas falha silenciosamente. A unica abordagem confiavel e
+// scrollIntoView(), que o engine nativo do iOS executa corretamente em relacao
+// ao teclado. Disparamos em multiplos delays (100 a 750ms) para cobrir toda a
+// animacao do teclado (~400ms iOS), e cancelamos se o usuario tocar na tela.
+(function () {
+  var DELAYS = [100, 300, 500, 750];
+  var timers = [];
+  var touching = false;
 
-  function scrollActiveIntoView() {
-    if (userTouching || correctionDone) return;
-    var el = lastFocused || document.activeElement;
-    if (!el || (el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA' && el.tagName !== 'SELECT')) return;
-
-    requestAnimationFrame(function() {
-      if (userTouching || correctionDone) return;
-      var vv = window.visualViewport;
-      if (!vv) {
-        try { el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch(e) {}
-        correctionDone = true;
-        return;
-      }
-      var rect = el.getBoundingClientRect();
-      var fieldBottom = rect.bottom;
-      var viewportBottom = vv.height;
-      if (fieldBottom > viewportBottom - PADDING_ABOVE_KEYBOARD) {
-        var overflowAmount = fieldBottom - (viewportBottom - PADDING_ABOVE_KEYBOARD);
-        var currentScrollY = window.scrollY || window.pageYOffset;
-        window.scrollTo({ top: currentScrollY + overflowAmount, behavior: 'smooth' });
-      }
-      correctionDone = true;
-    });
+  function cancelAll() {
+    for (var i = 0; i < timers.length; i++) clearTimeout(timers[i]);
+    timers = [];
   }
 
-  // Suspende auto-scroll enquanto o dedo está na tela
-  document.addEventListener('touchstart', function(){ userTouching = true; }, { passive: true, capture: true });
-  document.addEventListener('touchend',   function(){ setTimeout(function(){ userTouching = false; }, 200); }, { passive: true, capture: true });
-  document.addEventListener('touchcancel',function(){ userTouching = false; }, { passive: true, capture: true });
+  function scrollEl(el) {
+    if (touching) return;
+    if (!el || !document.body.contains(el)) return;
+    try {
+      el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    } catch (_) {
+      try { el.scrollIntoView(true); } catch (__) {}
+    }
+  }
 
-  // Novo foco → reseta flags e agenda correção após o teclado abrir
-  document.addEventListener('focusin', function(e) {
+  document.addEventListener('touchstart', function () {
+    touching = true;
+    cancelAll();
+  }, { passive: true, capture: true });
+
+  document.addEventListener('touchend', function () {
+    setTimeout(function () { touching = false; }, 350);
+  }, { passive: true, capture: true });
+
+  document.addEventListener('touchcancel', function () {
+    touching = false; cancelAll();
+  }, { passive: true, capture: true });
+
+  document.addEventListener('focusin', function (e) {
     var t = e.target;
-    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT')) {
-      lastFocused = t;
-      correctionDone = false;
-      setTimeout(scrollActiveIntoView, 350);
+    if (!t || (t.tagName !== 'INPUT' && t.tagName !== 'TEXTAREA' && t.tagName !== 'SELECT')) return;
+    cancelAll();
+    for (var i = 0; i < DELAYS.length; i++) {
+      (function(el, d){ timers.push(setTimeout(function () { scrollEl(el); }, d)); })(t, DELAYS[i]);
     }
   }, true);
 
-  // visualViewport resize = teclado abriu/fechou (dispara uma vez, correctionDone impede repetição)
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', scrollActiveIntoView);
-    // REMOVIDO: listener 'scroll' do visualViewport — era o causador do snap-back
-  }
-})();
-// ────────────────────────────────────────────────────────────────────────────
+  document.addEventListener('focusout', function (e) {
+    var t = e.target;
+    if (!t || (t.tagName !== 'INPUT' && t.tagName !== 'TEXTAREA')) return;
+    setTimeout(function () {
+      var a = document.activeElement;
+      if (!a || (a.tagName !== 'INPUT' && a.tagName !== 'TEXTAREA')) cancelAll();
+    }, 80);
+  }, true);
+}());
+// ─────────────────────────────────────────────────────────────────────────────
 </script>
 <link crossorigin="" href="https://analytics.tiktok.com" rel="preconnect"/>
 <link href="//analytics.tiktok.com" rel="dns-prefetch"/>
@@ -68,7 +71,7 @@
 <link as="image" fetchpriority="high" href="../assets/img/01.webp" rel="preload"/>
 <link href="https://viacep.com.br" rel="dns-prefetch"/>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;tap-highlight-color:transparent}*:not(input):not(textarea){-webkit-user-select:none;user-select:none}.select-all{-webkit-user-select:text !important;user-select:text !important}input,select,textarea{font-size:16px !important;-webkit-box-shadow:0 0 0 100px white inset !important;box-shadow:0 0 0 100px white inset !important}html,body{overflow-x:hidden;width:100%;scroll-padding-top:80px;scroll-padding-bottom:calc(var(--footer-height,120px) + 24px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}input,textarea,[contenteditable]{-webkit-user-select:text !important;user-select:text !important;scroll-margin-top:20px;scroll-margin-bottom:calc(var(--footer-height,120px) + 24px);-webkit-appearance:none;appearance:none;border-radius:0}body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background-color:#f8fafc;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh}.safe-area-padding{padding-bottom:env(safe-area-inset-bottom,20px)}:root{--safe-area-inset-top:env(safe-area-inset-top,0px);--safe-area-inset-bottom:env(safe-area-inset-bottom,0px)}#skeleton-loader{position:fixed;top:0;left:0;width:100%;height:100%;background:#f8fafc;z-index:9999;display:flex;flex-direction:column;transition:opacity 0.4s ease-out}.progress-bar{height:3px;background:linear-gradient(90deg,#22c55e 0%,#4ade80 100%);position:fixed;top:0;left:0;z-index:10000;transition:width 0.4s cubic-bezier(0.4,0,0.2,1);width:25%}.static-nav{background:rgba(255,255,255,0.98);padding:16px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:calc(env(safe-area-inset-top) - 1px);z-index:30;min-height:56px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}button,[role="button"],.btn-tactile{min-height:44px;min-width:44px;touch-action:manipulation;cursor:pointer}input[type="text"],input[type="email"],input[type="tel"]{min-height:44px;font-size:16px !important}.scrollbar-hidden{-ms-overflow-style:none;scrollbar-width:none}.scrollbar-hidden::-webkit-scrollbar{display:none}@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.fade-in{animation:fadeIn 0.4s ease-out forwards}.form-container{padding-bottom:calc(var(--footer-height,120px) + 24px + env(safe-area-inset-bottom))}.spinner-mobile{width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-radius:50%;border-top-color:white;animation:spin 0.8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.static-container{display:flex;flex-direction:column;padding:20px;max-width:500px;margin:0 auto;gap:20px}.static-card{background:white;border-radius:16px;padding:20px;display:flex;gap:16px;border:1px solid #e2e8f0;position:relative}.static-badge{position:absolute;top:0;left:0;background:#16a34a;color:white;font-size:10px;font-weight:bold;padding:4px 12px;border-bottom-right-radius:8px}.static-title{font-size:14px;font-weight:700;color:#1e293b;margin-bottom:4px;line-height:1.4}.static-old-price{font-size:12px;color:#94a3b8;text-decoration:line-through;display:block}.static-new-price{font-size:24px;color:#16a34a;font-weight:800;display:block}.sk-form-block{background:white;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden}.sk-form-header{background:#f8fafc;padding:12px 20px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:12px}.sk-circle{width:24px;height:24px;background:#16a34a;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold}.sk-title{font-size:14px;font-weight:700;color:#334155;text-transform:uppercase}.sk-body{padding:20px}.sk-input{height:48px;background:#f1f5f9;border-radius:12px;margin-bottom:16px}.checkout-fixed-footer{position:fixed;bottom:0;left:0;width:100%;z-index:50;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom));background:linear-gradient(to top,rgba(248,250,252,1) 85%,rgba(248,250,252,0.9));box-shadow:0 -4px 12px rgba(0,0,0,0.05);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1)}body.keyboard-open .checkout-fixed-footer{transform:none}@media (min-width:1024px){.static-container{max-width:1024px;flex-direction:row;align-items:flex-start}.static-left-col{width:40%}.static-right-col{width:60%}.checkout-fixed-footer{position:static;padding:0;background:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;transform:none !important}.form-container{padding-bottom:0 !important}}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;tap-highlight-color:transparent}*:not(input):not(textarea){-webkit-user-select:none;user-select:none}.select-all{-webkit-user-select:text !important;user-select:text !important}input,select,textarea{font-size:16px !important;-webkit-box-shadow:0 0 0 100px white inset !important;box-shadow:0 0 0 100px white inset !important}html,body{overflow-x:hidden;width:100%;scroll-padding-top:80px;scroll-padding-bottom:calc(var(--footer-height,120px) + 24px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}input,textarea,[contenteditable]{-webkit-user-select:text !important;user-select:text !important;scroll-margin-top:20px;scroll-margin-bottom:calc(var(--footer-height,120px) + 24px);-webkit-appearance:none;appearance:none;border-radius:0}body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background-color:#f8fafc;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh}.safe-area-padding{padding-bottom:env(safe-area-inset-bottom,20px)}:root{--safe-area-inset-top:env(safe-area-inset-top,0px);--safe-area-inset-bottom:env(safe-area-inset-bottom,0px)}#skeleton-loader{position:fixed;top:0;left:0;width:100%;height:100%;background:#f8fafc;z-index:9999;display:flex;flex-direction:column;transition:opacity 0.4s ease-out}.progress-bar{height:3px;background:linear-gradient(90deg,#22c55e 0%,#4ade80 100%);position:fixed;top:0;left:0;z-index:10000;transition:width 0.4s cubic-bezier(0.4,0,0.2,1);width:25%}.static-nav{background:rgba(255,255,255,0.98);padding:16px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:calc(env(safe-area-inset-top) - 1px);z-index:30;min-height:56px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}button,[role="button"],.btn-tactile{min-height:44px;min-width:44px;touch-action:manipulation;cursor:pointer}input[type="text"],input[type="email"],input[type="tel"]{min-height:44px;font-size:16px !important}.scrollbar-hidden{-ms-overflow-style:none;scrollbar-width:none}.scrollbar-hidden::-webkit-scrollbar{display:none}@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.fade-in{animation:fadeIn 0.4s ease-out forwards}.form-container{padding-bottom:calc(var(--footer-height,120px) + 24px + env(safe-area-inset-bottom))}.spinner-mobile{width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-radius:50%;border-top-color:white;animation:spin 0.8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.static-container{display:flex;flex-direction:column;padding:20px;max-width:500px;margin:0 auto;gap:20px}.static-card{background:white;border-radius:16px;padding:20px;display:flex;gap:16px;border:1px solid #e2e8f0;position:relative}.static-badge{position:absolute;top:0;left:0;background:#16a34a;color:white;font-size:10px;font-weight:bold;padding:4px 12px;border-bottom-right-radius:8px}.static-title{font-size:14px;font-weight:700;color:#1e293b;margin-bottom:4px;line-height:1.4}.static-old-price{font-size:12px;color:#94a3b8;text-decoration:line-through;display:block}.static-new-price{font-size:24px;color:#16a34a;font-weight:800;display:block}.sk-form-block{background:white;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden}.sk-form-header{background:#f8fafc;padding:12px 20px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:12px}.sk-circle{width:24px;height:24px;background:#16a34a;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold}.sk-title{font-size:14px;font-weight:700;color:#334155;text-transform:uppercase}.sk-body{padding:20px}.sk-input{height:48px;background:#f1f5f9;border-radius:12px;margin-bottom:16px}.checkout-fixed-footer{position:fixed;bottom:0;left:0;width:100%;z-index:50;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom));background:linear-gradient(to top,rgba(248,250,252,1) 85%,rgba(248,250,252,0.9));box-shadow:0 -4px 12px rgba(0,0,0,0.05);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1)}body.keyboard-open .checkout-fixed-footer{transform:translateY(110%)}body.keyboard-open input,body.keyboard-open textarea{scroll-margin-bottom:16px !important}@media (min-width:1024px){.static-container{max-width:1024px;flex-direction:row;align-items:flex-start}.static-left-col{width:40%}.static-right-col{width:60%}.checkout-fixed-footer{position:static;padding:0;background:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;transform:none !important}.form-container{padding-bottom:0 !important}}
 </style>
 <script>
 !function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=i,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};var o=document.createElement("script");o.type="text/javascript",o.async=!0,o.src=i+"?sdkid="+e+"&lib="+t;var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(o,a)};var _ttid='D6NC3PJC77UE81ODKIEG';if(_ttid&&_ttid.indexOf('REPLACE')===-1){ttq.load(_ttid,{autoConfig:false});ttq.page();}}(window,document,'ttq');
@@ -446,8 +449,10 @@
                     } catch (_) {}
                 };
 
-                setTimeout(adjustForFooter, 60);
-                setTimeout(adjustForFooter, 260);
+                // Delays corrigidos: teclado iOS leva ~400ms para abrir completamente.
+                // Disparar em 60/260ms usava vvH antes do teclado estar aberto (sempre errado).
+                setTimeout(adjustForFooter, 450);
+                setTimeout(adjustForFooter, 700);
             }
         });
         
