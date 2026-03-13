@@ -3,144 +3,100 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no, interactive-widget=overlays-content" name="viewport"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-visual" name="viewport"/>
 <script>
-// ── Fix: TikTok / in-app browser – teclado cobre o campo focado ─────────────
-// Problema raiz: no iOS WebView (TikTok, Instagram etc.) visualViewport.height
-// e window.innerHeight NAO diminuem quando o teclado abre — qualquer calculo
-// baseado nessas medidas falha silenciosamente. A unica abordagem confiavel e
-// scrollIntoView(), que o engine nativo do iOS executa corretamente em relacao
-// ao teclado. Disparamos em multiplos delays (100 a 750ms) para cobrir toda a
-// animacao do teclado (~400ms iOS), e cancelamos se o usuario tocar na tela.
+// ── Fix: teclado cobre o campo focado — iOS WebView + Android in-browser ─────
+// • iOS Safari: ignora interactive-widget, NÃO rola automaticamente em WebViews
+//   (TikTok, Instagram). Solução: scrollIntoView com múltiplos delays.
+// • Android Chrome: com interactive-widget=resizes-visual o Chrome JÁ faz scroll
+//   nativo. Este script serve de fallback para Android WebViews (Instagram, etc.)
+//   que não respeitam o viewport meta.
 (function () {
-  // FIX: Reduzido de 4 delays (100,300,500,750) para 2 (120,420).
-  // 120ms: cobre Android onde o teclado abre rápido.
-  // 420ms: cobre iOS (~400ms para animação completa do teclado).
-  // Menos disparos = menos scroll jank ao mudar de campo.
   var DELAYS = [120, 420];
   var timers = [];
-  var touching = false;
-  var lastFocusedEl = null;
+  var lastEl = null;
 
   function cancelAll() {
     for (var i = 0; i < timers.length; i++) clearTimeout(timers[i]);
     timers = [];
   }
 
-  // Detecta Android in-browser para usar scrollBy explícito
-  // (scrollIntoView falha no Android com interactive-widget=overlays-content porque
-  //  o campo já está "visível" no layout viewport — o browser não sabe que o teclado cobre)
-  var isAndroid = /Android/i.test(navigator.userAgent);
-
-  function getVisibleBottom() {
-    var vvH = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-    var footerH = 0;
-    try {
-      var kbOpen = document.body.classList.contains('keyboard-open');
-      var lastField = document.body.classList.contains('last-field-focused');
-      if (!kbOpen || lastField) {
-        footerH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--footer-height')) || 0;
-      }
-    } catch(_) {}
-    return vvH - footerH - 16;
-  }
-
-  function scrollEl(el) {
-    if (touching) return;
+  function doScroll(el) {
     if (!el || !document.body.contains(el)) return;
     try {
+      // Usa visualViewport.height se disponível (desconta teclado no Android WebView)
+      var vvH = window.visualViewport ? window.visualViewport.height : window.innerHeight;
       var rect = el.getBoundingClientRect();
-      var safeBottom = getVisibleBottom();
-      var safeTop = 72;
-
-      if (isAndroid) {
-        // Android: scrollBy explícito usando visualViewport.height como referência real
-        // scrollIntoView() falha aqui porque o campo já está no layout viewport (tamanho completo)
-        // mas o teclado cobre a parte inferior — o browser não vê conflito
-        if (rect.bottom > safeBottom) {
-          window.scrollBy({ top: Math.ceil(rect.bottom - safeBottom + 8), behavior: 'smooth' });
-        } else if (rect.top < safeTop) {
-          window.scrollBy({ top: Math.ceil(rect.top - safeTop), behavior: 'smooth' });
+      var navH = 72; // altura da nav fixa + folga
+      // Pega altura do footer se estiver visível
+      var footerH = 0;
+      try {
+        var kbOpen = document.body.classList.contains('keyboard-open');
+        var lastField = document.body.classList.contains('last-field-focused');
+        if (!kbOpen || lastField) {
+          footerH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--footer-height')) || 0;
         }
+      } catch(e) {}
+      var safeBottom = vvH - footerH - 24;
+
+      if (rect.top >= navH && rect.bottom <= safeBottom) return; // já visível
+
+      if (rect.bottom > safeBottom) {
+        // Campo coberto pelo teclado ou footer: rola para mostrar o campo
+        window.scrollBy({ top: Math.ceil(rect.bottom - safeBottom + 8), behavior: 'smooth' });
       } else {
-        // iOS / desktop: scrollIntoView nativo funciona perfeitamente
-        if (rect.top >= safeTop && rect.bottom <= safeBottom) return;
+        // Campo acima da nav: rola para centralizar
         el.scrollIntoView({ block: 'center', behavior: 'smooth' });
       }
-    } catch (_) {
-      try { el.scrollIntoView(true); } catch (__) {}
+    } catch(_) {
+      try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch(__) {}
     }
   }
 
-  // Android: ouvir resize do visualViewport (= teclado abrindo/fechando)
-  // e rolar explicitamente para o campo ativo
+  // Quando visualViewport redimensiona (teclado abre/fecha no Android WebView),
+  // rola para o campo ativo se ele foi coberto
   if (window.visualViewport) {
+    var vvTimer;
     window.visualViewport.addEventListener('resize', function() {
-      var active = document.activeElement;
-      if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT')) {
-        // Múltiplos delays: diferentes dispositivos Android animam o teclado em tempos diferentes
-        clearTimeout(window.__androidVvTimer1);
-        clearTimeout(window.__androidVvTimer2);
-        clearTimeout(window.__androidVvTimer3);
-        window.__androidVvTimer1 = setTimeout(function() { scrollEl(active); }, 80);
-        window.__androidVvTimer2 = setTimeout(function() { scrollEl(active); }, 280);
-        window.__androidVvTimer3 = setTimeout(function() { scrollEl(active); }, 520);
+      clearTimeout(vvTimer);
+      var el = document.activeElement;
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT')) {
+        // Espera animação do teclado terminar antes de rolar
+        vvTimer = setTimeout(function() { doScroll(el); }, 100);
       }
     });
   }
 
-  document.addEventListener('touchstart', function () {
-    touching = true;
-    cancelAll();
-    // No Android, o teclado demora ~100-400ms para abrir após o toque.
-    // Reduzir o bloqueio de scroll para 80ms (só cancela o delay imediato)
-    // O visualViewport.resize listener cuidará do scroll quando o teclado realmente abrir.
-    if (isAndroid) {
-      setTimeout(function() { touching = false; }, 80);
-    }
-  }, { passive: true, capture: true });
-
-  document.addEventListener('touchend', function () {
-    // iOS: manter 500ms para evitar scroll duplo durante animação do teclado
-    // Android: touching já foi liberado em 80ms no touchstart
-    setTimeout(function () { touching = false; }, isAndroid ? 0 : 500);
-  }, { passive: true, capture: true });
-
-  document.addEventListener('touchcancel', function () {
-    touching = false; cancelAll();
-  }, { passive: true, capture: true });
-
-  document.addEventListener('focusin', function (e) {
+  document.addEventListener('focusin', function(e) {
     var t = e.target;
     if (!t || (t.tagName !== 'INPUT' && t.tagName !== 'TEXTAREA' && t.tagName !== 'SELECT')) return;
-    // FIX: Se focus mudou para campo adjacente (tab/next), cancelar scrolls anteriores
-    // e usar um único delay menor para transição entre campos
     cancelAll();
-    var isSameFormSwitch = lastFocusedEl && lastFocusedEl !== t && lastFocusedEl.form === t.form;
-    lastFocusedEl = t;
-    if (isSameFormSwitch) {
-      // Transição campo→campo: delay único e curto
-      timers.push(setTimeout(function () { scrollEl(t); }, 180));
+    var isSameForm = lastEl && lastEl !== t && lastEl.form === t.form;
+    lastEl = t;
+    if (isSameForm) {
+      // Troca de campo: delay curto
+      timers.push(setTimeout(function() { doScroll(t); }, 180));
     } else {
-      // Primeiro foco (teclado abrindo): delays normais
+      // Primeiro campo: múltiplos delays para cobrir variação de velocidade do teclado
       for (var i = 0; i < DELAYS.length; i++) {
-        (function(el, d){ timers.push(setTimeout(function () { scrollEl(el); }, d)); })(t, DELAYS[i]);
+        (function(el, d) { timers.push(setTimeout(function() { doScroll(el); }, d)); })(t, DELAYS[i]);
       }
     }
   }, true);
 
-  document.addEventListener('focusout', function (e) {
+  document.addEventListener('focusout', function(e) {
     var t = e.target;
     if (!t || (t.tagName !== 'INPUT' && t.tagName !== 'TEXTAREA')) return;
-    setTimeout(function () {
+    setTimeout(function() {
       var a = document.activeElement;
       if (!a || (a.tagName !== 'INPUT' && a.tagName !== 'TEXTAREA')) {
         cancelAll();
-        lastFocusedEl = null;
+        lastEl = null;
       }
     }, 80);
   }, true);
 }());
+
 // ─────────────────────────────────────────────────────────────────────────────
 </script>
 <link crossorigin="" href="https://analytics.tiktok.com" rel="preconnect"/>
@@ -567,35 +523,7 @@
                 } else {
                     document.body.classList.remove('last-field-focused');
                 }
-
-                // FIX: adjustForFooter agora usa um único delay (480ms) em vez de dois
-                // (450+700), e só faz scrollBy se o campo realmente está coberto.
-                // Isso evita o double-scroll com o scrollIntoView do script do <head>.
-                // Android: scroll já tratado pelo visualViewport.resize listener no <head>
-                // Este adjustForFooter serve como fallback extra para ambos os sistemas
-                const adjustForFooter = () => {
-                    try {
-                        const kbOpen = document.body.classList.contains('keyboard-open');
-                        const lastField = document.body.classList.contains('last-field-focused');
-                        // Se teclado aberto e não é último campo, footer está oculto (translateY 110%)
-                        // Não subtrair footerH nesse caso
-                        const footerH = (!kbOpen || lastField)
-                            ? (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--footer-height')) || 0)
-                            : 0;
-                        const vvH = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-                        const rect = e.target.getBoundingClientRect();
-                        const bottomLimit = vvH - footerH - 16;
-                        const delta = rect.bottom - bottomLimit;
-                        if (delta > 8) {
-                            window.scrollBy({ top: delta + 8, behavior: 'smooth' });
-                        }
-                    } catch (_) {}
-                };
-
-                // Android pode ter teclado mais rápido (100-300ms), iOS ~400ms
-                // Disparamos em 2 momentos para cobrir ambos
-                setTimeout(adjustForFooter, 300);
-                setTimeout(adjustForFooter, 550);
+                // Scroll é gerenciado pelo script do <head> (visualViewport.resize + focusin)
             }
         });
         
