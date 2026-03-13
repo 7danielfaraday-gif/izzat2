@@ -38,36 +38,13 @@ function buildSafeUser(user) {
   return safe;
 }
 
-function getCorsOrigin(request) {
-  const fallbackOrigin = new URL(request.url).origin;
-  const origin = request.headers.get('origin');
-  if (!origin) return fallbackOrigin;
-
-  try {
-    const requestOrigin = new URL(origin).origin;
-    return requestOrigin === fallbackOrigin ? requestOrigin : fallbackOrigin;
-  } catch {
-    return fallbackOrigin;
-  }
-}
-
-function buildCorsHeaders(request) {
-  return {
-    'access-control-allow-origin': getCorsOrigin(request),
-    'access-control-allow-methods': 'POST, OPTIONS',
-    'access-control-allow-headers': 'content-type',
-    'access-control-max-age': '86400',
-    'vary': 'Origin',
-  };
-}
-
-function json(data, status = 200, request) {
+function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
       'content-type': 'application/json; charset=utf-8',
       'cache-control': 'no-store, max-age=0',
-      ...buildCorsHeaders(request),
+      'access-control-allow-origin': 'https://izzat.shop',
     },
   });
 }
@@ -83,12 +60,15 @@ function pick(obj, fields) {
   return out;
 }
 
-export async function onRequestOptions(context) {
+export async function onRequestOptions() {
+  // CORS preflight — restrito ao domínio da loja
   return new Response(null, {
     status: 204,
     headers: {
+      'access-control-allow-origin': 'https://izzat.shop',
+      'access-control-allow-methods': 'POST, OPTIONS',
+      'access-control-allow-headers': 'content-type',
       'cache-control': 'no-store',
-      ...buildCorsHeaders(context.request),
     },
   });
 }
@@ -104,10 +84,10 @@ export async function onRequestPost(context) {
 
     if (!pixelId || pixelId.indexOf('REPLACE') !== -1) {
       // Pixel ainda não configurado — ignora silenciosamente para não quebrar o checkout
-      return json({ ok: true, skipped: 'pixel_not_configured' }, 200, context.request);
+      return json({ ok: true, skipped: 'pixel_not_configured' });
     }
     if (!accessToken) {
-      return json({ ok: false, error: 'access_token_not_configured' }, 500, context.request);
+      return json({ ok: false, error: 'access_token_not_configured' }, 500);
     }
 
     // ── Parse do body enviado pelo browser ───────────────────────────────────
@@ -120,7 +100,7 @@ export async function onRequestPost(context) {
     const user       = body.user       || {};
     const context_b  = body.context    || {};
 
-    if (!event) return json({ ok: false, error: 'missing_event' }, 400, context.request);
+    if (!event) return json({ ok: false, error: 'missing_event' }, 400);
 
     // ── Metadados server-side (mais confiáveis que o browser) ─────────────────
     const ip        = context.request.headers.get('cf-connecting-ip')
@@ -193,13 +173,13 @@ export async function onRequestPost(context) {
     if (!apiRes.ok) {
       // Loga no Cloudflare Workers Logs mas não quebra o checkout
       console.error('[tiktok-events] API error', apiRes.status, JSON.stringify(apiJson));
-      return json({ ok: false, error: 'api_error', status: apiRes.status, detail: apiJson }, 200, context.request);
+      return json({ ok: false, error: 'api_error', status: apiRes.status, detail: apiJson }, 200);
     }
 
-    return json({ ok: true, event, event_id: event_id || null }, 200, context.request);
+    return json({ ok: true, event, event_id: event_id || null });
 
   } catch (err) {
     console.error('[tiktok-events] Unexpected error:', err);
-    return json({ ok: false, error: 'server_error' }, 500, context.request);
+    return json({ ok: false, error: 'server_error' }, 500);
   }
 }
