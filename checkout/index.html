@@ -586,146 +586,39 @@
     // mantém alias para compatibilidade com código legado
     window.isTikTokWebView = isProblematicWebView;
 
+    // ─── ESTRATÉGIA DE CÓPIA v3 (DEFINITIVA) ───────────────────────────────
+    // Problemas anteriores com textarea + execCommand:
+    //  1. iOS mostra tooltip "Colar" ao fazer focus()+setSelectionRange() no textarea
+    //  2. Alguns WebViews abrem teclado mesmo com readonly
+    //  3. execCommand('copy') retorna true mas não copia ("cópia fantasma")
+    //  4. verifyClipboardContent com readText() pede permissão extra ao usuário
+    //
+    // Nova abordagem:
+    //  - Tenta navigator.clipboard.writeText() SEMPRE primeiro (funciona na maioria
+    //    dos WebViews modernos quando chamado de user gesture, sem criar textarea).
+    //  - Se writeText resolve: sucesso. NÃO verificamos com readText (causa prompts).
+    //  - Se writeText falha (rejeita): vai direto para showManualCopyModal.
+    //  - ZERO textarea, ZERO execCommand, ZERO focus em elementos ocultos.
+    //    Isso elimina permanentemente o teclado, o tooltip "Colar" e a cópia fantasma.
+    // ─────────────────────────────────────────────────────────────────────────
     function safeCopyToClipboard(text) {
-        return new Promise((resolve, reject) => {
-            // ⚠️ BUG WEBVIEW: clipboard nativo prefixa "https://" em vários in-app browsers.
-            // Forçamos execCommand via textarea para garantir cópia limpa.
-            if (isProblematicWebView()) {
-                var ok = fallbackCopy(text);
-                if (ok) {
-                    // FIX: Verificação pós-cópia — tenta ler o clipboard de volta
-                    // para detectar "cópia fantasma" (execCommand retorna true mas nada copiou)
-                    verifyClipboardContent(text).then(function(verified) {
-                        if (verified) { resolve(); }
-                        else { reject(new Error('Clipboard verification failed in WebView')); }
-                    });
-                } else {
-                    reject(new Error('execCommand falhou em WebView'));
-                }
-                return;
-            }
-            if (navigator.clipboard && navigator.clipboard.writeText) {
+        return new Promise(function(resolve, reject) {
+            // Clipboard API disponível?
+            if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
                 navigator.clipboard.writeText(text)
                     .then(function() {
-                        // FIX: Verificação pós-cópia para clipboard nativo também
-                        verifyClipboardContent(text).then(function(verified) {
-                            if (verified) { resolve(); }
-                            else { reject(new Error('Clipboard content mismatch (https:// prefix?)')); }
-                        });
+                        resolve();
                     })
-                    .catch(function() {
-                        // clipboard API falhou — tenta execCommand antes de desistir
-                        fallbackCopy(text) ? resolve() : reject(new Error('clipboard e execCommand falharam'));
+                    .catch(function(err) {
+                        // writeText falhou (permissão negada, contexto inseguro, etc.)
+                        // → modal de cópia manual é o fallback mais seguro
+                        reject(new Error('clipboard.writeText falhou: ' + (err && err.message || 'unknown')));
                     });
             } else {
-                fallbackCopy(text) ? resolve() : reject(new Error('Sem suporte a clipboard'));
+                // Navegador muito antigo sem Clipboard API → modal direto
+                reject(new Error('Clipboard API não disponível'));
             }
         });
-    }
-
-    // FIX: Verificação pós-cópia — lê clipboard e compara com o texto original.
-    // Detecta o bug "https://" e também cópias silenciosamente vazias.
-    // Retorna Promise<boolean>. Se não conseguir ler (permissão negada), assume true.
-    function verifyClipboardContent(expectedText) {
-        return new Promise(function(resolve) {
-            try {
-                // navigator.clipboard.readText só funciona em contexto seguro + com permissão
-                if (!navigator.clipboard || typeof navigator.clipboard.readText !== 'function') {
-                    resolve(true); // não consegue verificar, assume ok
-                    return;
-                }
-                navigator.clipboard.readText().then(function(clipText) {
-                    if (!clipText) {
-                        // Clipboard vazio = cópia fantasma
-                        resolve(false);
-                        return;
-                    }
-                    var clean = clipText.trim();
-                    var expected = (expectedText || '').trim();
-                    // Detecta o bug "https://" prefixado
-                    if (clean === expected) {
-                        resolve(true);
-                    } else if (clean.replace(/^https?:\/\//, '') === expected || clean === 'https://' + expected || clean === 'http://' + expected) {
-                        // Bug confirmado: WebView adicionou prefixo
-                        resolve(false);
-                    } else {
-                        // Conteúdo diferente (pode ser clipboard anterior do usuário) — assume ok
-                        // porque não podemos garantir que é erro nosso
-                        resolve(true);
-                    }
-                }).catch(function() {
-                    // Permissão negada para ler clipboard — assume ok
-                    resolve(true);
-                });
-            } catch(e) {
-                resolve(true);
-            }
-        });
-    }
-
-    function fallbackCopy(text) {
-        try {
-            var isIOS = /ipad|iphone/i.test(navigator.userAgent);
-            var textArea = document.createElement('textarea');
-            textArea.value = text;
-            textArea.style.cssText = [
-                'position:fixed',
-                'top:0',
-                'left:0',
-                'width:2em',
-                'height:2em',
-                'padding:0',
-                'border:none',
-                'outline:none',
-                'box-shadow:none',
-                'background:transparent',
-                'opacity:0.01',
-                'font-size:16px',
-                'z-index:99999',
-                'pointer-events:none'
-            ].join(';');
-            // readonly impede o teclado de abrir no focus (crítico no iOS).
-            // No iOS, readonly NÃO impede setSelectionRange — então funciona.
-            // No Android, readonly pode impedir select() em ALGUNS WebViews.
-            // Solução: readonly no iOS, sem readonly no Android.
-            if (isIOS) {
-                textArea.setAttribute('readonly', '');
-            }
-            // inputMode 'none' é um hint extra para não abrir teclado virtual
-            textArea.setAttribute('inputmode', 'none');
-            textArea.setAttribute('tabindex', '-1');
-            textArea.setAttribute('aria-hidden', 'true');
-            textArea.setAttribute('autocomplete', 'off');
-            textArea.setAttribute('autocorrect', 'off');
-            textArea.setAttribute('spellcheck', 'false');
-            document.body.appendChild(textArea);
-
-            if (isIOS) {
-                // iOS: focus + range + setSelectionRange (readonly impede teclado)
-                textArea.focus();
-                var range = document.createRange();
-                range.selectNodeContents(textArea);
-                var selection = window.getSelection();
-                if (selection) { selection.removeAllRanges(); selection.addRange(range); }
-                textArea.setSelectionRange(0, 999999);
-            } else {
-                // Android: focus + select (sem readonly para não bloquear select)
-                textArea.focus();
-                textArea.select();
-            }
-
-            var successful = document.execCommand('copy');
-            document.body.removeChild(textArea);
-
-            // Fecha o teclado caso tenha aberto (safety net)
-            try { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); } catch(_) {}
-
-            return successful;
-        } catch (err) {
-            try { if (textArea && textArea.parentNode) document.body.removeChild(textArea); } catch(_) {}
-            try { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); } catch(_) {}
-            return false;
-        }
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -762,7 +655,6 @@
     }
 
     window.safeCopyToClipboard = safeCopyToClipboard;
-    window.fallbackCopy        = fallbackCopy;        // exportado explicitamente
     window.showManualCopyModal = showManualCopyModal; // exportado para uso no checkout.app.js
 
     function createInputMask(type) {
