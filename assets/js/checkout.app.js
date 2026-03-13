@@ -69,20 +69,29 @@ document.addEventListener('DOMContentLoaded', function(){
         // Espelha o mesmo event_id do browser pixel — TikTok deduplica automaticamente.
         // Não bloqueia o checkout nem expõe PII: hashes são gerados no browser antes do envio.
         const sendCAPI = (event, event_id, properties, user) => {
-            try {
-                const payload = JSON.stringify({ event, event_id, properties: properties || {}, user: user || {} });
-                if (navigator && typeof navigator.sendBeacon === 'function') {
-                    const blob = new Blob([payload], { type: 'application/json' });
-                    navigator.sendBeacon('/api/tiktok-events', blob);
-                } else if (typeof fetch === 'function') {
-                    fetch('/api/tiktok-events', {
-                        method: 'POST',
-                        headers: { 'content-type': 'application/json' },
-                        body: payload,
-                        keepalive: true
-                    }).catch(() => {});
-                }
-            } catch(e) {}
+            const dispatch = () => {
+                try {
+                    const payload = JSON.stringify({ event, event_id, properties: properties || {}, user: user || {} });
+                    if (navigator && typeof navigator.sendBeacon === 'function') {
+                        const blob = new Blob([payload], { type: 'application/json' });
+                        navigator.sendBeacon('/api/tiktok-events', blob);
+                    } else if (typeof fetch === 'function') {
+                        fetch('/api/tiktok-events', {
+                            method: 'POST',
+                            headers: { 'content-type': 'application/json' },
+                            body: payload,
+                            keepalive: true
+                        }).catch(() => {});
+                    }
+                } catch(e) {}
+            };
+
+            if (window.__runWhenTrackingReady) {
+                window.__runWhenTrackingReady(dispatch);
+                return;
+            }
+
+            dispatch();
         };
 
         const useInputMask = (type) => {
