@@ -20,6 +20,39 @@
 
     // --- HELPER FUNCTIONS ---
 
+    // ── Cookie helpers (fallback para WebViews que restringem localStorage) ──
+    function _setCookie(name, value, days) {
+        try {
+            var expires = '';
+            if (days) {
+                var d = new Date();
+                d.setTime(d.getTime() + (days * 86400000));
+                expires = '; expires=' + d.toUTCString();
+            }
+            document.cookie = name + '=' + encodeURIComponent(value || '') + expires + '; path=/; SameSite=Lax';
+        } catch(e) {}
+    }
+    function _getCookie(name) {
+        try {
+            var eq = name + '=';
+            var parts = document.cookie.split(';');
+            for (var i = 0; i < parts.length; i++) {
+                var c = parts[i].trim();
+                if (c.indexOf(eq) === 0) return decodeURIComponent(c.substring(eq.length));
+            }
+        } catch(e) {}
+        return null;
+    }
+    function _safeGet(key) {
+        try { var v = localStorage.getItem(key); if (v) return v; } catch(e) {}
+        return _getCookie(key);
+    }
+    function _safeSet(key, value, cookieDays) {
+        try { localStorage.setItem(key, value); } catch(e) {}
+        _setCookie(key, value, cookieDays || 90);
+    }
+
+
     function setCookie(name, value, days) {
         var expires = "";
         if (days) {
@@ -42,44 +75,46 @@
     }
 
     function generateEventId() {
-        return 'evt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        return 'evt_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
     }
     window.generateEventId = generateEventId;
 
     function getExternalId() {
-        // Persistência: external_id em localStorage (mantém atribuição entre sessões)
+        // Persistência: external_id em localStorage + cookie (mantém atribuição entre sessões)
         try {
-            let eid = localStorage.getItem('user_external_id');
+            var eid = _safeGet('user_external_id');
             if (!eid) {
-                eid = 'sess_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
-                localStorage.setItem('user_external_id', eid);
+                eid = 'sess_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+                _safeSet('user_external_id', eid, 365);
             }
             return eid;
         } catch (e) {
-            return 'sess_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+            return 'sess_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
         }
     }
 
 
     function getTTCLID() {
-        const urlParams = new URLSearchParams(window.location.search);
-        let clickId = urlParams.get('ttclid');
-        if (clickId) {
-            setCookie('ttclid', clickId, 90);
-            localStorage.setItem('ttclid', clickId);
-        } else {
-            clickId = localStorage.getItem('ttclid') || getCookie('ttclid');
-        }
-        return clickId;
+        try {
+            var urlParams = new URLSearchParams(window.location.search);
+            var clickId = urlParams.get('ttclid');
+            if (clickId) {
+                _safeSet('ttclid', clickId, 90);
+                return clickId;
+            }
+            return _safeGet('ttclid');
+        } catch(e) { return null; }
     }
 
     function saveUTMs() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
-        utmKeys.forEach(key => {
-            const val = urlParams.get(key);
-            if (val) setCookie(key, val, 30);
-        });
+        try {
+            var urlParams = new URLSearchParams(window.location.search);
+            var utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+            for (var i = 0; i < utmKeys.length; i++) {
+                var val = urlParams.get(utmKeys[i]);
+                if (val) _safeSet(utmKeys[i], val, 30);
+            }
+        } catch(e) {}
     }
 
     
@@ -124,14 +159,10 @@ function getStoredUTMs() {
         } catch(e) {}
     }
     // --- FUNÇÃO DE DISPARO DO PROJETO (PIXEL DO NAVEGADOR) ---
-    function trackTikTokEvent(event, data = {}) {
+    function trackTikTokEvent(event, data) {
+        data = data || {};
         try {
-            let payload = {
-                ...data,
-                ...getContext(),
-                ttclid: getTTCLID(),
-                ...getStoredUTMs()
-            };
+            var payload = Object.assign({}, data, getContext(), { ttclid: getTTCLID() }, getStoredUTMs());
 
             payload.event_time = payload.timestamp || Math.floor(Date.now() / 1000);
             payload.event_source_url = window.location.origin + window.location.pathname;
@@ -160,15 +191,11 @@ function getStoredUTMs() {
         viewContentFired = true;
 
         var vcEventId = generateEventId();
-        trackTikTokEvent('ViewContent', {
-            ...PRODUCT_CONTENT,
-            event_id: vcEventId
-        });
+        trackTikTokEvent('ViewContent', Object.assign({}, PRODUCT_CONTENT, { event_id: vcEventId }));
         // CAPI: espelha ViewContent no servidor (garante sinal no in-app browser do TikTok)
-        sendCAPI('ViewContent', vcEventId, {
-            ...PRODUCT_CONTENT,
+        sendCAPI('ViewContent', vcEventId, Object.assign({}, PRODUCT_CONTENT, {
             event_source_url: window.location.origin + window.location.pathname
-        }, {
+        }), {
             ttclid: getTTCLID()
         });
     }
@@ -222,15 +249,11 @@ function getStoredUTMs() {
         btn.addEventListener('click', () => {
             try {
                 var atcEventId = generateEventId();
-                trackTikTokEvent('AddToCart', {
-                    ...PRODUCT_CONTENT,
-                    event_id: atcEventId
-                });
+                trackTikTokEvent('AddToCart', Object.assign({}, PRODUCT_CONTENT, { event_id: atcEventId }));
                 // CAPI: espelha AddToCart no servidor
-                sendCAPI('AddToCart', atcEventId, {
-                    ...PRODUCT_CONTENT,
+                sendCAPI('AddToCart', atcEventId, Object.assign({}, PRODUCT_CONTENT, {
                     event_source_url: window.location.origin + window.location.pathname
-                }, {
+                }), {
                             ttclid: getTTCLID()
                 });
             } catch (e) {}
@@ -259,17 +282,15 @@ function getStoredUTMs() {
   // ==================================================
   
   function showTab(tabName) {
-    document.querySelectorAll('.content-section').forEach(section => {
-      section.classList.remove('active');
-    });
-    document.querySelectorAll('.tabs .tab').forEach(tab => {
-      tab.classList.remove('active');
-    });
+    var _sections = document.querySelectorAll('.content-section');
+    for (var _si = 0; _si < _sections.length; _si++) { _sections[_si].classList.remove('active'); }
+    var _tabs = document.querySelectorAll('.tabs .tab');
+    for (var _ti = 0; _ti < _tabs.length; _ti++) { _tabs[_ti].classList.remove('active'); }
     
     const targetContent = document.getElementById(tabName);
     if (targetContent) targetContent.classList.add('active');
     
-    const targetTab = document.querySelector(`.tabs .tab[onclick="showTab('${tabName}')"]`);
+    var targetTab = document.querySelector('.tabs .tab[onclick="showTab(\''  + tabName + '\')"]');
     if (targetTab) targetTab.classList.add('active');
   }
 
@@ -299,7 +320,7 @@ function getStoredUTMs() {
       const updateDisplay = () => {
           const minutes = Math.floor(timeLeft / 60);
           const seconds = timeLeft % 60;
-          countdownEl.textContent = `Termina em ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+          countdownEl.textContent = 'Termina em ' + minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
       };
 
       updateDisplay(); // Atualiza imediatamente
@@ -327,12 +348,12 @@ function getStoredUTMs() {
         date.setDate(date.getDate() + addDays);
         const day = date.getDate();
         const month = date.toLocaleString('pt-BR', { month: 'short' }).replace('.', '');
-        return `${day} de ${month}`;
+        return day + ' de ' + month;
       };
 
       const startDate = getDeliveryDate(3);
       const endDate = getDeliveryDate(5);
-      shippingEl.textContent = `Receba entre ${startDate} e ${endDate}`;
+      shippingEl.textContent = 'Receba entre ' + startDate + ' e ' + endDate;
     }
 
     // Galeria de Imagens
@@ -418,7 +439,7 @@ function getStoredUTMs() {
         const imgName = 'thumb_' + padZero(i) + '.webp'; 
         
         thumbImg.src = 'assets/img/' + imgName;
-        thumbImg.alt = `Miniatura ${i}`;
+        thumbImg.alt = 'Miniatura ' + i;
         thumbImg.loading = 'lazy';
         
         thumbWrapper.appendChild(thumbImg);
@@ -435,7 +456,7 @@ function getStoredUTMs() {
         requestAnimationFrame(() => {
           const imgName = padZero(currentImageIndex) + '.webp';
           mainImage.src = 'assets/img/' + imgName;
-          imageCounter.textContent = `${currentImageIndex}/${totalImages}`;
+          imageCounter.textContent = currentImageIndex + '/' + totalImages;
 
           imageDots.querySelectorAll('.dot').forEach((d, i) =>
             d.classList.toggle('active', i + 1 === currentImageIndex));
@@ -469,7 +490,7 @@ function getStoredUTMs() {
       });
     });
 
-    const defaultSwatch = document.querySelector(`.color-swatch[data-color="${currentVariant}"]`);
+    var defaultSwatch = document.querySelector('.color-swatch[data-color="' + currentVariant + '"]');
     if (defaultSwatch) {
         defaultSwatch.classList.add('selected');
         if (variantLinks[currentVariant]) buyBtn.href = (window.buildCheckoutUrl ? window.buildCheckoutUrl(variantLinks[currentVariant]) : variantLinks[currentVariant]);

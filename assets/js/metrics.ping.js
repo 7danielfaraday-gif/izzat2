@@ -11,9 +11,9 @@
       try { sid = localStorage.getItem(SID_KEY); } catch(e) {}
       if (!sid) { try { sid = sessionStorage.getItem(SID_KEY); } catch(e) {} }
       if (!sid) {
-        sid = self.crypto && crypto.randomUUID
-          ? crypto.randomUUID()
-          : Date.now().toString(36) + Math.random().toString(36).slice(2);
+        try { sid = crypto.randomUUID(); } catch(_e) {
+        sid = Date.now().toString(36) + Math.random().toString(36).slice(2);
+      }
         try { localStorage.setItem(SID_KEY, sid); } catch(e) {}
         try { sessionStorage.setItem(SID_KEY, sid); } catch(e) {}
       }
