@@ -553,7 +553,7 @@ useLayoutEffect(() => {
                 try { if (ev) { ev.preventDefault(); ev.stopPropagation(); } } catch(e) {}
                 if (mobileTapLockRef.current) return;
                 mobileTapLockRef.current = true;
-                setTimeout(() => { mobileTapLockRef.current = false; }, 650);
+                setTimeout(() => { mobileTapLockRef.current = false; }, 400);
 
                 // força blur imediato para evitar o "primeiro tap" ser consumido pelo fechamento do teclado
                 try {
@@ -561,7 +561,11 @@ useLayoutEffect(() => {
                     if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA')) ae.blur();
                 } catch(e) {}
 
-                requestAnimationFrame(() => { try { handleSubmit(); } catch(e) {} });
+                // FIX: duplo disparo (rAF + setTimeout) para cobrir WebViews que fazem throttling de rAF
+                var submitFired = false;
+                var doSubmit = function() { if (submitFired) return; submitFired = true; try { handleSubmit(); } catch(e) {} };
+                requestAnimationFrame(doSubmit);
+                setTimeout(doSubmit, 80);
             };
 
             // ✅ FIX (iOS / WebView): o mesmo problema do "primeiro tap" pode acontecer
@@ -585,7 +589,7 @@ useLayoutEffect(() => {
                 if (isFormLocked || isSubmitting) return;
                 if (backTapLockRef.current) return;
                 backTapLockRef.current = true;
-                setTimeout(() => { backTapLockRef.current = false; }, 650);
+                setTimeout(() => { backTapLockRef.current = false; }, 400);
 
                 // fecha teclado para evitar o "tap consumido"
                 try {
@@ -593,7 +597,11 @@ useLayoutEffect(() => {
                     if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA')) ae.blur();
                 } catch(e) {}
 
-                requestAnimationFrame(() => { try { doBackNavigation(); } catch(e) {} });
+                // FIX: duplo disparo (rAF + setTimeout) para cobrir WebViews que fazem throttling de rAF
+                var backFired = false;
+                var doBack = function() { if (backFired) return; backFired = true; try { doBackNavigation(); } catch(e) {} };
+                requestAnimationFrame(doBack);
+                setTimeout(doBack, 80);
             };
 
 

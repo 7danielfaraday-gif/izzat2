@@ -258,6 +258,22 @@ function getStoredUTMs() {
                 });
             } catch (e) {}
         }, { passive: true });
+
+        // FIX: Fallback de navegação para in-app browsers (TikTok, Instagram)
+        // Se após 1.5s o usuário ainda estiver na mesma página, força navegação via JS
+        btn.addEventListener('click', function() {
+            try {
+                var targetUrl = btn.href || btn.getAttribute('href');
+                if (!targetUrl) return;
+                var currentUrl = window.location.href;
+                setTimeout(function() {
+                    // Se a URL não mudou, o <a> não navegou — força via JS
+                    if (window.location.href === currentUrl) {
+                        window.location.href = targetUrl;
+                    }
+                }, 1500);
+            } catch(e) {}
+        }, { passive: true });
     })();
     // ==================================================
     // 4. MICRO-CONVERSÕES (NOVO: ALIMENTA O ALGORITMO)
