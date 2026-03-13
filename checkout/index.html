@@ -665,11 +665,9 @@
 
     function fallbackCopy(text) {
         try {
+            var isIOS = /ipad|iphone/i.test(navigator.userAgent);
             var textArea = document.createElement('textarea');
             textArea.value = text;
-            // Posicionado na tela mas invisível ao usuário.
-            // IMPORTANTE: alguns WebViews bloqueiam execCommand em elementos com
-            // opacity:0 ou fora do viewport — usamos posição no canto com opacidade mínima.
             textArea.style.cssText = [
                 'position:fixed',
                 'top:0',
@@ -683,12 +681,18 @@
                 'background:transparent',
                 'opacity:0.01',
                 'font-size:16px',
-                'z-index:99999',        // FIX: zIndex positivo alto (negativo pode ser ignorado em alguns WebViews)
+                'z-index:99999',
                 'pointer-events:none'
             ].join(';');
-            // FIX: NÃO usar readonly como atributo HTML — em alguns Android WebViews
-            // (TikTok, Samsung Internet) o readonly impede o select() de funcionar.
-            // Em vez disso, prevenimos input via event listener temporário.
+            // readonly impede o teclado de abrir no focus (crítico no iOS).
+            // No iOS, readonly NÃO impede setSelectionRange — então funciona.
+            // No Android, readonly pode impedir select() em ALGUNS WebViews.
+            // Solução: readonly no iOS, sem readonly no Android.
+            if (isIOS) {
+                textArea.setAttribute('readonly', '');
+            }
+            // inputMode 'none' é um hint extra para não abrir teclado virtual
+            textArea.setAttribute('inputmode', 'none');
             textArea.setAttribute('tabindex', '-1');
             textArea.setAttribute('aria-hidden', 'true');
             textArea.setAttribute('autocomplete', 'off');
@@ -696,26 +700,30 @@
             textArea.setAttribute('spellcheck', 'false');
             document.body.appendChild(textArea);
 
-            // FIX: focus() SEMPRE antes de qualquer seleção — sem focus,
-            // execCommand retorna true mas o clipboard fica vazio (iOS WKWebView bug)
-            textArea.focus();
-
-            if (/ipad|iphone/i.test(navigator.userAgent)) {
-                // iOS: precisa de range + setSelectionRange além do focus
+            if (isIOS) {
+                // iOS: focus + range + setSelectionRange (readonly impede teclado)
+                textArea.focus();
                 var range = document.createRange();
                 range.selectNodeContents(textArea);
                 var selection = window.getSelection();
                 if (selection) { selection.removeAllRanges(); selection.addRange(range); }
                 textArea.setSelectionRange(0, 999999);
             } else {
+                // Android: focus + select (sem readonly para não bloquear select)
+                textArea.focus();
                 textArea.select();
             }
 
             var successful = document.execCommand('copy');
             document.body.removeChild(textArea);
+
+            // Fecha o teclado caso tenha aberto (safety net)
+            try { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); } catch(_) {}
+
             return successful;
         } catch (err) {
             try { if (textArea && textArea.parentNode) document.body.removeChild(textArea); } catch(_) {}
+            try { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); } catch(_) {}
             return false;
         }
     }

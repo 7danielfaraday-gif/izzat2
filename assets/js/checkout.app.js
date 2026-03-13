@@ -917,6 +917,8 @@ useLayoutEffect(() => {
                     } catch(_) {}
                     // Não chama setCopied(true) — botão permanece no estado normal
                 }
+                // FIX: Safety net — fecha teclado que possa ter sido aberto pelo fallbackCopy
+                try { if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) document.activeElement.blur(); } catch(_) {}
                 setTimeout(() => setCopied(false), 2500); 
             };
 
