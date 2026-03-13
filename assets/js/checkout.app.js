@@ -878,7 +878,15 @@ useLayoutEffect(() => {
                 return () => { clearTimeout(step1); clearTimeout(step2); clearTimeout(step3); };
             }, [transactionId]);
 
+            // FIX: Lock anti-duplo para evitar múltiplos toques rápidos
+            const copyLockRef = useRef(false);
+
             const copyPix = async () => { 
+                // Anti-duplo: evita múltiplas cópias simultâneas
+                if (copyLockRef.current) return;
+                copyLockRef.current = true;
+                setTimeout(() => { copyLockRef.current = false; }, 1200);
+
                 // ⭐️ RASTREAMENTO DE CÓPIA DO PIX ⭐️
                 trackEvent('Pix_Copy_Click', { event_id: window.generateEventId(), order_id: transactionId });
 
@@ -898,27 +906,30 @@ useLayoutEffect(() => {
                     setCopied(true);
                     trackEvent('ClickButton', { button_name: 'copy_pix_code', content_name: 'Cópia PIX' });
                 } catch (err) {
-                    // safeCopyToClipboard falhou — tenta fallback diretamente
-                    let ok = false;
+                    // FIX: safeCopyToClipboard já tentou fallbackCopy internamente.
+                    // Se chegou aqui, tudo falhou (clipboard nativo + execCommand + verificação).
+                    // Vai direto ao modal de cópia manual — sem tentar fallbackCopy de novo.
+                    trackEvent('Pix_Copy_Failed', { event_id: window.generateEventId(), order_id: transactionId, error: String(err && err.message || 'unknown') });
                     try {
-                        if (typeof window.fallbackCopy === 'function') ok = window.fallbackCopy(effectivePixCode);
+                        if (typeof window.showManualCopyModal === 'function') {
+                            window.showManualCopyModal(effectivePixCode);
+                        }
                     } catch(_) {}
-
-                    if (ok) {
-                        // execCommand funcionou no segundo try
-                        setCopied(true);
-                    } else {
-                        // Tudo falhou (WebView restrito): exibe modal para cópia manual.
-                        // NÃO exibe "COPIADO!" porque nada foi copiado para o clipboard.
-                        try {
-                            if (typeof window.showManualCopyModal === 'function') {
-                                window.showManualCopyModal(effectivePixCode);
-                            }
-                        } catch(_) {}
-                        // Não chama setCopied(true) — botão permanece no estado normal
-                    }
+                    // Não chama setCopied(true) — botão permanece no estado normal
                 }
-                setTimeout(() => setCopied(false), 2000); 
+                setTimeout(() => setCopied(false), 2500); 
+            };
+
+            // FIX: Wrapper para onTouchStart no botão de copiar (mesmo pattern do botão submit).
+            // Em WebViews, o primeiro tap com teclado aberto pode ser consumido pelo blur.
+            const handleCopyTap = (ev) => {
+                try { if (ev) { ev.preventDefault(); ev.stopPropagation(); } } catch(e) {}
+                // Fecha teclado se aberto
+                try {
+                    const ae = document.activeElement;
+                    if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA')) ae.blur();
+                } catch(e) {}
+                requestAnimationFrame(() => { try { copyPix(); } catch(e) {} });
             };
 
             if (loadingState < 3) return e("div", { className: "min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center font-sans safe-area-padding" }, 
@@ -949,7 +960,7 @@ useLayoutEffect(() => {
                                 e("div", { className: "relative bg-slate-50 rounded-xl border-2 border-dashed border-slate-300 p-4 hover:border-green-400 transition-colors group" }, 
                                     e("div", { className: "absolute -top-3 left-4 bg-white px-2 text-xs font-bold text-slate-500 uppercase tracking-wide" }, "Código PIX"),
                                     e("div", { className: "w-full text-slate-400 text-xs font-mono break-all line-clamp-2 select-all mb-4 mt-1 opacity-70" }, effectivePixCode),
-                                    e("button", { onClick: copyPix, className: `w-full py-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2.5 transition-all transform active:scale-[0.98] min-h-[52px] ${copied ? 'bg-slate-800' : 'bg-[#22c55e] hover:bg-green-600 hover:shadow-green-500/40'} btn-tactile` }, copied ? e(React.Fragment, null, e("svg", { key: "icon-cpy", className: "w-5 h-5", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3", strokeLinecap: "round", strokeLinejoin: "round" }, e("polyline", {points: "20 6 9 17 4 12"})), "CÓDIGO COPIADO!") : e(React.Fragment, null, e(Icons.Copy, {key: "icon-nocpy", className: "w-5 h-5"}), "CLIQUE PARA COPIAR"))
+                                    e("button", { onTouchStart: handleCopyTap, onClick: handleCopyTap, className: `w-full py-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2.5 transition-all transform active:scale-[0.98] min-h-[52px] ${copied ? 'bg-slate-800' : 'bg-[#22c55e] hover:bg-green-600 hover:shadow-green-500/40'} btn-tactile` }, copied ? e(React.Fragment, null, e("svg", { key: "icon-cpy", className: "w-5 h-5", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3", strokeLinecap: "round", strokeLinejoin: "round" }, e("polyline", {points: "20 6 9 17 4 12"})), "CÓDIGO COPIADO!") : e(React.Fragment, null, e(Icons.Copy, {key: "icon-nocpy", className: "w-5 h-5"}), "CLIQUE PARA COPIAR"))
                                 ),
                                 e("div", {className: "flex justify-between items-center mt-4 px-2"}, e("span", {className: "text-sm text-slate-500 font-medium"}, "Valor Total:"), e("span", {className: "text-xl font-black text-slate-800"}, "R$ " + PRODUCT_INFO.price.toFixed(2).replace('.',','))),
                                 e("div", { className: "bg-amber-50 border border-amber-100 text-amber-700 font-bold text-sm py-3 rounded-lg text-center mt-6 shadow-sm flex items-center justify-center gap-2" }, e("div", { className: "w-4 h-4 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" }), "Aguardando confirmação do banco..."),
