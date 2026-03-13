@@ -827,7 +827,7 @@ useLayoutEffect(() => {
                             phone_number:       window.__tt_hashed_phone || undefined,
                             external_id: window.__tt_hashed_external_id || undefined,
                             ttclid:      (window.getTTCLID ? window.getTTCLID() : undefined),
-                        ttp:         (document.cookie.match(/(?:^|;\s*)_ttp=([^;]*)/) || [])[1] || undefined
+                            ttp:         (document.cookie.match(/(?:^|;\s*)_ttp=([^;]*)/) || [])[1] || undefined
                         });
                     } catch(e) {}
                 }

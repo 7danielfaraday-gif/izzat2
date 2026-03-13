@@ -44,6 +44,7 @@
     function generateEventId() {
         return 'evt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     }
+    window.generateEventId = generateEventId;
 
     function getExternalId() {
         // Persistência: external_id em localStorage (mantém atribuição entre sessões)
@@ -224,7 +225,7 @@ function getStoredUTMs() {
                 trackTikTokEvent('AddToCart', {
                     ...PRODUCT_CONTENT,
                     event_id: atcEventId
-                }, true);
+                });
                 // CAPI: espelha AddToCart no servidor
                 sendCAPI('AddToCart', atcEventId, {
                     ...PRODUCT_CONTENT,
@@ -288,7 +289,8 @@ function getStoredUTMs() {
       if (!countdownEl) return;
       
       // Tenta recuperar o tempo do localStorage ou usa 300 (5 min)
-      let savedTime = localStorage.getItem('offer_timer_v2');
+      let savedTime = null;
+      try { savedTime = localStorage.getItem('offer_timer_v2'); } catch(e) {}
       let timeLeft = savedTime ? parseInt(savedTime) : 300;
       
       // Se o tempo acabou ou é inválido, reseta
@@ -305,12 +307,12 @@ function getStoredUTMs() {
       const timerInterval = setInterval(() => {
         if (timeLeft <= 0) {
           clearInterval(timerInterval);
-          localStorage.removeItem('offer_timer_v2');
+          try { localStorage.removeItem('offer_timer_v2'); } catch(e) {}
           countdownEl.textContent = '⚡ Oferta por tempo limitado';
           return;
         }
         timeLeft--;
-        localStorage.setItem('offer_timer_v2', timeLeft);
+        try { localStorage.setItem('offer_timer_v2', timeLeft); } catch(e) {}
         updateDisplay();
       }, 1000);
     }
