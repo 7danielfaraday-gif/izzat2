@@ -315,7 +315,7 @@ useLayoutEffect(() => {
                             setFormData(prev => ({ ...prev, address: data.logradouro || '', city: `${data.localidade || ''}/${data.uf || ''}`.replace(/^\//,'') })); 
                             // FIX: delay reduzido de 500→280ms e focus com preventScroll
                             // para evitar scroll duplo (focusin listener já faz o scroll)
-                            setTimeout(() => { try { if(numberRef.current) { numberRef.current.focus({ preventScroll: true }); requestAnimationFrame(() => { try { numberRef.current.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch(e){} }); } } catch(e){} }, 280);
+                            setTimeout(() => { try { if(numberRef.current) { numberRef.current.focus({ preventScroll: true }); } } catch(e){} }, 280);
                         }
                     } catch(e) {
                         // Falha comum em in-app / conexão fraca: libera preenchimento manual
