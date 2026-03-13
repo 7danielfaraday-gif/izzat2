@@ -27,32 +27,83 @@
     timers = [];
   }
 
+  // Detecta Android in-browser para usar scrollBy explícito
+  // (scrollIntoView falha no Android com interactive-widget=overlays-content porque
+  //  o campo já está "visível" no layout viewport — o browser não sabe que o teclado cobre)
+  var isAndroid = /Android/i.test(navigator.userAgent);
+
+  function getVisibleBottom() {
+    var vvH = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    var footerH = 0;
+    try {
+      var kbOpen = document.body.classList.contains('keyboard-open');
+      var lastField = document.body.classList.contains('last-field-focused');
+      if (!kbOpen || lastField) {
+        footerH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--footer-height')) || 0;
+      }
+    } catch(_) {}
+    return vvH - footerH - 16;
+  }
+
   function scrollEl(el) {
     if (touching) return;
     if (!el || !document.body.contains(el)) return;
-    // FIX: Não re-scroll se o elemento já está visível no viewport
     try {
       var rect = el.getBoundingClientRect();
-      var vH = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-      var footerH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--footer-height')) || 120;
-      var safeBottom = vH - footerH - 16;
-      // Se já está visível entre 60px do topo e acima do footer, não precisa scrollar
-      if (rect.top >= 60 && rect.bottom <= safeBottom) return;
-    } catch(_) {}
-    try {
-      el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      var safeBottom = getVisibleBottom();
+      var safeTop = 72;
+
+      if (isAndroid) {
+        // Android: scrollBy explícito usando visualViewport.height como referência real
+        // scrollIntoView() falha aqui porque o campo já está no layout viewport (tamanho completo)
+        // mas o teclado cobre a parte inferior — o browser não vê conflito
+        if (rect.bottom > safeBottom) {
+          window.scrollBy({ top: Math.ceil(rect.bottom - safeBottom + 8), behavior: 'smooth' });
+        } else if (rect.top < safeTop) {
+          window.scrollBy({ top: Math.ceil(rect.top - safeTop), behavior: 'smooth' });
+        }
+      } else {
+        // iOS / desktop: scrollIntoView nativo funciona perfeitamente
+        if (rect.top >= safeTop && rect.bottom <= safeBottom) return;
+        el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      }
     } catch (_) {
       try { el.scrollIntoView(true); } catch (__) {}
     }
   }
 
+  // Android: ouvir resize do visualViewport (= teclado abrindo/fechando)
+  // e rolar explicitamente para o campo ativo
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', function() {
+      var active = document.activeElement;
+      if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT')) {
+        // Múltiplos delays: diferentes dispositivos Android animam o teclado em tempos diferentes
+        clearTimeout(window.__androidVvTimer1);
+        clearTimeout(window.__androidVvTimer2);
+        clearTimeout(window.__androidVvTimer3);
+        window.__androidVvTimer1 = setTimeout(function() { scrollEl(active); }, 80);
+        window.__androidVvTimer2 = setTimeout(function() { scrollEl(active); }, 280);
+        window.__androidVvTimer3 = setTimeout(function() { scrollEl(active); }, 520);
+      }
+    });
+  }
+
   document.addEventListener('touchstart', function () {
     touching = true;
     cancelAll();
+    // No Android, o teclado demora ~100-400ms para abrir após o toque.
+    // Reduzir o bloqueio de scroll para 80ms (só cancela o delay imediato)
+    // O visualViewport.resize listener cuidará do scroll quando o teclado realmente abrir.
+    if (isAndroid) {
+      setTimeout(function() { touching = false; }, 80);
+    }
   }, { passive: true, capture: true });
 
   document.addEventListener('touchend', function () {
-    setTimeout(function () { touching = false; }, 600);
+    // iOS: manter 500ms para evitar scroll duplo durante animação do teclado
+    // Android: touching já foi liberado em 80ms no touchstart
+    setTimeout(function () { touching = false; }, isAndroid ? 0 : 500);
   }, { passive: true, capture: true });
 
   document.addEventListener('touchcancel', function () {
@@ -520,21 +571,31 @@
                 // FIX: adjustForFooter agora usa um único delay (480ms) em vez de dois
                 // (450+700), e só faz scrollBy se o campo realmente está coberto.
                 // Isso evita o double-scroll com o scrollIntoView do script do <head>.
+                // Android: scroll já tratado pelo visualViewport.resize listener no <head>
+                // Este adjustForFooter serve como fallback extra para ambos os sistemas
                 const adjustForFooter = () => {
                     try {
-                        const footerH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--footer-height')) || 0;
+                        const kbOpen = document.body.classList.contains('keyboard-open');
+                        const lastField = document.body.classList.contains('last-field-focused');
+                        // Se teclado aberto e não é último campo, footer está oculto (translateY 110%)
+                        // Não subtrair footerH nesse caso
+                        const footerH = (!kbOpen || lastField)
+                            ? (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--footer-height')) || 0)
+                            : 0;
                         const vvH = window.visualViewport ? window.visualViewport.height : window.innerHeight;
                         const rect = e.target.getBoundingClientRect();
                         const bottomLimit = vvH - footerH - 16;
                         const delta = rect.bottom - bottomLimit;
-                        // Só ajusta se campo está significativamente coberto (>8px)
                         if (delta > 8) {
                             window.scrollBy({ top: delta + 8, behavior: 'smooth' });
                         }
                     } catch (_) {}
                 };
 
-                setTimeout(adjustForFooter, 480);
+                // Android pode ter teclado mais rápido (100-300ms), iOS ~400ms
+                // Disparamos em 2 momentos para cobrir ambos
+                setTimeout(adjustForFooter, 300);
+                setTimeout(adjustForFooter, 550);
             }
         });
         
@@ -586,39 +647,60 @@
     // mantém alias para compatibilidade com código legado
     window.isTikTokWebView = isProblematicWebView;
 
-    // ─── ESTRATÉGIA DE CÓPIA v3 (DEFINITIVA) ───────────────────────────────
-    // Problemas anteriores com textarea + execCommand:
-    //  1. iOS mostra tooltip "Colar" ao fazer focus()+setSelectionRange() no textarea
-    //  2. Alguns WebViews abrem teclado mesmo com readonly
-    //  3. execCommand('copy') retorna true mas não copia ("cópia fantasma")
-    //  4. verifyClipboardContent com readText() pede permissão extra ao usuário
+    // ─── ESTRATÉGIA DE CÓPIA v5 (SYNC-FIRST — TikTok WebView 2026) ──────────
+    // Ordem de prioridade:
+    //  1. execCommand síncrono IMEDIATO — executado dentro do click handler,
+    //     antes de qualquer await/Promise. Preserva o "User Activation" que o
+    //     Android/TikTok WebView exige. readonly no textarea evita teclado.
+    //     iOS usa createRange()+getSelection() pois .select() é ignorado no Safari.
+    //  2. navigator.clipboard.writeText — async, tenta se o síncrono falhar.
+    //     Funciona em Chrome desktop e alguns WebViews modernos.
+    //  3. showManualCopyModal — último recurso, nunca suprimido silenciosamente.
     //
-    // Nova abordagem:
-    //  - Tenta navigator.clipboard.writeText() SEMPRE primeiro (funciona na maioria
-    //    dos WebViews modernos quando chamado de user gesture, sem criar textarea).
-    //  - Se writeText resolve: sucesso. NÃO verificamos com readText (causa prompts).
-    //  - Se writeText falha (rejeita): vai direto para showManualCopyModal.
-    //  - ZERO textarea, ZERO execCommand, ZERO focus em elementos ocultos.
-    //    Isso elimina permanentemente o teclado, o tooltip "Colar" e a cópia fantasma.
+    // Nota: execCommand está depreciado mas ainda suportado em WebViews Android/iOS
+    // em 2026. Uso deliberado para garantir conversão — não é erro de código.
     // ─────────────────────────────────────────────────────────────────────────
-    function safeCopyToClipboard(text) {
-        return new Promise(function(resolve, reject) {
-            // Clipboard API disponível?
-            if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-                navigator.clipboard.writeText(text)
-                    .then(function() {
-                        resolve();
-                    })
-                    .catch(function(err) {
-                        // writeText falhou (permissão negada, contexto inseguro, etc.)
-                        // → modal de cópia manual é o fallback mais seguro
-                        reject(new Error('clipboard.writeText falhou: ' + (err && err.message || 'unknown')));
-                    });
+    function _execCommandCopy(text) {
+        var success = false;
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        // Ghost style: invisível, sem scroll, sem teclado
+        ta.style.cssText = 'position:fixed;top:0;left:0;width:2em;height:2em;padding:0;border:none;outline:none;box-shadow:none;background:transparent;opacity:0;font-size:16px;z-index:-1';
+        ta.setAttribute('readonly', '');
+        document.body.appendChild(ta);
+        try {
+            if (/ipad|iphone|ipod/i.test(navigator.userAgent)) {
+                // iOS Safari ignora .select() em textareas — usa Selection Range
+                var range = document.createRange();
+                range.selectNodeContents(ta);
+                var sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+                ta.setSelectionRange(0, 999999);
             } else {
-                // Navegador muito antigo sem Clipboard API → modal direto
-                reject(new Error('Clipboard API não disponível'));
+                ta.select();
             }
-        });
+            success = document.execCommand('copy');
+        } catch (e) {
+            success = false;
+        }
+        document.body.removeChild(ta);
+        return success;
+    }
+
+    function safeCopyToClipboard(text) {
+        // 1. Tenta síncrono IMEDIATAMENTE (ainda no contexto do gesto do usuário)
+        if (_execCommandCopy(text)) {
+            return Promise.resolve();
+        }
+        // 2. Fallback async — pode já ter perdido o User Activation no TikTok
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+            return navigator.clipboard.writeText(text).catch(function(err) {
+                return Promise.reject(new Error('clipboard.writeText falhou: ' + (err && err.message || 'unknown')));
+            });
+        }
+        // 3. Nenhum método disponível
+        return Promise.reject(new Error('Clipboard não disponível neste navegador'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
