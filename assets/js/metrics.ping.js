@@ -3,6 +3,7 @@
 
 (() => {
   const SID_KEY = 'izzat_sid_v1';
+  let intervalId = null;
 
   const getSid = () => {
     try {
@@ -19,7 +20,14 @@
     }
   };
 
+  const canPingNow = () => {
+    const preloadReady = !window.__preloadGuard || window.__preloadGuard.isReady();
+    return preloadReady && document.visibilityState === 'visible';
+  };
+
   const send = () => {
+    if (!canPingNow()) return;
+
     const body = JSON.stringify({ sid: getSid(), path: location.pathname, ts: Date.now() });
     try {
       if (navigator.sendBeacon) {
@@ -38,6 +46,30 @@
     }).catch(() => {});
   };
 
-  send();
-  setInterval(send, 20000);
+  const start = () => {
+    if (intervalId) return;
+    send();
+    intervalId = setInterval(send, 20000);
+  };
+
+  const stop = () => {
+    if (!intervalId) return;
+    clearInterval(intervalId);
+    intervalId = null;
+  };
+
+  const sync = () => {
+    if (canPingNow()) start();
+    else stop();
+  };
+
+  document.addEventListener('visibilitychange', sync, { passive: true });
+  window.addEventListener('pageshow', sync, { passive: true });
+  window.addEventListener('pagehide', stop, { passive: true });
+
+  if (window.__runWhenTrackingReady) {
+    window.__runWhenTrackingReady(sync);
+  } else {
+    sync();
+  }
 })();

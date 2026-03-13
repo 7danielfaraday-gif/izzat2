@@ -107,40 +107,55 @@ function getStoredUTMs() {
 
     // --- CAPI: espelha eventos de conversão no servidor via /api/tiktok-events ---
     function sendCAPI(event, event_id, properties, user) {
-        try {
-            var payload = JSON.stringify({ event: event, event_id: event_id, properties: properties || {}, user: user || {} });
-            if (navigator && typeof navigator.sendBeacon === 'function') {
-                var blob = new Blob([payload], { type: 'application/json' });
-                navigator.sendBeacon('/api/tiktok-events', blob);
-            } else if (typeof fetch === 'function') {
-                fetch('/api/tiktok-events', {
-                    method: 'POST',
-                    headers: { 'content-type': 'application/json' },
-                    body: payload,
-                    keepalive: true
-                }).catch(function(){});
-            }
-        } catch(e) {}
+        var dispatch = function() {
+            try {
+                var payload = JSON.stringify({ event: event, event_id: event_id, properties: properties || {}, user: user || {} });
+                if (navigator && typeof navigator.sendBeacon === 'function') {
+                    var blob = new Blob([payload], { type: 'application/json' });
+                    navigator.sendBeacon('/api/tiktok-events', blob);
+                } else if (typeof fetch === 'function') {
+                    fetch('/api/tiktok-events', {
+                        method: 'POST',
+                        headers: { 'content-type': 'application/json' },
+                        body: payload,
+                        keepalive: true
+                    }).catch(function(){});
+                }
+            } catch(e) {}
+        };
+        if (window.__runWhenTrackingReady) {
+            window.__runWhenTrackingReady(dispatch);
+            return;
+        }
+        dispatch();
     }
     // --- FUNÇÃO DE DISPARO DO PROJETO (PIXEL DO NAVEGADOR) ---
     function trackTikTokEvent(event, data = {}) {
-        try {
-            let payload = {
-                ...data,
-                ...getContext(),
-                ttclid: getTTCLID(),
-                ...getStoredUTMs()
-            };
+        const dispatch = () => {
+            try {
+                let payload = {
+                    ...data,
+                    ...getContext(),
+                    ttclid: getTTCLID(),
+                    ...getStoredUTMs()
+                };
 
-            payload.event_time = payload.timestamp || Math.floor(Date.now() / 1000);
-            payload.event_source_url = window.location.origin + window.location.pathname;
+                payload.event_time = payload.timestamp || Math.floor(Date.now() / 1000);
+                payload.event_source_url = window.location.origin + window.location.pathname;
 
-            if (window.ttq && typeof window.ttq.track === 'function' && event !== 'PageView') {
-                window.ttq.track(event, payload);
+                if (window.ttq && typeof window.ttq.track === 'function' && event !== 'PageView') {
+                    window.ttq.track(event, payload);
+                }
+            } catch (error) {
+                console.error('Tracking Error:', error);
             }
-        } catch (error) {
-            console.error('Tracking Error:', error);
+        };
+
+        if (window.__runWhenTrackingReady) {
+            window.__runWhenTrackingReady(dispatch);
+            return;
         }
+        dispatch();
     }
     window.trackTikTokEvent = trackTikTokEvent;
 
