@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', function(){
                     const idx = visibleInputs.indexOf(target);
                     if (idx >= 0 && idx < visibleInputs.length - 1) {
                         const next = visibleInputs[idx + 1];
-                        try { next.focus({ preventScroll: false }); } catch(e) { try { next.focus(); } catch(_) {} }
+                        try { next.focus({ preventScroll: true }); } catch(e) { try { next.focus(); } catch(_) {} }
                     }
                 };
                 form.addEventListener('keydown', handleKeyDown, true);
@@ -315,7 +315,7 @@ useLayoutEffect(() => {
                             setFormData(prev => ({ ...prev, address: data.logradouro || '', city: `${data.localidade || ''}/${data.uf || ''}`.replace(/^\//,'') })); 
                             // FIX: delay reduzido de 500→280ms e focus com preventScroll
                             // para evitar scroll duplo (focusin listener já faz o scroll)
-                            setTimeout(() => { try { if(numberRef.current) { numberRef.current.focus({ preventScroll: true }); requestAnimationFrame(() => { try { numberRef.current.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch(e){} }); } } catch(e){} }, 280);
+                            setTimeout(() => { try { if(numberRef.current) { numberRef.current.focus({ preventScroll: true }); if (window.__ensureCheckoutFieldVisible) setTimeout(() => { try { window.__ensureCheckoutFieldVisible(numberRef.current); } catch(_) {} }, 40); } } catch(e){} }, 220);
                         }
                     } catch(e) {
                         // Falha comum em in-app / conexão fraca: libera preenchimento manual
