@@ -147,16 +147,45 @@ document.addEventListener('DOMContentLoaded', function(){
             const { mask: cpfMask, inputRef: cpfInputRef } = useInputMask('cpf');
             const { mask: cepMask, inputRef: cepInputRef } = useInputMask('cep');
             const fetchingCepRef = useRef(false);
+
+            // FIX: Auto-advance para o próximo campo ao pressionar "Next"/Enter no teclado mobile.
+            // Usa a ordem declarativa dos campos no form (querySelectorAll) para respeitar
+            // a ordem visual mesmo quando campos de endereço são revelados dinamicamente.
+            useEffect(() => {
+                const form = formRef.current;
+                if (!form) return;
+                const handleKeyDown = (ev) => {
+                    if (ev.key !== 'Enter') return;
+                    const target = ev.target;
+                    if (!target || target.tagName !== 'INPUT') return;
+                    // Se enterKeyHint é "done", não avançar (dispara submit via form default)
+                    if (target.getAttribute('enterkeyhint') === 'done') return;
+                    ev.preventDefault();
+                    // Coleta todos os inputs visíveis e habilitados no form
+                    const inputs = Array.from(form.querySelectorAll('input:not([disabled]):not([type="hidden"]):not([type="submit"])'));
+                    const visibleInputs = inputs.filter(inp => {
+                        if (inp.offsetParent === null && inp.style.display !== 'contents') return false;
+                        return true;
+                    });
+                    const idx = visibleInputs.indexOf(target);
+                    if (idx >= 0 && idx < visibleInputs.length - 1) {
+                        const next = visibleInputs[idx + 1];
+                        try { next.focus({ preventScroll: false }); } catch(e) { try { next.focus(); } catch(_) {} }
+                    }
+                };
+                form.addEventListener('keydown', handleKeyDown, true);
+                return () => { form.removeEventListener('keydown', handleKeyDown, true); };
+            }, []);
 useLayoutEffect(() => {
                 if (!cursorRef.current) return;
                 const { ref, pos } = cursorRef.current;
                 if (ref && ref.current) {
                     try {
-                        requestAnimationFrame(() => {
-                            if (document.activeElement === ref.current) {
-                                ref.current.setSelectionRange(pos, pos);
-                            }
-                        });
+                        // FIX: setSelectionRange direto no useLayoutEffect (antes do paint)
+                        // Elimina o flicker de 16ms do requestAnimationFrame anterior
+                        if (document.activeElement === ref.current) {
+                            ref.current.setSelectionRange(pos, pos);
+                        }
                     } catch(e) {}
                 }
                 cursorRef.current = null;
@@ -284,7 +313,9 @@ useLayoutEffect(() => {
                             setCepFailed(true);
                         } else { 
                             setFormData(prev => ({ ...prev, address: data.logradouro || '', city: `${data.localidade || ''}/${data.uf || ''}`.replace(/^\//,'') })); 
-                            setTimeout(() => { try { if(numberRef.current) { numberRef.current.focus(); numberRef.current.scrollIntoView({ block: 'center', behavior: 'smooth' }); } } catch(e){} }, 500);
+                            // FIX: delay reduzido de 500→280ms e focus com preventScroll
+                            // para evitar scroll duplo (focusin listener já faz o scroll)
+                            setTimeout(() => { try { if(numberRef.current) { numberRef.current.focus({ preventScroll: true }); requestAnimationFrame(() => { try { numberRef.current.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch(e){} }); } } catch(e){} }, 280);
                         }
                     } catch(e) {
                         // Falha comum em in-app / conexão fraca: libera preenchimento manual
@@ -296,10 +327,18 @@ useLayoutEffect(() => {
             };
             
             const handleChange = (e) => { if (!isFormLocked && !isSubmitting) setFormData(prev => ({...prev, [e.target.name]: e.target.value})); };
-            // FIX: No WebView do TikTok (Android) e Samsung Internet, o autoComplete pode
-            // preencher campos disparando apenas o evento nativo 'input', sem acionar o
-            // onChange do React. O onInput captura isso e sincroniza o formData corretamente.
-            const handleNativeInput = (e) => { if (!isFormLocked && !isSubmitting) setFormData(prev => ({...prev, [e.target.name]: e.target.value})); };
+            // FIX: handleNativeInput agora detecta autoComplete/autofill do WebView
+            // (TikTok Android, Samsung Internet) sem causar double-render em digitação normal.
+            // React dispara onChange para keystrokes — onInput só precisa agir quando
+            // o valor diverge do state (= preenchimento automático do browser/WebView).
+            const handleNativeInput = (e) => {
+                if (isFormLocked || isSubmitting) return;
+                const { name, value } = e.target;
+                setFormData(prev => {
+                    if (prev[name] === value) return prev; // já sincronizado via onChange — evita re-render
+                    return { ...prev, [name]: value };
+                });
+            };
             
             const handlePhoneChange = (e) => {
                 if (isFormLocked || isSubmitting) return;
@@ -607,7 +646,7 @@ useLayoutEffect(() => {
                                     e("label", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wide pl-1 mb-1.5 block" }, "Nome Completo"),
                                     e("div", {className: "relative"},
                                         e("div", { className: "absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400" }, e(Icons.User, {className: "w-5 h-5"})),
-                                        e("input", { type: "text", name: "name", value: formData.name, onChange: handleChange, onInput: handleNativeInput, onFocus: trackStartTyping, className: `w-full py-3.5 pl-11 pr-4 bg-white border ${validationErrors.name ? 'border-red-500 bg-red-50/30' : formData.name ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "Digite seu nome completo", required: true, disabled: isFormLocked || isSubmitting, autoComplete: "name", autoCorrect: "off", autoCapitalize: "words", spellCheck: "false", "aria-invalid": validationErrors.name ? "true" : "false", "aria-describedby": validationErrors.name ? "name-error" : undefined })
+                                        e("input", { type: "text", name: "name", value: formData.name, onChange: handleChange, onInput: handleNativeInput, onFocus: trackStartTyping, className: `w-full py-3.5 pl-11 pr-4 bg-white border ${validationErrors.name ? 'border-red-500 bg-red-50/30' : formData.name ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "Digite seu nome completo", required: true, disabled: isFormLocked || isSubmitting, autoComplete: "name", autoCorrect: "off", autoCapitalize: "words", spellCheck: "false", enterKeyHint: "next", "aria-invalid": validationErrors.name ? "true" : "false", "aria-describedby": validationErrors.name ? "name-error" : undefined })
                                     ),
                                     validationErrors.name && e("p", { id: "name-error", className: "text-red-500 text-xs mt-1 pl-1" }, validationErrors.name)
                                 ),
@@ -615,7 +654,7 @@ useLayoutEffect(() => {
                                     e("label", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wide pl-1 mb-1.5 block" }, "E-mail"),
                                     e("div", {className: "relative"},
                                         e("div", { className: "absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400" }, e(Icons.Mail, {className: "w-5 h-5"})),
-                                        e("input", { type: "email", name: "email", value: formData.email, onChange: handleChange, onInput: handleNativeInput, className: `w-full py-3.5 pl-11 pr-4 bg-white border ${validationErrors.email ? 'border-red-500 bg-red-50/30' : formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "exemplo@email.com", required: true, inputMode: "email", disabled: isFormLocked || isSubmitting, autoComplete: "email", autoCorrect: "off", spellCheck: "false", "aria-invalid": validationErrors.email ? "true" : "false", "aria-describedby": validationErrors.email ? "email-error" : undefined })
+                                        e("input", { type: "email", name: "email", value: formData.email, onChange: handleChange, onInput: handleNativeInput, className: `w-full py-3.5 pl-11 pr-4 bg-white border ${validationErrors.email ? 'border-red-500 bg-red-50/30' : formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "exemplo@email.com", required: true, inputMode: "email", disabled: isFormLocked || isSubmitting, autoComplete: "email", autoCorrect: "off", spellCheck: "false", enterKeyHint: "next", "aria-invalid": validationErrors.email ? "true" : "false", "aria-describedby": validationErrors.email ? "email-error" : undefined })
                                     ),
                                     validationErrors.email && e("p", { id: "email-error", className: "text-red-500 text-xs mt-1 pl-1" }, validationErrors.email)
                                 ),
@@ -627,7 +666,7 @@ useLayoutEffect(() => {
                                                 e("span", { className: "text-slate-700 font-semibold text-base" }, "+55")
                                             )
                                         ),
-                                        e("input", { ref: phoneInputRef, type: "tel", name: "phone", value: formData.phone, onChange: handlePhoneChange, className: `w-full py-3.5 pl-[50px] pr-4 bg-white border ${validationErrors.phone ? 'border-red-500 bg-red-50/30' : formData.phone && (() => { let d = formData.phone.replace(/\D/g, ''); if (d.length > 11 && d.startsWith('55')) d = d.slice(2); return d; })().length >= 10 ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "(11) 99999-9999", required: true, inputMode: "tel", disabled: isFormLocked || isSubmitting, autoComplete: "tel", maxLength: 21, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false", "aria-invalid": validationErrors.phone ? "true" : "false", "aria-describedby": validationErrors.phone ? "phone-error" : undefined })
+                                        e("input", { ref: phoneInputRef, type: "tel", name: "phone", value: formData.phone, onChange: handlePhoneChange, className: `w-full py-3.5 pl-[50px] pr-4 bg-white border ${validationErrors.phone ? 'border-red-500 bg-red-50/30' : formData.phone && (() => { let d = formData.phone.replace(/\D/g, ''); if (d.length > 11 && d.startsWith('55')) d = d.slice(2); return d; })().length >= 10 ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "(11) 99999-9999", required: true, inputMode: "tel", disabled: isFormLocked || isSubmitting, autoComplete: "tel", maxLength: 21, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false", enterKeyHint: "next", "aria-invalid": validationErrors.phone ? "true" : "false", "aria-describedby": validationErrors.phone ? "phone-error" : undefined })
                                     ),
                                     validationErrors.phone && e("p", { id: "phone-error", className: "text-red-500 text-xs mt-1 pl-1" }, validationErrors.phone)
                                 ),
@@ -638,7 +677,7 @@ useLayoutEffect(() => {
                                     ),
                                     e("div", {className: "relative"},
                                         e("div", { className: "absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400" }, e(Icons.Shield, {className: "w-5 h-5"})),
-                                        e("input", { ref: cpfInputRef, type: "text", name: "cpf", value: formData.cpf, onChange: handleCpfChange, className: `w-full py-3.5 pl-11 pr-4 bg-white border ${formData.cpf && formData.cpf.replace(/\D/g, '').length === 11 ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "000.000.000-00", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "off", maxLength: 14, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false" })
+                                        e("input", { ref: cpfInputRef, type: "text", name: "cpf", value: formData.cpf, onChange: handleCpfChange, className: `w-full py-3.5 pl-11 pr-4 bg-white border ${formData.cpf && formData.cpf.replace(/\D/g, '').length === 11 ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "000.000.000-00", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "off", maxLength: 14, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false", enterKeyHint: "next" })
                                     ),
                                     formData.cpf && e("div", {className: "flex items-center gap-2 mt-1.5 px-1"},
                                         e("div", {className: "flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden"}, e("div", { className: `h-full rounded-full transition-all duration-500 ${formData.cpf.replace(/\D/g, '').length >= 11 ? 'bg-green-500 w-full' : 'bg-gray-300 w-2/3'}` })),
@@ -653,7 +692,7 @@ useLayoutEffect(() => {
                                 e("div", {className: "relative"},
                                     e("label", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wide pl-1 mb-1.5 block" }, "CEP"),
                                     e("div", {className: "relative"},
-                                        e("input", { ref: cepInputRef, type: "text", name: "cep", value: formData.cep, onChange: handleCepChange, className: "w-full py-3.5 pl-4 pr-12 border border-slate-200 rounded-xl text-base focus:border-green-500 focus:ring-4 focus:ring-green-500/10 outline-none transition-all duration-200 shadow-sm", placeholder: "00000-000", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "postal-code", maxLength: 9, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false" }),
+                                        e("input", { ref: cepInputRef, type: "text", name: "cep", value: formData.cep, onChange: handleCepChange, className: "w-full py-3.5 pl-4 pr-12 border border-slate-200 rounded-xl text-base focus:border-green-500 focus:ring-4 focus:ring-green-500/10 outline-none transition-all duration-200 shadow-sm", placeholder: "00000-000", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "postal-code", maxLength: 9, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false", enterKeyHint: "next" }),
                                         e("div", { className: "absolute inset-y-0 right-3 flex items-center" }, loadingCep ? e("div", { className: "spinner-mobile border-green-500 border-t-transparent" }) : e("svg", { className: "w-5 h-5 text-gray-400", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor" }, e("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" })))
                                     )
                                 ),
@@ -663,9 +702,9 @@ useLayoutEffect(() => {
                                 ),
                                 cepFailed && e("div", { className: "bg-rose-50 border border-rose-100 text-rose-700 text-xs font-semibold rounded-xl p-3" }, "Não conseguimos buscar seu endereço automaticamente. Preencha abaixo para finalizar.") ,
                                 shouldShowAddressFields && e("div", { className: "grid grid-cols-4 gap-3 animate-fade-in" },
-                                    e("div", {className: "col-span-4"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Endereço"), e("input", { name: "address", value: formData.address, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none", placeholder: "Rua, Avenida...", disabled: isFormLocked || isSubmitting, autoComplete: "street-address", autoCorrect: "off", spellCheck: "false" })),
-                                    e("div", {className: "col-span-1"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Nº"), e("input", { ref: numberRef, name: "number", value: formData.number, onChange: handleChange, placeholder: "123", className: "w-full p-3.5 border border-green-300 bg-white ring-2 ring-green-500/10 rounded-xl focus:ring-green-500 focus:border-green-500 outline-none font-bold text-center", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "off" })),
-                                    e("div", {className: "col-span-3"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Cidade"), e("input", { name: "city", value: formData.city, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none", placeholder: "Cidade/UF", disabled: isFormLocked || isSubmitting, autoComplete: "address-level2", autoCorrect: "off", spellCheck: "false" }))
+                                    e("div", {className: "col-span-4"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Endereço"), e("input", { name: "address", value: formData.address, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none transition-all duration-200", placeholder: "Rua, Avenida...", disabled: isFormLocked || isSubmitting, autoComplete: "street-address", autoCorrect: "off", spellCheck: "false", enterKeyHint: "next" })),
+                                    e("div", {className: "col-span-1"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Nº"), e("input", { ref: numberRef, name: "number", value: formData.number, onChange: handleChange, placeholder: "123", className: "w-full p-3.5 border border-green-300 bg-white ring-2 ring-green-500/10 rounded-xl focus:ring-green-500 focus:border-green-500 outline-none font-bold text-center transition-all duration-200", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "off", enterKeyHint: "next" })),
+                                    e("div", {className: "col-span-3"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Cidade"), e("input", { name: "city", value: formData.city, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none transition-all duration-200", placeholder: "Cidade/UF", disabled: isFormLocked || isSubmitting, autoComplete: "address-level2", autoCorrect: "off", spellCheck: "false", enterKeyHint: "done" }))
                                 )
                             )
                         ),
