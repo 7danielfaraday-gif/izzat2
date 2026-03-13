@@ -1,2 +1,12 @@
+/*
+  Content-Security-Policy: upgrade-insecure-requests; default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://analytics.tiktok.com https://*.tiktok.com https://unpkg.com https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https://analytics.tiktok.com https://business-api.tiktok.com https://viacep.com.br https://*.tiktok.com; font-src 'self' https: data:; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+
 /api/*
+  Cache-Control: no-store
+
+/data/*
+  X-Robots-Tag: noindex
   Cache-Control: no-store
