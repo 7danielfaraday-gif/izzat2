@@ -694,7 +694,7 @@ useLayoutEffect(() => {
                         )
                     ),
                 ),
-                e("div", {className: "lg:hidden checkout-fixed-footer"},
+                e("div", {className: "hidden checkout-fixed-footer", "aria-hidden": true},
                     e("button", { ref: mobileSubmitButtonRef, 
                         onTouchStart: handleMobileSubmitTap,
                         onClick: handleMobileSubmitTap,
