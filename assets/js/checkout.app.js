@@ -887,41 +887,66 @@ useLayoutEffect(() => {
             // Captura onTouchStart E onClick para garantir 1 único toque no iOS/WebView
             const handleCopyPixTap = (ev) => {
                 try { if (ev) { ev.preventDefault(); ev.stopPropagation(); } } catch(e) {}
-                if (copyPixTapLockRef.current) return;
-                if (copied) return;
+                if (copyPixTapLockRef.current || copied) return;
                 copyPixTapLockRef.current = true;
                 setTimeout(() => { copyPixTapLockRef.current = false; }, 900);
 
-                // Métricas: fire-and-forget, nunca bloqueia
                 firePixMetrics();
 
-                // ── VIA 1 — SÍNCRONA ──────────────────────────────────────────
-                // Executada imediatamente, dentro da gesture chain ativa.
-                // Cobre iOS Safari, TikTok, Instagram, KWAI e todos os WebViews.
-                let syncOk = false;
+                const textToCopy = effectivePixCode;
+
+                // 1. VIA SÍNCRONA (execCommand) - Roda imediatamente no gesto do usuário
                 try {
-                    const fb = window.fallbackCopy || (typeof fallbackCopy !== 'undefined' ? fallbackCopy : null);
-                    if (fb) syncOk = fb(effectivePixCode);
+                    const textArea = document.createElement('textarea');
+                    textArea.value = textToCopy;
+                    
+                    // Hack moderno para iOS e WebViews: Elemento levemente visível e clicável
+                    textArea.style.position = 'fixed';
+                    textArea.style.top = '50%';
+                    textArea.style.left = '50%';
+                    textArea.style.width = '50px';
+                    textArea.style.height = '50px';
+                    textArea.style.opacity = '0.01'; // Não use 0, use 0.01 para o DOM validar a presença
+                    textArea.style.zIndex = '9999';
+                    
+                    // CRÍTICO para iOS/Safari: Permite a seleção do texto
+                    textArea.readOnly = false;
+                    textArea.contentEditable = 'true';
+                    
+                    document.body.appendChild(textArea);
+
+                    if (/ipad|iphone|mac/i.test(navigator.userAgent)) {
+                        const range = document.createRange();
+                        range.selectNodeContents(textArea);
+                        const selection = window.getSelection();
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                        textArea.setSelectionRange(0, 999999);
+                    } else {
+                        textArea.focus();
+                        textArea.select();
+                    }
+
+                    document.execCommand('copy');
+                    
+                    // Limpeza
+                    document.body.removeChild(textArea);
+                    const sel = window.getSelection();
+                    if (sel) sel.removeAllRanges();
+                } catch(e) { 
+                    console.error('Fallback falhou', e); 
+                }
+
+                // 2. VIA ASSÍNCRONA (Clipboard API) - Dispara em paralelo para Androids Modernos
+                try {
+                    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                        navigator.clipboard.writeText(textToCopy).catch(() => {});
+                    }
                 } catch(e) {}
 
-                // Atualiza UI imediatamente (sem esperar Via 2)
-                try { setCopied(true); } catch(e) {}
-                try { trackEvent('ClickButton', { button_name: 'copy_pix_code', content_name: 'Cópia PIX', sync: syncOk }); } catch(e) {}
-                setTimeout(() => { try { setCopied(false); } catch(e) {} }, 2500);
-
-                // ── VIA 2 — ASSÍNCRONA ────────────────────────────────────────
-                // Para navegadores modernos (Chrome Android, Firefox) onde
-                // navigator.clipboard.writeText é mais confiável que execCommand.
-                // Roda em paralelo — não afeta o feedback visual já mostrado.
-                // ⛔ NÃO roda em WebViews problemáticos (TikTok, IG, KWAI):
-                //    nesses ambientes a clipboard API pode prefixar "https://"
-                //    ao texto, sobrescrevendo o que Via 1 já copiou limpo.
-                var isProblematic = (typeof window.isProblematicWebView === 'function') ? window.isProblematicWebView() : false;
-                if (!isProblematic && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-                    navigator.clipboard.writeText(effectivePixCode).catch(() => {
-                        // Via 1 já cobriu — silencioso
-                    });
-                }
+                // 3. Atualiza UI independentemente (Feedback Visual)
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2500);
             };
 
             if (loadingState < 3) return e("div", { className: "min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center font-sans safe-area-padding" }, 
