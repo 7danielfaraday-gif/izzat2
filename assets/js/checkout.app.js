@@ -147,6 +147,7 @@ document.addEventListener('DOMContentLoaded', function(){
             const { mask: cpfMask, inputRef: cpfInputRef } = useInputMask('cpf');
             const { mask: cepMask, inputRef: cepInputRef } = useInputMask('cep');
             const fetchingCepRef = useRef(false);
+            const lastCepLookedUpRef = useRef('');
 useLayoutEffect(() => {
                 if (!cursorRef.current) return;
                 const { ref, pos } = cursorRef.current;
@@ -268,6 +269,7 @@ useLayoutEffect(() => {
                 if (fetchingCepRef.current) return;
                 const cep = val.replace(/\D/g, ''); 
                 if (cep.length === 8) { 
+                    lastCepLookedUpRef.current = cep;
                     fetchingCepRef.current = true; setLoadingCep(true); 
                     
                     // Adicionado AbortController para evitar travamento em 3G/4G instável
@@ -324,7 +326,8 @@ useLayoutEffect(() => {
                 setFormData(prev => ({...prev, [name]: result.formatted}));
                 cursorRef.current = { ref: cepInputRef, pos: result.cursorPosition };
                 if (value.replace(/\D/g, '').length < 8) { try { setCepFailed(false); } catch(e) {} }
-                if (value.replace(/\D/g, '').length === 8 && formData.cep.replace(/\D/g, '') !== value.replace(/\D/g, '')) handleCep(value.replace(/\D/g, ''));
+                const cepDigits = value.replace(/\D/g, '');
+                if (cepDigits.length === 8 && lastCepLookedUpRef.current !== cepDigits) handleCep(cepDigits);
             };
 
 	            const handleSubmit = async (ev) => {
@@ -627,7 +630,7 @@ useLayoutEffect(() => {
                                                 e("span", { className: "text-slate-700 font-semibold text-base" }, "+55")
                                             )
                                         ),
-                                        e("input", { ref: phoneInputRef, type: "tel", name: "phone", value: formData.phone, onChange: handlePhoneChange, className: `w-full py-3.5 pl-[50px] pr-4 bg-white border ${validationErrors.phone ? 'border-red-500 bg-red-50/30' : formData.phone && (() => { let d = formData.phone.replace(/\D/g, ''); if (d.length > 11 && d.startsWith('55')) d = d.slice(2); return d; })().length >= 10 ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "(11) 99999-9999", required: true, inputMode: "tel", disabled: isFormLocked || isSubmitting, autoComplete: "tel", maxLength: 21, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false", "aria-invalid": validationErrors.phone ? "true" : "false", "aria-describedby": validationErrors.phone ? "phone-error" : undefined })
+                                        e("input", { ref: phoneInputRef, type: "tel", name: "phone", value: formData.phone, onChange: handlePhoneChange, onInput: handlePhoneChange, className: `w-full py-3.5 pl-[50px] pr-4 bg-white border ${validationErrors.phone ? 'border-red-500 bg-red-50/30' : formData.phone && (() => { let d = formData.phone.replace(/\D/g, ''); if (d.length > 11 && d.startsWith('55')) d = d.slice(2); return d; })().length >= 10 ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "(11) 99999-9999", required: true, inputMode: "tel", disabled: isFormLocked || isSubmitting, autoComplete: "tel", maxLength: 21, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false", "aria-invalid": validationErrors.phone ? "true" : "false", "aria-describedby": validationErrors.phone ? "phone-error" : undefined })
                                     ),
                                     validationErrors.phone && e("p", { id: "phone-error", className: "text-red-500 text-xs mt-1 pl-1" }, validationErrors.phone)
                                 ),
@@ -638,7 +641,7 @@ useLayoutEffect(() => {
                                     ),
                                     e("div", {className: "relative"},
                                         e("div", { className: "absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400" }, e(Icons.Shield, {className: "w-5 h-5"})),
-                                        e("input", { ref: cpfInputRef, type: "text", name: "cpf", value: formData.cpf, onChange: handleCpfChange, className: `w-full py-3.5 pl-11 pr-4 bg-white border ${formData.cpf && formData.cpf.replace(/\D/g, '').length === 11 ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "000.000.000-00", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "off", maxLength: 14, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false" })
+                                        e("input", { ref: cpfInputRef, type: "text", name: "cpf", value: formData.cpf, onChange: handleCpfChange, onInput: handleCpfChange, className: `w-full py-3.5 pl-11 pr-4 bg-white border ${formData.cpf && formData.cpf.replace(/\D/g, '').length === 11 ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "000.000.000-00", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "off", maxLength: 14, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false" })
                                     ),
                                     formData.cpf && e("div", {className: "flex items-center gap-2 mt-1.5 px-1"},
                                         e("div", {className: "flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden"}, e("div", { className: `h-full rounded-full transition-all duration-500 ${formData.cpf.replace(/\D/g, '').length >= 11 ? 'bg-green-500 w-full' : 'bg-gray-300 w-2/3'}` })),
@@ -653,7 +656,7 @@ useLayoutEffect(() => {
                                 e("div", {className: "relative"},
                                     e("label", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wide pl-1 mb-1.5 block" }, "CEP"),
                                     e("div", {className: "relative"},
-                                        e("input", { ref: cepInputRef, type: "text", name: "cep", value: formData.cep, onChange: handleCepChange, className: "w-full py-3.5 pl-4 pr-12 border border-slate-200 rounded-xl text-base focus:border-green-500 focus:ring-4 focus:ring-green-500/10 outline-none transition-all duration-200 shadow-sm", placeholder: "00000-000", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "postal-code", maxLength: 9, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false" }),
+                                        e("input", { ref: cepInputRef, type: "text", name: "cep", value: formData.cep, onChange: handleCepChange, onInput: handleCepChange, className: "w-full py-3.5 pl-4 pr-12 border border-slate-200 rounded-xl text-base focus:border-green-500 focus:ring-4 focus:ring-green-500/10 outline-none transition-all duration-200 shadow-sm", placeholder: "00000-000", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "postal-code", maxLength: 9, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false" }),
                                         e("div", { className: "absolute inset-y-0 right-3 flex items-center" }, loadingCep ? e("div", { className: "spinner-mobile border-green-500 border-t-transparent" }) : e("svg", { className: "w-5 h-5 text-gray-400", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor" }, e("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" })))
                                     )
                                 ),
@@ -906,7 +909,11 @@ useLayoutEffect(() => {
                 // Para navegadores modernos (Chrome Android, Firefox) onde
                 // navigator.clipboard.writeText é mais confiável que execCommand.
                 // Roda em paralelo — não afeta o feedback visual já mostrado.
-                if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                // ⛔ NÃO roda em WebViews problemáticos (TikTok, IG, KWAI):
+                //    nesses ambientes a clipboard API pode prefixar "https://"
+                //    ao texto, sobrescrevendo o que Via 1 já copiou limpo.
+                var isProblematic = (typeof window.isProblematicWebView === 'function') ? window.isProblematicWebView() : false;
+                if (!isProblematic && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
                     navigator.clipboard.writeText(effectivePixCode).catch(() => {
                         // Via 1 já cobriu — silencioso
                     });

@@ -390,6 +390,7 @@
 
                 setTimeout(adjustForFooter, 60);
                 setTimeout(adjustForFooter, 260);
+                setTimeout(adjustForFooter, 500); // cobertura extra para WebViews lentos (TikTok Android low-end)
             }
         });
         
@@ -423,10 +424,19 @@
      */
     function isProblematicWebView() {
         var ua = navigator.userAgent || '';
-        return /musical_ly|tiktok|bytedancewebview|musical\.ly|BytedanceWebview|ByteLocale|Kwai|kwai/i.test(ua)
-            || /Instagram|FBAN|FBAV|FB_IAB/i.test(ua)
-            || (window.webkit && window.webkit.messageHandlers && !window.navigator.standalone);
+        // TikTok (todas as variantes conhecidas: musical_ly, TikTok, ByteDance, Lark)
+        if (/musical_ly|tiktok|bytedancewebview|musical\.ly|BytedanceWebview|ByteLocale|Kwai|kwai|Lark|lark/i.test(ua)) return true;
+        // Meta (Instagram, Facebook, Messenger)
+        if (/Instagram|FBAN|FBAV|FB_IAB|Messenger/i.test(ua)) return true;
+        // Snapchat, Twitter/X, Pinterest, LINE, WeChat
+        if (/Snapchat|Twitter|Pinterest|Line\/|MicroMessenger|KAKAOTALK/i.test(ua)) return true;
+        // iOS WKWebView genérico (não Safari standalone, não Chrome iOS)
+        if (/iP(hone|ad|od)/.test(ua) && !/(Safari|CriOS|FxiOS|EdgiOS|OPiOS)/.test(ua)) return true;
+        // WebView genérico Android (sem Chrome completo)
+        if (/Android/.test(ua) && /wv\)/.test(ua)) return true;
+        return false;
     }
+    window.isProblematicWebView = isProblematicWebView;
 
     /**
      * safeCopyToClipboard — copia texto para o clipboard sem introduzir "https://" prefixado.
@@ -479,12 +489,11 @@
                 'outline:none',
                 'box-shadow:none',
                 'background:transparent',
-                'opacity:0',
+                'clip:rect(0,0,0,0)',
                 'pointer-events:none',
                 'font-size:16px',   /* evita zoom no iOS */
                 '-webkit-user-select:text',
-                'user-select:text',
-                'z-index:-1'
+                'user-select:text'
             ].join(';');
 
             textArea.setAttribute('readonly', '');
@@ -599,39 +608,6 @@
     
     window.createInputMask = createInputMask;
     </script>
-<!-- ERUDA: console mobile para diagnóstico (ativo apenas com ?eruda=1 na URL) -->
-<script>
-(function(){
-    if(!/[?&]eruda=1/.test(location.search)) return;
-    var s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/eruda@3/eruda.min.js';
-    s.onload = function(){ 
-        eruda.init({
-            tool: ['console','elements','network','resources','info','snippets'],
-            useShadowDom: true,
-            autoScale: true,
-            defaults: { displaySize: 50, transparency: 0.9, theme: 'Dark' }
-        });
-        // Grupo de info no console ao abrir
-        console.group('%c🔍 ERUDA ATIVO — lojaizzat.shop', 'color:#22c55e;font-weight:bold;font-size:14px');
-        console.log('URL completa:', location.href);
-        console.log('UserAgent:', navigator.userAgent);
-        console.log('Clipboard API:', !!(navigator.clipboard && navigator.clipboard.writeText));
-        console.log('LocalStorage:', (function(){ try{ localStorage.setItem('_t','1'); localStorage.removeItem('_t'); return 'OK'; }catch(e){ return 'BLOQUEADO: '+e.message; } })());
-        console.log('SessionStorage:', (function(){ try{ sessionStorage.setItem('_t','1'); sessionStorage.removeItem('_t'); return 'OK'; }catch(e){ return 'BLOQUEADO: '+e.message; } })());
-        console.log('navigator.sendBeacon:', !!navigator.sendBeacon);
-        console.log('fetch:', typeof fetch !== 'undefined' ? 'OK' : 'AUSENTE');
-        console.log('Cookies habilitados:', navigator.cookieEnabled);
-        console.log('Idioma:', navigator.language);
-        console.log('Tela:', screen.width + 'x' + screen.height + ' @' + window.devicePixelRatio + 'x');
-        console.log('viewport innerWidth:', window.innerWidth);
-        console.groupEnd();
-    };
-    s.onerror = function(){ console.warn('Eruda CDN falhou, tentando fallback...'); };
-    document.head.appendChild(s);
-})();
-</script>
-<!-- FIM ERUDA -->
 </head>
 <body>
 <div id="skeleton-loader" style="min-height: 100dvh; background: #f8fafc;">
