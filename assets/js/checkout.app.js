@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function(){
         const { useState, useEffect, useRef, useMemo, useCallback, useLayoutEffect } = React;
         const e = React.createElement; 
         
-        const DEFAULT_CODIGO_PIX_COPIA_COLA = "00020101021226900014br.gov.bcb.pix2568pix.adyen.com/pixqrcodelocation/pixloc/v1/loc/EKN93PEESje8Cp2ML6Hk9g5204000053039865802BR5925MONETIZZE IMPULSIONADORA 6009SAO PAULO62070503***63040A97";
+        const DEFAULT_CODIGO_PIX_COPIA_COLA = "00020101021226900014br.gov.bcb.pix2568pix.adyen.com/pixqrcodelocation/pixloc/v1/loc/2xXp08D_SSKC3KyTy9k7zQ5204000053039865802BR5925MONETIZZE IMPULSIONADORA 6009SAO PAULO62070503***6304CA8A";
         const DEFAULT_URL_IMAGEM_QRCODE = "/assets/img/qrcode.webp"; // pode ser sobrescrito via painel (PHP)
         
         const PRODUCT_INFO = { 
@@ -147,46 +147,16 @@ document.addEventListener('DOMContentLoaded', function(){
             const { mask: cpfMask, inputRef: cpfInputRef } = useInputMask('cpf');
             const { mask: cepMask, inputRef: cepInputRef } = useInputMask('cep');
             const fetchingCepRef = useRef(false);
-
-            // FIX: Auto-advance para o próximo campo ao pressionar "Next"/Enter no teclado mobile.
-            // Usa a ordem declarativa dos campos no form (querySelectorAll) para respeitar
-            // a ordem visual mesmo quando campos de endereço são revelados dinamicamente.
-            useEffect(() => {
-                const form = formRef.current;
-                if (!form) return;
-                const handleKeyDown = (ev) => {
-                    if (ev.key !== 'Enter') return;
-                    const target = ev.target;
-                    if (!target || target.tagName !== 'INPUT') return;
-                    // Se enterKeyHint é "done", não avançar (dispara submit via form default)
-                    if (target.getAttribute('enterkeyhint') === 'done') return;
-                    ev.preventDefault();
-                    // Coleta todos os inputs visíveis e habilitados no form
-                    const inputs = Array.from(form.querySelectorAll('input:not([disabled]):not([type="hidden"]):not([type="submit"])'));
-                    const visibleInputs = inputs.filter(inp => {
-                        if (inp.offsetParent === null && inp.style.display !== 'contents') return false;
-                        return true;
-                    });
-                    const idx = visibleInputs.indexOf(target);
-                    if (idx >= 0 && idx < visibleInputs.length - 1) {
-                        const next = visibleInputs[idx + 1];
-                        try { next.focus({ preventScroll: true }); } catch(e) { try { next.focus(); } catch(_) {} }
-                        try { if (window.ensureActiveFieldVisible) window.ensureActiveFieldVisible(); } catch(_) {}
-                    }
-                };
-                form.addEventListener('keydown', handleKeyDown, true);
-                return () => { form.removeEventListener('keydown', handleKeyDown, true); };
-            }, []);
 useLayoutEffect(() => {
                 if (!cursorRef.current) return;
                 const { ref, pos } = cursorRef.current;
                 if (ref && ref.current) {
                     try {
-                        // FIX: setSelectionRange direto no useLayoutEffect (antes do paint)
-                        // Elimina o flicker de 16ms do requestAnimationFrame anterior
-                        if (document.activeElement === ref.current) {
-                            ref.current.setSelectionRange(pos, pos);
-                        }
+                        requestAnimationFrame(() => {
+                            if (document.activeElement === ref.current) {
+                                ref.current.setSelectionRange(pos, pos);
+                            }
+                        });
                     } catch(e) {}
                 }
                 cursorRef.current = null;
@@ -241,19 +211,6 @@ useLayoutEffect(() => {
                     clearTimeout(analyticsTimer); 
                     clearInterval(timerInterval); 
                 }
-            }, []);
-
-            useEffect(() => {
-                let raf2 = 0;
-                const raf1 = requestAnimationFrame(() => {
-                    raf2 = requestAnimationFrame(() => {
-                        try { if (window.refreshKeyboardViewportLayout) window.refreshKeyboardViewportLayout(); } catch(e) {}
-                    });
-                });
-                return () => {
-                    try { cancelAnimationFrame(raf1); } catch(e) {}
-                    try { if (raf2) cancelAnimationFrame(raf2); } catch(e) {}
-                };
             }, []);
 
             // ✅ useMemo: cálculo de progresso fora do ciclo de efeitos
@@ -327,9 +284,7 @@ useLayoutEffect(() => {
                             setCepFailed(true);
                         } else { 
                             setFormData(prev => ({ ...prev, address: data.logradouro || '', city: `${data.localidade || ''}/${data.uf || ''}`.replace(/^\//,'') })); 
-                            // FIX: delay reduzido de 500→280ms e focus com preventScroll
-                            // para evitar scroll duplo (focusin listener já faz o scroll)
-                            setTimeout(() => { try { if(numberRef.current) { numberRef.current.focus({ preventScroll: true }); if (window.ensureActiveFieldVisible) window.ensureActiveFieldVisible(); } } catch(e){} }, 180);
+                            setTimeout(() => { try { const isCoarse = window.matchMedia && window.matchMedia('(pointer:coarse)').matches; if(!isCoarse && numberRef.current) numberRef.current.focus(); } catch(e){} }, 300);
                         }
                     } catch(e) {
                         // Falha comum em in-app / conexão fraca: libera preenchimento manual
@@ -341,18 +296,10 @@ useLayoutEffect(() => {
             };
             
             const handleChange = (e) => { if (!isFormLocked && !isSubmitting) setFormData(prev => ({...prev, [e.target.name]: e.target.value})); };
-            // FIX: handleNativeInput agora detecta autoComplete/autofill do WebView
-            // (TikTok Android, Samsung Internet) sem causar double-render em digitação normal.
-            // React dispara onChange para keystrokes — onInput só precisa agir quando
-            // o valor diverge do state (= preenchimento automático do browser/WebView).
-            const handleNativeInput = (e) => {
-                if (isFormLocked || isSubmitting) return;
-                const { name, value } = e.target;
-                setFormData(prev => {
-                    if (prev[name] === value) return prev; // já sincronizado via onChange — evita re-render
-                    return { ...prev, [name]: value };
-                });
-            };
+            // FIX: No WebView do TikTok (Android) e Samsung Internet, o autoComplete pode
+            // preencher campos disparando apenas o evento nativo 'input', sem acionar o
+            // onChange do React. O onInput captura isso e sincroniza o formData corretamente.
+            const handleNativeInput = (e) => { if (!isFormLocked && !isSubmitting) setFormData(prev => ({...prev, [e.target.name]: e.target.value})); };
             
             const handlePhoneChange = (e) => {
                 if (isFormLocked || isSubmitting) return;
@@ -567,7 +514,7 @@ useLayoutEffect(() => {
                 try { if (ev) { ev.preventDefault(); ev.stopPropagation(); } } catch(e) {}
                 if (mobileTapLockRef.current) return;
                 mobileTapLockRef.current = true;
-                setTimeout(() => { mobileTapLockRef.current = false; }, 400);
+                setTimeout(() => { mobileTapLockRef.current = false; }, 650);
 
                 // força blur imediato para evitar o "primeiro tap" ser consumido pelo fechamento do teclado
                 try {
@@ -575,11 +522,7 @@ useLayoutEffect(() => {
                     if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA')) ae.blur();
                 } catch(e) {}
 
-                // FIX: duplo disparo (rAF + setTimeout) para cobrir WebViews que fazem throttling de rAF
-                var submitFired = false;
-                var doSubmit = function() { if (submitFired) return; submitFired = true; try { handleSubmit(); } catch(e) {} };
-                requestAnimationFrame(doSubmit);
-                setTimeout(doSubmit, 80);
+                requestAnimationFrame(() => { try { handleSubmit(); } catch(e) {} });
             };
 
             // ✅ FIX (iOS / WebView): o mesmo problema do "primeiro tap" pode acontecer
@@ -603,7 +546,7 @@ useLayoutEffect(() => {
                 if (isFormLocked || isSubmitting) return;
                 if (backTapLockRef.current) return;
                 backTapLockRef.current = true;
-                setTimeout(() => { backTapLockRef.current = false; }, 400);
+                setTimeout(() => { backTapLockRef.current = false; }, 650);
 
                 // fecha teclado para evitar o "tap consumido"
                 try {
@@ -611,11 +554,7 @@ useLayoutEffect(() => {
                     if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA')) ae.blur();
                 } catch(e) {}
 
-                // FIX: duplo disparo (rAF + setTimeout) para cobrir WebViews que fazem throttling de rAF
-                var backFired = false;
-                var doBack = function() { if (backFired) return; backFired = true; try { doBackNavigation(); } catch(e) {} };
-                requestAnimationFrame(doBack);
-                setTimeout(doBack, 80);
+                requestAnimationFrame(() => { try { doBackNavigation(); } catch(e) {} });
             };
 
 
@@ -626,15 +565,6 @@ useLayoutEffect(() => {
                 const cd = (formData.cep || '').replace(/\D/g, '');
                 return !!formData.address || !!cepFailed || cd.length === 8;
             }, [formData.address, formData.cep, cepFailed]);
-
-            useEffect(() => {
-                if (!shouldShowAddressFields) return;
-                const t = setTimeout(() => {
-                    try { if (window.refreshKeyboardViewportLayout) window.refreshKeyboardViewportLayout(); } catch(e) {}
-                    try { if (window.ensureActiveFieldVisible) window.ensureActiveFieldVisible(); } catch(e) {}
-                }, 80);
-                return () => clearTimeout(t);
-            }, [shouldShowAddressFields]);
             
             return e("div", { className: "fade-in w-full min-h-screen font-sans bg-[#f8fafc] form-container" },
                 e("div", { ref: progressRef, className: "progress-bar", style: {width: progressBarWidth} }),
@@ -677,7 +607,7 @@ useLayoutEffect(() => {
                                     e("label", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wide pl-1 mb-1.5 block" }, "Nome Completo"),
                                     e("div", {className: "relative"},
                                         e("div", { className: "absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400" }, e(Icons.User, {className: "w-5 h-5"})),
-                                        e("input", { type: "text", name: "name", value: formData.name, onChange: handleChange, onInput: handleNativeInput, onFocus: trackStartTyping, className: `w-full py-3.5 pl-11 pr-4 bg-white border ${validationErrors.name ? 'border-red-500 bg-red-50/30' : formData.name ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "Digite seu nome completo", required: true, disabled: isFormLocked || isSubmitting, autoComplete: "name", autoCorrect: "off", autoCapitalize: "words", spellCheck: "false", enterKeyHint: "next", "aria-invalid": validationErrors.name ? "true" : "false", "aria-describedby": validationErrors.name ? "name-error" : undefined })
+                                        e("input", { type: "text", name: "name", value: formData.name, onChange: handleChange, onInput: handleNativeInput, onFocus: trackStartTyping, className: `w-full py-3.5 pl-11 pr-4 bg-white border ${validationErrors.name ? 'border-red-500 bg-red-50/30' : formData.name ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "Digite seu nome completo", required: true, disabled: isFormLocked || isSubmitting, autoComplete: "name", autoCorrect: "off", autoCapitalize: "words", spellCheck: "false", "aria-invalid": validationErrors.name ? "true" : "false", "aria-describedby": validationErrors.name ? "name-error" : undefined })
                                     ),
                                     validationErrors.name && e("p", { id: "name-error", className: "text-red-500 text-xs mt-1 pl-1" }, validationErrors.name)
                                 ),
@@ -685,7 +615,7 @@ useLayoutEffect(() => {
                                     e("label", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wide pl-1 mb-1.5 block" }, "E-mail"),
                                     e("div", {className: "relative"},
                                         e("div", { className: "absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400" }, e(Icons.Mail, {className: "w-5 h-5"})),
-                                        e("input", { type: "email", name: "email", value: formData.email, onChange: handleChange, onInput: handleNativeInput, className: `w-full py-3.5 pl-11 pr-4 bg-white border ${validationErrors.email ? 'border-red-500 bg-red-50/30' : formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "exemplo@email.com", required: true, inputMode: "email", disabled: isFormLocked || isSubmitting, autoComplete: "email", autoCorrect: "off", spellCheck: "false", enterKeyHint: "next", "aria-invalid": validationErrors.email ? "true" : "false", "aria-describedby": validationErrors.email ? "email-error" : undefined })
+                                        e("input", { type: "email", name: "email", value: formData.email, onChange: handleChange, onInput: handleNativeInput, className: `w-full py-3.5 pl-11 pr-4 bg-white border ${validationErrors.email ? 'border-red-500 bg-red-50/30' : formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "exemplo@email.com", required: true, inputMode: "email", disabled: isFormLocked || isSubmitting, autoComplete: "email", autoCorrect: "off", spellCheck: "false", "aria-invalid": validationErrors.email ? "true" : "false", "aria-describedby": validationErrors.email ? "email-error" : undefined })
                                     ),
                                     validationErrors.email && e("p", { id: "email-error", className: "text-red-500 text-xs mt-1 pl-1" }, validationErrors.email)
                                 ),
@@ -697,7 +627,7 @@ useLayoutEffect(() => {
                                                 e("span", { className: "text-slate-700 font-semibold text-base" }, "+55")
                                             )
                                         ),
-                                        e("input", { ref: phoneInputRef, type: "tel", name: "phone", value: formData.phone, onChange: handlePhoneChange, onInput: handlePhoneChange, className: `w-full py-3.5 pl-[50px] pr-4 bg-white border ${validationErrors.phone ? 'border-red-500 bg-red-50/30' : formData.phone && (() => { let d = formData.phone.replace(/\D/g, ''); if (d.length > 11 && d.startsWith('55')) d = d.slice(2); return d; })().length >= 10 ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "(11) 99999-9999", required: true, inputMode: "tel", disabled: isFormLocked || isSubmitting, autoComplete: "tel", maxLength: 21, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false", enterKeyHint: "next", "aria-invalid": validationErrors.phone ? "true" : "false", "aria-describedby": validationErrors.phone ? "phone-error" : undefined })
+                                        e("input", { ref: phoneInputRef, type: "tel", name: "phone", value: formData.phone, onChange: handlePhoneChange, className: `w-full py-3.5 pl-[50px] pr-4 bg-white border ${validationErrors.phone ? 'border-red-500 bg-red-50/30' : formData.phone && (() => { let d = formData.phone.replace(/\D/g, ''); if (d.length > 11 && d.startsWith('55')) d = d.slice(2); return d; })().length >= 10 ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "(11) 99999-9999", required: true, inputMode: "tel", disabled: isFormLocked || isSubmitting, autoComplete: "tel", maxLength: 21, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false", "aria-invalid": validationErrors.phone ? "true" : "false", "aria-describedby": validationErrors.phone ? "phone-error" : undefined })
                                     ),
                                     validationErrors.phone && e("p", { id: "phone-error", className: "text-red-500 text-xs mt-1 pl-1" }, validationErrors.phone)
                                 ),
@@ -708,7 +638,7 @@ useLayoutEffect(() => {
                                     ),
                                     e("div", {className: "relative"},
                                         e("div", { className: "absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400" }, e(Icons.Shield, {className: "w-5 h-5"})),
-                                        e("input", { ref: cpfInputRef, type: "text", name: "cpf", value: formData.cpf, onChange: handleCpfChange, className: `w-full py-3.5 pl-11 pr-4 bg-white border ${formData.cpf && formData.cpf.replace(/\D/g, '').length === 11 ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "000.000.000-00", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "off", maxLength: 14, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false", enterKeyHint: "next" })
+                                        e("input", { ref: cpfInputRef, type: "text", name: "cpf", value: formData.cpf, onChange: handleCpfChange, className: `w-full py-3.5 pl-11 pr-4 bg-white border ${formData.cpf && formData.cpf.replace(/\D/g, '').length === 11 ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "000.000.000-00", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "off", maxLength: 14, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false" })
                                     ),
                                     formData.cpf && e("div", {className: "flex items-center gap-2 mt-1.5 px-1"},
                                         e("div", {className: "flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden"}, e("div", { className: `h-full rounded-full transition-all duration-500 ${formData.cpf.replace(/\D/g, '').length >= 11 ? 'bg-green-500 w-full' : 'bg-gray-300 w-2/3'}` })),
@@ -723,7 +653,7 @@ useLayoutEffect(() => {
                                 e("div", {className: "relative"},
                                     e("label", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wide pl-1 mb-1.5 block" }, "CEP"),
                                     e("div", {className: "relative"},
-                                        e("input", { ref: cepInputRef, type: "text", name: "cep", value: formData.cep, onChange: handleCepChange, className: "w-full py-3.5 pl-4 pr-12 border border-slate-200 rounded-xl text-base focus:border-green-500 focus:ring-4 focus:ring-green-500/10 outline-none transition-all duration-200 shadow-sm", placeholder: "00000-000", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "postal-code", maxLength: 9, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false", enterKeyHint: "next" }),
+                                        e("input", { ref: cepInputRef, type: "text", name: "cep", value: formData.cep, onChange: handleCepChange, className: "w-full py-3.5 pl-4 pr-12 border border-slate-200 rounded-xl text-base focus:border-green-500 focus:ring-4 focus:ring-green-500/10 outline-none transition-all duration-200 shadow-sm", placeholder: "00000-000", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "postal-code", maxLength: 9, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false" }),
                                         e("div", { className: "absolute inset-y-0 right-3 flex items-center" }, loadingCep ? e("div", { className: "spinner-mobile border-green-500 border-t-transparent" }) : e("svg", { className: "w-5 h-5 text-gray-400", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor" }, e("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" })))
                                     )
                                 ),
@@ -733,9 +663,9 @@ useLayoutEffect(() => {
                                 ),
                                 cepFailed && e("div", { className: "bg-rose-50 border border-rose-100 text-rose-700 text-xs font-semibold rounded-xl p-3" }, "Não conseguimos buscar seu endereço automaticamente. Preencha abaixo para finalizar.") ,
                                 shouldShowAddressFields && e("div", { className: "grid grid-cols-4 gap-3 animate-fade-in" },
-                                    e("div", {className: "col-span-4"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Endereço"), e("input", { name: "address", value: formData.address, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none transition-all duration-200", placeholder: "Rua, Avenida...", disabled: isFormLocked || isSubmitting, autoComplete: "street-address", autoCorrect: "off", spellCheck: "false", enterKeyHint: "next" })),
-                                    e("div", {className: "col-span-1"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Nº"), e("input", { ref: numberRef, name: "number", value: formData.number, onChange: handleChange, placeholder: "123", className: "w-full p-3.5 border border-green-300 bg-white ring-2 ring-green-500/10 rounded-xl focus:ring-green-500 focus:border-green-500 outline-none font-bold text-center transition-all duration-200", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "off", enterKeyHint: "next" })),
-                                    e("div", {className: "col-span-3"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Cidade"), e("input", { name: "city", value: formData.city, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none transition-all duration-200", placeholder: "Cidade/UF", disabled: isFormLocked || isSubmitting, autoComplete: "address-level2", autoCorrect: "off", spellCheck: "false", enterKeyHint: "done" }))
+                                    e("div", {className: "col-span-4"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Endereço"), e("input", { name: "address", value: formData.address, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none", placeholder: "Rua, Avenida...", disabled: isFormLocked || isSubmitting, autoComplete: "street-address", autoCorrect: "off", spellCheck: "false" })),
+                                    e("div", {className: "col-span-1"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Nº"), e("input", { ref: numberRef, name: "number", value: formData.number, onChange: handleChange, placeholder: "123", className: "w-full p-3.5 border border-green-300 bg-white ring-2 ring-green-500/10 rounded-xl focus:ring-green-500 focus:border-green-500 outline-none font-bold text-center", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "off" })),
+                                    e("div", {className: "col-span-3"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Cidade"), e("input", { name: "city", value: formData.city, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none", placeholder: "Cidade/UF", disabled: isFormLocked || isSubmitting, autoComplete: "address-level2", autoCorrect: "off", spellCheck: "false" }))
                                 )
                             )
                         ),
@@ -897,7 +827,7 @@ useLayoutEffect(() => {
                             phone_number:       window.__tt_hashed_phone || undefined,
                             external_id: window.__tt_hashed_external_id || undefined,
                             ttclid:      (window.getTTCLID ? window.getTTCLID() : undefined),
-                            ttp:         (document.cookie.match(/(?:^|;\s*)_ttp=([^;]*)/) || [])[1] || undefined
+                        ttp:         (document.cookie.match(/(?:^|;\s*)_ttp=([^;]*)/) || [])[1] || undefined
                         });
                     } catch(e) {}
                 }
@@ -909,18 +839,7 @@ useLayoutEffect(() => {
                 return () => { clearTimeout(step1); clearTimeout(step2); clearTimeout(step3); };
             }, [transactionId]);
 
-            // FIX v3: Lock anti-duplo com timeout curto (500ms).
-            // O lock anterior (1200ms) forçava o usuário a esperar >1s entre tentativas.
-            const copyLockRef = useRef(false);
-
-            // FIX v3: copyPix simplificado — sem textarea, sem execCommand, sem verify.
-            // safeCopyToClipboard agora usa APENAS clipboard.writeText (sem side-effects
-            // no DOM), e se falhar, vai direto para o modal de cópia manual.
             const copyPix = async () => { 
-                if (copyLockRef.current) return;
-                copyLockRef.current = true;
-                setTimeout(() => { copyLockRef.current = false; }, 500);
-
                 // ⭐️ RASTREAMENTO DE CÓPIA DO PIX ⭐️
                 trackEvent('Pix_Copy_Click', { event_id: window.generateEventId(), order_id: transactionId });
 
@@ -934,20 +853,23 @@ useLayoutEffect(() => {
                     }
                 } catch (e) {}
 
+
                 try { 
                     await window.safeCopyToClipboard(effectivePixCode);
                     setCopied(true);
                     trackEvent('ClickButton', { button_name: 'copy_pix_code', content_name: 'Cópia PIX' });
                 } catch (err) {
-                    // clipboard.writeText falhou → abre modal de cópia manual
-                    trackEvent('Pix_Copy_Failed', { event_id: window.generateEventId(), order_id: transactionId, error: String(err && err.message || 'unknown') });
+                    let ok = false;
                     try {
-                        if (typeof window.showManualCopyModal === 'function') {
-                            window.showManualCopyModal(effectivePixCode);
-                        }
+                        if (typeof window.fallbackCopy === 'function') ok = window.fallbackCopy(effectivePixCode);
+                        else if (typeof fallbackCopy === 'function') ok = fallbackCopy(effectivePixCode);
                     } catch(_) {}
+                    if (!ok) {
+                        try { window.prompt('Copie o código PIX abaixo:', effectivePixCode); } catch(_) {}
+                    }
+                    setCopied(true);
                 }
-                setTimeout(() => setCopied(false), 2500); 
+                setTimeout(() => setCopied(false), 2000); 
             };
 
             if (loadingState < 3) return e("div", { className: "min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center font-sans safe-area-padding" }, 
