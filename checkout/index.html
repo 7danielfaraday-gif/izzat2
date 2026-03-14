@@ -282,11 +282,17 @@
                     event_time: Math.floor(Date.now() / 1000)
                 });
 
-                // ✅ FIX: dispara ttq.track() SINCRONAMENTE (sem rAF + Promise)
-                // O wrapper antigo causava risco de perder eventos de conversão
-                // quando a página mudava de estado antes do rAF disparar
+                // ✅ FIX DEDUP: event_id deve ser passado como TERCEIRO parâmetro do ttq.track()
+                // Ref: ttq.track('Event', properties, { event_id: 'xxx' })
+                // Se passar dentro das properties, o SDK ignora e gera um ID próprio,
+                // causando mismatch com o CAPI e impedindo a deduplicação.
                 if (window.ttq && typeof window.ttq.track === 'function') {
-                    try { window.ttq.track(event, payload); } catch(e) {}
+                    try {
+                        var eventId = payload.event_id;
+                        var trackProps = Object.assign({}, payload);
+                        delete trackProps.event_id;
+                        window.ttq.track(event, trackProps, { event_id: eventId });
+                    } catch(e) {}
                 }
 
                 if (typeof gtag === 'function') {

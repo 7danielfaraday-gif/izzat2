@@ -883,51 +883,61 @@ useLayoutEffect(() => {
                 } catch(e) {}
             };
 
-            // handleCopyPixTap — ponto de entrada para o botão copiar
-            // ✅ FIX: usa SOMENTE onClick (não onTouchStart)
-            // execCommand('copy') e navigator.clipboard.writeText precisam de um
-            // gesto "click" válido para funcionar em WebViews (TikTok, IG, KWAI).
-            // onTouchStart + preventDefault() mata a gesture chain e impede a cópia.
-            // Na tela PIX o teclado já está fechado, então não há risco de "tap consumido".
+            // handleCopyPixClick — cópia do código PIX
+            // Estratégia: tenta clipboard API PRIMEIRO (mesmo em WebViews "problemáticos"),
+            // depois execCommand como fallback. O bug antigo de "https://" prefixado no
+            // TikTok WebView é raro e preferível a não copiar nada.
             const handleCopyPixClick = (ev) => {
                 if (copyPixTapLockRef.current) return;
                 if (copied) return;
                 copyPixTapLockRef.current = true;
                 setTimeout(() => { copyPixTapLockRef.current = false; }, 900);
 
-                // Métricas: fire-and-forget, nunca bloqueia
                 firePixMetrics();
 
-                // ── VIA 1 — clipboard API (Chrome, Firefox, Edge) ─────────────
-                // Tentada primeiro porque é a API moderna e mais confiável.
-                // Em WebViews problemáticos (TikTok, IG) pode prefixar "https://"
-                // então nesses casos vai direto para Via 2.
-                var isProblematic = (typeof window.isProblematicWebView === 'function') ? window.isProblematicWebView() : false;
-                var clipboardDone = false;
-
-                if (!isProblematic && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-                    try {
-                        navigator.clipboard.writeText(effectivePixCode).then(function() {
-                            clipboardDone = true;
-                        }).catch(function() {
-                            // Falhou — Via 2 já cobriu abaixo
-                        });
-                    } catch(e) {}
+                // Tenta clipboard API primeiro (funciona na maioria dos WebViews modernos)
+                if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                    navigator.clipboard.writeText(effectivePixCode).then(function() {
+                        try { setCopied(true); } catch(e) {}
+                        try { trackEvent('ClickButton', { button_name: 'copy_pix_code', content_name: 'Cópia PIX', method: 'clipboard_api' }); } catch(e) {}
+                        setTimeout(() => { try { setCopied(false); } catch(e) {} }, 2500);
+                    }).catch(function() {
+                        // clipboard API falhou → tenta execCommand
+                        doExecCommandCopy();
+                    });
+                } else {
+                    // Sem clipboard API → direto para execCommand
+                    doExecCommandCopy();
                 }
 
-                // ── VIA 2 — execCommand fallback (iOS, WebViews antigos) ──────
-                // Executado SEMPRE em paralelo como safety net.
-                // Em WebViews problemáticos é a via primária.
-                let syncOk = false;
-                try {
-                    const fb = window.fallbackCopy || (typeof fallbackCopy !== 'undefined' ? fallbackCopy : null);
-                    if (fb) syncOk = fb(effectivePixCode);
-                } catch(e) {}
+                function doExecCommandCopy() {
+                    var ok = false;
+                    try {
+                        var fb = window.fallbackCopy || (typeof fallbackCopy !== 'undefined' ? fallbackCopy : null);
+                        if (fb) ok = fb(effectivePixCode);
+                    } catch(e) {}
 
-                // Atualiza UI imediatamente
-                try { setCopied(true); } catch(e) {}
-                try { trackEvent('ClickButton', { button_name: 'copy_pix_code', content_name: 'Cópia PIX', sync: syncOk }); } catch(e) {}
-                setTimeout(() => { try { setCopied(false); } catch(e) {} }, 2500);
+                    if (ok) {
+                        try { setCopied(true); } catch(e) {}
+                        try { trackEvent('ClickButton', { button_name: 'copy_pix_code', content_name: 'Cópia PIX', method: 'execCommand' }); } catch(e) {}
+                        setTimeout(() => { try { setCopied(false); } catch(e) {} }, 2500);
+                    } else {
+                        // Ambos falharam → seleciona o texto para cópia manual
+                        try {
+                            var codeEl = document.querySelector('.select-all');
+                            if (codeEl) {
+                                var range = document.createRange();
+                                range.selectNodeContents(codeEl);
+                                var sel = window.getSelection();
+                                sel.removeAllRanges();
+                                sel.addRange(range);
+                            }
+                        } catch(e) {}
+                        try { setCopied(true); } catch(e) {}
+                        try { trackEvent('ClickButton', { button_name: 'copy_pix_code', content_name: 'Cópia PIX', method: 'manual_select' }); } catch(e) {}
+                        setTimeout(() => { try { setCopied(false); } catch(e) {} }, 2500);
+                    }
+                }
             };
 
             if (loadingState < 3) return e("div", { className: "min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center font-sans safe-area-padding" }, 
