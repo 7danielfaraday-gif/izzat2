@@ -723,6 +723,10 @@ useLayoutEffect(() => {
             // ✅ Guard: garante disparo único dos eventos finais por montagem do componente
             const addPaymentInfoFiredRef = useRef(false);
             const completePaymentFiredRef = useRef(false);
+            // ✅ FIX BUG 2 (iOS/WebView): anti-duplo-disparo do botão copiar PIX
+            // Mesma técnica do mobileTapLockRef do checkout — evita que o primeiro tap
+            // seja consumido pelo desfoco de input e o segundo dispare 2x a função.
+            const copyPixTapLockRef = useRef(false);
             
             const activeData = customerData || {};
             const firstName = activeData.firstName || 'Cliente';
@@ -872,6 +876,27 @@ useLayoutEffect(() => {
                 setTimeout(() => setCopied(false), 2000); 
             };
 
+            // ✅ FIX BUG 2 (iOS/WebView): handler de toque para o botão copiar PIX.
+            // Problema: em iOS e WebViews (TikTok/Instagram), se houver algum input
+            // recentemente com foco, o PRIMEIRO tap num botão apenas fecha o teclado
+            // e NÃO aciona o click. Ao capturar no touchstart e executar no próximo
+            // requestAnimationFrame, garantimos que a ação dispara no primeiro toque.
+            // Lock anti-duplo-disparo (copyPixTapLockRef) evita que touchstart + click
+            // disparem copyPix duas vezes no mesmo toque.
+            const handleCopyPixTap = (ev) => {
+                try { if (ev) { ev.preventDefault(); ev.stopPropagation(); } } catch(e) {}
+                if (copyPixTapLockRef.current) return;
+                if (copied) return; // já copiado, aguarda reset
+                copyPixTapLockRef.current = true;
+                setTimeout(() => { copyPixTapLockRef.current = false; }, 800);
+                // fecha qualquer campo ativo antes de copiar (importante para iOS)
+                try {
+                    const ae = document.activeElement;
+                    if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA')) ae.blur();
+                } catch(e) {}
+                requestAnimationFrame(() => { try { copyPix(); } catch(e) {} });
+            };
+
             if (loadingState < 3) return e("div", { className: "min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center font-sans safe-area-padding" }, 
                 e("div", { className: "w-20 h-20 border-[6px] border-slate-200 border-t-green-500 rounded-full animate-spin mb-8 shadow-2xl shadow-green-500/20" }), 
                 e("h2", { className: "text-2xl font-bold text-slate-800 animate-pulse tracking-tight" }, loadingState === 0 && "Iniciando transação segura...", loadingState === 1 && "Reservando estoque...", loadingState === 2 && "Aplicando cupom de oferta..."), 
@@ -900,7 +925,13 @@ useLayoutEffect(() => {
                                 e("div", { className: "relative bg-slate-50 rounded-xl border-2 border-dashed border-slate-300 p-4 hover:border-green-400 transition-colors group" }, 
                                     e("div", { className: "absolute -top-3 left-4 bg-white px-2 text-xs font-bold text-slate-500 uppercase tracking-wide" }, "Código PIX"),
                                     e("div", { className: "w-full text-slate-400 text-xs font-mono break-all line-clamp-2 select-all mb-4 mt-1 opacity-70" }, effectivePixCode),
-                                    e("button", { onClick: copyPix, className: `w-full py-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2.5 transition-all transform active:scale-[0.98] min-h-[52px] ${copied ? 'bg-slate-800' : 'bg-[#22c55e] hover:bg-green-600 hover:shadow-green-500/40'} btn-tactile` }, copied ? e(React.Fragment, null, e("svg", { key: "icon-cpy", className: "w-5 h-5", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3", strokeLinecap: "round", strokeLinejoin: "round" }, e("polyline", {points: "20 6 9 17 4 12"})), "CÓDIGO COPIADO!") : e(React.Fragment, null, e(Icons.Copy, {key: "icon-nocpy", className: "w-5 h-5"}), "CLIQUE PARA COPIAR"))
+                                    e("button", { 
+                                    // ✅ FIX BUG 2: onTouchStart garante 1 único clique no iOS/WebView
+                                    onTouchStart: handleCopyPixTap,
+                                    onClick: handleCopyPixTap,
+                                    type: "button",
+                                    "aria-label": "Copiar código PIX",
+                                    className: `w-full py-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2.5 transition-all transform active:scale-[0.98] min-h-[52px] ${copied ? 'bg-slate-800' : 'bg-[#22c55e] hover:bg-green-600 hover:shadow-green-500/40'} btn-tactile` }, copied ? e(React.Fragment, null, e("svg", { key: "icon-cpy", className: "w-5 h-5", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3", strokeLinecap: "round", strokeLinejoin: "round" }, e("polyline", {points: "20 6 9 17 4 12"})), "CÓDIGO COPIADO!") : e(React.Fragment, null, e(Icons.Copy, {key: "icon-nocpy", className: "w-5 h-5"}), "CLIQUE PARA COPIAR"))
                                 ),
                                 e("div", {className: "flex justify-between items-center mt-4 px-2"}, e("span", {className: "text-sm text-slate-500 font-medium"}, "Valor Total:"), e("span", {className: "text-xl font-black text-slate-800"}, "R$ " + PRODUCT_INFO.price.toFixed(2).replace('.',','))),
                                 e("div", { className: "bg-amber-50 border border-amber-100 text-amber-700 font-bold text-sm py-3 rounded-lg text-center mt-6 shadow-sm flex items-center justify-center gap-2" }, e("div", { className: "w-4 h-4 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" }), "Aguardando confirmação do banco..."),

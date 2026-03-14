@@ -415,59 +415,121 @@
         }
     }
     
-    function isTikTokWebView() {
-        // TikTok in-app browser adiciona "https://" no início ao usar navigator.clipboard.writeText
-        // Detectamos pelo userAgent para usar o método alternativo (textarea)
-        return /musical_ly|tiktok|bytedancewebview|musical\.ly/i.test(navigator.userAgent);
+    /**
+     * Detecta in-app browsers que têm o bug de prefixar "https://" no clipboard.writeText.
+     * Cobre TikTok (todas as versões conhecidas), Instagram, KWAI e outros ByteDance WebViews.
+     * Referência: https://developer.tiktok.com/doc/web-events-api-overview /
+     *             https://bugs.webkit.org/show_bug.cgi?id=222262
+     */
+    function isProblematicWebView() {
+        var ua = navigator.userAgent || '';
+        return /musical_ly|tiktok|bytedancewebview|musical\.ly|BytedanceWebview|ByteLocale|Kwai|kwai/i.test(ua)
+            || /Instagram|FBAN|FBAV|FB_IAB/i.test(ua)
+            || (window.webkit && window.webkit.messageHandlers && !window.navigator.standalone);
     }
 
+    /**
+     * safeCopyToClipboard — copia texto para o clipboard sem introduzir "https://" prefixado.
+     *
+     * Estratégia de prioridade:
+     *  1. In-app WebViews problemáticos (TikTok, IG, KWAI) → direto para fallback via textarea
+     *  2. Navegadores modernos com permissão de clipboard → navigator.clipboard.writeText
+     *  3. Qualquer outra falha → textarea fallback
+     */
     function safeCopyToClipboard(text) {
-        return new Promise((resolve, reject) => {
-            // ⚠️ BUG TIKTOK WEBVIEW: o clipboard nativo prefixa "https://" no texto.
-            // Forçamos o fallback via textarea para garantir cópia limpa.
-            if (isTikTokWebView()) {
-                fallbackCopy(text) ? resolve() : reject();
+        return new Promise(function(resolve, reject) {
+            if (isProblematicWebView()) {
+                fallbackCopy(text) ? resolve() : reject(new Error('fallback_failed'));
                 return;
             }
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).then(resolve).catch(() => fallbackCopy(text) ? resolve() : reject());
+            if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                navigator.clipboard.writeText(text).then(resolve).catch(function() {
+                    fallbackCopy(text) ? resolve() : reject(new Error('clipboard_and_fallback_failed'));
+                });
             } else {
-                fallbackCopy(text) ? resolve() : reject();
+                fallbackCopy(text) ? resolve() : reject(new Error('no_clipboard_api'));
             }
         });
     }
-    
+
+    /**
+     * fallbackCopy — método alternativo via textarea + execCommand.
+     *
+     * CORREÇÃO BUG iOS/WebKit: o execCommand('copy') só funciona se o elemento
+     * estiver DENTRO da viewport visível. Posicionamos o textarea no canto
+     * inferior esquerdo visível (não fora da tela) e usamos pointer-events:none
+     * + user-select:none para ser imperceptível ao usuário.
+     *
+     * Referência: https://stackoverflow.com/a/30810322 (método iOS validado)
+     */
     function fallbackCopy(text) {
         try {
-            const textArea = document.createElement('textarea');
+            var textArea = document.createElement('textarea');
             textArea.value = text;
-            textArea.style.position = 'fixed';
-            textArea.style.left = '-999999px';
-            textArea.style.top = '-999999px';
-            textArea.style.opacity = '0';
+
+            // ✅ CORREÇÃO: dentro da viewport (não -999999px) para iOS/WebKit funcionar
+            textArea.style.cssText = [
+                'position:fixed',
+                'bottom:0',
+                'left:0',
+                'width:1px',
+                'height:1px',
+                'padding:0',
+                'border:none',
+                'outline:none',
+                'box-shadow:none',
+                'background:transparent',
+                'opacity:0',
+                'pointer-events:none',
+                'font-size:16px',   /* evita zoom no iOS */
+                '-webkit-user-select:text',
+                'user-select:text',
+                'z-index:-1'
+            ].join(';');
+
             textArea.setAttribute('readonly', '');
+            textArea.setAttribute('aria-hidden', 'true');
+            textArea.setAttribute('tabindex', '-1');
             document.body.appendChild(textArea);
-            
-            if (navigator.userAgent.match(/ipad|iphone/i)) {
-                const range = document.createRange();
+
+            var successful = false;
+
+            if (/ipad|iphone/i.test(navigator.userAgent)) {
+                // iOS: precisa de range explícito para selecionar
+                var range = document.createRange();
                 range.selectNodeContents(textArea);
-                const selection = window.getSelection();
+                var selection = window.getSelection();
                 selection.removeAllRanges();
                 selection.addRange(range);
                 textArea.setSelectionRange(0, 999999);
             } else {
+                textArea.focus();
                 textArea.select();
             }
-            
-            const successful = document.execCommand('copy');
+
+            try {
+                successful = document.execCommand('copy');
+            } catch(execErr) {
+                successful = false;
+            }
+
+            // Limpa seleção e remove elemento do DOM
+            try {
+                var sel = window.getSelection();
+                if (sel) sel.removeAllRanges();
+            } catch(e) {}
             document.body.removeChild(textArea);
+
             return successful;
         } catch (err) {
             return false;
         }
     }
-    
+
     window.safeCopyToClipboard = safeCopyToClipboard;
+    // Expõe fallbackCopy globalmente para que checkout.app.js possa usar como
+    // última alternativa de segurança (triple-fallback chain)
+    window.fallbackCopy = fallbackCopy;
 
     function createInputMask(type) {
         return {
