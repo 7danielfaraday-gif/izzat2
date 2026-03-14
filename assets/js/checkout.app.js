@@ -194,12 +194,7 @@ useLayoutEffect(() => {
 
                 
                 const analyticsTimer = null; // GA desativado (modo compliance)
-                let timerInterval = null;
-                const startTimer = () => { if (!timerInterval) timerInterval = setInterval(() => { setTimeLeft(prev => prev > 0 ? prev - 1 : 0); }, 1000); };
-                const stopTimer = () => { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } };
-                const onVisibility = () => { document.hidden ? stopTimer() : startTimer(); };
-                startTimer();
-                document.addEventListener('visibilitychange', onVisibility);
+                const timerInterval = setInterval(() => { setTimeLeft(prev => prev > 0 ? prev - 1 : 0); }, 1000);
 
                 const handleBeforeUnload = (e) => { 
                     const st = unloadGuardRef.current || {};
@@ -213,9 +208,8 @@ useLayoutEffect(() => {
 
                 return () => { 
                     try { window.removeEventListener('beforeunload', handleBeforeUnload); } catch(e) {}
-                    try { document.removeEventListener('visibilitychange', onVisibility); } catch(e) {}
                     clearTimeout(analyticsTimer); 
-                    stopTimer(); 
+                    clearInterval(timerInterval); 
                 }
             }, []);
 
@@ -576,7 +570,8 @@ useLayoutEffect(() => {
                 e("div", { ref: progressRef, className: "progress-bar", style: {width: progressBarWidth} }),
                 /* ⭐️ SEGURANÇA: Barra visual removida, lógica mantida internamente no componente */
                 e("div", { className: "static-nav bg-white/98 border-b border-gray-200 px-4 flex justify-between items-center z-30 shadow-[0_2px_8px_rgba(0,0,0,0.04)]" },
-                    e("button", { type: "button", onClick: handleBackTap, className: `flex items-center text-slate-400 hover:text-slate-600 transition-colors p-3 -ml-3 btn-tactile ${isFormLocked ? 'opacity-50 cursor-not-allowed' : ''}`, "aria-label": "Voltar", disabled: isFormLocked || isSubmitting }, 
+                    e("button", { type: "button", onTouchStart: handleBackTap,
+                        onClick: handleBackTap, className: `flex items-center text-slate-400 hover:text-slate-600 transition-colors p-3 -ml-3 btn-tactile ${isFormLocked ? 'opacity-50 cursor-not-allowed' : ''}`, "aria-label": "Voltar", disabled: isFormLocked || isSubmitting }, 
                         e("svg", { className: "w-6 h-6", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, e("polyline", {points: "15 18 9 12 15 6"}))
                     ),
                     e("img", { src: "/assets/img/logo.webp", alt: "Logo", className: "h-8 w-auto object-contain", onError: (ev) => { try { const img = ev.target; if(!img.dataset.fallback){ img.dataset.fallback='1'; img.src = "/assets/img/logo.webp"; } } catch(e) {} } }),
@@ -701,6 +696,7 @@ useLayoutEffect(() => {
                 ),
                 e("div", {className: "lg:hidden checkout-fixed-footer"},
                     e("button", { ref: mobileSubmitButtonRef, 
+                        onTouchStart: handleMobileSubmitTap,
                         onClick: handleMobileSubmitTap,
                         disabled: loading || isFormLocked || isSubmitting, 
                         type: "button", 
@@ -748,21 +744,6 @@ useLayoutEffect(() => {
             useEffect(() => {
                 if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
                 requestAnimationFrame(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
-
-                // Swipe-back protection: duplo pushState cria buffer no history
-                // Primeiro swipe consome uma entrada mas popstate handler mantém na tela PIX
-                try {
-                    window.history.pushState({ __checkoutApp: true, screen: 'pix' }, document.title);
-                    window.history.pushState({ __checkoutApp: true, screen: 'pix' }, document.title);
-                } catch(e) {}
-
-                // Guard de navegação para beforeunload
-                const handleBeforeUnload = (ev) => {
-                    ev.preventDefault();
-                    ev.returnValue = 'Seu pagamento PIX está pendente!';
-                    return ev.returnValue;
-                };
-                try { window.addEventListener('beforeunload', handleBeforeUnload); } catch(e) {}
                 
                 if (customerData && customerData.transactionId && !addPaymentInfoFiredRef.current) {
                     addPaymentInfoFiredRef.current = true;
@@ -855,10 +836,7 @@ useLayoutEffect(() => {
                 const step2 = setTimeout(() => setLoadingState(2), 1200); 
                 const step3 = setTimeout(() => { setLoadingState(3); setKeyboardClosed(true); }, 2000); 
                 
-                return () => { 
-                    clearTimeout(step1); clearTimeout(step2); clearTimeout(step3);
-                    try { window.removeEventListener('beforeunload', handleBeforeUnload); } catch(e) {}
-                };
+                return () => { clearTimeout(step1); clearTimeout(step2); clearTimeout(step3); };
             }, [transactionId]);
 
             const copyPix = async () => { 
@@ -881,23 +859,13 @@ useLayoutEffect(() => {
                     setCopied(true);
                     trackEvent('ClickButton', { button_name: 'copy_pix_code', content_name: 'Cópia PIX' });
                 } catch (err) {
-                    var ok = false;
+                    let ok = false;
                     try {
                         if (typeof window.fallbackCopy === 'function') ok = window.fallbackCopy(effectivePixCode);
                         else if (typeof fallbackCopy === 'function') ok = fallbackCopy(effectivePixCode);
                     } catch(_) {}
                     if (!ok) {
-                        // Seleciona o código visualmente para cópia manual (window.prompt é bloqueado no TikTok)
-                        try {
-                            var codeEl = document.querySelector('.select-all');
-                            if (codeEl) {
-                                var range = document.createRange();
-                                range.selectNodeContents(codeEl);
-                                var sel = window.getSelection();
-                                sel.removeAllRanges();
-                                sel.addRange(range);
-                            }
-                        } catch(_) {}
+                        try { window.prompt('Copie o código PIX abaixo:', effectivePixCode); } catch(_) {}
                     }
                     setCopied(true);
                 }

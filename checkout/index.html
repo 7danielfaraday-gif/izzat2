@@ -10,7 +10,7 @@
 <link as="image" fetchpriority="high" href="../assets/img/01.webp" rel="preload"/>
 <link href="https://viacep.com.br" rel="dns-prefetch"/>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;tap-highlight-color:transparent}*:not(input):not(textarea){-webkit-user-select:none;user-select:none}.select-all{-webkit-user-select:text !important;user-select:text !important}input,select,textarea{font-size:16px !important;-webkit-box-shadow:0 0 0 100px white inset !important;box-shadow:0 0 0 100px white inset !important}html,body{overflow-x:hidden;width:100%;scroll-padding-top:80px;scroll-padding-bottom:120px;-webkit-overflow-scrolling:touch;overscroll-behavior-x:none}input,textarea,[contenteditable]{-webkit-user-select:text !important;user-select:text !important;scroll-margin-top:20px;scroll-margin-bottom:120px;-webkit-appearance:none;appearance:none;border-radius:0}body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background-color:#f8fafc;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh}.safe-area-padding{padding-bottom:env(safe-area-inset-bottom,20px)}:root{--safe-area-inset-top:env(safe-area-inset-top,0px);--safe-area-inset-bottom:env(safe-area-inset-bottom,0px)}#skeleton-loader{position:fixed;top:0;left:0;width:100%;height:100%;background:#f8fafc;z-index:9999;display:flex;flex-direction:column;transition:opacity 0.4s ease-out}.progress-bar{height:3px;background:linear-gradient(90deg,#22c55e 0%,#4ade80 100%);position:fixed;top:0;left:0;z-index:10000;transition:width 0.4s cubic-bezier(0.4,0,0.2,1);width:25%}.static-nav{background:rgba(255,255,255,0.98);padding:16px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:calc(env(safe-area-inset-top) - 1px);z-index:30;min-height:56px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}button,[role="button"],.btn-tactile{min-height:44px;min-width:44px;touch-action:manipulation;cursor:pointer}input[type="text"],input[type="email"],input[type="tel"]{min-height:44px;font-size:16px !important}.scrollbar-hidden{-ms-overflow-style:none;scrollbar-width:none}.scrollbar-hidden::-webkit-scrollbar{display:none}@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.fade-in{animation:fadeIn 0.4s ease-out forwards}.form-container{padding-bottom:calc(140px + env(safe-area-inset-bottom))}.spinner-mobile{width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-radius:50%;border-top-color:white;animation:spin 0.8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.static-container{display:flex;flex-direction:column;padding:20px;max-width:500px;margin:0 auto;gap:20px}.static-card{background:white;border-radius:16px;padding:20px;display:flex;gap:16px;border:1px solid #e2e8f0;position:relative}.static-badge{position:absolute;top:0;left:0;background:#16a34a;color:white;font-size:10px;font-weight:bold;padding:4px 12px;border-bottom-right-radius:8px}.static-title{font-size:14px;font-weight:700;color:#1e293b;margin-bottom:4px;line-height:1.4}.static-old-price{font-size:12px;color:#94a3b8;text-decoration:line-through;display:block}.static-new-price{font-size:24px;color:#16a34a;font-weight:800;display:block}.sk-form-block{background:white;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden}.sk-form-header{background:#f8fafc;padding:12px 20px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:12px}.sk-circle{width:24px;height:24px;background:#16a34a;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold}.sk-title{font-size:14px;font-weight:700;color:#334155;text-transform:uppercase}.sk-body{padding:20px}.sk-input{height:48px;background:#f1f5f9;border-radius:12px;margin-bottom:16px}.checkout-fixed-footer{position:fixed;bottom:0;left:0;width:100%;z-index:50;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom));background:linear-gradient(to top,rgba(248,250,252,1) 85%,rgba(248,250,252,0.9));box-shadow:0 -4px 12px rgba(0,0,0,0.05);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}body.keyboard-open .checkout-fixed-footer{transform:translateY(0)}@media (min-width:1024px){.static-container{max-width:1024px;flex-direction:row;align-items:flex-start}.static-left-col{width:40%}.static-right-col{width:60%}.checkout-fixed-footer{position:static;padding:0;background:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}.form-container{padding-bottom:0 !important}}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;tap-highlight-color:transparent}*:not(input):not(textarea){-webkit-user-select:none;user-select:none}.select-all{-webkit-user-select:text !important;user-select:text !important}input,select,textarea{font-size:16px !important;-webkit-box-shadow:0 0 0 100px white inset !important;box-shadow:0 0 0 100px white inset !important}html,body{overflow-x:hidden;width:100%;scroll-padding-top:80px;scroll-padding-bottom:calc(var(--footer-height,120px) + 24px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}input,textarea,[contenteditable]{-webkit-user-select:text !important;user-select:text !important;scroll-margin-top:20px;scroll-margin-bottom:calc(var(--footer-height,120px) + 24px);-webkit-appearance:none;appearance:none;border-radius:0}body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background-color:#f8fafc;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh}.safe-area-padding{padding-bottom:env(safe-area-inset-bottom,20px)}:root{--safe-area-inset-top:env(safe-area-inset-top,0px);--safe-area-inset-bottom:env(safe-area-inset-bottom,0px)}#skeleton-loader{position:fixed;top:0;left:0;width:100%;height:100%;background:#f8fafc;z-index:9999;display:flex;flex-direction:column;transition:opacity 0.4s ease-out}.progress-bar{height:3px;background:linear-gradient(90deg,#22c55e 0%,#4ade80 100%);position:fixed;top:0;left:0;z-index:10000;transition:width 0.4s cubic-bezier(0.4,0,0.2,1);width:25%}.static-nav{background:rgba(255,255,255,0.98);padding:16px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:calc(env(safe-area-inset-top) - 1px);z-index:30;min-height:56px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}button,[role="button"],.btn-tactile{min-height:44px;min-width:44px;touch-action:manipulation;cursor:pointer}input[type="text"],input[type="email"],input[type="tel"]{min-height:44px;font-size:16px !important}.scrollbar-hidden{-ms-overflow-style:none;scrollbar-width:none}.scrollbar-hidden::-webkit-scrollbar{display:none}@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.fade-in{animation:fadeIn 0.4s ease-out forwards}.form-container{padding-bottom:calc(var(--footer-height,120px) + 24px + env(safe-area-inset-bottom))}.spinner-mobile{width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-radius:50%;border-top-color:white;animation:spin 0.8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.static-container{display:flex;flex-direction:column;padding:20px;max-width:500px;margin:0 auto;gap:20px}.static-card{background:white;border-radius:16px;padding:20px;display:flex;gap:16px;border:1px solid #e2e8f0;position:relative}.static-badge{position:absolute;top:0;left:0;background:#16a34a;color:white;font-size:10px;font-weight:bold;padding:4px 12px;border-bottom-right-radius:8px}.static-title{font-size:14px;font-weight:700;color:#1e293b;margin-bottom:4px;line-height:1.4}.static-old-price{font-size:12px;color:#94a3b8;text-decoration:line-through;display:block}.static-new-price{font-size:24px;color:#16a34a;font-weight:800;display:block}.sk-form-block{background:white;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden}.sk-form-header{background:#f8fafc;padding:12px 20px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:12px}.sk-circle{width:24px;height:24px;background:#16a34a;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold}.sk-title{font-size:14px;font-weight:700;color:#334155;text-transform:uppercase}.sk-body{padding:20px}.sk-input{height:48px;background:#f1f5f9;border-radius:12px;margin-bottom:16px}.checkout-fixed-footer{position:fixed;bottom:0;left:0;width:100%;z-index:50;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom));background:linear-gradient(to top,rgba(248,250,252,1) 85%,rgba(248,250,252,0.9));box-shadow:0 -4px 12px rgba(0,0,0,0.05);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1)}body.keyboard-open .checkout-fixed-footer{transform:none}@media (min-width:1024px){.static-container{max-width:1024px;flex-direction:row;align-items:flex-start}.static-left-col{width:40%}.static-right-col{width:60%}.checkout-fixed-footer{position:static;padding:0;background:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;transform:none !important}.form-container{padding-bottom:0 !important}}
 </style>
 <script>
 !function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=i,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};var o=document.createElement("script");o.type="text/javascript",o.async=!0,o.src=i+"?sdkid="+e+"&lib="+t;var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(o,a)};var _ttid='D6QQNCRC77U77M85EI40';if(_ttid&&_ttid.indexOf('REPLACE')===-1){ttq.load(_ttid,{autoConfig:false});ttq.page();}}(window,document,'ttq');
@@ -153,23 +153,17 @@
     if (DEBUG_MODE) { window.trackingDebug = true; }
 
     function getExternalId() {
-        // Cookie-first: sobrevive a navegação in-app (TikTok WebView limpa localStorage entre sessões)
-        var KEY = 'user_external_id';
+        // Persistência: external_id em localStorage (mantém atribuição entre sessões)
         try {
-            var match = document.cookie.match(new RegExp('(?:^|;\\s*)' + KEY + '=([^;]*)'));
-            if (match && match[1]) return match[1];
-        } catch(e) {}
-        try {
-            var eid = localStorage.getItem(KEY);
-            if (eid) {
-                try { document.cookie = KEY + '=' + eid + ';max-age=7776000;path=/;SameSite=Lax'; } catch(e) {}
-                return eid;
+            let eid = localStorage.getItem('user_external_id');
+            if (!eid) {
+                eid = 'sess_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+                localStorage.setItem('user_external_id', eid);
             }
-        } catch(e) {}
-        var newId = 'sess_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
-        try { document.cookie = KEY + '=' + newId + ';max-age=7776000;path=/;SameSite=Lax'; } catch(e) {}
-        try { localStorage.setItem(KEY, newId); } catch(e) {}
-        return newId;
+            return eid;
+        } catch(e) {
+            return 'sess_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+        }
     }
     window.getExternalId = getExternalId;
 
@@ -178,15 +172,9 @@
             const u = new URLSearchParams(window.location.search); 
             const val = u.get('ttclid');
             if(val) { 
-                try { document.cookie = 'ttclid=' + val + ';max-age=7776000;path=/;SameSite=Lax'; } catch(e) {}
                 try { localStorage.setItem('ttclid', val); } catch(e) {}
                 return val; 
             }
-            // Cookie-first fallback
-            try {
-                var match = document.cookie.match(/(?:^|;\s*)ttclid=([^;]*)/);
-                if (match && match[1]) return match[1];
-            } catch(e) {}
             return localStorage.getItem('ttclid');
         } catch (e) { return null; } 
     }
@@ -212,15 +200,10 @@
                 const v = u.get(key); 
                 if (v) { 
                     utms[key] = v; 
-                    try { document.cookie = key + '=' + encodeURIComponent(v) + ';max-age=2592000;path=/;SameSite=Lax'; } catch(e) {}
                     try { localStorage.setItem(key, v); } catch(e) {} 
                 } else { 
-                    // Cookie-first fallback
-                    try {
-                        var match = document.cookie.match(new RegExp('(?:^|;\\s*)' + key + '=([^;]*)'));
-                        if (match && match[1]) { utms[key] = decodeURIComponent(match[1]); return; }
-                    } catch(e) {}
-                    try { const saved = localStorage.getItem(key); if(saved) utms[key] = saved; } catch(e) {}
+                    const saved = localStorage.getItem(key); 
+                    if(saved) utms[key] = saved; 
                 }
             }); 
         } catch(e){}
@@ -345,37 +328,93 @@
 
     // (Compliance) Analytics de terceiros desativado nesta página.
 
-    // Keyboard detection LIMPA: apenas oculta/mostra o footer fixo.
-    // Sem focusin scrollBy (causava double-scroll), sem resize thrashing.
+    let INITIAL_HEIGHT = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+
+    function updateFooterHeightVar() {
+        try {
+            const footer = document.querySelector('.checkout-fixed-footer');
+            if (!footer) return;
+            const h = Math.ceil(footer.getBoundingClientRect().height || 0);
+            if (h > 0) document.documentElement.style.setProperty('--footer-height', h + 'px');
+        } catch(e) {}
+    }
+
+    
     function setupKeyboardDetection() {
-        var vv = window.visualViewport;
-        if (!vv) return; // fallback: confia no comportamento nativo
-
-        var baseH = vv.height;
-        var rafId = null;
-
-        vv.addEventListener('resize', function() {
-            if (rafId) return;
-            rafId = requestAnimationFrame(function() {
-                rafId = null;
-                var cur = vv.height;
-                if (cur > baseH) baseH = cur;
-                // Teclado aberto = viewport encolheu > 150px
-                if (baseH - cur > 150) {
+        const isVisualViewportSupported = typeof window.visualViewport !== 'undefined';
+        
+        if (isVisualViewportSupported) {
+            const visualViewport = window.visualViewport;
+            const handleResize = () => {
+                const currentHeight = visualViewport.height;
+                if (currentHeight > INITIAL_HEIGHT) INITIAL_HEIGHT = currentHeight;
+                const diff = INITIAL_HEIGHT - currentHeight;
+                
+                if (diff > 150) { 
+                    document.documentElement.style.setProperty('--keyboard-height', diff + 'px');
                     document.body.classList.add('keyboard-open');
                 } else {
                     document.body.classList.remove('keyboard-open');
+                    document.documentElement.style.setProperty('--keyboard-height', '0px');
                 }
-            });
-        }, { passive: true });
+            };
+            visualViewport.addEventListener('resize', handleResize);
+        }
 
-        // Recalibra após orientationchange
-        window.addEventListener('orientationchange', function() {
-            setTimeout(function() { baseH = vv.height; }, 300);
+        window.addEventListener('resize', () => {
+            if (isVisualViewportSupported) return; 
+            const currentHeight = window.innerHeight;
+            const diff = INITIAL_HEIGHT - currentHeight;
+            if (diff > 150) {
+                document.body.classList.add('keyboard-open');
+            } else {
+                document.body.classList.remove('keyboard-open');
+            }
         });
+
+        document.addEventListener('focusin', (e) => {
+            if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
+                document.body.classList.add('keyboard-open');
+
+                const adjustForFooter = () => {
+                    try {
+                        const footerH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--footer-height')) || 0;
+                        const vvH = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                        const rect = e.target.getBoundingClientRect();
+                        const bottomLimit = vvH - footerH - 12;
+                        if (rect.bottom > bottomLimit) {
+                            window.scrollBy(0, rect.bottom - bottomLimit);
+                        }
+                    } catch (_) {}
+                };
+
+                setTimeout(adjustForFooter, 60);
+                setTimeout(adjustForFooter, 260);
+            }
+        });
+        
+        document.addEventListener('focusout', (e) => {
+            if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
+               setTimeout(() => {
+                   if (document.activeElement && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+                       document.body.classList.remove('keyboard-open');
+                   }
+               }, 150);
+            }
+        });
+
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => { INITIAL_HEIGHT = window.visualViewport ? window.visualViewport.height : window.innerHeight; updateFooterHeightVar(); }, 200);
+        });
+
+        updateFooterHeightVar();
+        window.addEventListener('load', updateFooterHeightVar);
+        window.addEventListener('resize', () => setTimeout(updateFooterHeightVar, 50));
+        if (isVisualViewportSupported) {
+            window.visualViewport.addEventListener('resize', () => setTimeout(updateFooterHeightVar, 50));
+        }
     }
     
-
     function isTikTokWebView() {
         // TikTok in-app browser adiciona "https://" no início ao usar navigator.clipboard.writeText
         // Detectamos pelo userAgent para usar o método alternativo (textarea)
@@ -383,39 +422,44 @@
     }
 
     function safeCopyToClipboard(text) {
-        return new Promise(function(resolve, reject) {
-            // Estratégia 1: Clipboard API (exceto TikTok que prefixa "https://")
-            if (!isTikTokWebView() && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-                navigator.clipboard.writeText(text).then(resolve).catch(function() {
-                    fallbackCopy(text) ? resolve() : reject();
-                });
+        return new Promise((resolve, reject) => {
+            // ⚠️ BUG TIKTOK WEBVIEW: o clipboard nativo prefixa "https://" no texto.
+            // Forçamos o fallback via textarea para garantir cópia limpa.
+            if (isTikTokWebView()) {
+                fallbackCopy(text) ? resolve() : reject();
                 return;
             }
-            // Estratégia 2: Selection API fallback (funciona em WebViews)
-            fallbackCopy(text) ? resolve() : reject();
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(resolve).catch(() => fallbackCopy(text) ? resolve() : reject());
+            } else {
+                fallbackCopy(text) ? resolve() : reject();
+            }
         });
     }
     
     function fallbackCopy(text) {
         try {
-            var textArea = document.createElement('textarea');
+            const textArea = document.createElement('textarea');
             textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            textArea.style.opacity = '0';
             textArea.setAttribute('readonly', '');
-            textArea.style.cssText = 'position:fixed;left:0;top:0;width:1px;height:1px;padding:0;border:none;outline:none;box-shadow:none;background:transparent;opacity:0';
             document.body.appendChild(textArea);
             
-            if (/ipad|iphone/i.test(navigator.userAgent)) {
-                var range = document.createRange();
+            if (navigator.userAgent.match(/ipad|iphone/i)) {
+                const range = document.createRange();
                 range.selectNodeContents(textArea);
-                var sel = window.getSelection();
-                sel.removeAllRanges();
-                sel.addRange(range);
-                textArea.setSelectionRange(0, text.length);
+                const selection = window.getSelection();
+                selection.removeAllRanges();
+                selection.addRange(range);
+                textArea.setSelectionRange(0, 999999);
             } else {
                 textArea.select();
             }
             
-            var successful = document.execCommand('copy');
+            const successful = document.execCommand('copy');
             document.body.removeChild(textArea);
             return successful;
         } catch (err) {
@@ -525,7 +569,7 @@
 </div>
 </div>
 <div id="checkout-root"></div>
-<script defer="" src="/assets/js/checkout.app.js?v=14.0?v=12.0" onerror="window.__loadScript&&window.__loadScript('../assets/js/checkout.app.js?v=14.0?v=12.0').then(function(){if(window.initReactCheckout&&!window.checkoutInitialized)window.initReactCheckout();})"></script>
+<script defer="" src="/assets/js/checkout.app.js?v=12.0" onerror="window.__loadScript&&window.__loadScript('../assets/js/checkout.app.js?v=12.0').then(function(){if(window.initReactCheckout&&!window.checkoutInitialized)window.initReactCheckout();})"></script>
 <script defer src="/assets/js/metrics.ping.js"></script>
 </body>
 </html>
