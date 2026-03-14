@@ -1,10 +1,3 @@
-document.addEventListener('DOMContentLoaded', function(){
-    try {
-        if (typeof setupKeyboardDetection === 'function') setupKeyboardDetection();
-        else if (typeof window.setupKeyboardDetection === 'function') window.setupKeyboardDetection();
-    } catch(e) {}
-});
-    
     window.initReactCheckout = function() {
         if (window.checkoutInitialized) return;
         if (typeof React === 'undefined' || typeof ReactDOM === 'undefined') {
@@ -14,6 +7,29 @@ document.addEventListener('DOMContentLoaded', function(){
         window.checkoutInitialized = true;
         const { useState, useEffect, useRef, useMemo, useCallback, useLayoutEffect } = React;
         const e = React.createElement; 
+        const getScrollRoot = () => document.getElementById('scroll-root');
+        const scrollRootToTop = () => {
+            try {
+                const scrollRoot = getScrollRoot();
+                if (scrollRoot) scrollRoot.scrollTo({ top: 0, behavior: 'auto' });
+                else window.scrollTo({ top: 0, behavior: 'auto' });
+            } catch(e) {}
+        };
+        const scrollElementIntoRootView = (element, offset = 0) => {
+            try {
+                if (!element) return;
+                const scrollRoot = getScrollRoot();
+                if (scrollRoot) {
+                    const rootRect = scrollRoot.getBoundingClientRect();
+                    const elRect = element.getBoundingClientRect();
+                    const top = scrollRoot.scrollTop + (elRect.top - rootRect.top) - offset;
+                    scrollRoot.scrollTo({ top: Math.max(0, top), behavior: 'auto' });
+                    return;
+                }
+                const top = element.getBoundingClientRect().top + window.scrollY - offset;
+                window.scrollTo({ top: Math.max(0, top), behavior: 'auto' });
+            } catch(e) {}
+        };
         
         const DEFAULT_CODIGO_PIX_COPIA_COLA = "00020101021226900014br.gov.bcb.pix2568pix.adyen.com/pixqrcodelocation/pixloc/v1/loc/EKN93PEESje8Cp2ML6Hk9g5204000053039865802BR5925MONETIZZE IMPULSIONADORA 6009SAO PAULO62070503***63040A97";
         const DEFAULT_URL_IMAGEM_QRCODE = "/assets/img/qrcode.webp"; // pode ser sobrescrito via painel (PHP)
@@ -118,6 +134,11 @@ document.addEventListener('DOMContentLoaded', function(){
         };
 
         function CheckoutScreen({ onSuccess }) {
+            useLayoutEffect(() => {
+                try { if (typeof window.updateFooterHeightVar === 'function') window.updateFooterHeightVar(); } catch(e) {}
+                const id = setTimeout(() => { try { if (typeof window.updateFooterHeightVar === 'function') window.updateFooterHeightVar(); } catch(e) {} }, 60);
+                return () => clearTimeout(id);
+            }, []);
             const [loading, setLoading] = useState(false);
             const [loadingCep, setLoadingCep] = useState(false);
             const [cepFailed, setCepFailed] = useState(false);
@@ -176,7 +197,7 @@ useLayoutEffect(() => {
                     }
                 } catch(e) {}
 
-                try { window.scrollTo(0, 0); } catch(e) {}
+                scrollRootToTop();
                 try { trackEvent('InitiateCheckout', { ...window.PRODUCT_CONTENT, content_name: PRODUCT_INFO.name, event_id: sessionEventId }); } catch(e) {}
 
                 // 🔥 CAPI: espelha InitiateCheckout no servidor com o MESMO event_id
@@ -363,9 +384,7 @@ useLayoutEffect(() => {
                             const header = document.querySelector('.static-nav');
                             const offset = header ? header.clientHeight + 60 : 120;
                             // Garante que não fique atrás do footer
-                            const footerHeight = 100; 
-                            const y = errorElement.getBoundingClientRect().top + window.scrollY - offset;
-                            window.scrollTo({top: Math.max(0, y), behavior: 'auto'});
+                            scrollElementIntoRootView(errorElement, offset);
 
                             try {
                                 // iOS/WebView antigos podem não suportar focus({preventScroll:true})
@@ -694,25 +713,32 @@ useLayoutEffect(() => {
                         )
                     ),
                 ),
-                e("div", {className: "lg:hidden checkout-fixed-footer"},
-                    e("button", { ref: mobileSubmitButtonRef, 
-                        onTouchStart: handleMobileSubmitTap,
-                        onClick: handleMobileSubmitTap,
-                        disabled: loading || isFormLocked || isSubmitting, 
-                        type: "button", 
-                        className: `w-full bg-gradient-to-r from-green-600 to-green-700 text-white font-bold py-4 rounded-xl text-lg transition-all active:scale-[0.98] flex justify-center items-center gap-2 shadow-xl shadow-green-500/30 ${loading || isFormLocked || isSubmitting ? 'opacity-80 grayscale cursor-not-allowed' : 'hover:shadow-green-500/50'} btn-tactile min-h-[56px]`, "aria-busy": loading }, 
-                        loading ? e("span", {className: "flex items-center gap-2"}, e("div", { className: "spinner-mobile" }), "Processando...") : e("span", {className: "flex items-center gap-2"}, "FINALIZAR COM DESCONTO", e("svg", { className: "w-5 h-5", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3" }, e("polyline", {points: "9 18 15 12 9 6"})))
-                    ),
-                    e("div", {className: "mt-2 text-center text-[10px] text-slate-500 leading-snug px-1"},
-                        "Ao clicar em 'Finalizar compra', você aceita que a Izzat processe o pedido, concorda com os ",
-                        e("a", { href: "/termos-de-compra/", className: "underline" }, "Termos de compra"),
-                        ", com a ",
-                        e("a", { href: "/politica-de-privacidade/", className: "underline" }, "Política de Privacidade"),
-                        " e confirmação de maioridade ou supervisão de tutor. ",
-                        e("span", { className: "opacity-80" }, "REF: "),
-                        e("a", { href: "/ref/", className: "underline opacity-80" }, ((window.getRefCode && window.getRefCode()) || '—'))
-                    )
-                )
+                (function(){
+                    const footerRoot = document.getElementById('checkout-fixed-footer-root');
+                    if (!footerRoot || !ReactDOM || typeof ReactDOM.createPortal !== 'function') return null;
+                    return ReactDOM.createPortal(
+                        e("div", {className: "lg:hidden checkout-fixed-footer"},
+                            e("button", { ref: mobileSubmitButtonRef, 
+                                onTouchStart: handleMobileSubmitTap,
+                                onClick: handleMobileSubmitTap,
+                                disabled: loading || isFormLocked || isSubmitting, 
+                                type: "button", 
+                                className: `w-full bg-gradient-to-r from-green-600 to-green-700 text-white font-bold py-4 rounded-xl text-lg transition-all active:scale-[0.98] flex justify-center items-center gap-2 shadow-xl shadow-green-500/30 ${loading || isFormLocked || isSubmitting ? 'opacity-80 grayscale cursor-not-allowed' : 'hover:shadow-green-500/50'} btn-tactile min-h-[56px]`, "aria-busy": loading }, 
+                                loading ? e("span", {className: "flex items-center gap-2"}, e("div", { className: "spinner-mobile" }), "Processando...") : e("span", {className: "flex items-center gap-2"}, "FINALIZAR COM DESCONTO", e("svg", { className: "w-5 h-5", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3" }, e("polyline", {points: "9 18 15 12 9 6"})))
+                            ),
+                            e("div", {className: "mt-2 text-center text-[10px] text-slate-500 leading-snug px-1"},
+                                "Ao clicar em 'Finalizar compra', você aceita que a Izzat processe o pedido, concorda com os ",
+                                e("a", { href: "/termos-de-compra/", className: "underline" }, "Termos de compra"),
+                                ", com a ",
+                                e("a", { href: "/politica-de-privacidade/", className: "underline" }, "Política de Privacidade"),
+                                " e confirmação de maioridade ou supervisão de tutor. ",
+                                e("span", { className: "opacity-80" }, "REF: "),
+                                e("a", { href: "/ref/", className: "underline opacity-80" }, ((window.getRefCode && window.getRefCode()) || '—'))
+                            )
+                        ),
+                        footerRoot
+                    );
+                })()
             );
         }
 
@@ -743,7 +769,7 @@ useLayoutEffect(() => {
 
             useEffect(() => {
                 if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
-                requestAnimationFrame(() => { window.scrollTo({ top: 0, behavior: 'auto' }); });
+                requestAnimationFrame(() => { scrollRootToTop(); });
                 
                 if (customerData && customerData.transactionId && !addPaymentInfoFiredRef.current) {
                     addPaymentInfoFiredRef.current = true;
