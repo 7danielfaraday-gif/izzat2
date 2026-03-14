@@ -338,157 +338,57 @@
 
     
     function setupKeyboardDetection() {
-        var isVVSupported = typeof window.visualViewport !== 'undefined';
-        var isInAppWebView = isProblematicWebView();
-        var keyboardOpen = false;
-        var pendingScroll = null;
-        var lastFocusedEl = null;
+    var isVVSupported = typeof window.visualViewport !== 'undefined';
+    var keyboardOpen = false;
 
-        // --- DETECÇÃO DE TECLADO ---
-        // Camada 1: visualViewport.resize (funciona em Chrome, Edge, Firefox modernos)
-        if (isVVSupported) {
-            var vv = window.visualViewport;
-            vv.addEventListener('resize', function() {
-                var currentH = vv.height;
-                if (currentH > INITIAL_HEIGHT) INITIAL_HEIGHT = currentH;
-                var diff = INITIAL_HEIGHT - currentH;
-                if (diff > 150) {
-                    document.documentElement.style.setProperty('--keyboard-height', diff + 'px');
-                    setKeyboardState(true);
-                } else {
-                    document.documentElement.style.setProperty('--keyboard-height', '0px');
-                    setKeyboardState(false);
-                }
-            });
-        }
-
-        // Camada 2: window.resize fallback (WebViews que não suportam visualViewport)
-        window.addEventListener('resize', function() {
-            if (isVVSupported) return;
-            var diff = INITIAL_HEIGHT - window.innerHeight;
-            setKeyboardState(diff > 150);
-        });
-
-        function setKeyboardState(open) {
-            if (keyboardOpen === open) return;
-            keyboardOpen = open;
-            if (open) {
-                document.body.classList.add('keyboard-open');
+    // --- DETECÇÃO DE TECLADO (Apenas para esconder o Footer via CSS) ---
+    if (isVVSupported) {
+        var vv = window.visualViewport;
+        vv.addEventListener('resize', function() {
+            var currentH = vv.height;
+            if (currentH > INITIAL_HEIGHT) INITIAL_HEIGHT = currentH;
+            var diff = INITIAL_HEIGHT - currentH;
+            if (diff > 150) {
+                document.documentElement.style.setProperty('--keyboard-height', diff + 'px');
+                setKeyboardState(true);
             } else {
-                document.body.classList.remove('keyboard-open');
+                document.documentElement.style.setProperty('--keyboard-height', '0px');
+                setKeyboardState(false);
             }
-        }
-
-        // --- SCROLL INTELIGENTE NO FOCUS ---
-        // Estratégia: ao focar um input, esconde o footer (via CSS) e rola o campo
-        // para o centro vertical visível. Usa múltiplas tentativas com delays
-        // crescentes para cobrir WebViews lentos (TikTok Android low-end).
-        function scrollToInput(el, attemptIndex) {
-            if (!el || !el.getBoundingClientRect) return;
-            try {
-                // Encontra o container do campo (label + input + error msg)
-                // Sobe até o wrapper .mb-4 ou o bloco de seção mais próximo
-                var scrollTarget = el;
-                try {
-                    // Primeiro tenta o wrapper direto do campo (div.mb-4 que contém label+input)
-                    var wrapper = el.closest('.mb-4');
-                    if (!wrapper) wrapper = el.closest('.relative');
-                    // Para campos de endereço (grid), pega o col-span
-                    if (!wrapper) wrapper = el.closest('[class*="col-span"]');
-                    if (wrapper) scrollTarget = wrapper;
-                } catch(e) {}
-
-                var viewH = isVVSupported ? window.visualViewport.height : window.innerHeight;
-                var rect = scrollTarget.getBoundingClientRect();
-                var inputRect = el.getBoundingClientRect();
-                
-                // Posiciona o LABEL+CAMPO próximo ao topo da área visível
-                // ~16% do topo = deixa o header sticky visível + respiro confortável
-                var targetY = viewH * 0.16;
-                var scrollDelta = rect.top - targetY;
-                
-                // Safety check: garante que o INPUT em si não fique atrás do teclado
-                // Usa a metade inferior da viewport visível como limite
-                var bottomSafe = viewH * 0.85;
-                if (inputRect.bottom > bottomSafe) {
-                    // Input está perto/atrás do teclado — prioriza subir mais
-                    scrollDelta = inputRect.top - (viewH * 0.35);
-                }
-                
-                // Threshold: só rola se a diferença é relevante (evita micro-scrolls irritantes)
-                if (Math.abs(scrollDelta) > 25) {
-                    window.scrollBy({ top: scrollDelta, behavior: 'smooth' });
-                }
-            } catch(_) {}
-        }
-
-        document.addEventListener('focusin', function(e) {
-            var tag = e.target.tagName;
-            if (tag !== 'INPUT' && tag !== 'TEXTAREA') return;
-            
-            // ✅ Ignora textareas temporários criados pelo fallbackCopy (clipboard)
-            // e inputs readonly (como o campo do código PIX)
-            if (e.target.getAttribute('aria-hidden') === 'true' || e.target.getAttribute('tabindex') === '-1' || e.target.readOnly) return;
-            
-            lastFocusedEl = e.target;
-            
-            // Ativa keyboard-open IMEDIATAMENTE (não espera visualViewport)
-            // Isso é CRÍTICO para in-app browsers onde o resize nunca dispara
-            setKeyboardState(true);
-
-            // Cancela scroll pendente anterior (evita race condition entre campos)
-            if (pendingScroll) { clearTimeout(pendingScroll); pendingScroll = null; }
-
-            // Múltiplas tentativas com delays progressivos:
-            // 80ms  → teclado começou a abrir (Chrome normal)
-            // 300ms → teclado abriu na maioria dos devices
-            // 550ms → WebViews lentos (TikTok Android low-end, Xiaomi, Samsung A0x)
-            var delays = [80, 300, 550];
-            var attempt = 0;
-            function tryScroll() {
-                if (document.activeElement !== lastFocusedEl) return;
-                scrollToInput(lastFocusedEl, attempt);
-                attempt++;
-                if (attempt < delays.length) {
-                    pendingScroll = setTimeout(tryScroll, delays[attempt] - delays[attempt - 1]);
-                }
-            }
-            pendingScroll = setTimeout(tryScroll, delays[0]);
         });
+    }
 
-        // --- RESTAURAÇÃO NO BLUR ---
-        document.addEventListener('focusout', function(e) {
-            var tag = e.target.tagName;
-            if (tag !== 'INPUT' && tag !== 'TEXTAREA') return;
-            if (e.target.getAttribute('aria-hidden') === 'true' || e.target.getAttribute('tabindex') === '-1' || e.target.readOnly) return;
-            
-            if (pendingScroll) { clearTimeout(pendingScroll); pendingScroll = null; }
-            
-            setTimeout(function() {
-                var ae = document.activeElement;
-                if (!ae || (ae.tagName !== 'INPUT' && ae.tagName !== 'TEXTAREA')) {
-                    setKeyboardState(false);
-                    lastFocusedEl = null;
-                }
-            }, 200);
-        });
+    window.addEventListener('resize', function() {
+        if (isVVSupported) return;
+        var diff = INITIAL_HEIGHT - window.innerHeight;
+        setKeyboardState(diff > 150);
+    });
 
-        // --- ORIENTAÇÃO ---
-        window.addEventListener('orientationchange', function() {
-            setTimeout(function() {
-                INITIAL_HEIGHT = isVVSupported ? window.visualViewport.height : window.innerHeight;
-                updateFooterHeightVar();
-            }, 300);
-        });
-
-        // --- FOOTER HEIGHT ---
-        updateFooterHeightVar();
-        window.addEventListener('load', updateFooterHeightVar);
-        window.addEventListener('resize', function() { setTimeout(updateFooterHeightVar, 50); });
-        if (isVVSupported) {
-            window.visualViewport.addEventListener('resize', function() { setTimeout(updateFooterHeightVar, 50); });
+    function setKeyboardState(open) {
+        if (keyboardOpen === open) return;
+        keyboardOpen = open;
+        if (open) {
+            document.body.classList.add('keyboard-open');
+        } else {
+            document.body.classList.remove('keyboard-open');
         }
     }
+
+    // --- ORIENTAÇÃO E FOOTER ---
+    window.addEventListener('orientationchange', function() {
+        setTimeout(function() {
+            INITIAL_HEIGHT = isVVSupported ? window.visualViewport.height : window.innerHeight;
+            updateFooterHeightVar();
+        }, 300);
+    });
+
+    updateFooterHeightVar();
+    window.addEventListener('load', updateFooterHeightVar);
+    window.addEventListener('resize', function() { setTimeout(updateFooterHeightVar, 50); });
+    if (isVVSupported) {
+        window.visualViewport.addEventListener('resize', function() { setTimeout(updateFooterHeightVar, 50); });
+    }
+}
     
     /**
      * Detecta in-app browsers que têm o bug de prefixar "https://" no clipboard.writeText.
@@ -714,7 +614,7 @@
 </div>
 </div>
 <div id="checkout-root"></div>
-<script defer="" src="/assets/js/checkout.app.js?v=2.0" onerror="window.__loadScript&&window.__loadScript('../assets/js/checkout.app.js?v=2.0').then(function(){if(window.initReactCheckout&&!window.checkoutInitialized)window.initReactCheckout();})"></script>
+<script defer="" src="/assets/js/checkout.app.js?v=3.0" onerror="window.__loadScript&&window.__loadScript('../assets/js/checkout.app.js?v=3.0').then(function(){if(window.initReactCheckout&&!window.checkoutInitialized)window.initReactCheckout();})"></script>
 <script defer src="/assets/js/metrics.ping.js"></script>
 </body>
 </html>
