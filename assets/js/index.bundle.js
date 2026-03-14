@@ -136,7 +136,10 @@ function getStoredUTMs() {
             payload.event_source_url = window.location.origin + window.location.pathname;
 
             if (window.ttq && typeof window.ttq.track === 'function' && event !== 'PageView') {
-                window.ttq.track(event, payload);
+                var eid = payload.event_id;
+                var props = Object.assign({}, payload);
+                delete props.event_id;
+                window.ttq.track(event, props, eid ? { event_id: eid } : undefined);
             }
         } catch (error) {
             console.error('Tracking Error:', error);
