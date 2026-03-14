@@ -797,47 +797,50 @@ useLayoutEffect(() => {
                     // Mesmo que o componente re-renderize, o TikTok vai deduplicar pelo mesmo event_id
                     const cpEventId = 'cp_' + customerData.transactionId;
 
-                    // ✅ FIX TELEFONE: re-chama identify antes do CompletePayment
-                    // (usuário pode ter trocado de aba e o cookie de identidade pode ter expirado)
-                    try {
-                        if (window.ttq && typeof window.ttq.identify === 'function') {
-                            const ident = {};
-                            if (window.__tt_hashed_email) ident.email = window.__tt_hashed_email;
-                            if (window.__tt_hashed_phone) ident.phone_number = window.__tt_hashed_phone;
-                            if (window.__tt_hashed_external_id) ident.external_id = window.__tt_hashed_external_id;
-                            if (Object.keys(ident).length) window.ttq.identify(ident);
-                        }
-                    } catch(e) {}
+                    // ✅ FIX: CompletePayment dispara 1.5s DEPOIS de AddPaymentInfo
+                    // TikTok processa eventos cronologicamente — dois eventos no mesmo event_time
+                    // podem causar confusão no funil e o CompletePayment ser descartado.
+                    setTimeout(() => {
+                        // ✅ FIX TELEFONE: re-chama identify antes do CompletePayment
+                        try {
+                            if (window.ttq && typeof window.ttq.identify === 'function') {
+                                const ident = {};
+                                if (window.__tt_hashed_email) ident.email = window.__tt_hashed_email;
+                                if (window.__tt_hashed_phone) ident.phone_number = window.__tt_hashed_phone;
+                                if (window.__tt_hashed_external_id) ident.external_id = window.__tt_hashed_external_id;
+                                if (Object.keys(ident).length) window.ttq.identify(ident);
+                            }
+                        } catch(e) {}
 
-                    // ✅ Anti-vazamento: nunca envie email/telefone/CPF/endereço no tracking
-                    trackEvent('CompletePayment', { 
-                        ...window.PRODUCT_CONTENT, 
-                        content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI', 
-                        value: 197.99, 
-                        currency: 'BRL', 
-                        order_id: customerData.transactionId, 
-                        event_id: cpEventId,
-                        email: window.__tt_hashed_email || undefined,
-                        phone_number: window.__tt_hashed_phone || undefined,
-                        external_id: window.__tt_hashed_external_id || undefined,
-                        ref: (window.getRefCode ? (window.getRefCode() || '') : '')
-                    }, true);
-                    // 🔥 CAPI: espelha CompletePayment no servidor com o MESMO event_id determinístico
-                    try {
-                        sendCAPI('CompletePayment', cpEventId, {
-                            ...(window.PRODUCT_CONTENT || {}),
-                            currency: 'BRL',
-                            value: 197.99,
-                            order_id: customerData.transactionId,
-                            event_source_url: window.location.href
-                        }, {
-                            email:       window.__tt_hashed_email || undefined,
-                            phone_number:       window.__tt_hashed_phone || undefined,
+                        trackEvent('CompletePayment', { 
+                            ...window.PRODUCT_CONTENT, 
+                            content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI', 
+                            value: 197.99, 
+                            currency: 'BRL', 
+                            order_id: customerData.transactionId, 
+                            event_id: cpEventId,
+                            email: window.__tt_hashed_email || undefined,
+                            phone_number: window.__tt_hashed_phone || undefined,
                             external_id: window.__tt_hashed_external_id || undefined,
-                            ttclid:      (window.getTTCLID ? window.getTTCLID() : undefined),
-                        ttp:         (document.cookie.match(/(?:^|;\s*)_ttp=([^;]*)/) || [])[1] || undefined
-                        });
-                    } catch(e) {}
+                            ref: (window.getRefCode ? (window.getRefCode() || '') : '')
+                        }, true);
+
+                        try {
+                            sendCAPI('CompletePayment', cpEventId, {
+                                ...(window.PRODUCT_CONTENT || {}),
+                                currency: 'BRL',
+                                value: 197.99,
+                                order_id: customerData.transactionId,
+                                event_source_url: window.location.href
+                            }, {
+                                email:        window.__tt_hashed_email || undefined,
+                                phone_number: window.__tt_hashed_phone || undefined,
+                                external_id:  window.__tt_hashed_external_id || undefined,
+                                ttclid:       (window.getTTCLID ? window.getTTCLID() : undefined),
+                                ttp:          (document.cookie.match(/(?:^|;\s*)_ttp=([^;]*)/) || [])[1] || undefined
+                            });
+                        } catch(e) {}
+                    }, 1500);
                 }
                 
                 const step1 = setTimeout(() => setLoadingState(1), 500);

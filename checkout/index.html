@@ -245,30 +245,23 @@
     // Gera imediatamente no início da transação
     try { window.__checkout_event_id = getSessionEventId(); } catch(e) {}
     function trackPixel(event, data = {}, useBeacon = false) {
-        requestAnimationFrame(() => {
-            Promise.resolve().then(() => {
+        try {
                 var finalData = Object.assign({}, data || {});
 
                 // ✅ Anti-vazamento: nunca envie PII/sensíveis para TikTok
-                // (checkout pode ter email/telefone/CPF/endereço, mas isso NÃO vai no tracking)
                 var DROP = ['email','phone','phone_number','external_id','cpf','address','cep','number','city','state','name','firstName','lastName','nome','telefone','tel','mail'];
                 var HASH_ONLY = ['email','phone','phone_number','external_id','fn','ln','ct','st','zp'];
                 var IS_SHA256 = function(v){ try { return typeof v === 'string' && /^[a-f0-9]{64}$/i.test(v.trim()); } catch(e){ return false; } };
 
-                // ✅ Anti-vazamento: remove PII bruta e só deixa passar hashes (SHA-256) nos campos de matching
                 for (var i = 0; i < DROP.length; i++) {
                     try {
                         var k = DROP[i];
                         if (!finalData || !Object.prototype.hasOwnProperty.call(finalData, k)) continue;
-
-                        // ✅ Permite SOMENTE hash SHA-256 em email/phone (anti-ban + privacidade)
                         if ((k === 'email' || k === 'phone' || k === 'phone_number' || k === 'external_id') && IS_SHA256(finalData[k])) continue;
-
                         delete finalData[k];
                     } catch(e) {}
                 }
 
-                // ✅ Campos de matching: passam apenas se forem hashes válidos (64 chars hex)
                 for (var j = 0; j < HASH_ONLY.length; j++) {
                     try {
                         var hk = HASH_ONLY[j];
@@ -277,33 +270,31 @@
                     } catch(e) {}
                 }
 
-                // ✅ FIX: respeita event_id único passado por cada chamada (não sobrescreve)
-                // CompletePayment usa getSessionEventId() para sincronizar browser+server
-                // Todos os outros eventos usam generateEventId() único por disparo
                 if (!finalData.event_id) {
                     finalData.event_id = generateEventId();
                 }
 
-
                 var payload = Object.assign({}, finalData, {
                     ttclid: window.getTTCLID(),
                     ...window.getStoredUTMs(),
-                    event_source_url: window.location.origin + window.location.pathname,
+                    // ✅ FIX: URL completa com query params (ttclid, UTMs) para melhor atribuição
+                    event_source_url: window.location.href,
                     event_time: Math.floor(Date.now() / 1000)
                 });
-                // Browser Pixel do projeto
+
+                // ✅ FIX: dispara ttq.track() SINCRONAMENTE (sem rAF + Promise)
+                // O wrapper antigo causava risco de perder eventos de conversão
+                // quando a página mudava de estado antes do rAF disparar
                 if (window.ttq && typeof window.ttq.track === 'function') {
                     try { window.ttq.track(event, payload); } catch(e) {}
                 }
 
-                // GA fallback (opcional) — payload já está sanitizado
                 if (typeof gtag === 'function') {
                     try { gtag('event', event, payload); } catch(e) {}
                 }
-            }).catch((error) => {
+        } catch(error) {
                 if (DEBUG_MODE) console.error('trackPixel error:', error);
-            });
-        });
+        }
     }
     window.trackPixel = trackPixel;
 
