@@ -12,7 +12,7 @@
 const TIKTOK_EVENTS_API = 'https://business-api.tiktok.com/open_api/v1.3/event/track/';
 
 // Campos aceitos no payload de user para Advanced Matching
-const USER_FIELDS = ['email', 'phone', 'external_id', 'ttclid'];
+const USER_FIELDS = ['email', 'phone_number', 'external_id', 'ttclid', 'ttp'];
 
 // Campos aceitos no payload de properties
 const PROPS_FIELDS = [
@@ -20,6 +20,23 @@ const PROPS_FIELDS = [
   'content_name', 'content_category', 'quantity', 'order_id',
   'event_source_url', 'description'
 ];
+
+function isSha256Hex(value) {
+  return typeof value === 'string' && /^[a-f0-9]{64}$/i.test(value.trim());
+}
+
+function buildSafeUser(user) {
+  const raw = pick(user, USER_FIELDS);
+  const safe = {};
+
+  if (isSha256Hex(raw.email)) safe.email = raw.email.trim().toLowerCase();
+  if (isSha256Hex(raw.phone_number)) safe.phone_number = raw.phone_number.trim().toLowerCase();
+  if (isSha256Hex(raw.external_id)) safe.external_id = raw.external_id.trim().toLowerCase();
+  if (raw.ttclid) safe.ttclid = raw.ttclid;
+  if (raw.ttp) safe.ttp = raw.ttp;
+
+  return safe;
+}
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -101,6 +118,14 @@ export async function onRequestPost(context) {
 
       properties: {
         ...pick(properties, PROPS_FIELDS),
+        // Garante content_id sempre presente: extrai do contents[] se não vier no top-level
+        ...(
+          !properties.content_id &&
+          Array.isArray(properties.contents) &&
+          properties.contents[0]?.content_id
+            ? { content_id: properties.contents[0].content_id }
+            : {}
+        ),
         // URL confiável: prefere o header Origin/Referer server-side
         event_source_url:
           context.request.headers.get('referer') ||
@@ -109,7 +134,7 @@ export async function onRequestPost(context) {
       },
 
       user: {
-        ...pick(user, USER_FIELDS),
+        ...buildSafeUser(user),
         ...(ip        && { ip }),
         ...(userAgent && { user_agent: userAgent }),
       },
