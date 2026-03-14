@@ -554,18 +554,18 @@
             // ✅ CORREÇÃO: dentro da viewport (não -999999px) para iOS/WebKit funcionar
             textArea.style.cssText = [
                 'position:fixed',
-                'bottom:0',
-                'left:0',
-                'width:1px',
-                'height:1px',
+                'top:50%',
+                'left:50%',
+                'width:2em',
+                'height:2em',
                 'padding:0',
                 'border:none',
                 'outline:none',
                 'box-shadow:none',
                 'background:transparent',
-                'clip:rect(0,0,0,0)',
+                'opacity:0',
                 'pointer-events:none',
-                'font-size:16px',   /* evita zoom no iOS */
+                'font-size:16px',
                 '-webkit-user-select:text',
                 'user-select:text'
             ].join(';');

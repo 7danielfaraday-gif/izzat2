@@ -953,7 +953,6 @@ useLayoutEffect(() => {
                                     e("div", { className: "absolute -top-3 left-4 bg-white px-2 text-xs font-bold text-slate-500 uppercase tracking-wide" }, "Código PIX"),
                                     e("div", { className: "w-full text-slate-400 text-xs font-mono break-all line-clamp-2 select-all mb-4 mt-1 opacity-70" }, effectivePixCode),
                                     e("button", { 
-                                    onTouchStart: handleCopyPixTap,
                                     onClick: handleCopyPixTap,
                                     type: "button",
                                     "aria-label": "Copiar código PIX",
