@@ -843,58 +843,74 @@ useLayoutEffect(() => {
                 return () => { clearTimeout(step1); clearTimeout(step2); clearTimeout(step3); };
             }, [transactionId]);
 
-            const copyPix = async () => { 
-                // ⭐️ RASTREAMENTO DE CÓPIA DO PIX ⭐️
-                trackEvent('Pix_Copy_Click', { event_id: window.generateEventId(), order_id: transactionId });
+            // ─────────────────────────────────────────────────────────────────
+            // CÓPIA DO PIX — arquitetura profissional (duas vias independentes)
+            //
+            // PROBLEMA raiz que causava o window.prompt():
+            //   copyPix era "async" com "await". No iOS Safari, qualquer "await"
+            //   antes de execCommand('copy') quebra a cadeia de gesto do usuário
+            //   (user gesture chain). Sem gesture chain ativa, execCommand falha
+            //   silenciosamente e o código caía no último fallback: window.prompt().
+            //
+            // SOLUÇÃO (padrão usado por Shopee, ML, Nubank, etc.):
+            //   VIA 1 — SÍNCRONA (iOS Safari / todos os WebViews):
+            //     fallbackCopy() é chamado IMEDIATAMENTE, ainda dentro do handler
+            //     de toque, sem nenhum await antes. A gesture chain permanece ativa.
+            //
+            //   VIA 2 — ASSÍNCRONA (Chrome / Firefox / Android moderno):
+            //     navigator.clipboard.writeText() em paralelo (não bloqueia Via 1).
+            //     Se Via 1 já copiou, Via 2 é no-op silencioso.
+            //
+            //   NUNCA usa window.prompt() — removido por completo.
+            //   Em caso de falha total: setCopied(true) mostra feedback visual
+            //   e o código fica visível/selecionável na tela para cópia manual.
+            // ─────────────────────────────────────────────────────────────────
 
-                // contador (admin) - cliques no botao Copiar PIX
+            // Dispara métricas sem bloquear nenhuma das duas vias de cópia
+            const firePixMetrics = () => {
+                try { trackEvent('Pix_Copy_Click', { event_id: window.generateEventId(), order_id: transactionId }); } catch(e) {}
                 try {
                     const payload = JSON.stringify({ ts: Date.now(), order_id: transactionId });
-                    if (navigator.sendBeacon) {
-                        navigator.sendBeacon('/api/metrics/pix-copy', payload);
-                    } else {
-                        fetch('/api/metrics/pix-copy', { method: 'POST', headers: { 'content-type': 'application/json' }, body: payload, keepalive: true }).catch(() => {});
-                    }
-                } catch (e) {}
-
-
-                try { 
-                    await window.safeCopyToClipboard(effectivePixCode);
-                    setCopied(true);
-                    trackEvent('ClickButton', { button_name: 'copy_pix_code', content_name: 'Cópia PIX' });
-                } catch (err) {
-                    let ok = false;
-                    try {
-                        if (typeof window.fallbackCopy === 'function') ok = window.fallbackCopy(effectivePixCode);
-                        else if (typeof fallbackCopy === 'function') ok = fallbackCopy(effectivePixCode);
-                    } catch(_) {}
-                    if (!ok) {
-                        try { window.prompt('Copie o código PIX abaixo:', effectivePixCode); } catch(_) {}
-                    }
-                    setCopied(true);
-                }
-                setTimeout(() => setCopied(false), 2000); 
+                    if (navigator.sendBeacon) navigator.sendBeacon('/api/metrics/pix-copy', payload);
+                    else fetch('/api/metrics/pix-copy', { method: 'POST', headers: { 'content-type': 'application/json' }, body: payload, keepalive: true }).catch(() => {});
+                } catch(e) {}
             };
 
-            // ✅ FIX BUG 2 (iOS/WebView): handler de toque para o botão copiar PIX.
-            // Problema: em iOS e WebViews (TikTok/Instagram), se houver algum input
-            // recentemente com foco, o PRIMEIRO tap num botão apenas fecha o teclado
-            // e NÃO aciona o click. Ao capturar no touchstart e executar no próximo
-            // requestAnimationFrame, garantimos que a ação dispara no primeiro toque.
-            // Lock anti-duplo-disparo (copyPixTapLockRef) evita que touchstart + click
-            // disparem copyPix duas vezes no mesmo toque.
+            // handleCopyPixTap — único ponto de entrada para o botão copiar
+            // Captura onTouchStart E onClick para garantir 1 único toque no iOS/WebView
             const handleCopyPixTap = (ev) => {
                 try { if (ev) { ev.preventDefault(); ev.stopPropagation(); } } catch(e) {}
                 if (copyPixTapLockRef.current) return;
-                if (copied) return; // já copiado, aguarda reset
+                if (copied) return;
                 copyPixTapLockRef.current = true;
-                setTimeout(() => { copyPixTapLockRef.current = false; }, 800);
-                // fecha qualquer campo ativo antes de copiar (importante para iOS)
+                setTimeout(() => { copyPixTapLockRef.current = false; }, 900);
+
+                // Métricas: fire-and-forget, nunca bloqueia
+                firePixMetrics();
+
+                // ── VIA 1 — SÍNCRONA ──────────────────────────────────────────
+                // Executada imediatamente, dentro da gesture chain ativa.
+                // Cobre iOS Safari, TikTok, Instagram, KWAI e todos os WebViews.
+                let syncOk = false;
                 try {
-                    const ae = document.activeElement;
-                    if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA')) ae.blur();
+                    const fb = window.fallbackCopy || (typeof fallbackCopy !== 'undefined' ? fallbackCopy : null);
+                    if (fb) syncOk = fb(effectivePixCode);
                 } catch(e) {}
-                requestAnimationFrame(() => { try { copyPix(); } catch(e) {} });
+
+                // Atualiza UI imediatamente (sem esperar Via 2)
+                try { setCopied(true); } catch(e) {}
+                try { trackEvent('ClickButton', { button_name: 'copy_pix_code', content_name: 'Cópia PIX', sync: syncOk }); } catch(e) {}
+                setTimeout(() => { try { setCopied(false); } catch(e) {} }, 2500);
+
+                // ── VIA 2 — ASSÍNCRONA ────────────────────────────────────────
+                // Para navegadores modernos (Chrome Android, Firefox) onde
+                // navigator.clipboard.writeText é mais confiável que execCommand.
+                // Roda em paralelo — não afeta o feedback visual já mostrado.
+                if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                    navigator.clipboard.writeText(effectivePixCode).catch(() => {
+                        // Via 1 já cobriu — silencioso
+                    });
+                }
             };
 
             if (loadingState < 3) return e("div", { className: "min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center font-sans safe-area-padding" }, 
