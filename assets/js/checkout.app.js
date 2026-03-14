@@ -284,6 +284,7 @@ useLayoutEffect(() => {
                             setCepFailed(true);
                         } else { 
                             setFormData(prev => ({ ...prev, address: data.logradouro || '', city: `${data.localidade || ''}/${data.uf || ''}`.replace(/^\//,'') })); 
+                            setTimeout(() => { try { const isCoarse = window.matchMedia && window.matchMedia('(pointer:coarse)').matches; if(!isCoarse && numberRef.current) numberRef.current.focus(); } catch(e){} }, 300);
                         }
                     } catch(e) {
                         // Falha comum em in-app / conexão fraca: libera preenchimento manual
@@ -364,7 +365,7 @@ useLayoutEffect(() => {
                             // Garante que não fique atrás do footer
                             const footerHeight = 100; 
                             const y = errorElement.getBoundingClientRect().top + window.scrollY - offset;
-                            window.scrollTo({top: Math.max(0, y), behavior: 'auto'});
+                            window.scrollTo({top: Math.max(0, y), behavior: 'smooth'});
 
                             try {
                                 // iOS/WebView antigos podem não suportar focus({preventScroll:true})
@@ -742,7 +743,7 @@ useLayoutEffect(() => {
 
             useEffect(() => {
                 if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
-                requestAnimationFrame(() => { window.scrollTo({ top: 0, behavior: 'auto' }); });
+                requestAnimationFrame(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
                 
                 if (customerData && customerData.transactionId && !addPaymentInfoFiredRef.current) {
                     addPaymentInfoFiredRef.current = true;
