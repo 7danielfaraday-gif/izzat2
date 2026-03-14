@@ -697,6 +697,7 @@ useLayoutEffect(() => {
                         )
                     ),
                 ),
+                e("div", { className: "keyboard-spacer lg:hidden", "aria-hidden": "true" }),
                 e("div", {className: "lg:hidden checkout-fixed-footer"},
                     e("button", { ref: mobileSubmitButtonRef, 
                         onTouchStart: handleMobileSubmitTap,
