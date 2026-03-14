@@ -1,6 +1,0 @@
-# Garante trailing slash em rotas de página — preserva query params (?ttclid=..., utm_*, etc.)
-# Cloudflare Pages: 301 redireciona /checkout para /checkout/ sem perder parâmetros.
-/checkout  /checkout/  301
-/ref       /ref/       301
-/termos-de-compra       /termos-de-compra/       301
-/politica-de-privacidade /politica-de-privacidade/ 301

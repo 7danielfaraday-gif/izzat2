@@ -6,16 +6,12 @@
 
   const getSid = () => {
     try {
-      // FIX: Tenta localStorage primeiro (mais resiliente em WebViews que bloqueiam sessionStorage)
-      let sid = null;
-      try { sid = localStorage.getItem(SID_KEY); } catch(e) {}
-      if (!sid) { try { sid = sessionStorage.getItem(SID_KEY); } catch(e) {} }
+      let sid = sessionStorage.getItem(SID_KEY);
       if (!sid) {
-        try { sid = crypto.randomUUID(); } catch(_e) {
-        sid = Date.now().toString(36) + Math.random().toString(36).slice(2);
-      }
-        try { localStorage.setItem(SID_KEY, sid); } catch(e) {}
-        try { sessionStorage.setItem(SID_KEY, sid); } catch(e) {}
+        sid = self.crypto && crypto.randomUUID
+          ? crypto.randomUUID()
+          : Date.now().toString(36) + Math.random().toString(36).slice(2);
+        sessionStorage.setItem(SID_KEY, sid);
       }
       return sid;
     } catch {
@@ -27,9 +23,7 @@
     const body = JSON.stringify({ sid: getSid(), path: location.pathname, ts: Date.now() });
     try {
       if (navigator.sendBeacon) {
-        // FIX: Usa Blob com Content-Type correto para que o server-side parse JSON corretamente
-        const blob = new Blob([body], { type: 'application/json' });
-        navigator.sendBeacon('/api/metrics/ping', blob);
+        navigator.sendBeacon('/api/metrics/ping', body);
         return;
       }
     } catch {

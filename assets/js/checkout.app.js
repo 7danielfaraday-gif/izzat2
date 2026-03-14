@@ -147,45 +147,17 @@ document.addEventListener('DOMContentLoaded', function(){
             const { mask: cpfMask, inputRef: cpfInputRef } = useInputMask('cpf');
             const { mask: cepMask, inputRef: cepInputRef } = useInputMask('cep');
             const fetchingCepRef = useRef(false);
-
-            // FIX: Auto-advance para o próximo campo ao pressionar "Next"/Enter no teclado mobile.
-            // Usa a ordem declarativa dos campos no form (querySelectorAll) para respeitar
-            // a ordem visual mesmo quando campos de endereço são revelados dinamicamente.
-            useEffect(() => {
-                const form = formRef.current;
-                if (!form) return;
-                const handleKeyDown = (ev) => {
-                    if (ev.key !== 'Enter') return;
-                    const target = ev.target;
-                    if (!target || target.tagName !== 'INPUT') return;
-                    // Se enterKeyHint é "done", não avançar (dispara submit via form default)
-                    if (target.getAttribute('enterkeyhint') === 'done') return;
-                    ev.preventDefault();
-                    // Coleta todos os inputs visíveis e habilitados no form
-                    const inputs = Array.from(form.querySelectorAll('input:not([disabled]):not([type="hidden"]):not([type="submit"])'));
-                    const visibleInputs = inputs.filter(inp => {
-                        if (inp.offsetParent === null && inp.style.display !== 'contents') return false;
-                        return true;
-                    });
-                    const idx = visibleInputs.indexOf(target);
-                    if (idx >= 0 && idx < visibleInputs.length - 1) {
-                        const next = visibleInputs[idx + 1];
-                        try { next.focus({ preventScroll: false }); } catch(e) { try { next.focus(); } catch(_) {} }
-                    }
-                };
-                form.addEventListener('keydown', handleKeyDown, true);
-                return () => { form.removeEventListener('keydown', handleKeyDown, true); };
-            }, []);
+            const lastCepLookedUpRef = useRef('');
 useLayoutEffect(() => {
                 if (!cursorRef.current) return;
                 const { ref, pos } = cursorRef.current;
                 if (ref && ref.current) {
                     try {
-                        // FIX: setSelectionRange direto no useLayoutEffect (antes do paint)
-                        // Elimina o flicker de 16ms do requestAnimationFrame anterior
-                        if (document.activeElement === ref.current) {
-                            ref.current.setSelectionRange(pos, pos);
-                        }
+                        requestAnimationFrame(() => {
+                            if (document.activeElement === ref.current) {
+                                ref.current.setSelectionRange(pos, pos);
+                            }
+                        });
                     } catch(e) {}
                 }
                 cursorRef.current = null;
@@ -297,6 +269,7 @@ useLayoutEffect(() => {
                 if (fetchingCepRef.current) return;
                 const cep = val.replace(/\D/g, ''); 
                 if (cep.length === 8) { 
+                    lastCepLookedUpRef.current = cep;
                     fetchingCepRef.current = true; setLoadingCep(true); 
                     
                     // Adicionado AbortController para evitar travamento em 3G/4G instável
@@ -313,9 +286,7 @@ useLayoutEffect(() => {
                             setCepFailed(true);
                         } else { 
                             setFormData(prev => ({ ...prev, address: data.logradouro || '', city: `${data.localidade || ''}/${data.uf || ''}`.replace(/^\//,'') })); 
-                            // FIX: delay reduzido de 500→280ms e focus com preventScroll
-                            // para evitar scroll duplo (focusin listener já faz o scroll)
-                            setTimeout(() => { try { if(numberRef.current) { numberRef.current.focus({ preventScroll: true }); } } catch(e){} }, 280);
+                            setTimeout(() => { try { const isCoarse = window.matchMedia && window.matchMedia('(pointer:coarse)').matches; if(!isCoarse && numberRef.current) numberRef.current.focus(); } catch(e){} }, 300);
                         }
                     } catch(e) {
                         // Falha comum em in-app / conexão fraca: libera preenchimento manual
@@ -327,18 +298,10 @@ useLayoutEffect(() => {
             };
             
             const handleChange = (e) => { if (!isFormLocked && !isSubmitting) setFormData(prev => ({...prev, [e.target.name]: e.target.value})); };
-            // FIX: handleNativeInput agora detecta autoComplete/autofill do WebView
-            // (TikTok Android, Samsung Internet) sem causar double-render em digitação normal.
-            // React dispara onChange para keystrokes — onInput só precisa agir quando
-            // o valor diverge do state (= preenchimento automático do browser/WebView).
-            const handleNativeInput = (e) => {
-                if (isFormLocked || isSubmitting) return;
-                const { name, value } = e.target;
-                setFormData(prev => {
-                    if (prev[name] === value) return prev; // já sincronizado via onChange — evita re-render
-                    return { ...prev, [name]: value };
-                });
-            };
+            // FIX: No WebView do TikTok (Android) e Samsung Internet, o autoComplete pode
+            // preencher campos disparando apenas o evento nativo 'input', sem acionar o
+            // onChange do React. O onInput captura isso e sincroniza o formData corretamente.
+            const handleNativeInput = (e) => { if (!isFormLocked && !isSubmitting) setFormData(prev => ({...prev, [e.target.name]: e.target.value})); };
             
             const handlePhoneChange = (e) => {
                 if (isFormLocked || isSubmitting) return;
@@ -363,7 +326,8 @@ useLayoutEffect(() => {
                 setFormData(prev => ({...prev, [name]: result.formatted}));
                 cursorRef.current = { ref: cepInputRef, pos: result.cursorPosition };
                 if (value.replace(/\D/g, '').length < 8) { try { setCepFailed(false); } catch(e) {} }
-                if (value.replace(/\D/g, '').length === 8 && formData.cep.replace(/\D/g, '') !== value.replace(/\D/g, '')) handleCep(value.replace(/\D/g, ''));
+                const cepDigits = value.replace(/\D/g, '');
+                if (cepDigits.length === 8 && lastCepLookedUpRef.current !== cepDigits) handleCep(cepDigits);
             };
 
 	            const handleSubmit = async (ev) => {
@@ -553,7 +517,7 @@ useLayoutEffect(() => {
                 try { if (ev) { ev.preventDefault(); ev.stopPropagation(); } } catch(e) {}
                 if (mobileTapLockRef.current) return;
                 mobileTapLockRef.current = true;
-                setTimeout(() => { mobileTapLockRef.current = false; }, 400);
+                setTimeout(() => { mobileTapLockRef.current = false; }, 650);
 
                 // força blur imediato para evitar o "primeiro tap" ser consumido pelo fechamento do teclado
                 try {
@@ -561,11 +525,7 @@ useLayoutEffect(() => {
                     if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA')) ae.blur();
                 } catch(e) {}
 
-                // FIX: duplo disparo (rAF + setTimeout) para cobrir WebViews que fazem throttling de rAF
-                var submitFired = false;
-                var doSubmit = function() { if (submitFired) return; submitFired = true; try { handleSubmit(); } catch(e) {} };
-                requestAnimationFrame(doSubmit);
-                setTimeout(doSubmit, 80);
+                requestAnimationFrame(() => { try { handleSubmit(); } catch(e) {} });
             };
 
             // ✅ FIX (iOS / WebView): o mesmo problema do "primeiro tap" pode acontecer
@@ -589,7 +549,7 @@ useLayoutEffect(() => {
                 if (isFormLocked || isSubmitting) return;
                 if (backTapLockRef.current) return;
                 backTapLockRef.current = true;
-                setTimeout(() => { backTapLockRef.current = false; }, 400);
+                setTimeout(() => { backTapLockRef.current = false; }, 650);
 
                 // fecha teclado para evitar o "tap consumido"
                 try {
@@ -597,11 +557,7 @@ useLayoutEffect(() => {
                     if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA')) ae.blur();
                 } catch(e) {}
 
-                // FIX: duplo disparo (rAF + setTimeout) para cobrir WebViews que fazem throttling de rAF
-                var backFired = false;
-                var doBack = function() { if (backFired) return; backFired = true; try { doBackNavigation(); } catch(e) {} };
-                requestAnimationFrame(doBack);
-                setTimeout(doBack, 80);
+                requestAnimationFrame(() => { try { doBackNavigation(); } catch(e) {} });
             };
 
 
@@ -654,7 +610,7 @@ useLayoutEffect(() => {
                                     e("label", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wide pl-1 mb-1.5 block" }, "Nome Completo"),
                                     e("div", {className: "relative"},
                                         e("div", { className: "absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400" }, e(Icons.User, {className: "w-5 h-5"})),
-                                        e("input", { type: "text", name: "name", value: formData.name, onChange: handleChange, onInput: handleNativeInput, onFocus: trackStartTyping, className: `w-full py-3.5 pl-11 pr-4 bg-white border ${validationErrors.name ? 'border-red-500 bg-red-50/30' : formData.name ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "Digite seu nome completo", required: true, disabled: isFormLocked || isSubmitting, autoComplete: "name", autoCorrect: "off", autoCapitalize: "words", spellCheck: "false", enterKeyHint: "next", "aria-invalid": validationErrors.name ? "true" : "false", "aria-describedby": validationErrors.name ? "name-error" : undefined })
+                                        e("input", { type: "text", name: "name", value: formData.name, onChange: handleChange, onInput: handleNativeInput, onFocus: trackStartTyping, className: `w-full py-3.5 pl-11 pr-4 bg-white border ${validationErrors.name ? 'border-red-500 bg-red-50/30' : formData.name ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "Digite seu nome completo", required: true, disabled: isFormLocked || isSubmitting, autoComplete: "name", autoCorrect: "off", autoCapitalize: "words", spellCheck: "false", "aria-invalid": validationErrors.name ? "true" : "false", "aria-describedby": validationErrors.name ? "name-error" : undefined })
                                     ),
                                     validationErrors.name && e("p", { id: "name-error", className: "text-red-500 text-xs mt-1 pl-1" }, validationErrors.name)
                                 ),
@@ -662,7 +618,7 @@ useLayoutEffect(() => {
                                     e("label", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wide pl-1 mb-1.5 block" }, "E-mail"),
                                     e("div", {className: "relative"},
                                         e("div", { className: "absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400" }, e(Icons.Mail, {className: "w-5 h-5"})),
-                                        e("input", { type: "email", name: "email", value: formData.email, onChange: handleChange, onInput: handleNativeInput, className: `w-full py-3.5 pl-11 pr-4 bg-white border ${validationErrors.email ? 'border-red-500 bg-red-50/30' : formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "exemplo@email.com", required: true, inputMode: "email", disabled: isFormLocked || isSubmitting, autoComplete: "email", autoCorrect: "off", spellCheck: "false", enterKeyHint: "next", "aria-invalid": validationErrors.email ? "true" : "false", "aria-describedby": validationErrors.email ? "email-error" : undefined })
+                                        e("input", { type: "email", name: "email", value: formData.email, onChange: handleChange, onInput: handleNativeInput, className: `w-full py-3.5 pl-11 pr-4 bg-white border ${validationErrors.email ? 'border-red-500 bg-red-50/30' : formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "exemplo@email.com", required: true, inputMode: "email", disabled: isFormLocked || isSubmitting, autoComplete: "email", autoCorrect: "off", spellCheck: "false", "aria-invalid": validationErrors.email ? "true" : "false", "aria-describedby": validationErrors.email ? "email-error" : undefined })
                                     ),
                                     validationErrors.email && e("p", { id: "email-error", className: "text-red-500 text-xs mt-1 pl-1" }, validationErrors.email)
                                 ),
@@ -674,7 +630,7 @@ useLayoutEffect(() => {
                                                 e("span", { className: "text-slate-700 font-semibold text-base" }, "+55")
                                             )
                                         ),
-                                        e("input", { ref: phoneInputRef, type: "tel", name: "phone", value: formData.phone, onChange: handlePhoneChange, onInput: handlePhoneChange, className: `w-full py-3.5 pl-[50px] pr-4 bg-white border ${validationErrors.phone ? 'border-red-500 bg-red-50/30' : formData.phone && (() => { let d = formData.phone.replace(/\D/g, ''); if (d.length > 11 && d.startsWith('55')) d = d.slice(2); return d; })().length >= 10 ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "(11) 99999-9999", required: true, inputMode: "tel", disabled: isFormLocked || isSubmitting, autoComplete: "tel", maxLength: 21, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false", enterKeyHint: "next", "aria-invalid": validationErrors.phone ? "true" : "false", "aria-describedby": validationErrors.phone ? "phone-error" : undefined })
+                                        e("input", { ref: phoneInputRef, type: "tel", name: "phone", value: formData.phone, onChange: handlePhoneChange, onInput: handlePhoneChange, className: `w-full py-3.5 pl-[50px] pr-4 bg-white border ${validationErrors.phone ? 'border-red-500 bg-red-50/30' : formData.phone && (() => { let d = formData.phone.replace(/\D/g, ''); if (d.length > 11 && d.startsWith('55')) d = d.slice(2); return d; })().length >= 10 ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "(11) 99999-9999", required: true, inputMode: "tel", disabled: isFormLocked || isSubmitting, autoComplete: "tel", maxLength: 21, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false", "aria-invalid": validationErrors.phone ? "true" : "false", "aria-describedby": validationErrors.phone ? "phone-error" : undefined })
                                     ),
                                     validationErrors.phone && e("p", { id: "phone-error", className: "text-red-500 text-xs mt-1 pl-1" }, validationErrors.phone)
                                 ),
@@ -685,7 +641,7 @@ useLayoutEffect(() => {
                                     ),
                                     e("div", {className: "relative"},
                                         e("div", { className: "absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400" }, e(Icons.Shield, {className: "w-5 h-5"})),
-                                        e("input", { ref: cpfInputRef, type: "text", name: "cpf", value: formData.cpf, onChange: handleCpfChange, className: `w-full py-3.5 pl-11 pr-4 bg-white border ${formData.cpf && formData.cpf.replace(/\D/g, '').length === 11 ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "000.000.000-00", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "off", maxLength: 14, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false", enterKeyHint: "next" })
+                                        e("input", { ref: cpfInputRef, type: "text", name: "cpf", value: formData.cpf, onChange: handleCpfChange, onInput: handleCpfChange, className: `w-full py-3.5 pl-11 pr-4 bg-white border ${formData.cpf && formData.cpf.replace(/\D/g, '').length === 11 ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "000.000.000-00", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "off", maxLength: 14, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false" })
                                     ),
                                     formData.cpf && e("div", {className: "flex items-center gap-2 mt-1.5 px-1"},
                                         e("div", {className: "flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden"}, e("div", { className: `h-full rounded-full transition-all duration-500 ${formData.cpf.replace(/\D/g, '').length >= 11 ? 'bg-green-500 w-full' : 'bg-gray-300 w-2/3'}` })),
@@ -700,7 +656,7 @@ useLayoutEffect(() => {
                                 e("div", {className: "relative"},
                                     e("label", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wide pl-1 mb-1.5 block" }, "CEP"),
                                     e("div", {className: "relative"},
-                                        e("input", { ref: cepInputRef, type: "text", name: "cep", value: formData.cep, onChange: handleCepChange, className: "w-full py-3.5 pl-4 pr-12 border border-slate-200 rounded-xl text-base focus:border-green-500 focus:ring-4 focus:ring-green-500/10 outline-none transition-all duration-200 shadow-sm", placeholder: "00000-000", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "postal-code", maxLength: 9, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false", enterKeyHint: "next" }),
+                                        e("input", { ref: cepInputRef, type: "text", name: "cep", value: formData.cep, onChange: handleCepChange, onInput: handleCepChange, className: "w-full py-3.5 pl-4 pr-12 border border-slate-200 rounded-xl text-base focus:border-green-500 focus:ring-4 focus:ring-green-500/10 outline-none transition-all duration-200 shadow-sm", placeholder: "00000-000", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "postal-code", maxLength: 9, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false" }),
                                         e("div", { className: "absolute inset-y-0 right-3 flex items-center" }, loadingCep ? e("div", { className: "spinner-mobile border-green-500 border-t-transparent" }) : e("svg", { className: "w-5 h-5 text-gray-400", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor" }, e("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" })))
                                     )
                                 ),
@@ -710,9 +666,9 @@ useLayoutEffect(() => {
                                 ),
                                 cepFailed && e("div", { className: "bg-rose-50 border border-rose-100 text-rose-700 text-xs font-semibold rounded-xl p-3" }, "Não conseguimos buscar seu endereço automaticamente. Preencha abaixo para finalizar.") ,
                                 shouldShowAddressFields && e("div", { className: "grid grid-cols-4 gap-3 animate-fade-in" },
-                                    e("div", {className: "col-span-4"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Endereço"), e("input", { name: "address", value: formData.address, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none transition-all duration-200", placeholder: "Rua, Avenida...", disabled: isFormLocked || isSubmitting, autoComplete: "street-address", autoCorrect: "off", spellCheck: "false", enterKeyHint: "next" })),
-                                    e("div", {className: "col-span-1"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Nº"), e("input", { ref: numberRef, name: "number", value: formData.number, onChange: handleChange, placeholder: "123", className: "w-full p-3.5 border border-green-300 bg-white ring-2 ring-green-500/10 rounded-xl focus:ring-green-500 focus:border-green-500 outline-none font-bold text-center transition-all duration-200", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "off", enterKeyHint: "next" })),
-                                    e("div", {className: "col-span-3"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Cidade"), e("input", { name: "city", value: formData.city, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none transition-all duration-200", placeholder: "Cidade/UF", disabled: isFormLocked || isSubmitting, autoComplete: "address-level2", autoCorrect: "off", spellCheck: "false", enterKeyHint: "done" }))
+                                    e("div", {className: "col-span-4"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Endereço"), e("input", { name: "address", value: formData.address, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none", placeholder: "Rua, Avenida...", disabled: isFormLocked || isSubmitting, autoComplete: "street-address", autoCorrect: "off", spellCheck: "false" })),
+                                    e("div", {className: "col-span-1"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Nº"), e("input", { ref: numberRef, name: "number", value: formData.number, onChange: handleChange, placeholder: "123", className: "w-full p-3.5 border border-green-300 bg-white ring-2 ring-green-500/10 rounded-xl focus:ring-green-500 focus:border-green-500 outline-none font-bold text-center", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "off" })),
+                                    e("div", {className: "col-span-3"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Cidade"), e("input", { name: "city", value: formData.city, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none", placeholder: "Cidade/UF", disabled: isFormLocked || isSubmitting, autoComplete: "address-level2", autoCorrect: "off", spellCheck: "false" }))
                                 )
                             )
                         ),
@@ -741,6 +697,7 @@ useLayoutEffect(() => {
                         )
                     ),
                 ),
+                e("div", { className: "keyboard-spacer lg:hidden", "aria-hidden": "true" }),
                 e("div", {className: "lg:hidden checkout-fixed-footer"},
                     e("button", { ref: mobileSubmitButtonRef, 
                         onTouchStart: handleMobileSubmitTap,
@@ -770,6 +727,11 @@ useLayoutEffect(() => {
             // ✅ Guard: garante disparo único dos eventos finais por montagem do componente
             const addPaymentInfoFiredRef = useRef(false);
             const completePaymentFiredRef = useRef(false);
+            // ✅ FIX BUG 2 (iOS/WebView): anti-duplo-disparo do botão copiar PIX
+            // Mesma técnica do mobileTapLockRef do checkout — evita que o primeiro tap
+            // seja consumido pelo desfoco de input e o segundo dispare 2x a função.
+            const copyPixTapLockRef = useRef(false);
+            const pixCodeInputRef = useRef(null);
             
             const activeData = customerData || {};
             const firstName = activeData.firstName || 'Cliente';
@@ -836,47 +798,50 @@ useLayoutEffect(() => {
                     // Mesmo que o componente re-renderize, o TikTok vai deduplicar pelo mesmo event_id
                     const cpEventId = 'cp_' + customerData.transactionId;
 
-                    // ✅ FIX TELEFONE: re-chama identify antes do CompletePayment
-                    // (usuário pode ter trocado de aba e o cookie de identidade pode ter expirado)
-                    try {
-                        if (window.ttq && typeof window.ttq.identify === 'function') {
-                            const ident = {};
-                            if (window.__tt_hashed_email) ident.email = window.__tt_hashed_email;
-                            if (window.__tt_hashed_phone) ident.phone_number = window.__tt_hashed_phone;
-                            if (window.__tt_hashed_external_id) ident.external_id = window.__tt_hashed_external_id;
-                            if (Object.keys(ident).length) window.ttq.identify(ident);
-                        }
-                    } catch(e) {}
+                    // ✅ FIX: CompletePayment dispara 1.5s DEPOIS de AddPaymentInfo
+                    // TikTok processa eventos cronologicamente — dois eventos no mesmo event_time
+                    // podem causar confusão no funil e o CompletePayment ser descartado.
+                    setTimeout(() => {
+                        // ✅ FIX TELEFONE: re-chama identify antes do CompletePayment
+                        try {
+                            if (window.ttq && typeof window.ttq.identify === 'function') {
+                                const ident = {};
+                                if (window.__tt_hashed_email) ident.email = window.__tt_hashed_email;
+                                if (window.__tt_hashed_phone) ident.phone_number = window.__tt_hashed_phone;
+                                if (window.__tt_hashed_external_id) ident.external_id = window.__tt_hashed_external_id;
+                                if (Object.keys(ident).length) window.ttq.identify(ident);
+                            }
+                        } catch(e) {}
 
-                    // ✅ Anti-vazamento: nunca envie email/telefone/CPF/endereço no tracking
-                    trackEvent('CompletePayment', { 
-                        ...window.PRODUCT_CONTENT, 
-                        content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI', 
-                        value: 197.99, 
-                        currency: 'BRL', 
-                        order_id: customerData.transactionId, 
-                        event_id: cpEventId,
-                        email: window.__tt_hashed_email || undefined,
-                        phone_number: window.__tt_hashed_phone || undefined,
-                        external_id: window.__tt_hashed_external_id || undefined,
-                        ref: (window.getRefCode ? (window.getRefCode() || '') : '')
-                    }, true);
-                    // 🔥 CAPI: espelha CompletePayment no servidor com o MESMO event_id determinístico
-                    try {
-                        sendCAPI('CompletePayment', cpEventId, {
-                            ...(window.PRODUCT_CONTENT || {}),
-                            currency: 'BRL',
-                            value: 197.99,
-                            order_id: customerData.transactionId,
-                            event_source_url: window.location.href
-                        }, {
-                            email:       window.__tt_hashed_email || undefined,
-                            phone_number:       window.__tt_hashed_phone || undefined,
+                        trackEvent('CompletePayment', { 
+                            ...window.PRODUCT_CONTENT, 
+                            content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI', 
+                            value: 197.99, 
+                            currency: 'BRL', 
+                            order_id: customerData.transactionId, 
+                            event_id: cpEventId,
+                            email: window.__tt_hashed_email || undefined,
+                            phone_number: window.__tt_hashed_phone || undefined,
                             external_id: window.__tt_hashed_external_id || undefined,
-                            ttclid:      (window.getTTCLID ? window.getTTCLID() : undefined),
-                            ttp:         (document.cookie.match(/(?:^|;\s*)_ttp=([^;]*)/) || [])[1] || undefined
-                        });
-                    } catch(e) {}
+                            ref: (window.getRefCode ? (window.getRefCode() || '') : '')
+                        }, true);
+
+                        try {
+                            sendCAPI('CompletePayment', cpEventId, {
+                                ...(window.PRODUCT_CONTENT || {}),
+                                currency: 'BRL',
+                                value: 197.99,
+                                order_id: customerData.transactionId,
+                                event_source_url: window.location.href
+                            }, {
+                                email:        window.__tt_hashed_email || undefined,
+                                phone_number: window.__tt_hashed_phone || undefined,
+                                external_id:  window.__tt_hashed_external_id || undefined,
+                                ttclid:       (window.getTTCLID ? window.getTTCLID() : undefined),
+                                ttp:          (document.cookie.match(/(?:^|;\s*)_ttp=([^;]*)/) || [])[1] || undefined
+                            });
+                        } catch(e) {}
+                    }, 1500);
                 }
                 
                 const step1 = setTimeout(() => setLoadingState(1), 500);
@@ -886,45 +851,88 @@ useLayoutEffect(() => {
                 return () => { clearTimeout(step1); clearTimeout(step2); clearTimeout(step3); };
             }, [transactionId]);
 
-            // FIX v3: Lock anti-duplo com timeout curto (500ms).
-            // O lock anterior (1200ms) forçava o usuário a esperar >1s entre tentativas.
-            const copyLockRef = useRef(false);
+            // ─────────────────────────────────────────────────────────────────
+            // CÓPIA DO PIX — arquitetura profissional (duas vias independentes)
+            //
+            // PROBLEMA raiz que causava o window.prompt():
+            //   copyPix era "async" com "await". No iOS Safari, qualquer "await"
+            //   antes de execCommand('copy') quebra a cadeia de gesto do usuário
+            //   (user gesture chain). Sem gesture chain ativa, execCommand falha
+            //   silenciosamente e o código caía no último fallback: window.prompt().
+            //
+            // SOLUÇÃO (padrão usado por Shopee, ML, Nubank, etc.):
+            //   VIA 1 — SÍNCRONA (iOS Safari / todos os WebViews):
+            //     fallbackCopy() é chamado IMEDIATAMENTE, ainda dentro do handler
+            //     de toque, sem nenhum await antes. A gesture chain permanece ativa.
+            //
+            //   VIA 2 — ASSÍNCRONA (Chrome / Firefox / Android moderno):
+            //     navigator.clipboard.writeText() em paralelo (não bloqueia Via 1).
+            //     Se Via 1 já copiou, Via 2 é no-op silencioso.
+            //
+            //   NUNCA usa window.prompt() — removido por completo.
+            //   Em caso de falha total: setCopied(true) mostra feedback visual
+            //   e o código fica visível/selecionável na tela para cópia manual.
+            // ─────────────────────────────────────────────────────────────────
 
-            // FIX v3: copyPix simplificado — sem textarea, sem execCommand, sem verify.
-            // safeCopyToClipboard agora usa APENAS clipboard.writeText (sem side-effects
-            // no DOM), e se falhar, vai direto para o modal de cópia manual.
-            const copyPix = async () => { 
-                if (copyLockRef.current) return;
-                copyLockRef.current = true;
-                setTimeout(() => { copyLockRef.current = false; }, 500);
-
-                // ⭐️ RASTREAMENTO DE CÓPIA DO PIX ⭐️
-                trackEvent('Pix_Copy_Click', { event_id: window.generateEventId(), order_id: transactionId });
-
-                // contador (admin) - cliques no botao Copiar PIX
+            // Dispara métricas sem bloquear nenhuma das duas vias de cópia
+            const firePixMetrics = () => {
+                try { trackEvent('Pix_Copy_Click', { event_id: window.generateEventId(), order_id: transactionId }); } catch(e) {}
                 try {
                     const payload = JSON.stringify({ ts: Date.now(), order_id: transactionId });
-                    if (navigator.sendBeacon) {
-                        navigator.sendBeacon('/api/metrics/pix-copy', payload);
-                    } else {
-                        fetch('/api/metrics/pix-copy', { method: 'POST', headers: { 'content-type': 'application/json' }, body: payload, keepalive: true }).catch(() => {});
-                    }
-                } catch (e) {}
+                    if (navigator.sendBeacon) navigator.sendBeacon('/api/metrics/pix-copy', payload);
+                    else fetch('/api/metrics/pix-copy', { method: 'POST', headers: { 'content-type': 'application/json' }, body: payload, keepalive: true }).catch(() => {});
+                } catch(e) {}
+            };
 
-                try { 
-                    await window.safeCopyToClipboard(effectivePixCode);
-                    setCopied(true);
-                    trackEvent('ClickButton', { button_name: 'copy_pix_code', content_name: 'Cópia PIX' });
-                } catch (err) {
-                    // clipboard.writeText falhou → abre modal de cópia manual
-                    trackEvent('Pix_Copy_Failed', { event_id: window.generateEventId(), order_id: transactionId, error: String(err && err.message || 'unknown') });
+            // handleCopyPixClick — cópia do código PIX
+            // No WebView do TikTok Android, tanto clipboard API quanto execCommand('copy')
+            // são BLOQUEADOS por permissão. A única forma confiável é:
+            // 1. Selecionar o texto de um <input> visível via .select()
+            // 2. Isso ativa a UI nativa do Android com o botão "Copiar" do SO
+            // 3. Tenta JS copy como bônus, mas não depende dele
+            const handleCopyPixClick = (ev) => {
+                if (copyPixTapLockRef.current) return;
+                if (copied) return;
+                copyPixTapLockRef.current = true;
+                setTimeout(() => { copyPixTapLockRef.current = false; }, 900);
+
+                firePixMetrics();
+
+                var jsCopyOk = false;
+
+                // Passo 1: seleciona o texto do input visível (funciona em TODOS os WebViews)
+                try {
+                    var inp = pixCodeInputRef.current;
+                    if (inp) {
+                        inp.focus();
+                        inp.select();
+                        inp.setSelectionRange(0, 99999);
+                    }
+                } catch(e) {}
+
+                // Passo 2: tenta copiar via JS (pode falhar no TikTok WebView — não bloqueia)
+                // 2a: execCommand (síncrono, dentro da gesture chain)
+                try {
+                    jsCopyOk = document.execCommand('copy');
+                } catch(e) {}
+
+                // 2b: clipboard API (assíncrono, bônus para navegadores que suportam)
+                if (!jsCopyOk) {
                     try {
-                        if (typeof window.showManualCopyModal === 'function') {
-                            window.showManualCopyModal(effectivePixCode);
+                        if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                            navigator.clipboard.writeText(effectivePixCode).then(function() {
+                                jsCopyOk = true;
+                            }).catch(function() {});
                         }
-                    } catch(_) {}
+                    } catch(e) {}
                 }
-                setTimeout(() => setCopied(false), 2500); 
+
+                // Passo 3: UI feedback
+                // Se JS não conseguiu copiar, o texto está SELECIONADO no input
+                // e o Android mostra o botão nativo "Copiar" automaticamente
+                try { setCopied(true); } catch(e) {}
+                try { trackEvent('ClickButton', { button_name: 'copy_pix_code', js_copy: jsCopyOk }); } catch(e) {}
+                setTimeout(() => { try { setCopied(false); } catch(e) {} }, 3000);
             };
 
             if (loadingState < 3) return e("div", { className: "min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center font-sans safe-area-padding" }, 
@@ -954,8 +962,12 @@ useLayoutEffect(() => {
                                 ),
                                 e("div", { className: "relative bg-slate-50 rounded-xl border-2 border-dashed border-slate-300 p-4 hover:border-green-400 transition-colors group" }, 
                                     e("div", { className: "absolute -top-3 left-4 bg-white px-2 text-xs font-bold text-slate-500 uppercase tracking-wide" }, "Código PIX"),
-                                    e("div", { className: "w-full text-slate-400 text-xs font-mono break-all line-clamp-2 select-all mb-4 mt-1 opacity-70" }, effectivePixCode),
-                                    e("button", { onClick: copyPix, className: `w-full py-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2.5 transition-all transform active:scale-[0.98] min-h-[52px] ${copied ? 'bg-slate-800' : 'bg-[#22c55e] hover:bg-green-600 hover:shadow-green-500/40'} btn-tactile` }, copied ? e(React.Fragment, null, e("svg", { key: "icon-cpy", className: "w-5 h-5", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3", strokeLinecap: "round", strokeLinejoin: "round" }, e("polyline", {points: "20 6 9 17 4 12"})), "CÓDIGO COPIADO!") : e(React.Fragment, null, e(Icons.Copy, {key: "icon-nocpy", className: "w-5 h-5"}), "CLIQUE PARA COPIAR"))
+                                    e("input", { ref: pixCodeInputRef, type: "text", readOnly: true, value: effectivePixCode, className: "w-full text-slate-500 font-mono border-none outline-none mb-4 mt-1 p-0", style: { WebkitUserSelect: 'text', userSelect: 'text', caretColor: 'transparent', background: 'transparent', WebkitBoxShadow: 'none', boxShadow: 'none', textOverflow: 'ellipsis' }, onClick: function() { try { pixCodeInputRef.current.select(); pixCodeInputRef.current.setSelectionRange(0,99999); } catch(e){} } }),
+                                    e("button", { 
+                                    onClick: handleCopyPixClick,
+                                    type: "button",
+                                    "aria-label": "Copiar código PIX",
+                                    className: `w-full py-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2.5 transition-all transform active:scale-[0.98] min-h-[52px] ${copied ? 'bg-slate-800' : 'bg-[#22c55e] hover:bg-green-600 hover:shadow-green-500/40'} btn-tactile` }, copied ? e(React.Fragment, null, e("svg", { key: "icon-cpy", className: "w-5 h-5", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3", strokeLinecap: "round", strokeLinejoin: "round" }, e("polyline", {points: "20 6 9 17 4 12"})), "CÓDIGO COPIADO!") : e(React.Fragment, null, e(Icons.Copy, {key: "icon-nocpy", className: "w-5 h-5"}), "CLIQUE PARA COPIAR"))
                                 ),
                                 e("div", {className: "flex justify-between items-center mt-4 px-2"}, e("span", {className: "text-sm text-slate-500 font-medium"}, "Valor Total:"), e("span", {className: "text-xl font-black text-slate-800"}, "R$ " + PRODUCT_INFO.price.toFixed(2).replace('.',','))),
                                 e("div", { className: "bg-amber-50 border border-amber-100 text-amber-700 font-bold text-sm py-3 rounded-lg text-center mt-6 shadow-sm flex items-center justify-center gap-2" }, e("div", { className: "w-4 h-4 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" }), "Aguardando confirmação do banco..."),
