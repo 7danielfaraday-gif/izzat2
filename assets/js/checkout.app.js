@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', function(){
             const [formData, setFormData] = useState({ name: '', email: '', phone: '', cpf: '', cep: '', address: '', number: '', city: '' }); // sem persistência localStorage (modo compliance)
             
             // ⭐️ SEGURANÇA: Lógica de tempo mantida para evitar ReferenceError (Crash)
-            const [timeLeft, setTimeLeft] = useState(15 * 60);
+            const timeLeftRef = useRef(15 * 60);
             const [submitAttempted, setSubmitAttempted] = useState(false);
             const [isFormLocked, setIsFormLocked] = useState(false);
             const [isSubmitting, setIsSubmitting] = useState(false);
@@ -195,7 +195,7 @@ useLayoutEffect(() => {
                 
                 const analyticsTimer = null; // GA desativado (modo compliance)
                 let timerInterval = null;
-                const startTimer = () => { if (!timerInterval) timerInterval = setInterval(() => { setTimeLeft(prev => prev > 0 ? prev - 1 : 0); }, 1000); };
+                const startTimer = () => { if (!timerInterval) timerInterval = setInterval(() => { if (timeLeftRef.current > 0) timeLeftRef.current--; }, 1000); };
                 const stopTimer = () => { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } };
                 const onVisibility = () => { document.hidden ? stopTimer() : startTimer(); };
                 startTimer();
@@ -564,8 +564,8 @@ useLayoutEffect(() => {
             };
 
 
-            const minutes = Math.floor(timeLeft / 60);
-            const seconds = timeLeft % 60;
+            const minutes = Math.floor(timeLeftRef.current / 60);
+            const seconds = timeLeftRef.current % 60;
 
             const shouldShowAddressFields = useMemo(() => {
                 const cd = (formData.cep || '').replace(/\D/g, '');
