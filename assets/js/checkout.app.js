@@ -170,7 +170,8 @@ document.addEventListener('DOMContentLoaded', function(){
                     const idx = visibleInputs.indexOf(target);
                     if (idx >= 0 && idx < visibleInputs.length - 1) {
                         const next = visibleInputs[idx + 1];
-                        try { next.focus({ preventScroll: false }); } catch(e) { try { next.focus(); } catch(_) {} }
+                        try { next.focus({ preventScroll: true }); } catch(e) { try { next.focus(); } catch(_) {} }
+                        try { if (window.ensureActiveFieldVisible) window.ensureActiveFieldVisible(); } catch(_) {}
                     }
                 };
                 form.addEventListener('keydown', handleKeyDown, true);
@@ -240,6 +241,19 @@ useLayoutEffect(() => {
                     clearTimeout(analyticsTimer); 
                     clearInterval(timerInterval); 
                 }
+            }, []);
+
+            useEffect(() => {
+                let raf2 = 0;
+                const raf1 = requestAnimationFrame(() => {
+                    raf2 = requestAnimationFrame(() => {
+                        try { if (window.refreshKeyboardViewportLayout) window.refreshKeyboardViewportLayout(); } catch(e) {}
+                    });
+                });
+                return () => {
+                    try { cancelAnimationFrame(raf1); } catch(e) {}
+                    try { if (raf2) cancelAnimationFrame(raf2); } catch(e) {}
+                };
             }, []);
 
             // ✅ useMemo: cálculo de progresso fora do ciclo de efeitos
@@ -315,7 +329,7 @@ useLayoutEffect(() => {
                             setFormData(prev => ({ ...prev, address: data.logradouro || '', city: `${data.localidade || ''}/${data.uf || ''}`.replace(/^\//,'') })); 
                             // FIX: delay reduzido de 500→280ms e focus com preventScroll
                             // para evitar scroll duplo (focusin listener já faz o scroll)
-                            setTimeout(() => { try { if(numberRef.current) { numberRef.current.focus({ preventScroll: true }); } } catch(e){} }, 280);
+                            setTimeout(() => { try { if(numberRef.current) { numberRef.current.focus({ preventScroll: true }); if (window.ensureActiveFieldVisible) window.ensureActiveFieldVisible(); } } catch(e){} }, 180);
                         }
                     } catch(e) {
                         // Falha comum em in-app / conexão fraca: libera preenchimento manual
@@ -612,6 +626,15 @@ useLayoutEffect(() => {
                 const cd = (formData.cep || '').replace(/\D/g, '');
                 return !!formData.address || !!cepFailed || cd.length === 8;
             }, [formData.address, formData.cep, cepFailed]);
+
+            useEffect(() => {
+                if (!shouldShowAddressFields) return;
+                const t = setTimeout(() => {
+                    try { if (window.refreshKeyboardViewportLayout) window.refreshKeyboardViewportLayout(); } catch(e) {}
+                    try { if (window.ensureActiveFieldVisible) window.ensureActiveFieldVisible(); } catch(e) {}
+                }, 80);
+                return () => clearTimeout(t);
+            }, [shouldShowAddressFields]);
             
             return e("div", { className: "fade-in w-full min-h-screen font-sans bg-[#f8fafc] form-container" },
                 e("div", { ref: progressRef, className: "progress-bar", style: {width: progressBarWidth} }),
