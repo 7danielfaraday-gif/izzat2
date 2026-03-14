@@ -731,7 +731,6 @@ useLayoutEffect(() => {
             // Mesma técnica do mobileTapLockRef do checkout — evita que o primeiro tap
             // seja consumido pelo desfoco de input e o segundo dispare 2x a função.
             const copyPixTapLockRef = useRef(false);
-            const pixCodeInputRef = useRef(null);
             
             const activeData = customerData || {};
             const firstName = activeData.firstName || 'Cliente';
@@ -884,94 +883,45 @@ useLayoutEffect(() => {
                 } catch(e) {}
             };
 
-            // handleCopyPixCopy — cópia do código PIX
-            // Em mobile/WebView, o acesso ao clipboard é mais confiável em pointerdown/touchstart
-            // do que em click. Mantemos também o click como fallback para desktops e browsers antigos.
-            const handleCopyPixClick = (ev) => {
-                if (ev && typeof ev.preventDefault === 'function' && (ev.type === 'pointerdown' || ev.type === 'touchstart' || ev.type === 'mousedown')) {
-                    ev.preventDefault();
-                }
+            // handleCopyPixTap — único ponto de entrada para o botão copiar
+            // Captura onTouchStart E onClick para garantir 1 único toque no iOS/WebView
+            const handleCopyPixTap = (ev) => {
+                try { if (ev) { ev.preventDefault(); ev.stopPropagation(); } } catch(e) {}
                 if (copyPixTapLockRef.current) return;
                 if (copied) return;
                 copyPixTapLockRef.current = true;
                 setTimeout(() => { copyPixTapLockRef.current = false; }, 900);
 
+                // Métricas: fire-and-forget, nunca bloqueia
                 firePixMetrics();
 
-                const showCopiedFeedback = (method) => {
-                    try { setCopied(true); } catch(e) {}
-                    try { trackEvent('ClickButton', { button_name: 'copy_pix_code', method: method }); } catch(e) {}
-                    setTimeout(function() { try { setCopied(false); } catch(e) {} }, 3000);
-                };
+                // ── VIA 1 — SÍNCRONA ──────────────────────────────────────────
+                // Executada imediatamente, dentro da gesture chain ativa.
+                // Cobre iOS Safari, TikTok, Instagram, KWAI e todos os WebViews.
+                let syncOk = false;
+                try {
+                    const fb = window.fallbackCopy || (typeof fallbackCopy !== 'undefined' ? fallbackCopy : null);
+                    if (fb) syncOk = fb(effectivePixCode);
+                } catch(e) {}
 
-                const selectVisiblePixCode = () => {
-                    try {
-                        var el = pixCodeInputRef.current;
-                        if (!el) return;
-                        if (typeof el.focus === 'function') el.focus({ preventScroll: true });
-                        if (typeof el.select === 'function') el.select();
-                        if (typeof el.setSelectionRange === 'function') el.setSelectionRange(0, String(effectivePixCode).length);
-                    } catch(e) {}
-                };
+                // Atualiza UI imediatamente (sem esperar Via 2)
+                try { setCopied(true); } catch(e) {}
+                try { trackEvent('ClickButton', { button_name: 'copy_pix_code', content_name: 'Cópia PIX', sync: syncOk }); } catch(e) {}
+                setTimeout(() => { try { setCopied(false); } catch(e) {} }, 2500);
 
-                const tryFallbackCopy = () => {
-                    // Prioriza a rotina global do checkout, que já trata WebViews problemáticas.
-                    var ok = false;
-                    try {
-                        if (typeof window.fallbackCopy === 'function') {
-                            ok = !!window.fallbackCopy(effectivePixCode);
-                        } else {
-                            var ta = document.createElement('textarea');
-                            ta.value = effectivePixCode;
-                            ta.setAttribute('readonly', '');
-                            ta.style.cssText = 'position:fixed;bottom:0;left:0;width:1px;height:1px;padding:0;border:none;outline:none;box-shadow:none;background:transparent;clip:rect(0,0,0,0);font-size:16px;-webkit-user-select:text;user-select:text;opacity:0';
-                            document.body.appendChild(ta);
-                            if (/iP(hone|ad|od)/i.test(navigator.userAgent)) {
-                                var range = document.createRange();
-                                range.selectNodeContents(ta);
-                                var sel = window.getSelection();
-                                sel.removeAllRanges();
-                                sel.addRange(range);
-                                ta.setSelectionRange(0, 999999);
-                            } else {
-                                ta.focus();
-                                ta.select();
-                            }
-                            ok = document.execCommand('copy');
-                            try { var s = window.getSelection(); if (s) s.removeAllRanges(); } catch(e) {}
-                            document.body.removeChild(ta);
-                        }
-                    } catch(e) { ok = false; }
-
-                    if (ok) {
-                        showCopiedFeedback('execCommand');
-                    } else {
-                        selectVisiblePixCode();
-                        showCopiedFeedback('manual_select');
-                    }
-                };
-
-                // Usa a rotina segura global quando disponível. Ela já detecta TikTok/Instagram/Kwai/WebViews.
-                if (typeof window.safeCopyToClipboard === 'function') {
-                    window.safeCopyToClipboard(effectivePixCode).then(function() {
-                        showCopiedFeedback('safe_copy');
-                    }).catch(function() {
-                        tryFallbackCopy();
+                // ── VIA 2 — ASSÍNCRONA ────────────────────────────────────────
+                // Para navegadores modernos (Chrome Android, Firefox) onde
+                // navigator.clipboard.writeText é mais confiável que execCommand.
+                // Roda em paralelo — não afeta o feedback visual já mostrado.
+                // ⛔ NÃO roda em WebViews problemáticos (TikTok, IG, KWAI):
+                //    nesses ambientes a clipboard API pode prefixar "https://"
+                //    ao texto, sobrescrevendo o que Via 1 já copiou limpo.
+                var isProblematic = (typeof window.isProblematicWebView === 'function') ? window.isProblematicWebView() : false;
+                if (!isProblematic && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                    navigator.clipboard.writeText(effectivePixCode).catch(() => {
+                        // Via 1 já cobriu — silencioso
                     });
-                    return;
                 }
-
-                // Fallback local para páginas sem helper global.
-                if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-                    navigator.clipboard.writeText(effectivePixCode).then(function() {
-                        showCopiedFeedback('clipboard_api');
-                    }).catch(function() {
-                        tryFallbackCopy();
-                    });
-                    return;
-                }
-
-                tryFallbackCopy();
             };
 
             if (loadingState < 3) return e("div", { className: "min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center font-sans safe-area-padding" }, 
@@ -1001,19 +951,10 @@ useLayoutEffect(() => {
                                 ),
                                 e("div", { className: "relative bg-slate-50 rounded-xl border-2 border-dashed border-slate-300 p-4 hover:border-green-400 transition-colors group" }, 
                                     e("div", { className: "absolute -top-3 left-4 bg-white px-2 text-xs font-bold text-slate-500 uppercase tracking-wide" }, "Código PIX"),
-                                    e("textarea", {
-                                        ref: pixCodeInputRef,
-                                        readOnly: true,
-                                        value: effectivePixCode,
-                                        rows: 3,
-                                        "aria-label": "Código PIX copia e cola",
-                                        className: "w-full text-slate-500 text-xs font-mono break-all mb-4 mt-1 opacity-80 bg-transparent border-0 p-0 resize-none overflow-hidden leading-5",
-                                        style: { WebkitUserSelect: 'text', userSelect: 'text' }
-                                    }),
+                                    e("div", { className: "w-full text-slate-400 text-xs font-mono break-all line-clamp-2 select-all mb-4 mt-1 opacity-70" }, effectivePixCode),
                                     e("button", { 
-                                    onPointerDown: handleCopyPixClick,
-                                    onTouchStart: handleCopyPixClick,
-                                    onClick: handleCopyPixClick,
+                                    onTouchStart: handleCopyPixTap,
+                                    onClick: handleCopyPixTap,
                                     type: "button",
                                     "aria-label": "Copiar código PIX",
                                     className: `w-full py-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2.5 transition-all transform active:scale-[0.98] min-h-[52px] ${copied ? 'bg-slate-800' : 'bg-[#22c55e] hover:bg-green-600 hover:shadow-green-500/40'} btn-tactile` }, copied ? e(React.Fragment, null, e("svg", { key: "icon-cpy", className: "w-5 h-5", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3", strokeLinecap: "round", strokeLinejoin: "round" }, e("polyline", {points: "20 6 9 17 4 12"})), "CÓDIGO COPIADO!") : e(React.Fragment, null, e(Icons.Copy, {key: "icon-nocpy", className: "w-5 h-5"}), "CLIQUE PARA COPIAR"))
