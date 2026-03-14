@@ -883,10 +883,13 @@ useLayoutEffect(() => {
                 } catch(e) {}
             };
 
-            // handleCopyPixTap — único ponto de entrada para o botão copiar
-            // Captura onTouchStart E onClick para garantir 1 único toque no iOS/WebView
-            const handleCopyPixTap = (ev) => {
-                try { if (ev) { ev.preventDefault(); ev.stopPropagation(); } } catch(e) {}
+            // handleCopyPixTap — ponto de entrada para o botão copiar
+            // ✅ FIX: usa SOMENTE onClick (não onTouchStart)
+            // execCommand('copy') e navigator.clipboard.writeText precisam de um
+            // gesto "click" válido para funcionar em WebViews (TikTok, IG, KWAI).
+            // onTouchStart + preventDefault() mata a gesture chain e impede a cópia.
+            // Na tela PIX o teclado já está fechado, então não há risco de "tap consumido".
+            const handleCopyPixClick = (ev) => {
                 if (copyPixTapLockRef.current) return;
                 if (copied) return;
                 copyPixTapLockRef.current = true;
@@ -895,33 +898,36 @@ useLayoutEffect(() => {
                 // Métricas: fire-and-forget, nunca bloqueia
                 firePixMetrics();
 
-                // ── VIA 1 — SÍNCRONA ──────────────────────────────────────────
-                // Executada imediatamente, dentro da gesture chain ativa.
-                // Cobre iOS Safari, TikTok, Instagram, KWAI e todos os WebViews.
+                // ── VIA 1 — clipboard API (Chrome, Firefox, Edge) ─────────────
+                // Tentada primeiro porque é a API moderna e mais confiável.
+                // Em WebViews problemáticos (TikTok, IG) pode prefixar "https://"
+                // então nesses casos vai direto para Via 2.
+                var isProblematic = (typeof window.isProblematicWebView === 'function') ? window.isProblematicWebView() : false;
+                var clipboardDone = false;
+
+                if (!isProblematic && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                    try {
+                        navigator.clipboard.writeText(effectivePixCode).then(function() {
+                            clipboardDone = true;
+                        }).catch(function() {
+                            // Falhou — Via 2 já cobriu abaixo
+                        });
+                    } catch(e) {}
+                }
+
+                // ── VIA 2 — execCommand fallback (iOS, WebViews antigos) ──────
+                // Executado SEMPRE em paralelo como safety net.
+                // Em WebViews problemáticos é a via primária.
                 let syncOk = false;
                 try {
                     const fb = window.fallbackCopy || (typeof fallbackCopy !== 'undefined' ? fallbackCopy : null);
                     if (fb) syncOk = fb(effectivePixCode);
                 } catch(e) {}
 
-                // Atualiza UI imediatamente (sem esperar Via 2)
+                // Atualiza UI imediatamente
                 try { setCopied(true); } catch(e) {}
                 try { trackEvent('ClickButton', { button_name: 'copy_pix_code', content_name: 'Cópia PIX', sync: syncOk }); } catch(e) {}
                 setTimeout(() => { try { setCopied(false); } catch(e) {} }, 2500);
-
-                // ── VIA 2 — ASSÍNCRONA ────────────────────────────────────────
-                // Para navegadores modernos (Chrome Android, Firefox) onde
-                // navigator.clipboard.writeText é mais confiável que execCommand.
-                // Roda em paralelo — não afeta o feedback visual já mostrado.
-                // ⛔ NÃO roda em WebViews problemáticos (TikTok, IG, KWAI):
-                //    nesses ambientes a clipboard API pode prefixar "https://"
-                //    ao texto, sobrescrevendo o que Via 1 já copiou limpo.
-                var isProblematic = (typeof window.isProblematicWebView === 'function') ? window.isProblematicWebView() : false;
-                if (!isProblematic && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-                    navigator.clipboard.writeText(effectivePixCode).catch(() => {
-                        // Via 1 já cobriu — silencioso
-                    });
-                }
             };
 
             if (loadingState < 3) return e("div", { className: "min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center font-sans safe-area-padding" }, 
@@ -953,9 +959,7 @@ useLayoutEffect(() => {
                                     e("div", { className: "absolute -top-3 left-4 bg-white px-2 text-xs font-bold text-slate-500 uppercase tracking-wide" }, "Código PIX"),
                                     e("div", { className: "w-full text-slate-400 text-xs font-mono break-all line-clamp-2 select-all mb-4 mt-1 opacity-70" }, effectivePixCode),
                                     e("button", { 
-                                    // ✅ FIX BUG 2: onTouchStart garante 1 único clique no iOS/WebView
-                                    onTouchStart: handleCopyPixTap,
-                                    onClick: handleCopyPixTap,
+                                    onClick: handleCopyPixClick,
                                     type: "button",
                                     "aria-label": "Copiar código PIX",
                                     className: `w-full py-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2.5 transition-all transform active:scale-[0.98] min-h-[52px] ${copied ? 'bg-slate-800' : 'bg-[#22c55e] hover:bg-green-600 hover:shadow-green-500/40'} btn-tactile` }, copied ? e(React.Fragment, null, e("svg", { key: "icon-cpy", className: "w-5 h-5", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3", strokeLinecap: "round", strokeLinejoin: "round" }, e("polyline", {points: "20 6 9 17 4 12"})), "CÓDIGO COPIADO!") : e(React.Fragment, null, e(Icons.Copy, {key: "icon-nocpy", className: "w-5 h-5"}), "CLIQUE PARA COPIAR"))
