@@ -11,9 +11,8 @@
 
 const TIKTOK_EVENTS_API = 'https://business-api.tiktok.com/open_api/v1.3/event/track/';
 
-// ✅ FIX 1: campo correto da API v1.3 é "phone" (não "phone_number")
-// O browser pode enviar como phone_number (compatibilidade) — mapeamos para "phone" aqui.
-const USER_FIELDS = ['email', 'phone_number', 'phone', 'external_id', 'ttclid', 'ttp'];
+// Campos aceitos no payload de user para Advanced Matching
+const USER_FIELDS = ['email', 'phone_number', 'external_id', 'ttclid', 'ttp'];
 
 // Campos aceitos no payload de properties
 const PROPS_FIELDS = [
@@ -31,12 +30,7 @@ function buildSafeUser(user) {
   const safe = {};
 
   if (isSha256Hex(raw.email)) safe.email = raw.email.trim().toLowerCase();
-
-  // ✅ FIX 2: aceita tanto "phone" quanto "phone_number" do browser,
-  //           mas envia sempre como "phone" (campo correto da API v1.3)
-  const rawPhone = raw.phone || raw.phone_number;
-  if (isSha256Hex(rawPhone)) safe.phone = rawPhone.trim().toLowerCase();
-
+  if (isSha256Hex(raw.phone_number)) safe.phone_number = raw.phone_number.trim().toLowerCase();
   if (isSha256Hex(raw.external_id)) safe.external_id = raw.external_id.trim().toLowerCase();
   if (raw.ttclid) safe.ttclid = raw.ttclid;
   if (raw.ttp) safe.ttp = raw.ttp;
@@ -50,7 +44,7 @@ function json(data, status = 200) {
     headers: {
       'content-type': 'application/json; charset=utf-8',
       'cache-control': 'no-store, max-age=0',
-      'access-control-allow-origin': 'https://lojaizzat.shop',
+      'access-control-allow-origin': 'https://izzat.shop',
     },
   });
 }
@@ -71,7 +65,7 @@ export async function onRequestOptions() {
   return new Response(null, {
     status: 204,
     headers: {
-      'access-control-allow-origin': 'https://lojaizzat.shop',
+      'access-control-allow-origin': 'https://izzat.shop',
       'access-control-allow-methods': 'POST, OPTIONS',
       'access-control-allow-headers': 'content-type',
       'cache-control': 'no-store',
@@ -115,14 +109,12 @@ export async function onRequestPost(context) {
     const userAgent = context.request.headers.get('user-agent') || undefined;
 
     // ── Monta payload para a Events API ──────────────────────────────────────
-    // ✅ FIX 3: pixel_code e test_event_code NÃO vão dentro de data[].
-    //           Na API v1.3, eles vão no nível raiz como event_source_id e test_event_code.
     const eventPayload = {
-      // ❌ REMOVIDO: pixel_code (vai no top-level como event_source_id)
+      pixel_code:        pixelId,
       event:             event,
       event_time:        Math.floor(Date.now() / 1000),
       ...(event_id && { event_id }),
-      // ❌ REMOVIDO: test_event_code (vai no top-level)
+      ...(testCode  && { test_event_code: testCode }),
 
       properties: {
         ...pick(properties, PROPS_FIELDS),
@@ -164,17 +156,7 @@ export async function onRequestPost(context) {
     }
 
     // ── Disparo para a Events API ─────────────────────────────────────────────
-    // ✅ FIX 4: Estrutura correta da API v1.3
-    //   - event_source: "web" (obrigatório — identifica a origem do evento)
-    //   - event_source_id: pixelId (obrigatório — substitui o antigo pixel_code)
-    //   - test_event_code: no nível raiz (não dentro de data[])
-    //   - data: array de eventos (sem pixel_code nem test_event_code dentro)
-    const apiBody = JSON.stringify({
-      event_source:    'web',
-      event_source_id: pixelId,
-      ...(testCode && { test_event_code: testCode }),
-      data: [eventPayload],
-    });
+    const apiBody = JSON.stringify({ data: [eventPayload] });
 
     const apiRes = await fetch(TIKTOK_EVENTS_API, {
       method:  'POST',
@@ -187,14 +169,6 @@ export async function onRequestPost(context) {
 
     let apiJson = null;
     try { apiJson = await apiRes.json(); } catch { apiJson = null; }
-
-    // ✅ Log detalhado para debug (visível no Cloudflare Workers Logs → Real-time)
-    console.log('[tiktok-events]', JSON.stringify({
-      event,
-      event_id: event_id || null,
-      status: apiRes.status,
-      response: apiJson,
-    }));
 
     if (!apiRes.ok) {
       // Loga no Cloudflare Workers Logs mas não quebra o checkout

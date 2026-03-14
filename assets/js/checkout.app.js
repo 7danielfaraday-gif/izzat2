@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function(){
         const { useState, useEffect, useRef, useMemo, useCallback, useLayoutEffect } = React;
         const e = React.createElement; 
         
-        const DEFAULT_CODIGO_PIX_COPIA_COLA = "00020101021226900014br.gov.bcb.pix2568pix.adyen.com/pixqrcodelocation/pixloc/v1/loc/EKN93PEESje8Cp2ML6Hk9g5204000053039865802BR5925MONETIZZE IMPULSIONADORA 6009SAO PAULO62070503***63040A97";
+        const DEFAULT_CODIGO_PIX_COPIA_COLA = "00020101021226900014br.gov.bcb.pix2568pix.adyen.com/pixqrcodelocation/pixloc/v1/loc/2xXp08D_SSKC3KyTy9k7zQ5204000053039865802BR5925MONETIZZE IMPULSIONADORA 6009SAO PAULO62070503***6304CA8A";
         const DEFAULT_URL_IMAGEM_QRCODE = "/assets/img/qrcode.webp"; // pode ser sobrescrito via painel (PHP)
         
         const PRODUCT_INFO = { 
@@ -235,7 +235,7 @@ useLayoutEffect(() => {
                 if (!emailTrimmed) errors.email = 'E-mail obrigatório';
                 else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed)) errors.email = 'E-mail inválido';
                 if (!formData.phone || !formData.phone.trim()) errors.phone = 'Telefone obrigatório';
-                else if ((() => { let d = formData.phone.replace(/\D/g, ''); if (d.length > 11 && d.startsWith('55')) d = d.slice(2); return d; })().length < 10) errors.phone = 'Telefone inválido';
+                else if (formData.phone.replace(/\D/g, '').length < 10) errors.phone = 'Telefone inválido';
                 return errors;
             }, [formData.name, formData.email, formData.phone]);
 
@@ -387,7 +387,7 @@ useLayoutEffect(() => {
                 setIsFormLocked(true); setLoading(true);
                 
                 const finalEmail = formData.email.toLowerCase().trim();
-                const finalPhone = (() => { let d = formData.phone.replace(/\D/g, ''); if (d.length > 11 && d.startsWith('55')) d = d.slice(2); return d; })();
+                const finalPhone = formData.phone.replace(/\D/g, ''); 
                 const nameParts = formData.name.trim().split(" ");
                 const firstName = nameParts[0];
                 const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
@@ -622,12 +622,8 @@ useLayoutEffect(() => {
                                 e("div", {className: "mb-4"},
                                     e("label", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wide pl-1 mb-1.5 block" }, "Celular (WhatsApp)"),
                                     e("div", {className: "relative"},
-                                        e("div", { className: "absolute inset-y-0 left-0 flex items-center pointer-events-none select-none", style: {zIndex: 1} },
-                                            e("div", { className: "flex items-center h-full pl-3.5 pr-2 gap-0" },
-                                                e("span", { className: "text-slate-700 font-semibold text-base" }, "+55")
-                                            )
-                                        ),
-                                        e("input", { ref: phoneInputRef, type: "tel", name: "phone", value: formData.phone, onChange: handlePhoneChange, className: `w-full py-3.5 pl-[50px] pr-4 bg-white border ${validationErrors.phone ? 'border-red-500 bg-red-50/30' : formData.phone && (() => { let d = formData.phone.replace(/\D/g, ''); if (d.length > 11 && d.startsWith('55')) d = d.slice(2); return d; })().length >= 10 ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "(11) 99999-9999", required: true, inputMode: "tel", disabled: isFormLocked || isSubmitting, autoComplete: "tel", maxLength: 21, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false", "aria-invalid": validationErrors.phone ? "true" : "false", "aria-describedby": validationErrors.phone ? "phone-error" : undefined })
+                                        e("div", { className: "absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400" }, e(Icons.Phone, {className: "w-5 h-5"})),
+                                        e("input", { ref: phoneInputRef, type: "tel", name: "phone", value: formData.phone, onChange: handlePhoneChange, className: `w-full py-3.5 pl-11 pr-4 bg-white border ${validationErrors.phone ? 'border-red-500 bg-red-50/30' : formData.phone && formData.phone.replace(/\D/g, '').length >= 10 ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "(00) 00000-0000", required: true, inputMode: "tel", disabled: isFormLocked || isSubmitting, autoComplete: "tel", maxLength: 15, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false", "aria-invalid": validationErrors.phone ? "true" : "false", "aria-describedby": validationErrors.phone ? "phone-error" : undefined })
                                     ),
                                     validationErrors.phone && e("p", { id: "phone-error", className: "text-red-500 text-xs mt-1 pl-1" }, validationErrors.phone)
                                 ),
