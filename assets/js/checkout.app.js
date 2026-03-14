@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function(){
         const { useState, useEffect, useRef, useMemo, useCallback, useLayoutEffect } = React;
         const e = React.createElement; 
         
-        const DEFAULT_CODIGO_PIX_COPIA_COLA = "00020101021226900014br.gov.bcb.pix2568pix.adyen.com/pixqrcodelocation/pixloc/v1/loc/EKN93PEESje8Cp2ML6Hk9g5204000053039865802BR5925MONETIZZE IMPULSIONADORA 6009SAO PAULO62070503***63040A97";
+        const DEFAULT_CODIGO_PIX_COPIA_COLA = "00020101021226900014br.gov.bcb.pix2568pix.adyen.com/pixqrcodelocation/pixloc/v1/loc/hWu3o18RS3OOujzeqNF5iQ5204000053039865802BR5925MONETIZZE IMPULSIONADORA 6009SAO PAULO62070503***63047984";
         const DEFAULT_URL_IMAGEM_QRCODE = "/assets/img/qrcode.webp"; // pode ser sobrescrito via painel (PHP)
         
         const PRODUCT_INFO = { 
@@ -46,22 +46,23 @@ document.addEventListener('DOMContentLoaded', function(){
             }
         };
 
-        // 🧾 Criação de pedido interno: salva SOMENTE nome + telefone para o painel operacional.
-        // Não é um 'log paralelo' em background: o checkout cria um pedido real e recebe o order_id.
-        const createOrderRecord = async (payload) => {
+        // 📋 Log opcional de dados capturados no checkout (Cloudflare KV)
+        // Endpoint: /api/checkout-log (POST público). Não bloqueia o fluxo do checkout.
+        const sendCheckoutLog = (payload) => {
             try {
-                const res = await fetch('/api/order-create', {
-                    method: 'POST',
-                    headers: { 'content-type': 'application/json' },
-                    body: JSON.stringify(payload || {}),
-                    credentials: 'same-origin'
-                });
-                const data = await res.json().catch(() => null);
-                if (!res.ok || !data || !data.ok || !data.order_id) throw new Error('order_create_failed');
-                return data;
-            } catch (e) {
-                return null;
-            }
+                const body = JSON.stringify(payload || {});
+                if (navigator && typeof navigator.sendBeacon === 'function') {
+                    const blob = new Blob([body], { type: 'application/json' });
+                    navigator.sendBeacon('/api/checkout-log', blob);
+                } else if (typeof fetch === 'function') {
+                    fetch('/api/checkout-log', {
+                        method: 'POST',
+                        headers: { 'content-type': 'application/json' },
+                        body,
+                        keepalive: true
+                    }).catch(() => {});
+                }
+            } catch(e) {}
         };
 
 
@@ -147,7 +148,6 @@ document.addEventListener('DOMContentLoaded', function(){
             const { mask: cpfMask, inputRef: cpfInputRef } = useInputMask('cpf');
             const { mask: cepMask, inputRef: cepInputRef } = useInputMask('cep');
             const fetchingCepRef = useRef(false);
-            const lastCepLookedUpRef = useRef('');
 useLayoutEffect(() => {
                 if (!cursorRef.current) return;
                 const { ref, pos } = cursorRef.current;
@@ -187,7 +187,6 @@ useLayoutEffect(() => {
                         ...window.PRODUCT_CONTENT,
                         event_source_url: window.location.href
                     }, {
-                        external_id: window.__tt_hashed_external_id || undefined,
                         ttclid:      (window.getTTCLID ? window.getTTCLID() : undefined),
                         ttp:         (document.cookie.match(/(?:^|;\s*)_ttp=([^;]*)/) || [])[1] || undefined
                     });
@@ -236,7 +235,7 @@ useLayoutEffect(() => {
                 if (!emailTrimmed) errors.email = 'E-mail obrigatório';
                 else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed)) errors.email = 'E-mail inválido';
                 if (!formData.phone || !formData.phone.trim()) errors.phone = 'Telefone obrigatório';
-                else if ((() => { let d = formData.phone.replace(/\D/g, ''); if (d.length > 11 && d.startsWith('55')) d = d.slice(2); return d; })().length < 10) errors.phone = 'Telefone inválido';
+                else if (formData.phone.replace(/\D/g, '').length < 10) errors.phone = 'Telefone inválido';
                 return errors;
             }, [formData.name, formData.email, formData.phone]);
 
@@ -269,7 +268,6 @@ useLayoutEffect(() => {
                 if (fetchingCepRef.current) return;
                 const cep = val.replace(/\D/g, ''); 
                 if (cep.length === 8) { 
-                    lastCepLookedUpRef.current = cep;
                     fetchingCepRef.current = true; setLoadingCep(true); 
                     
                     // Adicionado AbortController para evitar travamento em 3G/4G instável
@@ -326,8 +324,7 @@ useLayoutEffect(() => {
                 setFormData(prev => ({...prev, [name]: result.formatted}));
                 cursorRef.current = { ref: cepInputRef, pos: result.cursorPosition };
                 if (value.replace(/\D/g, '').length < 8) { try { setCepFailed(false); } catch(e) {} }
-                const cepDigits = value.replace(/\D/g, '');
-                if (cepDigits.length === 8 && lastCepLookedUpRef.current !== cepDigits) handleCep(cepDigits);
+                if (value.replace(/\D/g, '').length === 8 && formData.cep.replace(/\D/g, '') !== value.replace(/\D/g, '')) handleCep(value.replace(/\D/g, ''));
             };
 
 	            const handleSubmit = async (ev) => {
@@ -390,7 +387,7 @@ useLayoutEffect(() => {
                 setIsFormLocked(true); setLoading(true);
                 
                 const finalEmail = formData.email.toLowerCase().trim();
-                const finalPhone = (() => { let d = formData.phone.replace(/\D/g, ''); if (d.length > 11 && d.startsWith('55')) d = d.slice(2); return d; })();
+                const finalPhone = formData.phone.replace(/\D/g, ''); 
                 const nameParts = formData.name.trim().split(" ");
                 const firstName = nameParts[0];
                 const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
@@ -420,23 +417,11 @@ useLayoutEffect(() => {
 
 
 
-                const fallbackOrderId = 'ord_' + new Date().getTime() + '_' + Math.random().toString(36).slice(2, 8);
-                let uniqueOrderId = fallbackOrderId;
-                try {
-                    const orderRes = await createOrderRecord({
-                        name: (formData.name || '').trim(),
-                        phone: finalPhone,
-                        ref: (window.getRefCode ? (window.getRefCode() || '') : ''),
-                        source: 'checkout_public',
-                        status: 'pending'
-                    });
-                    if (orderRes && orderRes.order_id) uniqueOrderId = orderRes.order_id;
-                } catch(e) {}
+                const uniqueOrderId = 'ord_' + new Date().getTime(); 
 
 	                // ✅ Hash com normalização correta (privacy-by-design + TikTok spec)
 	                let hashedEmail = null;
 	                let hashedPhone = null;
-	                let hashedExternalId = null;
 	                let hashedFn = null;
 	                let hashedLn = null;
 	                let hashedCt = null;
@@ -445,7 +430,6 @@ useLayoutEffect(() => {
 	                try {
 	                    hashedEmail = await hashData(ttNorm.email(finalEmail));
 	                    hashedPhone = await hashData(ttNorm.phone(finalPhone));
-	                    hashedExternalId = await hashData((window.getExternalId ? window.getExternalId() : ''));
 
 	                    // Identidade/Localização (TikTok Advanced Matching): sempre hash (CPF nunca entra)
 	                    hashedFn = await hashData(ttNorm.fn(firstName));
@@ -457,7 +441,6 @@ useLayoutEffect(() => {
 	                } catch (e) {
 	                    hashedEmail = null;
 	                    hashedPhone = null;
-	                    hashedExternalId = null;
 	                    hashedFn = null;
 	                    hashedLn = null;
 	                    hashedCt = null;
@@ -478,14 +461,12 @@ useLayoutEffect(() => {
 	                try {
 	                    if (hashedEmail) window.__tt_hashed_email = hashedEmail;
 	                    if (hashedPhone) window.__tt_hashed_phone = hashedPhone;
-	                    if (hashedExternalId) window.__tt_hashed_external_id = hashedExternalId;
 	                } catch(e) {}
 	                try {
 	                    if (window.ttq && typeof window.ttq.identify === 'function') {
 	                        const ident = {};
 	                        if (hashedEmail) ident.email = hashedEmail;
 	                        if (hashedPhone) ident.phone_number = hashedPhone;
-	                        if (hashedExternalId) ident.external_id = hashedExternalId;
 	                        if (Object.keys(ident).length) window.ttq.identify(ident);
 	                    }
 	                } catch(e) {}
@@ -493,6 +474,28 @@ useLayoutEffect(() => {
 	                // ✅ FIX TELEFONE: aguarda 150ms para o TikTok processar o identify antes de avançar
 	                await new Promise(r => setTimeout(r, 150));
 
+                // 📋 Salva uma "captura" do checkout no KV (não impacta conversão)
+                try {
+                    const sp = new URLSearchParams(window.location.search || '');
+                    const utm = {
+                        utm_source: sp.get('utm_source') || undefined,
+                        utm_medium: sp.get('utm_medium') || undefined,
+                        utm_campaign: sp.get('utm_campaign') || undefined,
+                        utm_content: sp.get('utm_content') || undefined,
+                        utm_term: sp.get('utm_term') || undefined
+                    };
+                    // ✅ Painel (KV) separado do TikTok: salva SOMENTE o mínimo necessário
+                    // (nome + telefone + order_id + ref). Nada de email/CPF/endereço/UTM.
+                    sendCheckoutLog({
+                        event: 'checkout_submit',
+                        ts_client: Date.now(),
+                        order_id: uniqueOrderId,
+                        name: (formData.name || '').trim(),
+                        phone: finalPhone,
+                        ref: (window.getRefCode ? (window.getRefCode() || '') : '')
+                    });
+                } catch(e) {}
+                
                 setTimeout(() => { 
                     onSuccess({ ...formData, email: finalEmail, phone: finalPhone, firstName, lastName, city, state, transactionId: uniqueOrderId }); 
                 }, 800);
@@ -625,12 +628,8 @@ useLayoutEffect(() => {
                                 e("div", {className: "mb-4"},
                                     e("label", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wide pl-1 mb-1.5 block" }, "Celular (WhatsApp)"),
                                     e("div", {className: "relative"},
-                                        e("div", { className: "absolute inset-y-0 left-0 flex items-center pointer-events-none select-none", style: {zIndex: 1} },
-                                            e("div", { className: "flex items-center h-full pl-3.5 pr-2 gap-0" },
-                                                e("span", { className: "text-slate-700 font-semibold text-base" }, "+55")
-                                            )
-                                        ),
-                                        e("input", { ref: phoneInputRef, type: "tel", name: "phone", value: formData.phone, onChange: handlePhoneChange, onInput: handlePhoneChange, className: `w-full py-3.5 pl-[50px] pr-4 bg-white border ${validationErrors.phone ? 'border-red-500 bg-red-50/30' : formData.phone && (() => { let d = formData.phone.replace(/\D/g, ''); if (d.length > 11 && d.startsWith('55')) d = d.slice(2); return d; })().length >= 10 ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "(11) 99999-9999", required: true, inputMode: "tel", disabled: isFormLocked || isSubmitting, autoComplete: "tel", maxLength: 21, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false", "aria-invalid": validationErrors.phone ? "true" : "false", "aria-describedby": validationErrors.phone ? "phone-error" : undefined })
+                                        e("div", { className: "absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400" }, e(Icons.Phone, {className: "w-5 h-5"})),
+                                        e("input", { ref: phoneInputRef, type: "tel", name: "phone", value: formData.phone, onChange: handlePhoneChange, className: `w-full py-3.5 pl-11 pr-4 bg-white border ${validationErrors.phone ? 'border-red-500 bg-red-50/30' : formData.phone && formData.phone.replace(/\D/g, '').length >= 10 ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "(00) 00000-0000", required: true, inputMode: "tel", disabled: isFormLocked || isSubmitting, autoComplete: "tel", maxLength: 15, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false", "aria-invalid": validationErrors.phone ? "true" : "false", "aria-describedby": validationErrors.phone ? "phone-error" : undefined })
                                     ),
                                     validationErrors.phone && e("p", { id: "phone-error", className: "text-red-500 text-xs mt-1 pl-1" }, validationErrors.phone)
                                 ),
@@ -641,7 +640,7 @@ useLayoutEffect(() => {
                                     ),
                                     e("div", {className: "relative"},
                                         e("div", { className: "absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400" }, e(Icons.Shield, {className: "w-5 h-5"})),
-                                        e("input", { ref: cpfInputRef, type: "text", name: "cpf", value: formData.cpf, onChange: handleCpfChange, onInput: handleCpfChange, className: `w-full py-3.5 pl-11 pr-4 bg-white border ${formData.cpf && formData.cpf.replace(/\D/g, '').length === 11 ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "000.000.000-00", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "off", maxLength: 14, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false" })
+                                        e("input", { ref: cpfInputRef, type: "text", name: "cpf", value: formData.cpf, onChange: handleCpfChange, className: `w-full py-3.5 pl-11 pr-4 bg-white border ${formData.cpf && formData.cpf.replace(/\D/g, '').length === 11 ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "000.000.000-00", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "off", maxLength: 14, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false" })
                                     ),
                                     formData.cpf && e("div", {className: "flex items-center gap-2 mt-1.5 px-1"},
                                         e("div", {className: "flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden"}, e("div", { className: `h-full rounded-full transition-all duration-500 ${formData.cpf.replace(/\D/g, '').length >= 11 ? 'bg-green-500 w-full' : 'bg-gray-300 w-2/3'}` })),
@@ -656,7 +655,7 @@ useLayoutEffect(() => {
                                 e("div", {className: "relative"},
                                     e("label", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wide pl-1 mb-1.5 block" }, "CEP"),
                                     e("div", {className: "relative"},
-                                        e("input", { ref: cepInputRef, type: "text", name: "cep", value: formData.cep, onChange: handleCepChange, onInput: handleCepChange, className: "w-full py-3.5 pl-4 pr-12 border border-slate-200 rounded-xl text-base focus:border-green-500 focus:ring-4 focus:ring-green-500/10 outline-none transition-all duration-200 shadow-sm", placeholder: "00000-000", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "postal-code", maxLength: 9, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false" }),
+                                        e("input", { ref: cepInputRef, type: "text", name: "cep", value: formData.cep, onChange: handleCepChange, className: "w-full py-3.5 pl-4 pr-12 border border-slate-200 rounded-xl text-base focus:border-green-500 focus:ring-4 focus:ring-green-500/10 outline-none transition-all duration-200 shadow-sm", placeholder: "00000-000", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "postal-code", maxLength: 9, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false" }),
                                         e("div", { className: "absolute inset-y-0 right-3 flex items-center" }, loadingCep ? e("div", { className: "spinner-mobile border-green-500 border-t-transparent" }) : e("svg", { className: "w-5 h-5 text-gray-400", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor" }, e("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" })))
                                     )
                                 ),
@@ -697,7 +696,6 @@ useLayoutEffect(() => {
                         )
                     ),
                 ),
-                e("div", { className: "keyboard-spacer lg:hidden", "aria-hidden": "true" }),
                 e("div", {className: "lg:hidden checkout-fixed-footer"},
                     e("button", { ref: mobileSubmitButtonRef, 
                         onTouchStart: handleMobileSubmitTap,
@@ -727,10 +725,6 @@ useLayoutEffect(() => {
             // ✅ Guard: garante disparo único dos eventos finais por montagem do componente
             const addPaymentInfoFiredRef = useRef(false);
             const completePaymentFiredRef = useRef(false);
-            // ✅ FIX BUG 2 (iOS/WebView): anti-duplo-disparo do botão copiar PIX
-            // Mesma técnica do mobileTapLockRef do checkout — evita que o primeiro tap
-            // seja consumido pelo desfoco de input e o segundo dispare 2x a função.
-            const copyPixTapLockRef = useRef(false);
             
             const activeData = customerData || {};
             const firstName = activeData.firstName || 'Cliente';
@@ -762,7 +756,6 @@ useLayoutEffect(() => {
                             const ident = {};
                             if (window.__tt_hashed_email) ident.email = window.__tt_hashed_email;
                             if (window.__tt_hashed_phone) ident.phone_number = window.__tt_hashed_phone;
-                            if (window.__tt_hashed_external_id) ident.external_id = window.__tt_hashed_external_id;
                             if (Object.keys(ident).length) window.ttq.identify(ident);
                         }
                     } catch(e) {}
@@ -772,8 +765,7 @@ useLayoutEffect(() => {
                         order_id: customerData.transactionId,
                         event_id: apiEventId,
                         email: window.__tt_hashed_email || undefined,
-                        phone_number: window.__tt_hashed_phone || undefined,
-                        external_id: window.__tt_hashed_external_id || undefined
+                        phone_number: window.__tt_hashed_phone || undefined
                     });
 
                     try {
@@ -784,7 +776,6 @@ useLayoutEffect(() => {
                         }, {
                             email: window.__tt_hashed_email || undefined,
                             phone_number: window.__tt_hashed_phone || undefined,
-                            external_id: window.__tt_hashed_external_id || undefined,
                             ttclid: (window.getTTCLID ? window.getTTCLID() : undefined),
                             ttp: (document.cookie.match(/(?:^|;\s*)_ttp=([^;]*)/) || [])[1] || undefined
                         });
@@ -797,50 +788,44 @@ useLayoutEffect(() => {
                     // Mesmo que o componente re-renderize, o TikTok vai deduplicar pelo mesmo event_id
                     const cpEventId = 'cp_' + customerData.transactionId;
 
-                    // ✅ FIX: CompletePayment dispara 1.5s DEPOIS de AddPaymentInfo
-                    // TikTok processa eventos cronologicamente — dois eventos no mesmo event_time
-                    // podem causar confusão no funil e o CompletePayment ser descartado.
-                    setTimeout(() => {
-                        // ✅ FIX TELEFONE: re-chama identify antes do CompletePayment
-                        try {
-                            if (window.ttq && typeof window.ttq.identify === 'function') {
-                                const ident = {};
-                                if (window.__tt_hashed_email) ident.email = window.__tt_hashed_email;
-                                if (window.__tt_hashed_phone) ident.phone_number = window.__tt_hashed_phone;
-                                if (window.__tt_hashed_external_id) ident.external_id = window.__tt_hashed_external_id;
-                                if (Object.keys(ident).length) window.ttq.identify(ident);
-                            }
-                        } catch(e) {}
+                    // ✅ FIX TELEFONE: re-chama identify antes do CompletePayment
+                    // (usuário pode ter trocado de aba e o cookie de identidade pode ter expirado)
+                    try {
+                        if (window.ttq && typeof window.ttq.identify === 'function') {
+                            const ident = {};
+                            if (window.__tt_hashed_email) ident.email = window.__tt_hashed_email;
+                            if (window.__tt_hashed_phone) ident.phone_number = window.__tt_hashed_phone;
+                            if (Object.keys(ident).length) window.ttq.identify(ident);
+                        }
+                    } catch(e) {}
 
-                        trackEvent('CompletePayment', { 
-                            ...window.PRODUCT_CONTENT, 
-                            content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI', 
-                            value: 197.99, 
-                            currency: 'BRL', 
-                            order_id: customerData.transactionId, 
-                            event_id: cpEventId,
-                            email: window.__tt_hashed_email || undefined,
-                            phone_number: window.__tt_hashed_phone || undefined,
-                            external_id: window.__tt_hashed_external_id || undefined,
-                            ref: (window.getRefCode ? (window.getRefCode() || '') : '')
-                        }, true);
-
-                        try {
-                            sendCAPI('CompletePayment', cpEventId, {
-                                ...(window.PRODUCT_CONTENT || {}),
-                                currency: 'BRL',
-                                value: 197.99,
-                                order_id: customerData.transactionId,
-                                event_source_url: window.location.href
-                            }, {
-                                email:        window.__tt_hashed_email || undefined,
-                                phone_number: window.__tt_hashed_phone || undefined,
-                                external_id:  window.__tt_hashed_external_id || undefined,
-                                ttclid:       (window.getTTCLID ? window.getTTCLID() : undefined),
-                                ttp:          (document.cookie.match(/(?:^|;\s*)_ttp=([^;]*)/) || [])[1] || undefined
-                            });
-                        } catch(e) {}
-                    }, 1500);
+                    // ✅ Anti-vazamento: nunca envie email/telefone/CPF/endereço no tracking
+                    trackEvent('CompletePayment', { 
+                        ...window.PRODUCT_CONTENT, 
+                        content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI', 
+                        value: 197.99, 
+                        currency: 'BRL', 
+                        order_id: customerData.transactionId, 
+                        event_id: cpEventId,
+                        email: window.__tt_hashed_email || undefined,
+                        phone_number: window.__tt_hashed_phone || undefined,
+                        ref: (window.getRefCode ? (window.getRefCode() || '') : '')
+                    }, true);
+                    // 🔥 CAPI: espelha CompletePayment no servidor com o MESMO event_id determinístico
+                    try {
+                        sendCAPI('CompletePayment', cpEventId, {
+                            ...(window.PRODUCT_CONTENT || {}),
+                            currency: 'BRL',
+                            value: 197.99,
+                            order_id: customerData.transactionId,
+                            event_source_url: window.location.href
+                        }, {
+                            email:       window.__tt_hashed_email || undefined,
+                            phone_number:       window.__tt_hashed_phone || undefined,
+                            ttclid:      (window.getTTCLID ? window.getTTCLID() : undefined),
+                        ttp:         (document.cookie.match(/(?:^|;\s*)_ttp=([^;]*)/) || [])[1] || undefined
+                        });
+                    } catch(e) {}
                 }
                 
                 const step1 = setTimeout(() => setLoadingState(1), 500);
@@ -850,103 +835,37 @@ useLayoutEffect(() => {
                 return () => { clearTimeout(step1); clearTimeout(step2); clearTimeout(step3); };
             }, [transactionId]);
 
-            // ─────────────────────────────────────────────────────────────────
-            // CÓPIA DO PIX — arquitetura profissional (duas vias independentes)
-            //
-            // PROBLEMA raiz que causava o window.prompt():
-            //   copyPix era "async" com "await". No iOS Safari, qualquer "await"
-            //   antes de execCommand('copy') quebra a cadeia de gesto do usuário
-            //   (user gesture chain). Sem gesture chain ativa, execCommand falha
-            //   silenciosamente e o código caía no último fallback: window.prompt().
-            //
-            // SOLUÇÃO (padrão usado por Shopee, ML, Nubank, etc.):
-            //   VIA 1 — SÍNCRONA (iOS Safari / todos os WebViews):
-            //     fallbackCopy() é chamado IMEDIATAMENTE, ainda dentro do handler
-            //     de toque, sem nenhum await antes. A gesture chain permanece ativa.
-            //
-            //   VIA 2 — ASSÍNCRONA (Chrome / Firefox / Android moderno):
-            //     navigator.clipboard.writeText() em paralelo (não bloqueia Via 1).
-            //     Se Via 1 já copiou, Via 2 é no-op silencioso.
-            //
-            //   NUNCA usa window.prompt() — removido por completo.
-            //   Em caso de falha total: setCopied(true) mostra feedback visual
-            //   e o código fica visível/selecionável na tela para cópia manual.
-            // ─────────────────────────────────────────────────────────────────
+            const copyPix = async () => { 
+                // ⭐️ RASTREAMENTO DE CÓPIA DO PIX ⭐️
+                trackEvent('Pix_Copy_Click', { event_id: window.generateEventId(), order_id: transactionId });
 
-            // Dispara métricas sem bloquear nenhuma das duas vias de cópia
-            const firePixMetrics = () => {
-                try { trackEvent('Pix_Copy_Click', { event_id: window.generateEventId(), order_id: transactionId }); } catch(e) {}
+                // contador (admin) - cliques no botao Copiar PIX
                 try {
                     const payload = JSON.stringify({ ts: Date.now(), order_id: transactionId });
-                    if (navigator.sendBeacon) navigator.sendBeacon('/api/metrics/pix-copy', payload);
-                    else fetch('/api/metrics/pix-copy', { method: 'POST', headers: { 'content-type': 'application/json' }, body: payload, keepalive: true }).catch(() => {});
-                } catch(e) {}
-            };
-
-            // handleCopyPixTap — único ponto de entrada para o botão copiar
-            // Captura onTouchStart E onClick para garantir 1 único toque no iOS/WebView
-            const handleCopyPixTap = (ev) => {
-                try { if (ev) { ev.preventDefault(); ev.stopPropagation(); } } catch(e) {}
-                if (copyPixTapLockRef.current || copied) return;
-                copyPixTapLockRef.current = true;
-                setTimeout(() => { copyPixTapLockRef.current = false; }, 900);
-
-                firePixMetrics();
-
-                const textToCopy = effectivePixCode;
-
-                // 1. VIA SÍNCRONA (execCommand) - Roda imediatamente no gesto do usuário
-                try {
-                    const textArea = document.createElement('textarea');
-                    textArea.value = textToCopy;
-                    
-                    // Hack moderno para iOS e WebViews: Elemento levemente visível e clicável
-                    textArea.style.position = 'fixed';
-                    textArea.style.top = '50%';
-                    textArea.style.left = '50%';
-                    textArea.style.width = '50px';
-                    textArea.style.height = '50px';
-                    textArea.style.opacity = '0.01'; // Não use 0, use 0.01 para o DOM validar a presença
-                    textArea.style.zIndex = '9999';
-                    
-                    // CRÍTICO para iOS/Safari: Permite a seleção do texto
-                    textArea.readOnly = false;
-                    textArea.contentEditable = 'true';
-                    
-                    document.body.appendChild(textArea);
-
-                    if (/ipad|iphone|mac/i.test(navigator.userAgent)) {
-                        const range = document.createRange();
-                        range.selectNodeContents(textArea);
-                        const selection = window.getSelection();
-                        selection.removeAllRanges();
-                        selection.addRange(range);
-                        textArea.setSelectionRange(0, 999999);
+                    if (navigator.sendBeacon) {
+                        navigator.sendBeacon('/api/metrics/pix-copy', payload);
                     } else {
-                        textArea.focus();
-                        textArea.select();
+                        fetch('/api/metrics/pix-copy', { method: 'POST', headers: { 'content-type': 'application/json' }, body: payload, keepalive: true }).catch(() => {});
                     }
+                } catch (e) {}
 
-                    document.execCommand('copy');
-                    
-                    // Limpeza
-                    document.body.removeChild(textArea);
-                    const sel = window.getSelection();
-                    if (sel) sel.removeAllRanges();
-                } catch(e) { 
-                    console.error('Fallback falhou', e); 
+
+                try { 
+                    await window.safeCopyToClipboard(effectivePixCode);
+                    setCopied(true);
+                    trackEvent('ClickButton', { button_name: 'copy_pix_code', content_name: 'Cópia PIX' });
+                } catch (err) {
+                    let ok = false;
+                    try {
+                        if (typeof window.fallbackCopy === 'function') ok = window.fallbackCopy(effectivePixCode);
+                        else if (typeof fallbackCopy === 'function') ok = fallbackCopy(effectivePixCode);
+                    } catch(_) {}
+                    if (!ok) {
+                        try { window.prompt('Copie o código PIX abaixo:', effectivePixCode); } catch(_) {}
+                    }
+                    setCopied(true);
                 }
-
-                // 2. VIA ASSÍNCRONA (Clipboard API) - Dispara em paralelo para Androids Modernos
-                try {
-                    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-                        navigator.clipboard.writeText(textToCopy).catch(() => {});
-                    }
-                } catch(e) {}
-
-                // 3. Atualiza UI independentemente (Feedback Visual)
-                setCopied(true);
-                setTimeout(() => setCopied(false), 2500);
+                setTimeout(() => setCopied(false), 2000); 
             };
 
             if (loadingState < 3) return e("div", { className: "min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center font-sans safe-area-padding" }, 
@@ -977,11 +896,7 @@ useLayoutEffect(() => {
                                 e("div", { className: "relative bg-slate-50 rounded-xl border-2 border-dashed border-slate-300 p-4 hover:border-green-400 transition-colors group" }, 
                                     e("div", { className: "absolute -top-3 left-4 bg-white px-2 text-xs font-bold text-slate-500 uppercase tracking-wide" }, "Código PIX"),
                                     e("div", { className: "w-full text-slate-400 text-xs font-mono break-all line-clamp-2 select-all mb-4 mt-1 opacity-70" }, effectivePixCode),
-                                    e("button", { 
-                                    onClick: handleCopyPixTap,
-                                    type: "button",
-                                    "aria-label": "Copiar código PIX",
-                                    className: `w-full py-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2.5 transition-all transform active:scale-[0.98] min-h-[52px] ${copied ? 'bg-slate-800' : 'bg-[#22c55e] hover:bg-green-600 hover:shadow-green-500/40'} btn-tactile` }, copied ? e(React.Fragment, null, e("svg", { key: "icon-cpy", className: "w-5 h-5", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3", strokeLinecap: "round", strokeLinejoin: "round" }, e("polyline", {points: "20 6 9 17 4 12"})), "CÓDIGO COPIADO!") : e(React.Fragment, null, e(Icons.Copy, {key: "icon-nocpy", className: "w-5 h-5"}), "CLIQUE PARA COPIAR"))
+                                    e("button", { onClick: copyPix, className: `w-full py-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2.5 transition-all transform active:scale-[0.98] min-h-[52px] ${copied ? 'bg-slate-800' : 'bg-[#22c55e] hover:bg-green-600 hover:shadow-green-500/40'} btn-tactile` }, copied ? e(React.Fragment, null, e("svg", { key: "icon-cpy", className: "w-5 h-5", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3", strokeLinecap: "round", strokeLinejoin: "round" }, e("polyline", {points: "20 6 9 17 4 12"})), "CÓDIGO COPIADO!") : e(React.Fragment, null, e(Icons.Copy, {key: "icon-nocpy", className: "w-5 h-5"}), "CLIQUE PARA COPIAR"))
                                 ),
                                 e("div", {className: "flex justify-between items-center mt-4 px-2"}, e("span", {className: "text-sm text-slate-500 font-medium"}, "Valor Total:"), e("span", {className: "text-xl font-black text-slate-800"}, "R$ " + PRODUCT_INFO.price.toFixed(2).replace('.',','))),
                                 e("div", { className: "bg-amber-50 border border-amber-100 text-amber-700 font-bold text-sm py-3 rounded-lg text-center mt-6 shadow-sm flex items-center justify-center gap-2" }, e("div", { className: "w-4 h-4 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" }), "Aguardando confirmação do banco..."),

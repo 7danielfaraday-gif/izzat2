@@ -1,9 +1,2 @@
 /api/*
   Cache-Control: no-store
-
-/checkout/*
-  Cache-Control: no-cache, no-store, must-revalidate
-  Pragma: no-cache
-
-/assets/js/checkout.app.js
-  Cache-Control: no-cache, must-revalidate
