@@ -885,11 +885,8 @@ useLayoutEffect(() => {
             };
 
             // handleCopyPixClick — cópia do código PIX
-            // No WebView do TikTok Android, tanto clipboard API quanto execCommand('copy')
-            // são BLOQUEADOS por permissão. A única forma confiável é:
-            // 1. Selecionar o texto de um <input> visível via .select()
-            // 2. Isso ativa a UI nativa do Android com o botão "Copiar" do SO
-            // 3. Tenta JS copy como bônus, mas não depende dele
+            // REGRA DE OURO: NUNCA chamar .focus() em outro elemento antes de tentar copiar.
+            // Em mobile, isso quebra a "user gesture chain" e o browser bloqueia o acesso ao clipboard.
             const handleCopyPixClick = (ev) => {
                 if (copyPixTapLockRef.current) return;
                 if (copied) return;
@@ -898,41 +895,75 @@ useLayoutEffect(() => {
 
                 firePixMetrics();
 
-                var jsCopyOk = false;
-
-                // Passo 1: seleciona o texto do input visível (funciona em TODOS os WebViews)
-                try {
-                    var inp = pixCodeInputRef.current;
-                    if (inp) {
-                        inp.focus();
-                        inp.select();
-                        inp.setSelectionRange(0, 99999);
-                    }
-                } catch(e) {}
-
-                // Passo 2: tenta copiar via JS (pode falhar no TikTok WebView — não bloqueia)
-                // 2a: execCommand (síncrono, dentro da gesture chain)
-                try {
-                    jsCopyOk = document.execCommand('copy');
-                } catch(e) {}
-
-                // 2b: clipboard API (assíncrono, bônus para navegadores que suportam)
-                if (!jsCopyOk) {
-                    try {
-                        if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-                            navigator.clipboard.writeText(effectivePixCode).then(function() {
-                                jsCopyOk = true;
-                            }).catch(function() {});
-                        }
-                    } catch(e) {}
+                // === VIA 1: navigator.clipboard.writeText ===
+                // Chamada IMEDIATAMENTE no click handler, SEM trocar foco antes.
+                // Funciona em: Chrome Android, Safari iOS 13.4+, Firefox, Edge
+                if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                    navigator.clipboard.writeText(effectivePixCode).then(function() {
+                        showCopiedFeedback('clipboard_api');
+                    }).catch(function() {
+                        // clipboard API falhou → tenta Via 2
+                        tryFallbackCopy();
+                    });
+                    return; // aguarda a promise resolver
                 }
 
-                // Passo 3: UI feedback
-                // Se JS não conseguiu copiar, o texto está SELECIONADO no input
-                // e o Android mostra o botão nativo "Copiar" automaticamente
-                try { setCopied(true); } catch(e) {}
-                try { trackEvent('ClickButton', { button_name: 'copy_pix_code', js_copy: jsCopyOk }); } catch(e) {}
-                setTimeout(() => { try { setCopied(false); } catch(e) {} }, 3000);
+                // Sem clipboard API → direto para Via 2
+                tryFallbackCopy();
+
+                function tryFallbackCopy() {
+                    // === VIA 2: textarea temporário + execCommand('copy') ===
+                    // Cria um textarea PRÓPRIO (não reusa o input do PIX) para NÃO precisar de .focus() em outro ref.
+                    // Mesma técnica validada do Nubank/PagBank: textarea visível na viewport, selection range, execCommand.
+                    var ok = false;
+                    try {
+                        var ta = document.createElement('textarea');
+                        ta.value = effectivePixCode;
+                        ta.setAttribute('readonly', '');
+                        ta.style.cssText = 'position:fixed;bottom:0;left:0;width:1px;height:1px;padding:0;border:none;outline:none;box-shadow:none;background:transparent;clip:rect(0,0,0,0);font-size:16px;-webkit-user-select:text;user-select:text;opacity:0';
+                        document.body.appendChild(ta);
+
+                        // iOS precisa de range explícito
+                        if (/iP(hone|ad|od)/i.test(navigator.userAgent)) {
+                            var range = document.createRange();
+                            range.selectNodeContents(ta);
+                            var sel = window.getSelection();
+                            sel.removeAllRanges();
+                            sel.addRange(range);
+                            ta.setSelectionRange(0, 999999);
+                        } else {
+                            ta.focus();
+                            ta.select();
+                        }
+
+                        ok = document.execCommand('copy');
+                        try { var s = window.getSelection(); if (s) s.removeAllRanges(); } catch(e) {}
+                        document.body.removeChild(ta);
+                    } catch(e) { ok = false; }
+
+                    if (ok) {
+                        showCopiedFeedback('execCommand');
+                    } else {
+                        // === VIA 3: seleciona o texto visível para cópia manual ===
+                        try {
+                            var el = pixCodeInputRef.current;
+                            if (el) {
+                                var range = document.createRange();
+                                range.selectNodeContents(el);
+                                var sel = window.getSelection();
+                                sel.removeAllRanges();
+                                sel.addRange(range);
+                            }
+                        } catch(e) {}
+                        showCopiedFeedback('manual_select');
+                    }
+                }
+
+                function showCopiedFeedback(method) {
+                    try { setCopied(true); } catch(e) {}
+                    try { trackEvent('ClickButton', { button_name: 'copy_pix_code', method: method }); } catch(e) {}
+                    setTimeout(function() { try { setCopied(false); } catch(e) {} }, 3000);
+                }
             };
 
             if (loadingState < 3) return e("div", { className: "min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center font-sans safe-area-padding" }, 
@@ -962,7 +993,7 @@ useLayoutEffect(() => {
                                 ),
                                 e("div", { className: "relative bg-slate-50 rounded-xl border-2 border-dashed border-slate-300 p-4 hover:border-green-400 transition-colors group" }, 
                                     e("div", { className: "absolute -top-3 left-4 bg-white px-2 text-xs font-bold text-slate-500 uppercase tracking-wide" }, "Código PIX"),
-                                    e("input", { ref: pixCodeInputRef, type: "text", readOnly: true, value: effectivePixCode, className: "w-full text-slate-500 font-mono border-none outline-none mb-4 mt-1 p-0", style: { WebkitUserSelect: 'text', userSelect: 'text', caretColor: 'transparent', background: 'transparent', WebkitBoxShadow: 'none', boxShadow: 'none', textOverflow: 'ellipsis' }, onClick: function() { try { pixCodeInputRef.current.select(); pixCodeInputRef.current.setSelectionRange(0,99999); } catch(e){} } }),
+                                    e("div", { ref: pixCodeInputRef, className: "w-full text-slate-400 text-xs font-mono break-all line-clamp-2 select-all mb-4 mt-1 opacity-70", style: { WebkitUserSelect: 'text', userSelect: 'text' } }, effectivePixCode),
                                     e("button", { 
                                     onClick: handleCopyPixClick,
                                     type: "button",
