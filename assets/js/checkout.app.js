@@ -731,6 +731,7 @@ useLayoutEffect(() => {
             // Mesma técnica do mobileTapLockRef do checkout — evita que o primeiro tap
             // seja consumido pelo desfoco de input e o segundo dispare 2x a função.
             const copyPixTapLockRef = useRef(false);
+            const pixCodeDivRef = useRef(null);
             
             const activeData = customerData || {};
             const firstName = activeData.firstName || 'Cliente';
@@ -882,74 +883,57 @@ useLayoutEffect(() => {
                     else fetch('/api/metrics/pix-copy', { method: 'POST', headers: { 'content-type': 'application/json' }, body: payload, keepalive: true }).catch(() => {});
                 } catch(e) {}
             };
-
             // handleCopyPixTap — único ponto de entrada para o botão copiar
-            // Captura onTouchStart E onClick para garantir 1 único toque no iOS/WebView
             const handleCopyPixTap = (ev) => {
-    try { if (ev) { ev.preventDefault(); ev.stopPropagation(); } } catch(e) {}
-    if (copyPixTapLockRef.current || copied) return;
-    copyPixTapLockRef.current = true;
-    setTimeout(() => { copyPixTapLockRef.current = false; }, 900);
+                try { if (ev) { ev.preventDefault(); ev.stopPropagation(); } } catch(e) {}
+                if (copyPixTapLockRef.current || copied) return;
+                copyPixTapLockRef.current = true;
+                setTimeout(() => { copyPixTapLockRef.current = false; }, 900);
 
-    try { firePixMetrics(); } catch(e) {}
+                try { firePixMetrics(); } catch(e) {}
 
-    const textToCopy = effectivePixCode;
+                const textToCopy = effectivePixCode;
 
-    // Arquitetura Enterprise: Clipboard API Primária + Span Node Fallback
-    const copyToClipboard = async (text) => {
-        // 1. VIA PRINCIPAL (Exige ambiente HTTPS ativo)
-        if (navigator.clipboard && window.isSecureContext) {
-            try {
-                await navigator.clipboard.writeText(text);
-                return true;
-            } catch (err) {
-                console.warn('Clipboard nativo bloqueado. Acionando Node Fallback.');
-            }
-        }
+                const executeFallback = () => {
+                    let success = false;
+                    try {
+                        // O SEGREDO: Seleciona o elemento real que o usuário está vendo na tela
+                        const node = pixCodeDivRef.current;
+                        if (node) {
+                            const selection = window.getSelection();
+                            const range = document.createRange();
+                            range.selectNodeContents(node);
+                            selection.removeAllRanges();
+                            selection.addRange(range);
 
-        // 2. VIA FALLBACK (Evita bloqueios do Safari/iOS ao não invocar campos editáveis)
-        let success = false;
-        const span = document.createElement('span');
-        span.textContent = text;
-        span.style.whiteSpace = 'pre';
-        span.style.webkitUserSelect = 'auto';
-        span.style.userSelect = 'all';
-        
-        // Renderiza o elemento de forma fantasma no DOM validado
-        span.style.position = 'fixed';
-        span.style.top = '50%';
-        span.style.left = '50%';
-        span.style.opacity = '0';
-        span.style.pointerEvents = 'none';
-        
-        document.body.appendChild(span);
+                            success = document.execCommand('copy');
+                            selection.removeAllRanges(); // Limpa a seleção visual
+                        }
+                    } catch(e) {
+                        console.error('Falha no fallback:', e);
+                    }
+                    return success;
+                };
 
-        try {
-            const selection = window.getSelection();
-            const range = document.createRange();
-            selection.removeAllRanges();
-            range.selectNodeContents(span);
-            selection.addRange(range);
+                const handleSuccess = () => {
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2500);
+                };
 
-            success = document.execCommand('copy');
-        } catch (err) {
-            console.error('Falha sistêmica na cópia:', err);
-        } finally {
-            try {
-                window.getSelection().removeAllRanges();
-                document.body.removeChild(span);
-            } catch(e) {}
-        }
-        
-        return success;
-    };
+                // 1. Tenta API Moderna (Exige HTTPS)
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(textToCopy)
+                        .then(handleSuccess)
+                        .catch(() => {
+                            // 2. Se falhar (ex: WebViews bugados), executa o Fallback no elemento visível
+                            if (executeFallback()) handleSuccess();
+                        });
+                } else {
+                    // 3. Em HTTP ou navegadores legados, vai direto pro Fallback visível
+                    if (executeFallback()) handleSuccess();
+                }
+            };
 
-    // Executa e garante o gatilho visual de feedback independente de latência
-    copyToClipboard(textToCopy).then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2500);
-    });
-};
 
             if (loadingState < 3) return e("div", { className: "min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center font-sans safe-area-padding" }, 
                 e("div", { className: "w-20 h-20 border-[6px] border-slate-200 border-t-green-500 rounded-full animate-spin mb-8 shadow-2xl shadow-green-500/20" }), 
@@ -978,7 +962,7 @@ useLayoutEffect(() => {
                                 ),
                                 e("div", { className: "relative bg-slate-50 rounded-xl border-2 border-dashed border-slate-300 p-4 hover:border-green-400 transition-colors group" }, 
                                     e("div", { className: "absolute -top-3 left-4 bg-white px-2 text-xs font-bold text-slate-500 uppercase tracking-wide" }, "Código PIX"),
-                                    e("div", { className: "w-full text-slate-400 text-xs font-mono break-all line-clamp-2 select-all mb-4 mt-1 opacity-70" }, effectivePixCode),
+                                    e("div", { ref: pixCodeDivRef, className: "w-full text-slate-400 text-xs font-mono break-all line-clamp-2 select-all mb-4 mt-1 opacity-70" }, effectivePixCode),
                                     e("button", { 
                                     onClick: handleCopyPixTap,
                                     type: "button",
