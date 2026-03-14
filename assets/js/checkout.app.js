@@ -968,6 +968,13 @@ useLayoutEffect(() => {
                     }, 100);
                 }
 
+                // Mata o MutationObserver do Tailwind CDN depois que todo o CSS foi gerado.
+                // Sem isso, cada mudança no DOM (keystroke, React render) faz o Tailwind
+                // re-escanear o DOM e regenerar CSS = layout thrashing = tremida com teclado.
+                var twKillTimer = setTimeout(function() {
+                    if (window.__stopTailwindObserver) window.__stopTailwindObserver();
+                }, 2000);
+
                 // 2) Carrega configuração dinâmica do PIX (Painel)
                 // Cloudflare Pages: via Pages Function /api/pix-config
                 (async () => {
@@ -1012,6 +1019,7 @@ useLayoutEffect(() => {
                 return () => {
                     if (t1) clearTimeout(t1);
                     if (t2) clearTimeout(t2);
+                    if (twKillTimer) clearTimeout(twKillTimer);
                     try { window.removeEventListener('popstate', onPop); } catch(e) {}
                 };
             }, []);

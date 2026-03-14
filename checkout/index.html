@@ -58,12 +58,36 @@
             } catch(e) {}
         };
     </script>
+<script>
+// Intercepta MutationObserver ANTES do Tailwind carregar.
+// Depois que o checkout montar, mata os observers do Tailwind pra parar de regenerar CSS.
+(function(){
+    var Real=window.MutationObserver;
+    var list=[];
+    window.MutationObserver=function(cb){var o=new Real(cb);list.push(o);return o};
+    window.MutationObserver.prototype=Real.prototype;
+    Object.keys(Real).forEach(function(k){window.MutationObserver[k]=Real[k]});
+    window.__stopTailwindObserver=function(){
+        list.forEach(function(o){try{o.disconnect()}catch(e){}});
+    };
+})();
+</script>
 <script defer="" onerror="window.__localLibFallback &amp;&amp; window.__localLibFallback('react')" src="../assets/vendor/react.production.min.js"></script>
 <script defer="" onerror="window.__localLibFallback &amp;&amp; window.__localLibFallback('react-dom')" src="../assets/vendor/react-dom.production.min.js"></script>
 <script defer="" onerror="window.__localLibFallback &amp;&amp; window.__localLibFallback('tailwind-local')" src="../assets/vendor/tailwindcss.js"></script>
 <script>
         window.tailwind = window.tailwind || {};
         window.tailwind.config = { 
+            safelist: [
+                'border-red-500','bg-red-50/30','text-red-500',
+                'border-green-500','bg-green-50/30','text-green-600',
+                'bg-rose-50','border-rose-100','text-rose-700',
+                'opacity-80','grayscale','cursor-not-allowed',
+                'bg-gray-300','bg-green-500','w-2/3','w-full',
+                'animate-fade-in','col-span-1','col-span-3','col-span-4',
+                'grid-cols-4','gap-3','ring-2','ring-green-500/10',
+                'border-green-300','bg-white','font-bold','text-center'
+            ],
             theme: { 
                 extend: { 
                     colors: { clifford: '#da373d' },
@@ -75,16 +99,10 @@
                         fadeIn: {
                             '0%': { opacity: '0', transform: 'translateY(10px)' },
                             '100%': { opacity: '1', transform: 'translateY(0)' },
-                        },
-                        pulseUrgent: {
-                            '0%, 100%': { opacity: '1' },
-                            '50%': { opacity: '0.8' },
                         }
                     },
                     animation: {
                         'fade-in': 'fadeIn 0.5s ease-out forwards',
-                        'pulse-urgent': 'pulseUrgent 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                     }
                 } 
             }
@@ -529,7 +547,7 @@
 </div>
 </div>
 <div id="checkout-root"></div>
-<script defer="" src="/assets/js/checkout.app.js?v=22.0?v=12.0" onerror="window.__loadScript&&window.__loadScript('../assets/js/checkout.app.js?v=22.0?v=22.0?v=12.0').then(function(){if(window.initReactCheckout&&!window.checkoutInitialized)window.initReactCheckout();})"></script>
+<script defer="" src="/assets/js/checkout.app.js?v=23.0?v=12.0" onerror="window.__loadScript&&window.__loadScript('../assets/js/checkout.app.js?v=23.0?v=12.0').then(function(){if(window.initReactCheckout&&!window.checkoutInitialized)window.initReactCheckout();})"></script>
 <script defer src="/assets/js/metrics.ping.js"></script>
 </body>
 </html>
