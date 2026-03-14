@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', function(){
             const [formData, setFormData] = useState({ name: '', email: '', phone: '', cpf: '', cep: '', address: '', number: '', city: '' }); // sem persistência localStorage (modo compliance)
             
             // ⭐️ SEGURANÇA: Lógica de tempo mantida para evitar ReferenceError (Crash)
-            const timeLeftRef = useRef(15 * 60);
+            const [timeLeft, setTimeLeft] = useState(15 * 60);
             const [submitAttempted, setSubmitAttempted] = useState(false);
             const [isFormLocked, setIsFormLocked] = useState(false);
             const [isSubmitting, setIsSubmitting] = useState(false);
@@ -176,7 +176,7 @@ useLayoutEffect(() => {
                     }
                 } catch(e) {}
 
-                // scroll nativo — não forçar scrollTo
+                try { window.scrollTo(0, 0); } catch(e) {}
                 try { trackEvent('InitiateCheckout', { ...window.PRODUCT_CONTENT, content_name: PRODUCT_INFO.name, event_id: sessionEventId }); } catch(e) {}
 
                 // 🔥 CAPI: espelha InitiateCheckout no servidor com o MESMO event_id
@@ -194,12 +194,7 @@ useLayoutEffect(() => {
 
                 
                 const analyticsTimer = null; // GA desativado (modo compliance)
-                let timerInterval = null;
-                const startTimer = () => { if (!timerInterval) timerInterval = setInterval(() => { if (timeLeftRef.current > 0) timeLeftRef.current--; }, 1000); };
-                const stopTimer = () => { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } };
-                const onVisibility = () => { document.hidden ? stopTimer() : startTimer(); };
-                startTimer();
-                document.addEventListener('visibilitychange', onVisibility);
+                const timerInterval = setInterval(() => { setTimeLeft(prev => prev > 0 ? prev - 1 : 0); }, 1000);
 
                 const handleBeforeUnload = (e) => { 
                     const st = unloadGuardRef.current || {};
@@ -213,9 +208,8 @@ useLayoutEffect(() => {
 
                 return () => { 
                     try { window.removeEventListener('beforeunload', handleBeforeUnload); } catch(e) {}
-                    try { document.removeEventListener('visibilitychange', onVisibility); } catch(e) {}
                     clearTimeout(analyticsTimer); 
-                    stopTimer(); 
+                    clearInterval(timerInterval); 
                 }
             }, []);
 
@@ -290,6 +284,7 @@ useLayoutEffect(() => {
                             setCepFailed(true);
                         } else { 
                             setFormData(prev => ({ ...prev, address: data.logradouro || '', city: `${data.localidade || ''}/${data.uf || ''}`.replace(/^\//,'') })); 
+                            setTimeout(() => { try { const isCoarse = window.matchMedia && window.matchMedia('(pointer:coarse)').matches; if(!isCoarse && numberRef.current) numberRef.current.focus(); } catch(e){} }, 300);
                         }
                     } catch(e) {
                         // Falha comum em in-app / conexão fraca: libera preenchimento manual
@@ -370,7 +365,7 @@ useLayoutEffect(() => {
                             // Garante que não fique atrás do footer
                             const footerHeight = 100; 
                             const y = errorElement.getBoundingClientRect().top + window.scrollY - offset;
-                            window.scrollTo({top: Math.max(0, y), behavior: 'smooth'});
+                            window.scrollTo({top: Math.max(0, y), behavior: 'auto'});
 
                             try {
                                 // iOS/WebView antigos podem não suportar focus({preventScroll:true})
@@ -563,8 +558,8 @@ useLayoutEffect(() => {
             };
 
 
-            const minutes = Math.floor(timeLeftRef.current / 60);
-            const seconds = timeLeftRef.current % 60;
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
 
             const shouldShowAddressFields = useMemo(() => {
                 const cd = (formData.cep || '').replace(/\D/g, '');
@@ -575,7 +570,8 @@ useLayoutEffect(() => {
                 e("div", { ref: progressRef, className: "progress-bar", style: {width: progressBarWidth} }),
                 /* ⭐️ SEGURANÇA: Barra visual removida, lógica mantida internamente no componente */
                 e("div", { className: "static-nav bg-white/98 border-b border-gray-200 px-4 flex justify-between items-center z-30 shadow-[0_2px_8px_rgba(0,0,0,0.04)]" },
-                    e("button", { type: "button", onClick: handleBackTap, className: `flex items-center text-slate-400 hover:text-slate-600 transition-colors p-3 -ml-3 btn-tactile ${isFormLocked ? 'opacity-50 cursor-not-allowed' : ''}`, "aria-label": "Voltar", disabled: isFormLocked || isSubmitting }, 
+                    e("button", { type: "button", onTouchStart: handleBackTap,
+                        onClick: handleBackTap, className: `flex items-center text-slate-400 hover:text-slate-600 transition-colors p-3 -ml-3 btn-tactile ${isFormLocked ? 'opacity-50 cursor-not-allowed' : ''}`, "aria-label": "Voltar", disabled: isFormLocked || isSubmitting }, 
                         e("svg", { className: "w-6 h-6", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, e("polyline", {points: "15 18 9 12 15 6"}))
                     ),
                     e("img", { src: "/assets/img/logo.webp", alt: "Logo", className: "h-8 w-auto object-contain", onError: (ev) => { try { const img = ev.target; if(!img.dataset.fallback){ img.dataset.fallback='1'; img.src = "/assets/img/logo.webp"; } } catch(e) {} } }),
@@ -661,7 +657,7 @@ useLayoutEffect(() => {
                                         e("div", { className: "absolute inset-y-0 right-3 flex items-center" }, loadingCep ? e("div", { className: "spinner-mobile border-green-500 border-t-transparent" }) : e("svg", { className: "w-5 h-5 text-gray-400", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor" }, e("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" })))
                                     )
                                 ),
-                                e("div", { className: "bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100 rounded-xl p-4 flex items-center gap-4 shadow-sm" },
+                                e("div", { className: "bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100 rounded-xl p-4 flex items-center gap-4 animate-pulse-slow shadow-sm" },
                                     e("div", { className: "bg-white p-2.5 rounded-full shadow-sm text-green-600" }, e(Icons.Truck, {className: "w-5 h-5"})),
                                     e("div", {className: "flex-1"}, e("p", { className: "text-[10px] uppercase tracking-wider text-green-800 font-bold mb-0.5 opacity-80" }, "Frete Grátis Chegando:"), e("p", { className: "text-sm font-black text-green-900 capitalize leading-none tracking-tight" }, getDeliveryDate()))
                                 ),
@@ -700,6 +696,7 @@ useLayoutEffect(() => {
                 ),
                 e("div", {className: "lg:hidden checkout-fixed-footer"},
                     e("button", { ref: mobileSubmitButtonRef, 
+                        onTouchStart: handleMobileSubmitTap,
                         onClick: handleMobileSubmitTap,
                         disabled: loading || isFormLocked || isSubmitting, 
                         type: "button", 
@@ -746,22 +743,7 @@ useLayoutEffect(() => {
 
             useEffect(() => {
                 if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
-                requestAnimationFrame(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
-
-                // Swipe-back protection: duplo pushState cria buffer no history
-                // Primeiro swipe consome uma entrada mas popstate handler mantém na tela PIX
-                try {
-                    window.history.pushState({ __checkoutApp: true, screen: 'pix' }, document.title);
-                    window.history.pushState({ __checkoutApp: true, screen: 'pix' }, document.title);
-                } catch(e) {}
-
-                // Guard de navegação para beforeunload
-                const handleBeforeUnload = (ev) => {
-                    ev.preventDefault();
-                    ev.returnValue = 'Seu pagamento PIX está pendente!';
-                    return ev.returnValue;
-                };
-                try { window.addEventListener('beforeunload', handleBeforeUnload); } catch(e) {}
+                requestAnimationFrame(() => { window.scrollTo({ top: 0, behavior: 'auto' }); });
                 
                 if (customerData && customerData.transactionId && !addPaymentInfoFiredRef.current) {
                     addPaymentInfoFiredRef.current = true;
@@ -854,10 +836,7 @@ useLayoutEffect(() => {
                 const step2 = setTimeout(() => setLoadingState(2), 1200); 
                 const step3 = setTimeout(() => { setLoadingState(3); setKeyboardClosed(true); }, 2000); 
                 
-                return () => { 
-                    clearTimeout(step1); clearTimeout(step2); clearTimeout(step3);
-                    try { window.removeEventListener('beforeunload', handleBeforeUnload); } catch(e) {}
-                };
+                return () => { clearTimeout(step1); clearTimeout(step2); clearTimeout(step3); };
             }, [transactionId]);
 
             const copyPix = async () => { 
@@ -880,23 +859,13 @@ useLayoutEffect(() => {
                     setCopied(true);
                     trackEvent('ClickButton', { button_name: 'copy_pix_code', content_name: 'Cópia PIX' });
                 } catch (err) {
-                    var ok = false;
+                    let ok = false;
                     try {
                         if (typeof window.fallbackCopy === 'function') ok = window.fallbackCopy(effectivePixCode);
                         else if (typeof fallbackCopy === 'function') ok = fallbackCopy(effectivePixCode);
                     } catch(_) {}
                     if (!ok) {
-                        // Seleciona o código visualmente para cópia manual (window.prompt é bloqueado no TikTok)
-                        try {
-                            var codeEl = document.querySelector('.select-all');
-                            if (codeEl) {
-                                var range = document.createRange();
-                                range.selectNodeContents(codeEl);
-                                var sel = window.getSelection();
-                                sel.removeAllRanges();
-                                sel.addRange(range);
-                            }
-                        } catch(_) {}
+                        try { window.prompt('Copie o código PIX abaixo:', effectivePixCode); } catch(_) {}
                     }
                     setCopied(true);
                 }
@@ -968,13 +937,6 @@ useLayoutEffect(() => {
                     }, 100);
                 }
 
-                // Mata o MutationObserver do Tailwind CDN depois que todo o CSS foi gerado.
-                // Sem isso, cada mudança no DOM (keystroke, React render) faz o Tailwind
-                // re-escanear o DOM e regenerar CSS = layout thrashing = tremida com teclado.
-                var twKillTimer = setTimeout(function() {
-                    if (window.__stopTailwindObserver) window.__stopTailwindObserver();
-                }, 2000);
-
                 // 2) Carrega configuração dinâmica do PIX (Painel)
                 // Cloudflare Pages: via Pages Function /api/pix-config
                 (async () => {
@@ -1019,7 +981,6 @@ useLayoutEffect(() => {
                 return () => {
                     if (t1) clearTimeout(t1);
                     if (t2) clearTimeout(t2);
-                    if (twKillTimer) clearTimeout(twKillTimer);
                     try { window.removeEventListener('popstate', onPop); } catch(e) {}
                 };
             }, []);

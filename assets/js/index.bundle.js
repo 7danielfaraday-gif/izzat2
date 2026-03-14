@@ -46,23 +46,17 @@
     }
 
     function getExternalId() {
-        // Cookie-first: sobrevive a navegação in-app (TikTok WebView limpa localStorage entre sessões)
-        var KEY = 'user_external_id';
+        // Persistência: external_id em localStorage (mantém atribuição entre sessões)
         try {
-            var match = document.cookie.match(new RegExp('(?:^|;\\s*)' + KEY + '=([^;]*)'));
-            if (match && match[1]) return match[1];
-        } catch(e) {}
-        try {
-            var eid = localStorage.getItem(KEY);
-            if (eid) {
-                try { document.cookie = KEY + '=' + eid + ';max-age=7776000;path=/;SameSite=Lax'; } catch(e) {}
-                return eid;
+            let eid = localStorage.getItem('user_external_id');
+            if (!eid) {
+                eid = 'sess_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+                localStorage.setItem('user_external_id', eid);
             }
-        } catch(e) {}
-        var newId = 'sess_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
-        try { document.cookie = KEY + '=' + newId + ';max-age=7776000;path=/;SameSite=Lax'; } catch(e) {}
-        try { localStorage.setItem(KEY, newId); } catch(e) {}
-        return newId;
+            return eid;
+        } catch (e) {
+            return 'sess_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+        }
     }
 
 
@@ -71,10 +65,9 @@
         let clickId = urlParams.get('ttclid');
         if (clickId) {
             setCookie('ttclid', clickId, 90);
-            try { localStorage.setItem('ttclid', clickId); } catch(e) {}
+            localStorage.setItem('ttclid', clickId);
         } else {
-            // Cookie-first fallback
-            clickId = getCookie('ttclid') || (function(){ try { return localStorage.getItem('ttclid'); } catch(e) { return null; } })();
+            clickId = localStorage.getItem('ttclid') || getCookie('ttclid');
         }
         return clickId;
     }
