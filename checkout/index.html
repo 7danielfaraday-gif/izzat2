@@ -420,6 +420,10 @@
             var tag = e.target.tagName;
             if (tag !== 'INPUT' && tag !== 'TEXTAREA') return;
             
+            // ✅ Ignora textareas temporários criados pelo fallbackCopy (clipboard)
+            // Eles têm aria-hidden="true" e tabindex="-1" e width/height de 1px
+            if (e.target.getAttribute('aria-hidden') === 'true' || e.target.getAttribute('tabindex') === '-1') return;
+            
             lastFocusedEl = e.target;
             
             // Ativa keyboard-open IMEDIATAMENTE (não espera visualViewport)
@@ -450,6 +454,7 @@
         document.addEventListener('focusout', function(e) {
             var tag = e.target.tagName;
             if (tag !== 'INPUT' && tag !== 'TEXTAREA') return;
+            if (e.target.getAttribute('aria-hidden') === 'true' || e.target.getAttribute('tabindex') === '-1') return;
             
             if (pendingScroll) { clearTimeout(pendingScroll); pendingScroll = null; }
             
