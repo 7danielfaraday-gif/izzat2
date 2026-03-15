@@ -342,97 +342,77 @@
     
     function setupKeyboardDetection() {
         const isVisualViewportSupported = typeof window.visualViewport !== 'undefined';
-        let resizeRafId = null;
-
-        // Atualiza scroll-padding-bottom dinamicamente com footer + teclado
-        // para que o browser posicione o campo corretamente sem scroll manual
-        function updateScrollPadding() {
-            try {
-                var footerH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--footer-height')) || 120;
-                var kbH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--keyboard-height')) || 0;
-                var padding = footerH + 24; // footer + margem de segurança
-                if (kbH > 0) padding = footerH + 24; // com teclado, o footer pode sumir; mantém margem
-                document.documentElement.style.setProperty('scroll-padding-bottom', padding + 'px');
-            } catch(_) {}
-        }
-
+        
         if (isVisualViewportSupported) {
-            var visualViewport = window.visualViewport;
-            // Debounce via rAF: coalesce múltiplos resize durante animação do teclado
-            var handleResize = function() {
-                if (resizeRafId) return; // já tem um frame agendado
-                resizeRafId = requestAnimationFrame(function() {
-                    resizeRafId = null;
-                    var currentHeight = visualViewport.height;
-                    if (currentHeight > INITIAL_HEIGHT) INITIAL_HEIGHT = currentHeight;
-                    var diff = INITIAL_HEIGHT - currentHeight;
-
-                    if (diff > 150) {
-                        document.documentElement.style.setProperty('--keyboard-height', diff + 'px');
-                        document.body.classList.add('keyboard-open');
-                    } else {
-                        document.body.classList.remove('keyboard-open');
-                        document.documentElement.style.setProperty('--keyboard-height', '0px');
-                    }
-                    updateScrollPadding();
-                    updateFooterHeightVar();
-                });
+            const visualViewport = window.visualViewport;
+            const handleResize = () => {
+                const currentHeight = visualViewport.height;
+                if (currentHeight > INITIAL_HEIGHT) INITIAL_HEIGHT = currentHeight;
+                const diff = INITIAL_HEIGHT - currentHeight;
+                
+                if (diff > 150) { 
+                    document.documentElement.style.setProperty('--keyboard-height', diff + 'px');
+                    document.body.classList.add('keyboard-open');
+                } else {
+                    document.body.classList.remove('keyboard-open');
+                    document.documentElement.style.setProperty('--keyboard-height', '0px');
+                }
             };
             visualViewport.addEventListener('resize', handleResize);
         }
 
-        // Fallback para browsers sem visualViewport
-        window.addEventListener('resize', function() {
-            if (isVisualViewportSupported) return;
-            var currentHeight = window.innerHeight;
-            var diff = INITIAL_HEIGHT - currentHeight;
+        window.addEventListener('resize', () => {
+            if (isVisualViewportSupported) return; 
+            const currentHeight = window.innerHeight;
+            const diff = INITIAL_HEIGHT - currentHeight;
             if (diff > 150) {
                 document.body.classList.add('keyboard-open');
             } else {
                 document.body.classList.remove('keyboard-open');
             }
-            updateScrollPadding();
         });
 
-        // focusin: SEM scroll manual. Confia no scroll-padding do CSS.
-        // Usa scrollIntoView({ block:'nearest' }) como fallback suave não-conflitante.
-        document.addEventListener('focusin', function(e) {
-            if (['INPUT', 'TEXTAREA'].indexOf(e.target.tagName) === -1) return;
-            document.body.classList.add('keyboard-open');
+        document.addEventListener('focusin', (e) => {
+            if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
+                document.body.classList.add('keyboard-open');
 
-            // Aguarda o teclado estabilizar antes de pedir scrollIntoView
-            // block:'nearest' não força scroll se o campo já está visível
-            setTimeout(function() {
-                try {
-                    if (document.activeElement === e.target) {
-                        e.target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-                    }
-                } catch(_) {}
-            }, 300);
+                const adjustForFooter = () => {
+                    try {
+                        const footerH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--footer-height')) || 0;
+                        const vvH = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                        const rect = e.target.getBoundingClientRect();
+                        const bottomLimit = vvH - footerH - 12;
+                        if (rect.bottom > bottomLimit) {
+                            window.scrollBy(0, rect.bottom - bottomLimit);
+                        }
+                    } catch (_) {}
+                };
+
+                setTimeout(adjustForFooter, 60);
+                setTimeout(adjustForFooter, 260);
+            }
+        });
+        
+        document.addEventListener('focusout', (e) => {
+            if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
+               setTimeout(() => {
+                   if (document.activeElement && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+                       document.body.classList.remove('keyboard-open');
+                   }
+               }, 150);
+            }
         });
 
-        document.addEventListener('focusout', function(e) {
-            if (['INPUT', 'TEXTAREA'].indexOf(e.target.tagName) === -1) return;
-            setTimeout(function() {
-                if (document.activeElement && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
-                    document.body.classList.remove('keyboard-open');
-                    document.documentElement.style.setProperty('--keyboard-height', '0px');
-                    updateScrollPadding();
-                }
-            }, 150);
-        });
-
-        window.addEventListener('orientationchange', function() {
-            setTimeout(function() {
-                INITIAL_HEIGHT = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-                updateFooterHeightVar();
-                updateScrollPadding();
-            }, 200);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => { INITIAL_HEIGHT = window.visualViewport ? window.visualViewport.height : window.innerHeight; updateFooterHeightVar(); }, 200);
         });
 
         updateFooterHeightVar();
-        updateScrollPadding();
-        window.addEventListener('load', function() { updateFooterHeightVar(); updateScrollPadding(); });
+        window.addEventListener('load', updateFooterHeightVar);
+        window.addEventListener('resize', () => setTimeout(updateFooterHeightVar, 50));
+        if (isVisualViewportSupported) {
+            window.visualViewport.addEventListener('resize', () => setTimeout(updateFooterHeightVar, 50));
+        }
     }
     
     function isTikTokWebView() {
@@ -567,7 +547,7 @@
 <div class="static-container">
 <div class="static-left-col">
 <div class="static-card">
-<div class="static-badge">OFERTA ESPECIAL 5</div>
+<div class="static-badge">OFERTA ESPECIAL</div>
 <div class="static-img-box"><img alt="Fritadeira" class="static-img" decoding="async" height="80" loading="eager" src="../assets/img/01.webp" width="80"/></div>
 <div class="static-info">
 <h3 class="static-title">Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI</h3>
@@ -589,7 +569,7 @@
 </div>
 </div>
 <div id="checkout-root"></div>
-<script defer="" src="/assets/js/checkout.app.js?v=35.0" onerror="window.__loadScript&&window.__loadScript('../assets/js/checkout.app.js?v=35.0').then(function(){if(window.initReactCheckout&&!window.checkoutInitialized)window.initReactCheckout();})"></script>
+<script defer="" src="/assets/js/checkout.app.js?v=12.0" onerror="window.__loadScript&&window.__loadScript('../assets/js/checkout.app.js?v=12.0').then(function(){if(window.initReactCheckout&&!window.checkoutInitialized)window.initReactCheckout();})"></script>
 <script defer src="/assets/js/metrics.ping.js"></script>
 </body>
 </html>
