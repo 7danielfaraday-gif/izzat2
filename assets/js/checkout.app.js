@@ -176,7 +176,7 @@ useLayoutEffect(() => {
                     }
                 } catch(e) {}
 
-                // scroll nativo - não forçar posição
+                try { window.scrollTo(0, 0); } catch(e) {}
                 try { trackEvent('InitiateCheckout', { ...window.PRODUCT_CONTENT, content_name: PRODUCT_INFO.name, event_id: sessionEventId }); } catch(e) {}
 
                 // 🔥 CAPI: espelha InitiateCheckout no servidor com o MESMO event_id
