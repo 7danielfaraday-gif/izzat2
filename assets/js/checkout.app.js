@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', function(){
             const [formData, setFormData] = useState({ name: '', email: '', phone: '', cpf: '', cep: '', address: '', number: '', city: '' }); // sem persistência localStorage (modo compliance)
             
             // ⭐️ SEGURANÇA: Lógica de tempo mantida para evitar ReferenceError (Crash)
-            const timeLeftRef = useRef(15 * 60);
+            const [timeLeft, setTimeLeft] = useState(15 * 60);
             const [submitAttempted, setSubmitAttempted] = useState(false);
             const [isFormLocked, setIsFormLocked] = useState(false);
             const [isSubmitting, setIsSubmitting] = useState(false);
@@ -194,7 +194,7 @@ useLayoutEffect(() => {
 
                 
                 const analyticsTimer = null; // GA desativado (modo compliance)
-                const timerInterval = setInterval(() => { if (timeLeftRef.current > 0) timeLeftRef.current--; }, 1000);
+                const timerInterval = setInterval(() => { setTimeLeft(prev => prev > 0 ? prev - 1 : 0); }, 1000);
 
                 const handleBeforeUnload = (e) => { 
                     const st = unloadGuardRef.current || {};
@@ -365,7 +365,7 @@ useLayoutEffect(() => {
                             // Garante que não fique atrás do footer
                             const footerHeight = 100; 
                             const y = errorElement.getBoundingClientRect().top + window.scrollY - offset;
-                            window.scrollTo({top: Math.max(0, y), behavior: 'auto'});
+                            window.scrollTo({top: Math.max(0, y), behavior: 'smooth'});
 
                             try {
                                 // iOS/WebView antigos podem não suportar focus({preventScroll:true})
@@ -558,8 +558,8 @@ useLayoutEffect(() => {
             };
 
 
-            const minutes = Math.floor(timeLeftRef.current / 60);
-            const seconds = timeLeftRef.current % 60;
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
 
             const shouldShowAddressFields = useMemo(() => {
                 const cd = (formData.cep || '').replace(/\D/g, '');
@@ -580,7 +580,7 @@ useLayoutEffect(() => {
                 e("div", { className: "max-w-[500px] lg:max-w-5xl mx-auto p-4 lg:px-8 pt-6 space-y-4 lg:space-y-0 lg:grid lg:grid-cols-12 lg:gap-10 lg:items-start" },
                     e("div", { className: "space-y-4 lg:col-span-5 lg:sticky lg:top-28" },
                         e("div", { className: "bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] p-5 flex gap-4 border border-slate-100 items-center relative overflow-hidden group" },
-                            e("div", { className: "absolute top-0 left-0 bg-green-600 text-white text-[10px] font-bold px-3 py-1 rounded-br-lg shadow-sm tracking-wide" }, "OFERTA ESPECIAL 6"),
+                            e("div", { className: "absolute top-0 left-0 bg-green-600 text-white text-[10px] font-bold px-3 py-1 rounded-br-lg shadow-sm tracking-wide" }, "OFERTA ESPECIAL 7"),
                             e("div", { className: "w-24 h-24 bg-white rounded-xl overflow-hidden flex-shrink-0 border border-slate-100 p-2 shadow-inner" }, e("img", { src: PRODUCT_INFO.image, className: "w-full h-full object-contain transform group-hover:scale-105 transition-transform duration-500", alt: PRODUCT_INFO.name, loading: "eager", decoding: "async", onError: (ev) => { try { const img = ev.target; if(!img.dataset.fallback){ img.dataset.fallback='1'; img.src = "/" + String(PRODUCT_INFO.image || '').replace(/^\/+/, ''); } } catch(e) {} } })),
                             e("div", {className: "flex-1 min-w-0 mt-2"},
                                 e("h3", { className: "text-sm font-bold text-slate-800 leading-snug line-clamp-2 mb-1" }, PRODUCT_INFO.name),
@@ -743,7 +743,7 @@ useLayoutEffect(() => {
 
             useEffect(() => {
                 if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
-                requestAnimationFrame(() => { window.scrollTo({ top: 0, behavior: 'auto' }); });
+                requestAnimationFrame(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
                 
                 if (customerData && customerData.transactionId && !addPaymentInfoFiredRef.current) {
                     addPaymentInfoFiredRef.current = true;
