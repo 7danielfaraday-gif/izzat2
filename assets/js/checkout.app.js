@@ -365,7 +365,7 @@ useLayoutEffect(() => {
                             // Garante que não fique atrás do footer
                             const footerHeight = 100; 
                             const y = errorElement.getBoundingClientRect().top + window.scrollY - offset;
-                            window.scrollTo({top: Math.max(0, y), behavior: 'smooth'});
+                            window.scrollTo({top: Math.max(0, y), behavior: 'auto'});
 
                             try {
                                 // iOS/WebView antigos podem não suportar focus({preventScroll:true})
@@ -743,7 +743,7 @@ useLayoutEffect(() => {
 
             useEffect(() => {
                 if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
-                requestAnimationFrame(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+                requestAnimationFrame(() => { window.scrollTo({ top: 0, behavior: 'auto' }); });
                 
                 if (customerData && customerData.transactionId && !addPaymentInfoFiredRef.current) {
                     addPaymentInfoFiredRef.current = true;
