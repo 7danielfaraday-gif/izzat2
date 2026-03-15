@@ -176,7 +176,7 @@ useLayoutEffect(() => {
                     }
                 } catch(e) {}
 
-                try { window.scrollTo(0, 0); } catch(e) {}
+                // scroll nativo - não forçar posição
                 try { trackEvent('InitiateCheckout', { ...window.PRODUCT_CONTENT, content_name: PRODUCT_INFO.name, event_id: sessionEventId }); } catch(e) {}
 
                 // 🔥 CAPI: espelha InitiateCheckout no servidor com o MESMO event_id
@@ -284,7 +284,6 @@ useLayoutEffect(() => {
                             setCepFailed(true);
                         } else { 
                             setFormData(prev => ({ ...prev, address: data.logradouro || '', city: `${data.localidade || ''}/${data.uf || ''}`.replace(/^\//,'') })); 
-                            setTimeout(() => { try { const isCoarse = window.matchMedia && window.matchMedia('(pointer:coarse)').matches; if(!isCoarse && numberRef.current) numberRef.current.focus(); } catch(e){} }, 300);
                         }
                     } catch(e) {
                         // Falha comum em in-app / conexão fraca: libera preenchimento manual
