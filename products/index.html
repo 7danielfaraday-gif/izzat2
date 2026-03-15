@@ -7,13 +7,14 @@
 <noscript><link rel="stylesheet" href="css/styles.css"></noscript>
 <style>
 
-          body {
+     body {
             font-family: 'TikTokFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: #f8f9fa;
             color: #333;
             line-height: 1.4;
             touch-action: manipulation; /* ⭐️ ADICIONE ESTA LINHA ⭐️ */
         }
+     
 
         * {
             margin: 0;
@@ -32,7 +33,6 @@
             max-width: 100vw;
             background: white;
             min-height: 100vh;
-            padding-bottom: 80px; /* Espaço para o menu inferior não cobrir conteúdo */
         }
 
         /* Header */
@@ -347,7 +347,6 @@
         .shipping-info {
             padding: 16px;
             border-top: 1px solid #f0f0f0;
-            background: #fff;
         }
 
         .shipping-row {
@@ -415,7 +414,6 @@
         .content-section {
             padding: 16px;
             display: none;
-            background: #fff;
         }
 
         .content-section.active {
@@ -426,7 +424,6 @@
         .options-section {
             padding: 16px;
             border-top: 1px solid #f0f0f0;
-            background: #fff;
         }
 
         .section-title {
@@ -489,13 +486,11 @@
             font-family: 'TikTokFont', sans-serif;
         }
 
-        /* ================================ */
-        /* ⭐️ NOVO CSS: AVALIAÇÕES ⭐️ */
-        /* ================================ */
+
+
+        /* Reviews Section */
         .reviews-section {
             padding: 16px;
-            background: #fff;
-            margin-top: 10px;
         }
 
         .reviews-header {
@@ -508,34 +503,25 @@
         .reviews-title {
             font-family: 'TikTokFont', sans-serif;
             font-size: 16px;
-            font-weight: 700;
-            color: #111;
+            font-weight: 600;
         }
 
         .reviews-rating {
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-bottom: 24px;
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 8px;
+            margin-bottom: 16px;
         }
 
         .rating-big {
             font-family: 'TikTokDisplayFont', sans-serif;
-            font-size: 28px;
-            font-weight: 800;
-            color: #333;
+            font-size: 24px;
+            font-weight: 700;
         }
 
         .review-item {
-            border-bottom: 1px solid #f0f0f0;
-            padding: 16px 0;
-        }
-        
-        .review-item:last-child {
             border-bottom: none;
+            padding: 1px 0;
         }
 
         .review-header {
@@ -546,41 +532,32 @@
         }
 
         .review-avatar {
-            width: 40px; /* Aumentado ligeiramente */
-            height: 40px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
-            background: #eee;
-            flex-shrink: 0;
+            background: #ddd;
         }
 
         .review-name {
-            font-weight: 700;
+            font-weight: 600;
             font-size: 14px;
-            color: #222;
         }
 
         .review-stars {
             color: #ffc107;
             font-size: 14px;
             margin: 4px 0;
-            letter-spacing: 1px;
         }
 
         .review-variant {
-            color: #00d4aa;
+            color: #666;
             font-size: 12px;
-            font-weight: 500;
             margin-bottom: 8px;
-            display: inline-block;
-            background: rgba(0, 212, 170, 0.1);
-            padding: 2px 8px;
-            border-radius: 4px;
         }
 
         .review-text {
-            font-size: 15px;
-            line-height: 1.5;
-            color: #333;
+            font-size: 14px;
+            line-height: 1.4;
             margin-bottom: 12px;
         }
 
@@ -588,29 +565,26 @@
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 8px;
-            margin-top: 10px;
         }
 
         .review-image {
             aspect-ratio: 1;
             border-radius: 8px;
             overflow: hidden;
-            border: 1px solid #eee;
         }
 
         .review-image img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        
-        .review-image img:active {
-            transform: scale(0.95);
+            cursor: default;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
         }
 
-        /* Bottom Navigation - REVERTIDO AO ORIGINAL */
+        /* Bottom Navigation */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -652,7 +626,7 @@
             font-weight: 600;
         }
 
-        .buy-btn {
+.buy-btn {
             font-family: 'TikTokFont', sans-serif;
             flex: 1;
             background: #ff2d55;
@@ -660,19 +634,8 @@
             border: none;
             padding: 12px;
             border-radius: 24px;
-            font-size: 13px;
+            font-size: 13px;  /* <--- AJUSTADO DE 14px PARA 13px */
             font-weight: 600;
-        }
-
-        /* ⭐️ ANIMAÇÃO DE PULSO (NOVO) ⭐️ */
-        @keyframes pulse-red {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 45, 85, 0.7); }
-            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 45, 85, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 45, 85, 0); }
-        }
-
-        .pulsing-buy-btn {
-            animation: pulse-red 1.5s infinite;
         }
 
         /* Footer Styles */
@@ -888,9 +851,7 @@
   /* bloco do vendedor */
 .seller-section {
   width: 100%;
-  padding: 12px 16px; /* Ajuste no padding lateral */
-  background: #fff;
-  margin-top: 10px;
+  padding: 12px 0;
 }
 
 .seller-card {
@@ -898,10 +859,10 @@
   align-items: center;
   gap: 12px;
   background: #fff;
-  border: 1px solid #f0f0f0;
+  border: 1px solid #eee;
   border-radius: 12px;
-  padding: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.03);
+  padding: 12px 16px;
+  box-shadow: 0 2px 4px rgba(0,0,0,.05);
 }
 
 .seller-avatarr img {
@@ -909,7 +870,6 @@
   height: 48px;
   border-radius: 50%;
   object-fit: cover;
-  border: 1px solid #eee;
 }
 
 .seller-info {
@@ -920,7 +880,6 @@
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: #333;
 }
 
 .seller-items {
@@ -929,114 +888,26 @@
   font-size: 13px;
 }
 
-/* ================================ */
-/* ⭐️ NOVO CSS: DESCRIÇÃO FORMATADA ⭐️ */
-/* ================================ */
-.desc-box {
-    padding: 8px 4px;
+.seller-btn {
+  background: #ff2d55;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
 }
 
-.desc-intro {
-    font-size: 15px;
-    color: #444;
-    line-height: 1.6;
-    margin-bottom: 20px;
+.seller-btn:hover {
+  opacity: .9;
 }
-
-.desc-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.desc-item {
-    margin-bottom: 18px;
-    position: relative;
-    padding-left: 28px; /* Espaço para o ícone */
-}
-
-.desc-item::before {
-    content: '✅'; /* Ícone de check */
-    position: absolute;
-    left: 0;
-    top: 0;
-    font-size: 16px;
-}
-
-.desc-title {
-    display: block;
-    font-weight: 700;
-    color: #111;
-    font-size: 15px;
-    margin-bottom: 4px;
-}
-
-.desc-content {
-    display: block;
-    color: #666;
-    font-size: 14px;
-    line-height: 1.5;
-}
-
-.desc-legal {
-    margin-top: 30px;
-    background: #f9f9f9;
-    padding: 16px;
-    border-radius: 8px;
-}
-
-.desc-legal h4 {
-    margin-bottom: 10px;
-    font-size: 14px;
-    color: #333;
-}
-
-.desc-legal li {
-    font-size: 13px;
-    color: #777;
-    line-height: 1.5;
-}
-
-/* ⭐️ CSS DO POP-UP DE VENDAS (ADICIONADO AQUI, SEM MEXER NO RESTO) ⭐️ */
-.sales-popup {
-    position: fixed;
-    bottom: 90px;
-    left: 10px;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(5px);
-    padding: 10px 15px;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    z-index: 1000;
-    transform: translateX(-150%);
-    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    border-left: 4px solid #00d4aa;
-    max-width: 90%;
-    pointer-events: none;
-}
-.sales-popup.visible { transform: translateX(0); }
-.popup-image { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; background: #eee; flex-shrink: 0; }
-.popup-image img { width: 100%; height: 100%; object-fit: cover; }
-.popup-content { display: flex; flex-direction: column; justify-content: center; }
-.popup-text { font-size: 12px; color: #333; line-height: 1.2; }
-.popup-time { font-size: 10px; color: #666; margin-top: 2px; display: flex; align-items: center; gap: 4px; }
-.live-dot { width: 6px; height: 6px; background-color: #00d4aa; border-radius: 50%; display: inline-block; }
 
     </style>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-E373VKT4H4"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-E373VKT4H4');
-</script>
 </head>
 <body>
 <div class="container">
+<!-- Header -->
 <header class="header">
 <div class="header-left"></div>
 <div class="header-right">
@@ -1045,6 +916,9 @@
 <span>⋯</span>
 </div>
 </header>
+<!-- Product Images -->
+<!-- Product Images -->
+<!-- Product Images -->
 <section class="product-images">
   <div class="image-container">
     <img alt="Kit 262 Canetinhas Coloridas" class="product-main-image" id="main-product-image" src="images/01.webp" fetchpriority="high">
@@ -1065,16 +939,19 @@
   </div>
 
   <div class="image-dots" id="image-dots">
-    </div>
+    <!-- Pontos indicadores serão gerados pelo JavaScript -->
+  </div>
   <div class="image-thumbnails" id="image-thumbnails">
-    </div>
+    <!-- Thumbnails serão gerados pelo JavaScript -->
+  </div>
 </section>
+<!-- Price Section -->
 <section class="price-section">
 <div class="price-row">
 <div class="price-info">
 <div class="price-main">
 <span style="text-decoration: line-through; color: #ffccaa; font-size: 20px; margin-right: 6px;">R$399</span>
- R$219,99
+ R$89,98
                     </div>
 <div class="price-savings">Economize até 71%</div>
 </div>
@@ -1089,6 +966,7 @@
 </div>
 </div>
 </section>
+<!-- Discount Banner -->
 <section class="discount-banner">
 <div class="discount-content">
 <span class="discount-badge">Desconto de 90%</span>
@@ -1096,6 +974,7 @@
 </div>
 <span>›</span>
 </section>
+<!-- Product Info -->
 <section class="product-info">
 <h1 class="product-title">Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI</h1>
 <div class="rating-section">
@@ -1104,6 +983,7 @@
 </div>
 </section>
 
+<!-- Shipping Info -->
 <section class="shipping-info">
 <div class="shipping-row">
 <svg class="shipping-icon" fill="none" height="20" viewBox="0 0 24 24" width="20">
@@ -1129,11 +1009,18 @@
 <span>›</span>
 </div>
 </section>
+<!-- Tabs -->
 <div class="tabs">
 <div class="tab active" onclick="showTab('overview')">Visão geral</div>
 <div class="tab" onclick="showTab('description')">Descrição</div>
 </div>
+<!-- Tab Content -->
 <div class="content-section active" id="overview">
+<!-- Options -->
+<!-- Imagem principal do produto -->
+
+
+<!-- Seção de seleção de cor -->
 <section class="options-section">
     <div class="section-title">
         <span>2 EM 1: AIR FRYER + FORNO</span>
@@ -1152,6 +1039,7 @@
 
 
 </section>
+<!-- Reviews Section -->
 <section class="reviews-section">
 <div class="reviews-header">
 <span class="reviews-title">Avaliações dos clientes (591)</span>
@@ -1161,6 +1049,7 @@
 <span>/5</span>
 <span class="stars">⭐⭐⭐⭐⭐</span>
 </div>
+<!-- Novos depoimentos mais recentes aparecem primeiro -->
 <div class="review-item">
 <div class="review-header">
 <div class="review-avatar">
@@ -1179,7 +1068,6 @@
 <img alt="Review photo 1" src="review01.webp" loading="lazy">
 </div>
 </div>
-</div>
 <div class="review-item">
 <div class="review-header">
 <div class="review-avatar">
@@ -1196,7 +1084,6 @@
 <div class="review-images">
 <div class="review-image">
 <img alt="Review photo 1" src="review02.webp" loading="lazy">
-</div>
 </div>
 </div>
 <div class="review-item">
@@ -1236,7 +1123,6 @@
 <img alt="Review photo 1" src="review04.webp" loading="lazy">
 </div>
 </div>
-</div>
 <div class="review-item">
 <div class="review-header">
 <div class="review-avatar">
@@ -1255,7 +1141,6 @@
 <img alt="Review photo 1" src="review05.webp" loading="lazy">
 </div>
 </div>
-</div>
 <div class="review-item">
 <div class="review-header">
 <div class="review-avatar">
@@ -1272,7 +1157,6 @@
 <div class="review-images">
 <div class="review-image">
 <img alt="Review photo 1" src="review06.webp" loading="lazy">
-</div>
 </div>
 </div>
 <div class="review-item">
@@ -1295,8 +1179,6 @@ Simplesmente estou apaixonada, excelente mesmo.</div>
 <img alt="Review photo 1" src="review07.webp" loading="lazy">
 </div>
 </div>
-</div>
-
 <div style="text-align: left; padding: 20px 20px 8px 20px; color: #666;">
 <div style="font-size: 16px; margin-bottom: 8px; color: #333;">Avaliações da loja (591)</div>
 <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 14px;">
@@ -1322,17 +1204,19 @@ Simplesmente estou apaixonada, excelente mesmo.</div>
                         </span>
 </div>
 </div>
-</section>
+</div></div></div></div></div></div></section>
 
 <section class="seller-section">
   <div class="seller-card">
     <div class="seller-avatarr">
+      <!-- avatar local -->
       <img src="images/seller-avatarr.webp" alt="Loja Atakarejo">
     </div>
 
     <div class="seller-info">
       <h4 class="seller-name">
         Izzat
+        <!-- selo verificado estilo Instagram -->
         <svg class="verified-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="18" height="18" style="margin-left:6px;vertical-align:middle;">
           <circle cx="256" cy="256" r="248" fill="#3897f0"></circle>
           <path d="M362.7 175.5l-142 160c-6.2 7-17.3 6.7-23.2-.7l-66-78c-6.1-7.2-5.2-18
@@ -1340,67 +1224,56 @@ Simplesmente estou apaixonada, excelente mesmo.</div>
                    24.3-1.5s7.9 17.4 1.3 24.6z" fill="#fff"></path>
         </svg>
       </h4>
-      <p class="seller-items">Loja verificada</p>
+      <p class="seller-items">Loja verificada por Tiktok Shop</p>
     </div>
   </div>
 </section>
 
-</div>
+<!-- ⬇⬇⬇ Cole onde o bloco deve aparecer -->
+
+  </div>
 
 <div class="content-section" id="description">
-  <section class="desc-box">
-    <h3>Descrição do Produto</h3>
-    
-    <p class="desc-intro">
-      A Air Fryer AFON-12L-BI da Mondial é 2 em 1: Fritadeira a Ar com o espaço e a versatilidade do forno. Você pode assar, cozinhar e fritar sem óleo e produzir receitas muito mais saudáveis!
+  <section style="padding: 16px;">
+<h3>Descrição do Produto</h3>
+    <p style="margin-top: 12px; line-height: 1.5; margin-bottom: 16px;">
+      A Air Fryer AFON-12L-BI da Mondial é 2 em 1: Fritadeira a Ar com o espaço e a versatilidade do forno. Você pode assar, cozinhar e fritar sem óleo e produzir receitas muito mais saudáveis! A capacidade total de 12 litros permite o preparo de grandes porções e de uma só vez. Saiba mais sobre a AFON-12L-BI:
+
+2 EM 1: AIR FRYER + FORNO: A família de Air Fryers Mondial continua crescendo! O modelo OVEN alia as vantagens da tecnologia da Air Fryer ao espaço e versatilidade do forno. Você pode assar, cozinhar e fritar sem óleo e com perfeição.
+
+CAPACIDADE TOTAL: 12 LITROS: Prepare grandes porções e de uma só vez. São 12 litros de capacidade: a Air Fryer Oven da Mondial é uma gigante na categoria!
+
+PORTA COM AMPLO VISOR + ILUMINAÇÃO INTERNA: Praticidade para visualizar as receitas durante o preparo.
+
+CESTO DE 5 LITROS + 3 EXCLUSIVAS ASSADEIRAS: Você tem a opção de usar as exclusivas assadeiras com antiaderente, que são resistentes e fáceis de usar e limpar. As assadeiras são ideias para pão de queijo, nuggets, pizza, entre outros. Já o cesto, com capacidade de 5 litros, é indicado para preparar assados, batata frita, bolo e muito mais!
+
+PAINEL DIGITAL COM 10 FUNÇÕES PREDEFINIDAS: Prepare receitas com apenas 1 clique! As funções predefinidas são: batata, frango, carne, peixe, camarão, pão de queijo, pizza, bolo, legumes e a função reaquecer.
+
+TECNOLOGIA DE CIRCULAÇÃO DE AR QUENTE: A Air Fryer é equipada com uma tecnologia que aquece e circula o ar. O ar superquente envolve e cozinha o alimento, sem a necessidade de usar óleo.
+
+ANTIADERENTE DURAFLON - NÃO GRUDA: O cesto e as assadeiras possuem o antiaderente Duraflon, tecnologia exclusiva Mondial, e os alimentos não grudam no fundo.
+
+ALIMENTAÇÃO MAIS SAUDÁVEL: Por não precisar de óleo no preparo das receitas, a Air Fryer permite uma rotina alimentar com mais sabor e saúde.
+
+PRATICIDADE E RAPIDEZ NA COZINHA: A Tecnologia de Circulação de Ar Quente e a alta potência possibilitam rapidez no preparo das receitas. Aliado a isso, a função Timer de 90 minutos proporciona a liberdade para você se dedicar a outras tarefas enquanto a Air Fryer trabalha para você.
+
+LUVA DE SILICONE: Garante mais segurança durante o preparo dos alimentos e o manuseio do aparelho.
+
+FACILIDADE NA LIMPEZA: Já imaginou fazer uma fritura sem deixar a cozinha completamente suja?
+A Fritadeira Elétrica te proporciona isso: evita um ambiente engordurado, fumaça e cheiro de fritura. Além disso, a limpeza da parte interna é fácil, pois o cesto e as assadeiras são removíveis e antiaderentes.
+
+MUITO MAIS QUE BATATA FRITA. INVISTA EM MAIS RECEITAS: A Air Fryer é versátil e permite que você prepare pratos que vão muito além da clássica batata frita. É possível preparar legumes, carnes, peixes, lasanha, pizzas, além de pratos doces, como pudim, bolo de chocolate e cookies. Use sua criatividade e mãos à obra!
+
+UM ANO DE GARANTIA MONDIAL: A Mondial é a escolha de milhões de consumidores. Mondial, a escolha inteligente!
     </p>
 
-    <ul class="desc-list">
-        <li class="desc-item">
-            <span class="desc-title">2 EM 1: AIR FRYER + FORNO</span>
-            <span class="desc-content">O modelo OVEN alia as vantagens da tecnologia da Air Fryer ao espaço e versatilidade do forno.</span>
-        </li>
-        
-        <li class="desc-item">
-            <span class="desc-title">CAPACIDADE TOTAL: 12 LITROS</span>
-            <span class="desc-content">Prepare grandes porções e de uma só vez. A Air Fryer Oven da Mondial é uma gigante na categoria!</span>
-        </li>
-
-        <li class="desc-item">
-            <span class="desc-title">VISIBILIDADE TOTAL</span>
-            <span class="desc-content">Porta com amplo visor + iluminação interna para visualizar as receitas durante o preparo.</span>
-        </li>
-
-        <li class="desc-item">
-            <span class="desc-title">CESTO 5L + 3 ASSADEIRAS</span>
-            <span class="desc-content">Exclusivas assadeiras antiaderentes ideias para pão de queijo, nuggets e pizza. Cesto para batata frita e bolos.</span>
-        </li>
-
-        <li class="desc-item">
-            <span class="desc-title">PAINEL DIGITAL 10 FUNÇÕES</span>
-            <span class="desc-content">Prepare receitas com apenas 1 clique! Batata, frango, carne, peixe, camarão, pão de queijo, pizza, bolo, legumes e reaquecer.</span>
-        </li>
-
-        <li class="desc-item">
-            <span class="desc-title">ANTIADERENTE DURAFLON</span>
-            <span class="desc-content">Tecnologia exclusiva Mondial, os alimentos não grudam no fundo e é super fácil de limpar.</span>
-        </li>
-        
-        <li class="desc-item">
-            <span class="desc-title">SAÚDE E PRATICIDADE</span>
-            <span class="desc-content">Timer de 90 minutos para liberdade na cozinha. Sem óleo, sem fumaça e sem cheiro de fritura.</span>
-        </li>
+    <h4 style="margin-top: 20px; margin-bottom: 12px; font-size: 16px; font-weight: 600;">Aviso legal</h4>
+    <ul style="line-height: 1.6; color: #666; padding-left: 20px;">
+      <li>Suas informações de pagamento são processadas com segurança. Nós não armazenamos dados do cartão de crédito nem temos acesso aos números do seu cartão.</li>
     </ul>
-
-    <div class="desc-legal">
-        <h4>Aviso legal</h4>
-        <ul>
-          <li>Suas informações de pagamento são processadas com segurança. Nós não armazenamos dados do cartão de crédito nem temos acesso aos números do seu cartão.</li>
-          <li>UM ANO DE GARANTIA MONDIAL.</li>
-        </ul>
-    </div>
   </section>
 </div>
+<!-- Bottom Navigation -->
 <nav class="bottom-nav">
 <a class="nav-item" href="index.html#">
 <svg class="nav-icon" fill="none" height="20" viewBox="0 0 24 24" width="20">
@@ -1416,273 +1289,94 @@ Simplesmente estou apaixonada, excelente mesmo.</div>
 <span>Chat</span>
 </a>
 <button class="add-cart-btn">Ver Avaliações</button>
-<a class="buy-btn pulsing-buy-btn" href="checkout.html" onclick="trackAddToCart(event)" style="display: flex; align-items: center; justify-content: center; text-decoration: none; color: white;" >Comprar Agora</a>
+<a class="buy-btn" href="https://clkdmg.site/pay/checkout-seguro" style="display: flex; align-items: center; justify-content: center; text-decoration: none; color: white;" >Comprar Agora</a>
 </nav>
+<!-- Padding for bottom nav -->
+
+<!-- Footer -->
 <footer class="footer">
 ...
 </footer>
 
-<div id="sales-popup" class="sales-popup">
-    <div class="popup-image">
-        <img id="popup-img" src="images/foto1.webp" alt="Cliente">
-    </div>
-    <div class="popup-content">
-        <p class="popup-text">
-            <strong><span id="popup-name">Maria</span></strong> de <span id="popup-city">São Paulo</span>
-        </p>
-        <p class="popup-time">
-            <span class="live-dot"></span>
-            <span id="popup-action">Comprou agora mesmo</span>
-        </p>
-        <div style="font-size: 10px; color: #00d4aa; font-weight: 700;">Compra Verificada</div>
-    </div>
-</div>
-
 <script>
-    // ==================================================
-    // 1. TRACKING ZARAZ (APENAS SERVER-SIDE)
-    // ==================================================
-    
-    // Dados do Produto
-    const PRODUCT_CONTENT = {
-        content_id: 'AFON-12L-BI', 
-        content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial',
-        content_type: 'product',
-        category: 'Eletroportáteis',
-        quantity: 1,
-        price: 219.99,
-        value: 219.99,
-        currency: 'BRL'
-    };
-
-    // --- HELPER FUNCTIONS (Mantidos para qualidade de dados no Zaraz) ---
-
-    function setCookie(name, value, days) {
-        var expires = "";
-        if (days) {
-            var date = new Date();
-            date.setTime(date.getTime() + (days*24*60*60*1000));
-            expires = "; expires=" + date.toUTCString();
-        }
-        document.cookie = name + "=" + (value || "")  + expires + "; path=/; SameSite=Lax";
-    }
-    
-    function getCookie(name) {
-        var nameEQ = name + "=";
-        var ca = document.cookie.split(';');
-        for(var i=0;i < ca.length;i++) {
-            var c = ca[i];
-            while (c.charAt(0)==' ') c = c.substring(1,c.length);
-            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
-        }
-        return null;
-    }
-
-    function generateEventId() {
-        return 'evt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    }
-
-    function getExternalId() {
-        let eid = localStorage.getItem('user_external_id');
-        if (!eid) eid = getCookie('user_external_id'); 
-        
-        if (!eid) {
-            eid = 'user_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
-            localStorage.setItem('user_external_id', eid);
-            setCookie('user_external_id', eid, 365); 
-        }
-        return eid;
-    }
-
-    function getTTCLID() {
-        const urlParams = new URLSearchParams(window.location.search);
-        let clickId = urlParams.get('ttclid');
-        if (clickId) {
-            setCookie('ttclid', clickId, 90);
-            localStorage.setItem('ttclid', clickId);
-        } else {
-            clickId = localStorage.getItem('ttclid') || getCookie('ttclid');
-        }
-        return clickId;
-    }
-
-    function saveUTMs() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
-        utmKeys.forEach(key => {
-            const val = urlParams.get(key);
-            if (val) setCookie(key, val, 30);
-        });
-    }
-
-    function getStoredUTMs() {
-        const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
-        let utms = {};
-        utmKeys.forEach(key => {
-            const val = getCookie(key);
-            if (val) utms[key] = val;
-        });
-        return utms;
-    }
-
-    function formatPhoneE164(phone) {
-        if (!phone) return undefined;
-        let p = phone.toString().replace(/\D/g, '');
-        if (p.length < 10) return undefined; 
-        if (p.startsWith('0')) p = p.substring(1);
-        if (p.length >= 10 && p.length <= 11) p = '55' + p;
-        return '+' + p;
-    }
-
-    // Contexto do Usuário
-    function getContext() {
-        return {
-            user_agent: navigator.userAgent,
-            language: navigator.language,
-            url: window.location.href,
-            referrer: document.referrer,
-            timestamp: Math.floor(Date.now() / 1000)
-        };
-    }
-
-    // --- FUNÇÃO DE DISPARO EXCLUSIVA ZARAZ ---
-    function trackViaZaraz(event, data = {}) {
-        try {
-            if (window.zaraz && window.zaraz.track) {
-                let payload = { ...data, ...getContext() };
-                
-                // Sanitização
-                if (payload.email) payload.email = payload.email.trim().toLowerCase();
-                if (payload.phone) {
-                    const formatted = formatPhoneE164(payload.phone);
-                    if (formatted) payload.phone = formatted; else delete payload.phone;
-                }
-
-                window.zaraz.track(event, payload);
-                // console.log(`Zaraz Event: ${event}`, payload); // Debug
-            }
-        } catch (error) {
-            console.error('Zaraz Error:', error);
-        }
-    }
-
-    // --- TRIGGERS ---
-
-    // 1. PageView
-    window.addEventListener('load', function() {
-        saveUTMs();
-        trackViaZaraz('PageView', { 
-            external_id: getExternalId(),
-            ttclid: getTTCLID(),
-            event_id: generateEventId(),
-            ...getStoredUTMs()
-        });
-    });
-
-    // 2. ViewContent Inteligente
-    var viewContentFired = false;
-    function fireViewContent() {
-        if (viewContentFired) return;
-        viewContentFired = true;
-
-        trackViaZaraz('ViewContent', {
-            ...PRODUCT_CONTENT,
-            external_id: getExternalId(),
-            ttclid: getTTCLID(),
-            event_id: generateEventId(),
-            ...getStoredUTMs()
-        });
-    }
-
-    setTimeout(fireViewContent, 3500); 
-    window.addEventListener('scroll', fireViewContent, { once: true });
-    window.addEventListener('touchmove', fireViewContent, { once: true });
-
-    // 3. AddToCart (Botão Comprar Agora)
-    window.trackAddToCart = function(event) {
-        const cartEventId = generateEventId();
-        
-        trackViaZaraz('AddToCart', {
-            ...PRODUCT_CONTENT,
-            external_id: getExternalId(),
-            ttclid: getTTCLID(),
-            event_id: cartEventId,
-            ...getStoredUTMs()
-        });
-        
-        console.log("AddToCart via Zaraz disparado!");
-    };
-
-    // ==================================================
-    // 4. CUSTOM ENGAGEMENT (RESTAURADO)
-    // ==================================================
-
-    // A) Time On Page 30s (Usuário interessado por tempo)
-    setTimeout(function() {
-        trackViaZaraz('interested_user_30s', {
-            event_id: generateEventId(),
-            trigger: 'timer_30s'
-        });
-        // Opcional: Se quiser manter o padrão antigo também
-        trackViaZaraz('time_on_page_30s', {
-             event_id: generateEventId()
-        });
-    }, 30000); // 30 segundos
-
-    // B) Scroll 50% (Usuário interessado por leitura)
-    let scroll50Fired = false;
-    window.addEventListener('scroll', function() {
-        if (scroll50Fired) return;
-        
-        const scrollPercentage = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight * 100;
-        
-        if (scrollPercentage >= 50) {
-            scroll50Fired = true;
-            trackViaZaraz('scroll_50_percent', {
-                event_id: generateEventId(),
-                scroll_depth: Math.round(scrollPercentage) + '%'
-            });
-        }
-    });
+// Atrasar o Google Analytics
+setTimeout(() => {
+  const gaScript = document.createElement('script');
+  gaScript.async = true;
+  gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-ZW51KSSD0R';
+  document.head.appendChild(gaScript);
+  
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-ZW51KSSD0R');
+  console.log('Google Analytics carregado (com atraso)');
+}, 3000); // 3 segundos de atraso
 </script>
 
+<script>
+// Atrasar o TikTok Pixel
+setTimeout(() => {
+  !function (w, d, t) {
+    w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=i,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};var o=document.createElement("script");o.type="text/javascript",o.async=!0,o.src=i+"?sdkid="+e+"&lib="+t;var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(o,a)};
+  
+    ttq.load('D3QFA9JC77UACP400AN0');
+    ttq.page();
+  }(window, document, 'ttq');
+  console.log('TikTok Pixel carregado (com atraso)');
+}, 3000); // 3 segundos de atraso
+</script>
 
 <script>
-  // ==================================================
-  // 2. FUNÇÕES VISUAIS DA LOJA (UI/UX)
-  // ==================================================
+  // ESTE É O ÚNICO SCRIPT QUE VOCÊ PRECISA NO FINAL DO SEU BODY
   
+  // ==========================================================
+  // ⭐️ FUNÇÃO DAS ABAS (ADICIONADA) ⭐️
+  // Esta função precisa ficar aqui fora para ser chamada pelo 'onclick' do HTML
+  // ==========================================================
   function showTab(tabName) {
+    // Esconde todas as seções de conteúdo
     document.querySelectorAll('.content-section').forEach(section => {
       section.classList.remove('active');
     });
+    // Desativa todas as abas
     document.querySelectorAll('.tabs .tab').forEach(tab => {
       tab.classList.remove('active');
     });
     
+    // Mostra a seção de conteúdo correta
     const targetContent = document.getElementById(tabName);
-    if (targetContent) targetContent.classList.add('active');
+    if (targetContent) {
+      targetContent.classList.add('active');
+    }
     
+    // Ativa a aba correta
     const targetTab = document.querySelector(`.tabs .tab[onclick="showTab('${tabName}')"]`);
-    if (targetTab) targetTab.classList.add('active');
+    if (targetTab) {
+      targetTab.classList.add('active');
+    }
   }
 
+  // Configuração dos links de compra
   const variantLinks = {
-    'preto': 'checkout.html',
-    'rosa-pink': 'checkout.html',
-    'roxo-claro': 'checkout.html',
-    'rosa-claro': 'checkout.html'
+    'preto': 'https://clkdmg.site/pay/checkout-seguro',
+    'rosa-pink': 'https://clkdmg.site/pay/checkout-seguro',
+    'roxo-claro': 'https://clkdmg.site/pay/checkout-seguro',
+    'rosa-claro': 'https://clkdmg.site/pay/checkout-seguro'
   };
   const buyBtn = document.querySelector('.buy-btn');
 
+  // Configuração da galeria de imagens e outros botões
   document.addEventListener("DOMContentLoaded", () => {
     
-    // Cronômetro
+    // ==========================================================
+    // ⭐️ FUNÇÃO DO CRONÔMETRO (ADICIONADA) ⭐️
+    // ==========================================================
     function startCountdown() {
       const countdownEl = document.getElementById('countdown-timer');
       if (!countdownEl) return;
       
-      let timeLeft = 300; 
+      let timeLeft = 300; // 5 minutos em segundos (00:05:00)
 
       const timerInterval = setInterval(() => {
         if (timeLeft <= 0) {
@@ -1690,14 +1384,19 @@ Simplesmente estou apaixonada, excelente mesmo.</div>
           countdownEl.textContent = "Oferta encerrada";
           return;
         }
+        
         timeLeft--;
+        
         const minutes = Math.floor(timeLeft / 60);
         const seconds = timeLeft % 60;
+        
         countdownEl.textContent = `Termina em ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
       }, 1000);
     }
     
-    // Data de Entrega
+    // ==========================================================
+    // ⭐️ FUNÇÃO DA DATA DE ENTREGA (ADICIONADA) ⭐️
+    // ==========================================================
     function updateShippingDate() {
       const shippingEl = document.getElementById('shipping-date');
       if (!shippingEl) return;
@@ -1706,16 +1405,21 @@ Simplesmente estou apaixonada, excelente mesmo.</div>
         const date = new Date();
         date.setDate(date.getDate() + addDays);
         const day = date.getDate();
+        // toLocaleString é uma forma leve de pegar o nome do mês em pt-BR
         const month = date.toLocaleString('pt-BR', { month: 'short' }).replace('.', '');
         return `${day} de ${month}`;
       };
 
+      // Define uma janela de entrega (ex: 3 a 5 dias a partir de hoje)
       const startDate = getDeliveryDate(3);
       const endDate = getDeliveryDate(5);
+      
       shippingEl.textContent = `Receba entre ${startDate} e ${endDate}`;
     }
 
-    // Galeria de Imagens
+    // ==========================================================
+    // O RESTO DO SCRIPT DA GALERIA (JÁ ESTAVA AQUI)
+    // ==========================================================
     const totalImages = 8;
     const variantStartIndex = {
       'preto': 1,
@@ -1723,15 +1427,19 @@ Simplesmente estou apaixonada, excelente mesmo.</div>
       'roxo-claro': 3,
       'rosa-claro': 4
     };
+
     let currentVariant = 'preto';
     let currentImageIndex = variantStartIndex[currentVariant];
 
+    // Seletores principais
     const mainImage = document.getElementById('main-product-image');
     const imageCounter = document.getElementById('image-counter');
     const imageDots = document.getElementById('image-dots');
     const imageThumbnails = document.getElementById('image-thumbnails');
     const swatches = document.querySelectorAll('.color-swatch');
-    const viewReviewsBtn = document.querySelector('.add-cart-btn');
+
+    // LISTENER "VER AVALIAÇÕES"
+    const viewReviewsBtn = document.querySelector('.add-cart-btn'); // Botão "Ver Avaliações"
     const reviewsSection = document.querySelector('.reviews-section');
     
     if (viewReviewsBtn && reviewsSection) {
@@ -1766,13 +1474,16 @@ Simplesmente estou apaixonada, excelente mesmo.</div>
         thumbWrapper.dataset.index = i;
         
         const thumbImg = document.createElement('img');
-        const imgName = 'thumb_' + padZero(i) + '.webp'; 
+        
+        // ⭐️ CORREÇÃO: Usar um nome de arquivo diferente para a miniatura ⭐️
+        const imgName = 'thumb_' + padZero(i) + '.webp'; // Ex: "thumb_01.webp"
         
         thumbImg.src = 'images/' + imgName;
         thumbImg.alt = `Miniatura ${i}`;
-        thumbImg.loading = 'lazy';
+        thumbImg.loading = 'lazy'; // O lazy loading continua aqui
         
         thumbWrapper.appendChild(thumbImg);
+        
         thumbWrapper.addEventListener('click', () => {
           currentImageIndex = i;
           updateImageDisplay();
@@ -1800,6 +1511,7 @@ Simplesmente estou apaixonada, excelente mesmo.</div>
       updateImageDisplay();
     }
 
+    // SCRIPT DE VARIANTES COMBINADO (IMAGEM + LINK DE COMPRA)
     swatches.forEach(swatch => {
       swatch.addEventListener('click', () => {
         swatches.forEach(s => s.classList.remove('selected'));
@@ -1816,69 +1528,33 @@ Simplesmente estou apaixonada, excelente mesmo.</div>
       });
     });
 
+    // vincula os botões prev/next
     document.getElementById("prev-image").addEventListener("click", () => changeImage(-1));
     document.getElementById("next-image").addEventListener("click", () => changeImage(1));
 
+    // ==========================================================
+    // ⭐️ NOVO: AUTO-SELECIONAR A PRIMEIRA VARIANTE ⭐️
+    // ==========================================================
     const defaultSwatch = document.querySelector(`.color-swatch[data-color="${currentVariant}"]`);
     if (defaultSwatch) {
+        // 1. Adiciona a classe visual 'selected'
         defaultSwatch.classList.add('selected');
-        if (variantLinks[currentVariant]) buyBtn.href = variantLinks[currentVariant];
+        
+        // 2. Atualiza o link do botão de compra para o link padrão
+        if (variantLinks[currentVariant]) {
+          buyBtn.href = variantLinks[currentVariant];
+        }
     }
+    // ==========================================================
 
+    // ==========================================================
+    // ⭐️ INICIA TODAS AS FUNÇÕES ⭐️
+    // ==========================================================
     createImageDots();
     createThumbnails();
     updateImageDisplay();
     startCountdown();     
     updateShippingDate(); 
-    
-    // Pop-up de Vendas
-    const buyers = [
-        { name: "Fernanda Maia", city: "Rio de Janeiro, RJ", img: "images/foto1.webp" },
-        { name: "Bruna Lima", city: "São Paulo, SP", img: "images/foto2.webp" },
-        { name: "Marilia Lima", city: "Belo Horizonte, MG", img: "images/foto3.webp" },
-        { name: "Karina Andrade", city: "Curitiba, PR", img: "images/foto4.webp" },
-        { name: "Bruna Silva", city: "Salvador, BA", img: "images/foto5.webp" },
-        { name: "Kailane Cristina", city: "Fortaleza, CE", img: "images/foto6.webp" },
-        { name: "Mariana Lemos", city: "Porto Alegre, RS", img: "images/foto7.webp" }
-    ];
-
-    const actions = [
-        "Comprou agora mesmo",
-        "Acabou de comprar",
-        "Comprou há 2 minutos",
-        "Garantiu a oferta",
-        "Comprou 2 unidades"
-    ];
-
-    function showSalesPopup() {
-        const popup = document.getElementById('sales-popup');
-        const imgEl = document.getElementById('popup-img');
-        const nameEl = document.getElementById('popup-name');
-        const cityEl = document.getElementById('popup-city');
-        const actionEl = document.getElementById('popup-action');
-
-        if (!popup) return;
-
-        const randomBuyer = buyers[Math.floor(Math.random() * buyers.length)];
-        const randomAction = actions[Math.floor(Math.random() * actions.length)];
-
-        nameEl.textContent = randomBuyer.name;
-        cityEl.textContent = randomBuyer.city;
-        actionEl.textContent = randomAction;
-        if(randomBuyer.img) imgEl.src = randomBuyer.img;
-
-        popup.classList.add('visible');
-
-        setTimeout(() => {
-            popup.classList.remove('visible');
-        }, 4000);
-    }
-
-    setTimeout(() => {
-        showSalesPopup();
-        setInterval(showSalesPopup, 10000); 
-    }, 3000);
-    
   });
 </script>
 </div></body></html>

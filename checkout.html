@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-E373VKT4H4"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-E373VKT4H4');
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://unpkg.com">
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <title>Checkout - Fritadeira Elétrica Forno Oven 12L</title>
+    <meta name="description" content="Finalize sua compra da Fritadeira Elétrica Forno Oven 12L Mondial com Frete Grátis e Desconto no PIX.">
+    
+    <script>
+    // =================================================================
+    // INFRAESTRUTURA DE TRACKING - MODO VOLÁTIL (SEM PERSISTÊNCIA)
+    // =================================================================
+
+    const DEBUG_MODE = window.location.hostname === 'localhost' || 
+                       window.location.search.includes('debug_tracking');
+    
+    if (DEBUG_MODE) {
+        window.trackingDebug = true;
+    }
+
+    // --- STORAGE INERTE (NÃO SALVA NADA PARA EVITAR BLOQUEIO) ---
+    const safeStorage = {
+        getItem: (key) => null,
+        setItem: (key, val) => {} // Não faz nada
+    };
+
+    const safeSession = {
+        getItem: (key) => null,
+        setItem: (key, val) => {} // Não faz nada
+    };
+
+    function setCookie(name, value, days) {} // Não faz nada
+    function getCookie(name) { return null; }
+
+    // Gera ID temporário a cada load (não persiste)
+    function getExternalId() {
+        return 'user_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+    }
+    window.getExternalId = getExternalId;
+
+    function getTTCLID() {
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('ttclid'); 
+        } catch (e) { return null; }
+    }
+    window.getTTCLID = getTTCLID;
+
+    const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid', 'msclkid'];
+
+    function saveUTMs() { return false; } // Inerte
+
+    function getStoredUTMs() {
+        // Pega apenas da URL atual (sem histórico)
+        let utms = {};
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            UTM_KEYS.forEach(key => {
+                const val = urlParams.get(key);
+                if (val) utms[key] = val;
+            });
+        } catch(e){}
+        return utms;
+    }
+    window.getStoredUTMs = getStoredUTMs;
+
+    function cleanPhone(phone) {
+        if (!phone) return null;
+        try {
+            let p = phone.toString().replace(/\D/g, ''); 
+            if (p.length < 8) return null; 
+            if (p.startsWith('0') && p.length > 10) p = p.substring(1); 
+            if (p.length === 10 || p.length === 11) { p = '55' + p; }
+            if (p.startsWith('55') && (p.length === 12 || p.length === 13)) { return '+' + p; }
+            if (p.length > 10) { return '+' + p; }
+        } catch(e) {}
+        return null;
+    }
+    window.cleanPhone = cleanPhone;
+
+    function generateEventId() {
+        return 'evt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+    window.generateEventId = generateEventId;
+
+    window.trackingQueue = window.trackingQueue || [];
+
+    // Função trackPixel aceita dados diretos (sem depender de cache)
+    function trackPixel(event, data = {}) {
+        
+        // Tratamento de dados pessoais antes do envio
+        let finalData = { ...data };
+        if(finalData.phone) finalData.phone = cleanPhone(finalData.phone);
+        if(finalData.email) finalData.email = finalData.email.toLowerCase().trim();
+
+        const payload = {
+            ...finalData,
+            external_id: window.getExternalId(),
+            ttclid: window.getTTCLID(),
+            ...window.getStoredUTMs(),
+            event_source_url: window.location.href,
+            event_time: Math.floor(Date.now() / 1000),
+        };
+        
+        try {
+            if (window.zaraz && window.zaraz.track) {
+                window.zaraz.track(event, payload);
+                if (window.trackingDebug) console.log(`🎯 ZARAZ: ${event}`, payload);
+            } else {
+                window.trackingQueue.push({ event, data: payload });
+            }
+        } catch (error) {
+            console.error(`❌ Tracking Error (${event}):`, error);
+        }
+    }
+    window.trackPixel = trackPixel; 
+
+    function processTrackingQueue() {
+        if (window.zaraz && window.zaraz.track && window.trackingQueue.length > 0) {
+            window.trackingQueue.forEach(item => {
+                trackPixel(item.event, item.data);
+            });
+            window.trackingQueue = [];
+        }
+    }
+    setInterval(processTrackingQueue, 1000);
+
+    const PRODUCT_CONTENT = {
+        content_type: 'product',
+        contents: [
+            { content_id: 'AFON-12L-BI', id: 'AFON-12L-BI', quantity: 1, price: 219.99, item_price: 219.99 }
+        ],
+        content_id: 'AFON-12L-BI',
+        value: 219.99,
+        currency: 'BRL'
+    };
+    window.PRODUCT_CONTENT = PRODUCT_CONTENT;
+
+    function triggerInterestedUser() {
+        setTimeout(() => {
+            // CORREÇÃO FEITA AQUI: Nome do evento ajustado para bater com a regra do Zaraz
+            trackPixel('interested_user_30s', {
+                event_id: generateEventId(),
+                context: "user_stayed_30_seconds"
+            });
+        }, 30000); 
+    }
+
+    // =================================================================
+    // INICIALIZAÇÃO BLINDADA
+    // =================================================================
+    window.onload = function () {
+        try {
+            trackPixel('PageView', { event_id: generateEventId(), content_name: document.title, ...getStoredUTMs() });
+            trackPixel('ViewContent', { ...PRODUCT_CONTENT, event_id: generateEventId(), content_name: "Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI" });
+            triggerInterestedUser();
+        } catch (e) { console.log("Tracking parcial."); }
+
+        loadScript("https://cdn.tailwindcss.com")
+        .then(function() { return loadScript("https://unpkg.com/react@18/umd/react.production.min.js"); })
+        .then(function() { return loadScript("https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"); })
+        .then(function() { return loadScript("https://unpkg.com/@babel/standalone/babel.min.js"); })
+        .then(function() {
+            if (window.Babel) { window.Babel.transformScriptTags(); }
+            setTimeout(function() {
+                if(window.initReactCheckout) {
+                    window.initReactCheckout();
+                } else {
+                    setTimeout(function(){ if(window.initReactCheckout) window.initReactCheckout(); }, 500);
+                }
+            }, 100);
+        })
+        .catch(function(err) {
+            console.error("Critical Load Error");
+        });
+    };
+
+    function loadScript(src) {
+        return new Promise(function(resolve, reject) {
+            var s = document.createElement('script');
+            s.src = src;
+            s.async = true; 
+            s.onload = resolve;
+            s.onerror = reject;
+            if(src.includes('unpkg')) s.crossOrigin = "anonymous";
+            document.body.appendChild(s);
+        });
+    }
+    </script>
+    <style>
+        body { 
+            margin: 0; 
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f2f2f2; 
+            -webkit-font-smoothing: antialiased; 
+        }
+        .spinner { 
+            border: 2px solid rgba(255,255,255,0.3); 
+            border-radius: 50%; 
+            border-top: 2px solid #fff; 
+            width: 16px; 
+            height: 16px; 
+            animation: spin 1s linear infinite; 
+        }
+        
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
+        .fade-in { 
+            animation: fadeIn 0.4s ease-out forwards; 
+        }
+        
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+        .input-wrapper { 
+            position: relative; 
+            transition: all 0.2s; 
+        }
+        
+        .input-wrapper:focus-within { 
+            transform: translateY(-1px); 
+            border-color: #16a34a; 
+        }
+        @keyframes pulse-green { 
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); } 
+            50% { transform: scale(1.02); box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); } 
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); } 
+        }
+        
+        .btn-pulse-green { 
+            animation: pulse-green 1.5s infinite; 
+        }
+        .typing-dots::after { 
+            content: ''; 
+            animation: dots 1.5s steps(4, end) infinite; 
+        }
+        
+        @keyframes dots { 
+            0%, 20% { content: ''; } 
+            40% { content: '.'; } 
+            60% { content: '..'; } 
+            80%, 100% { content: '...'; } 
+        }
+        @keyframes pulse-slow { 
+            0%, 100% { opacity: 1; } 
+            50% { opacity: .8; } 
+        }
+        
+        .animate-pulse-slow { 
+            animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; 
+        }
+        @keyframes pulse-urgent { 
+            0%, 100% { opacity: 1; transform: scale(1); } 
+            50% { opacity: 0.75; transform: scale(0.99); } 
+        }
+        
+        .animate-pulse-urgent { 
+            animation: pulse-urgent 1.2s ease-in-out infinite; 
+        }
+    </style>
+</head>
+<body>
+    <div id="checkout-root">
+        <div style="height: 100vh; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #f2f2f2;">
+             <div class="spinner" style="width: 40px; height: 40px; border: 4px solid #e5e7eb; border-top: 4px solid #16a34a;"></div>
+             <h2 style="margin-top: 20px; font-family: sans-serif; color: #374151; font-size: 16px; font-weight: 700;">Carregando ambiente seguro...</h2>
+             <p style="margin-top: 5px; font-family: sans-serif; color: #9ca3af; font-size: 12px;">Aguarde, preparando sua oferta exclusiva.</p>
+        </div>
+    </div>
+    <script type="text/babel" data-presets="env,react">
+        const { useState, useEffect, useRef } = React;
+        const CODIGO_PIX_COPIA_COLA = "00020101021226900014br.gov.bcb.pix2568pix.adyen.com/pixqrcodelocation/pixloc/v1/loc/OvUTUM8iQmC464ZSoqiimw5204000053039865802BR5925MONETIZZE IMPULSIONADORA 6009SAO PAULO62070503***630472EA";
+        
+        const PRODUCT_INFO = { 
+            name: "Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI", 
+            originalPrice: 399.90, 
+            price: 219.99, 
+            image: "images/01.webp", 
+            id: "AFON-12L-BI" 
+        };
+
+        const trackEvent = (event, data = {}) => {
+            if (window.trackPixel) {
+                window.trackPixel(event, data);
+            }
+        };
+
+        const InputIcon = ({ icon, label, val, change, ...props }) => (
+            <div>
+                <label className="text-[10px] font-bold text-gray-500 uppercase pl-1 mb-1 block">{label}</label>
+                <div className="input-wrapper relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">{icon}</div>
+                    <input {...props} value={val} onChange={change} className="w-full p-3 pl-10 bg-white border border-gray-300 rounded-lg text-base focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none transition-all" />
+                </div>
+            </div>
+        );
+
+        function CheckoutScreen({ onSuccess }) {
+            const [loading, setLoading] = useState(false);
+            const [loadingCep, setLoadingCep] = useState(false);
+            const [formData, setFormData] = useState({ name: '', email: '', phone: '', cpf: '', cep: '', address: '', number: '', city: '' });
+            const numberRef = useRef(null);
+
+            useEffect(() => { 
+                try {
+                    window.scrollTo(0, 0);
+                } catch(e) {}
+                const icId = window.generateEventId ? window.generateEventId() : 'evt_'+Date.now();
+                trackEvent('InitiateCheckout', { 
+                    ...window.PRODUCT_CONTENT,
+                    content_name: PRODUCT_INFO.name,
+                    event_id: icId 
+                });
+            }, []);
+            
+            const getDeliveryDate = () => { 
+                const d = new Date(); 
+                d.setDate(d.getDate() + 4); 
+                return d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }); 
+            };
+            const handleCep = async (val) => {
+                const cep = val.replace(/\D/g, '');
+                if (cep.length === 8) {
+                    setLoadingCep(true);
+                    try {
+                        const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                        const data = await res.json();
+                        if(!data.erro) {
+                            setFormData(prev => ({...prev, address: data.logradouro, city: `${data.localidade}/${data.uf}`}));
+                            setTimeout(() => numberRef.current?.focus(), 100);
+                        }
+                    } catch(e) {}
+                    setLoadingCep(false);
+                }
+            }
+            const handleChange = (e) => {
+                const { name, value } = e.target;
+                let v = value;
+                if(name === 'cpf') v = v.replace(/\D/g, '').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})/, '$1-$2').replace(/(-\d{2})\d+?$/, '$1');
+                if(name === 'cep') v = v.replace(/\D/g, '').replace(/(\d{5})(\d)/, '$1-$2').replace(/(-\d{3})\d+?$/, '$1');
+                if(name === 'phone') v = v.replace(/\D/g, '').replace(/(\d{2})(\d)/, '($1) $2').replace(/(\d{5})(\d)/, '$1-$2').replace(/(-\d{4})\d+?$/, '$1');
+                setFormData(prev => ({...prev, [name]: v}));
+                if(name === 'cep') handleCep(v);
+            };
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if(!formData.name || !formData.email || !formData.phone) return console.error('Preencha os campos obrigatórios para avançar.');
+                
+                const finalEmail = formData.email.toLowerCase().trim();
+                const finalPhone = window.cleanPhone ? window.cleanPhone(formData.phone) : formData.phone;
+                const nameParts = formData.name.trim().split(" ");
+                const firstName = nameParts[0];
+                const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
+                
+                let city = ""; let state = "";
+                if(formData.city && formData.city.includes('/')) {
+                    const cityParts = formData.city.split('/');
+                    city = cityParts[0].trim();
+                    state = cityParts[1].trim();
+                }
+
+                const uniqueOrderId = 'ord_' + new Date().getTime(); 
+                
+                trackEvent('AddPaymentInfo', { 
+                    ...window.PRODUCT_CONTENT,
+                    event_id: window.generateEventId ? window.generateEventId() : 'evt_'+Date.now(),
+                    order_id: uniqueOrderId
+                });
+
+                setLoading(true);
+                setTimeout(() => { 
+                    const dataToPass = {
+                        ...formData, 
+                        email: finalEmail, 
+                        phone: finalPhone, 
+                        firstName, 
+                        lastName, 
+                        city, 
+                        state,
+                        transactionId: uniqueOrderId 
+                    };
+                    // Passa dados diretos, SEM SALVAR em storage
+                    onSuccess(dataToPass); 
+                }, 500);
+            }
+            
+            const Icons = {
+                Lock: ({className}) => <svg className={className || "w-3 h-3"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>,
+                Truck: ({className}) => <svg className={className || "w-4 h-4 flex-shrink-0 text-yellow-700"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>,
+                User: ({className}) => <svg className={className || "w-5 h-5 text-gray-400"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>,
+                Mail: ({className}) => <svg className={className || "w-5 h-5 text-gray-400"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>,
+                Phone: ({className}) => <svg className={className || "w-5 h-5 text-gray-400"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>,
+                Shield: ({className}) => <svg className={className || "w-5 h-5 text-gray-400"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>,
+                Check: ({className}) => <svg className={className || "w-4 h-4 text-white"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>,
+                Copy: ({className}) => <svg className={className || "w-5 h-5"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>,
+                Info: ({className}) => <svg className={className || "w-5 h-5"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>,
+                Fire: ({className}) => <svg className={className || "w-4 h-4"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.6-3.3.39.94.86 2.26 3.4 4.8z"></path></svg>
+            };
+            
+            return (
+                <div className="fade-in w-full min-h-screen pb-20 font-sans bg-gray-50">
+                    <div className="bg-red-600 text-white text-center py-1.5 text-xs font-bold uppercase flex justify-center items-center gap-2 animate-pulse-urgent shadow-md sticky top-0 z-40">
+                        <Icons.Fire /> Restam apenas 3 unidades com Frete Grátis
+                    </div>
+                    <div className="bg-white border-b border-gray-200 p-3 flex justify-between items-center sticky top-[28px] z-30 shadow-sm">
+                        <div className="flex items-center gap-1 font-bold text-gray-800">
+                            <svg className="w-5 h-5 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+                            <span>PAGAMENTO<span className="text-green-600">SEGURO</span></span>
+                        </div>
+                        <div className="flex items-center gap-1 text-[10px] text-gray-500 uppercase"><Icons.Lock /> 100% Seguro</div>
+                    </div>
+                    <div className="max-w-lg mx-auto p-3 space-y-3 pt-3">
+                        <div className="bg-white rounded-lg shadow-sm p-3 flex gap-3 border border-gray-100 items-center relative overflow-hidden">
+                            <div className="absolute top-0 left-0 bg-green-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-br">OFERTA TIKTOK</div>
+                            <div className="w-20 h-20 bg-white rounded overflow-hidden flex-shrink-0 border border-gray-200 mt-2 p-1">
+                                <img src={PRODUCT_INFO.image} className="w-full h-full object-contain" />
+                            </div>
+                            <div className="flex-1 min-w-0 mt-2">
+                                <h3 className="text-sm font-bold text-gray-700 leading-tight">{PRODUCT_INFO.name}</h3>
+                                <div className="flex flex-col items-start mt-1">
+                                    <span className="text-xs text-gray-400 line-through">De R$ {PRODUCT_INFO.originalPrice.toFixed(2).replace('.',',')}</span>
+                                    <span className="font-extrabold text-xl text-green-600">Por R$ {PRODUCT_INFO.price.toFixed(2).replace('.',',')}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <form onSubmit={handleSubmit} className="space-y-3">
+                            <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+                                <div className="bg-gray-50 px-4 py-2 border-b border-gray-100 flex items-center gap-2">
+                                    <span className="bg-green-600 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">1</span>
+                                    <h3 className="text-sm font-bold text-gray-700 uppercase">Dados Pessoais</h3>
+                                </div>
+                                <div className="p-4 space-y-3">
+                                    <InputIcon icon={<Icons.User />} label="Nome Completo" name="name" placeholder="Nome Completo" val={formData.name} change={handleChange} />
+                                    <InputIcon icon={<Icons.Mail />} label="E-mail" type="email" name="email" placeholder="seu@email.com" val={formData.email} change={handleChange} onBlur={()=>{}} />
+                                    <InputIcon icon={<Icons.Phone />} label="Celular" type="tel" name="phone" placeholder="(00) 00000-0000" val={formData.phone} change={handleChange} onBlur={()=>{}} />
+                                    <InputIcon icon={<Icons.Shield />} label="CPF" type="tel" name="cpf" placeholder="000.000.000-00" val={formData.cpf} change={handleChange} />
+                                </div>
+                            </div>
+                            <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+                                <div className="bg-gray-50 px-4 py-2 border-b border-gray-100 flex items-center gap-2">
+                                    <span className="bg-green-600 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">2</span>
+                                    <h3 className="text-sm font-bold text-gray-700 uppercase">Entrega</h3>
+                                </div>
+                                <div className="p-4 space-y-3">
+                                    <div className="relative">
+                                        <label className="text-[10px] font-bold text-gray-500 uppercase pl-1 mb-1 block">CEP</label>
+                                        <input type="tel" name="cep" value={formData.cep} onChange={handleChange} className="w-full p-3 pl-3 border border-gray-300 rounded-lg text-base focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none transition-all" placeholder="00000-000" />
+                                        {loadingCep && <div className="absolute right-3 top-9 animate-spin w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full"></div>}
+                                    </div>
+                                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-3 mt-2 animate-pulse-slow">
+                                        <div className="bg-green-100 p-2 rounded-full"><Icons.Truck className="text-green-600 w-5 h-5" /></div>
+                                        <div className="flex-1">
+                                            <p className="text-[10px] uppercase tracking-wide text-green-800 font-bold mb-0.5">Chega Grátis até:</p>
+                                            <p className="text-sm font-extrabold text-green-900 capitalize leading-none">{getDeliveryDate()}</p>
+                                        </div>
+                                    </div>
+                                    {formData.address && (
+                                        <div className="grid grid-cols-4 gap-2 animate-fade-in">
+                                            <div className="col-span-4">
+                                                <input readOnly value={formData.address} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-600 text-sm" />
+                                            </div>
+                                            <div className="col-span-1">
+                                                <input ref={numberRef} name="number" value={formData.number} onChange={handleChange} placeholder="Nº" className="w-full p-3 border border-green-300 ring-1 ring-green-100 rounded-lg focus:ring-green-500 outline-none" />
+                                            </div>
+                                            <div className="col-span-3">
+                                                <input readOnly value={formData.city} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-600 text-sm" />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+                                <div className="bg-gray-50 px-4 py-2 border-b border-gray-100 flex items-center gap-2">
+                                    <span className="bg-green-600 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">3</span>
+                                    <h3 className="text-sm font-bold text-gray-700 uppercase">Pagamento</h3>
+                                </div>
+                                <div className="p-4">
+                                    <div className="bg-green-50 border-2 border-green-500 rounded-lg p-4 relative flex items-center gap-3 cursor-pointer hover:bg-green-100 transition-colors shadow-sm">
+                                        <div className="absolute -top-2.5 right-3 bg-green-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase shadow-sm">Recomendado</div>
+                                        <div className="w-5 h-5 bg-green-600 rounded-full flex items-center justify-center shadow-sm flex-shrink-0">
+                                            <Icons.Check />
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="font-bold text-gray-800 text-sm flex items-center gap-1">PIX (Aprovação Imediata)</div>
+                                            <div className="text-green-700 font-bold text-lg mt-0.5">R$ {PRODUCT_INFO.price.toFixed(2).replace('.',',')}</div>
+                                        </div>
+                                    </div>
+                                    <button disabled={loading} className={`w-full mt-4 bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-lg shadow-lg text-lg transition-transform active:scale-[0.98] flex justify-center items-center gap-2 ${loading ? 'opacity-70':''}`}>
+                                        {loading ? 'Gerando...' : 'FINALIZAR COM DESCONTO'}
+                                        {!loading && <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="9 18 15 12 9 6"></polyline></svg>}
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            );
+        }
+        function PixScreen({ customerData }) {
+            const [loadingState, setLoadingState] = useState(0); 
+            const [copied, setCopied] = useState(false);
+            
+            // Dados vêm direto da prop, sem storage
+            const activeData = customerData || {};
+            
+            const firstName = activeData.firstName || 'Cliente';
+            const transactionId = activeData.transactionId || 'ERR_NO_ID';
+
+            // REQUISITO: Passar dados para o Pixel
+            useEffect(() => {
+                try {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } catch(e) {}
+                
+                // EVENTO DE PURCHASE REMOVIDO AQUI CONFORME SOLICITADO
+                
+                const step1 = setTimeout(() => setLoadingState(1), 500);
+                const step2 = setTimeout(() => setLoadingState(2), 1200); 
+                const step3 = setTimeout(() => setLoadingState(3), 2000); 
+                
+                return () => { clearTimeout(step1); clearTimeout(step2); clearTimeout(step3); };
+            }, [transactionId, activeData]);
+
+            const copyPix = () => { 
+                try {
+                    const el = document.createElement('textarea');
+                    el.value = CODIGO_PIX_COPIA_COLA;
+                    document.body.appendChild(el);
+                    el.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(el);
+                    setCopied(true); 
+                } catch(e) {}
+                setTimeout(() => setCopied(false), 2000); 
+            };
+
+            if (loadingState < 3) {
+                return (
+                    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center font-sans">
+                        <div className="w-16 h-16 border-4 border-green-200 border-t-green-600 rounded-full animate-spin mb-6"></div>
+                        <h2 className="text-xl font-bold text-gray-800 animate-pulse">
+                            {loadingState === 0 && "Iniciando transação segura..."}
+                            {loadingState === 1 && "Reservando seu produto no estoque..."}
+                            {loadingState === 2 && "Aplicando cupom de desconto..."}
+                        </h2>
+                        <p className="text-sm text-gray-500 mt-2">Não feche essa página.</p>
+                    </div>
+                );
+            }
+            return (
+                <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4 font-sans">
+                    <div className="bg-white w-full max-w-md rounded-xl shadow-sm p-6">
+                        <h1 className="text-xl font-extrabold text-center text-gray-900 leading-tight">{firstName}, siga os passos para pagar:</h1>
+                        <p className="text-xs text-gray-300 text-center mt-1 mb-6 font-mono">Transação ID: {transactionId}</p>
+                        <div className="bg-green-100 text-green-600 font-bold text-xs py-3 rounded text-center mb-6 uppercase tracking-wide shadow-sm">✓ Pedido Reservado com Sucesso</div>
+                        <div className="mb-6">
+                            <div className="flex items-center gap-2 mb-2">
+                                <span className="bg-green-500 text-white w-5 h-5 rounded flex items-center justify-center text-xs font-bold">1</span>
+                                <span className="text-gray-700 text-sm font-medium">Copie o código PIX:</span>
+                            </div>
+                            <div className="w-full p-3 bg-gray-50 border border-gray-200 rounded text-gray-400 text-xs truncate mb-3">{CODIGO_PIX_COPIA_COLA}</div>
+                            <button onClick={copyPix} className={`w-full py-3.5 rounded-md font-bold text-white shadow-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] btn-pulse-green ${copied ? 'bg-gray-800' : 'bg-[#22c55e] hover:bg-green-600'}`}>
+                                {copied ? ( 
+                                    <> 
+                                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Copiado! 
+                                    </> 
+                                ) : ( 
+                                    <> 
+                                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> Copiar Código Pix 
+                                    </> 
+                                )}
+                            </button>
+                            <p className="text-sm text-gray-800 font-medium mt-3 text-center">Valor a ser pago: <span className="font-bold">R$ {PRODUCT_INFO.price.toFixed(2).replace('.',',')}</span></p>
+                        </div>
+                        <div className="space-y-4 text-sm text-gray-700 border-t border-gray-50 pt-4">
+                            {["Abra o aplicativo do seu banco favorito", "Seção PIX, escolha a opção \"Pix Copia e Cola\"", "Cole o código", "Confirme o pagamento"].map((text, idx) => ( 
+                                <div key={idx} className="flex gap-3 items-start">
+                                    <span className="bg-green-500 text-white w-5 h-5 rounded flex-shrink-0 flex items-center justify-center text-xs font-bold mt-0.5">{idx + 2}</span>
+                                    <p className="leading-snug">{text}</p>
+                                </div> 
+                            ))}
+                        </div>
+                        <div className="bg-[#fff8e1] border border-[#ffe0b2] text-[#f57c00] font-bold text-sm py-4 rounded-lg text-center mt-6 shadow-sm">
+                            Aguardando pagamento<span className="typing-dots"></span>
+                        </div>
+                        <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex gap-3 items-start text-xs text-blue-800 mt-4">
+                            <div className="bg-blue-600 text-white rounded-full w-4 h-4 flex items-center justify-center flex-shrink-0 text-[10px] font-bold mt-0.5">i</div>
+                            <div>
+                                <span className="font-bold block mb-1 text-blue-700">Atenção:</span>
+                                 Os bancos reforçaram a segurança do Pix e podem exibir avisos preventivos. Não se preocupe, sua transação está protegida.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        function App() {
+            const [screen, setScreen] = useState('checkout');
+            const [customerData, setCustomerData] = useState(null);
+            return screen === 'checkout' ? <CheckoutScreen onSuccess={(data) => { setCustomerData(data); setScreen('pix'); }} /> : <PixScreen customerData={customerData} />;
+        }
+        
+        window.initReactCheckout = () => { 
+            const root = ReactDOM.createRoot(document.getElementById('checkout-root')); 
+            root.render(<App />); 
+        };
+    </script>
+</body>
+</html>
