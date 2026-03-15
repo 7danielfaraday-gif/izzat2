@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>REF (Referência)</title>
+  <meta name="robots" content="index,follow" />
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:#0b1220;color:#e5e7eb}
+    .wrap{max-width:920px;margin:0 auto;padding:28px 18px 70px}
+    a{color:#93c5fd}
+    .card{background:#111a2e;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:20px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+    h1{margin:0 0 8px;font-size:26px}
+    p,li{line-height:1.55;color:#d1d5db}
+    .muted{opacity:.85}
+    .code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;background:rgba(255,255,255,.08);padding:10px 12px;border-radius:12px;display:inline-block}
+    .top{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+    .pill{font-size:12px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <h1>REF (Referência)</h1>
+      <div class="pill">Transparência</div>
+    </div>
+
+    <div class="card">
+      <p class="muted">O campo <b>REF</b> é uma referência técnica usada para conciliar sessões/campanhas quando aplicável.</p>
+      <ul>
+        <li>Nesta implementação, o REF é derivado do <code>ttclid</code> (quando existir) e mostra os <b>últimos 8 caracteres</b>.</li>
+        <li>Ele <b>não</b> contém informações pessoais (como e-mail, telefone, CPF ou endereço).</li>
+      </ul>
+
+      <p style="margin-top:14px">Seu REF atual (se disponível):</p>
+      <div class="code" id="ref">—</div>
+
+      <p class="muted" style="margin-top:18px">Links úteis: <a href="/termos-de-compra/">Termos de compra</a> • <a href="/politica-de-privacidade/">Política de Privacidade</a> • <a href="/">Voltar</a></p>
+    </div>
+  </div>
+
+  <script>
+    function getTTCLID() {
+      try {
+        const u = new URLSearchParams(window.location.search);
+        const val = u.get('ttclid');
+        if (val) {
+          try { localStorage.setItem('ttclid', val); } catch(e) {}
+          return val;
+        }
+        return localStorage.getItem('ttclid');
+      } catch(e) { return null; }
+    }
+    function getRefCode() {
+      try {
+        const t = getTTCLID();
+        if (!t) return '';
+        const s = String(t);
+        return s.length > 8 ? s.slice(-8) : s;
+      } catch(e) { return ''; }
+    }
+    try {
+      const r = getRefCode();
+      document.getElementById('ref').textContent = r || '—';
+    } catch(e) {}
+  </script>
+</body>
+</html>
