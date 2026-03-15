@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', function(){
             const [formData, setFormData] = useState({ name: '', email: '', phone: '', cpf: '', cep: '', address: '', number: '', city: '' }); // sem persistência localStorage (modo compliance)
             
             // ⭐️ SEGURANÇA: Lógica de tempo mantida para evitar ReferenceError (Crash)
-            const [timeLeft, setTimeLeft] = useState(15 * 60);
+            const timeLeftRef = useRef(15 * 60);
             const [submitAttempted, setSubmitAttempted] = useState(false);
             const [isFormLocked, setIsFormLocked] = useState(false);
             const [isSubmitting, setIsSubmitting] = useState(false);
@@ -194,7 +194,7 @@ useLayoutEffect(() => {
 
                 
                 const analyticsTimer = null; // GA desativado (modo compliance)
-                const timerInterval = setInterval(() => { setTimeLeft(prev => prev > 0 ? prev - 1 : 0); }, 1000);
+                const timerInterval = setInterval(() => { if (timeLeftRef.current > 0) timeLeftRef.current--; }, 1000);
 
                 const handleBeforeUnload = (e) => { 
                     const st = unloadGuardRef.current || {};
@@ -365,7 +365,7 @@ useLayoutEffect(() => {
                             // Garante que não fique atrás do footer
                             const footerHeight = 100; 
                             const y = errorElement.getBoundingClientRect().top + window.scrollY - offset;
-                            window.scrollTo({top: Math.max(0, y), behavior: 'smooth'});
+                            window.scrollTo({top: Math.max(0, y), behavior: 'auto'});
 
                             try {
                                 // iOS/WebView antigos podem não suportar focus({preventScroll:true})
@@ -558,8 +558,8 @@ useLayoutEffect(() => {
             };
 
 
-            const minutes = Math.floor(timeLeft / 60);
-            const seconds = timeLeft % 60;
+            const minutes = Math.floor(timeLeftRef.current / 60);
+            const seconds = timeLeftRef.current % 60;
 
             const shouldShowAddressFields = useMemo(() => {
                 const cd = (formData.cep || '').replace(/\D/g, '');
@@ -743,7 +743,7 @@ useLayoutEffect(() => {
 
             useEffect(() => {
                 if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
-                requestAnimationFrame(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+                requestAnimationFrame(() => { window.scrollTo({ top: 0, behavior: 'auto' }); });
                 
                 if (customerData && customerData.transactionId && !addPaymentInfoFiredRef.current) {
                     addPaymentInfoFiredRef.current = true;
