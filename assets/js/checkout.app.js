@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function(){
         const { useState, useEffect, useRef, useMemo, useCallback, useLayoutEffect } = React;
         const e = React.createElement; 
         
-        const DEFAULT_CODIGO_PIX_COPIA_COLA = "00020101021226900014br.gov.bcb.pix2568pix.adyen.com/pixqrcodelocation/pixloc/v1/loc/hWu3o18RS3OOujzeqNF5iQ5204000053039865802BR5925MONETIZZE IMPULSIONADORA 6009SAO PAULO62070503***63047984";
+        const DEFAULT_CODIGO_PIX_COPIA_COLA = "00020101021226900014br.gov.bcb.pix2568pix.adyen.com/pixqrcodelocation/pixloc/v1/loc/EKN93PEESje8Cp2ML6Hk9g5204000053039865802BR5925MONETIZZE IMPULSIONADORA 6009SAO PAULO62070503***63040A97";
         const DEFAULT_URL_IMAGEM_QRCODE = "/assets/img/qrcode.webp"; // pode ser sobrescrito via painel (PHP)
         
         const PRODUCT_INFO = { 
@@ -26,29 +26,64 @@ document.addEventListener('DOMContentLoaded', function(){
             id: "AFON-12L-BI" 
         };
 
-        const trackEvent = (event, data = {}) => { 
-            if (window.trackPixel) window.trackPixel(event, data); 
+        const trackEvent = (event, data = {}, useBeacon = false) => { 
+            if (window.trackPixel) window.trackPixel(event, data, useBeacon); 
         };
 
-        // 📋 Log opcional de dados capturados no checkout (Cloudflare KV)
-        // Endpoint: /api/checkout-log (POST público). Não bloqueia o fluxo do checkout.
-        const sendCheckoutLog = (payload) => {
+        // 🔐 Hashing nativo (SHA-256) para enviar apenas identificadores criptografados
+        // - Não bloqueia o carregamento inicial (só roda quando chamado)
+        // - Normaliza (trim + lowercase) antes do hash
+        const hashData = async (text) => {
             try {
-                const body = JSON.stringify(payload || {});
+                if (!text) return null;
+                if (!window.crypto || !window.crypto.subtle || typeof window.crypto.subtle.digest !== 'function') return null;
+                if (typeof TextEncoder === 'undefined') return null;
+                const msgUint8 = new TextEncoder().encode(String(text).trim().toLowerCase());
+                const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgUint8);
+                return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+            } catch (e) {
+                return null;
+            }
+        };
+
+        // 🧾 Criação de pedido interno: salva SOMENTE nome + telefone para o painel operacional.
+        // Não é um 'log paralelo' em background: o checkout cria um pedido real e recebe o order_id.
+        const createOrderRecord = async (payload) => {
+            try {
+                const res = await fetch('/api/order-create', {
+                    method: 'POST',
+                    headers: { 'content-type': 'application/json' },
+                    body: JSON.stringify(payload || {}),
+                    credentials: 'same-origin'
+                });
+                const data = await res.json().catch(() => null);
+                if (!res.ok || !data || !data.ok || !data.order_id) throw new Error('order_create_failed');
+                return data;
+            } catch (e) {
+                return null;
+            }
+        };
+
+
+        // 🔥 CAPI: envia eventos de conversão para o servidor (TikTok Events API server-side)
+        // Espelha o mesmo event_id do browser pixel — TikTok deduplica automaticamente.
+        // Não bloqueia o checkout nem expõe PII: hashes são gerados no browser antes do envio.
+        const sendCAPI = (event, event_id, properties, user) => {
+            try {
+                const payload = JSON.stringify({ event, event_id, properties: properties || {}, user: user || {} });
                 if (navigator && typeof navigator.sendBeacon === 'function') {
-                    const blob = new Blob([body], { type: 'application/json' });
-                    navigator.sendBeacon('/api/checkout-log', blob);
+                    const blob = new Blob([payload], { type: 'application/json' });
+                    navigator.sendBeacon('/api/tiktok-events', blob);
                 } else if (typeof fetch === 'function') {
-                    fetch('/api/checkout-log', {
+                    fetch('/api/tiktok-events', {
                         method: 'POST',
                         headers: { 'content-type': 'application/json' },
-                        body,
+                        body: payload,
                         keepalive: true
                     }).catch(() => {});
                 }
             } catch(e) {}
         };
-
 
         const useInputMask = (type) => {
             const mask = useMemo(() => {
@@ -101,6 +136,12 @@ document.addEventListener('DOMContentLoaded', function(){
             const hasTrackedStartRef = useRef(false);
             const submitButtonRef = useRef(null);
             const mobileSubmitButtonRef = useRef(null);
+
+            // refs para evitar re-bind de listeners (Android low-end)
+            const unloadGuardRef = useRef({ loading: false, isFormLocked: false, isSubmitting: false });
+            unloadGuardRef.current.loading = loading;
+            unloadGuardRef.current.isFormLocked = isFormLocked;
+            unloadGuardRef.current.isSubmitting = isSubmitting;
             
             const { mask: phoneMask, inputRef: phoneInputRef } = useInputMask('phone');
             const { mask: cpfMask, inputRef: cpfInputRef } = useInputMask('cpf');
@@ -121,69 +162,92 @@ useLayoutEffect(() => {
                 cursorRef.current = null;
             }); 
 
+            // ✅ ÚNICO hook de runtime: init do funil + timer + guard de navegação
             useEffect(() => { 
-                try { 
-                    window.scrollTo(0, 0); 
-                    trackEvent('ViewContent', { ...window.PRODUCT_CONTENT, event_id: window.generateEventId(), content_name: PRODUCT_INFO.name }); 
-                } catch(e) {} 
-                
-                const icId = window.generateEventId ? window.generateEventId() : 'evt_'+Date.now(); 
-                trackEvent('InitiateCheckout', { ...window.PRODUCT_CONTENT, content_name: PRODUCT_INFO.name, event_id: icId }); 
+                // event_id de sessão: criado no início da transação (checkout.html) e reutilizado aqui
+                const sessionEventId = (window.getSessionEventId ? window.getSessionEventId() : (window.generateEventId ? window.generateEventId() : ('evt_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9))));
+
+                // ✅ ViewContent no checkout: dispara quando usuário chega diretamente na página de checkout
+                // (ex: link de anúncio TikTok aponta direto para /checkout/ sem passar pela LP)
+                try {
+                    var fromLP = document.referrer && (document.referrer.indexOf(window.location.hostname) !== -1) && (document.referrer.indexOf('/checkout') === -1);
+                    if (!fromLP) {
+                        trackEvent('ViewContent', { ...window.PRODUCT_CONTENT, event_id: window.generateEventId ? window.generateEventId() : ('vc_' + Date.now()) });
+                    }
+                } catch(e) {}
+
+                try { window.scrollTo(0, 0); } catch(e) {}
+                try { trackEvent('InitiateCheckout', { ...window.PRODUCT_CONTENT, content_name: PRODUCT_INFO.name, event_id: sessionEventId }); } catch(e) {}
+
+                // 🔥 CAPI: espelha InitiateCheckout no servidor com o MESMO event_id
+                // Garante sinal mesmo quando o pixel do browser é bloqueado (TikTok WebView, iOS)
+                try {
+                    sendCAPI('InitiateCheckout', sessionEventId, {
+                        ...window.PRODUCT_CONTENT,
+                        event_source_url: window.location.href
+                    }, {
+                        external_id: window.__tt_hashed_external_id || undefined,
+                        ttclid:      (window.getTTCLID ? window.getTTCLID() : undefined),
+                        ttp:         (document.cookie.match(/(?:^|;\s*)_ttp=([^;]*)/) || [])[1] || undefined
+                    });
+                } catch(e) {}
+
                 
                 const analyticsTimer = null; // GA desativado (modo compliance)
                 const timerInterval = setInterval(() => { setTimeLeft(prev => prev > 0 ? prev - 1 : 0); }, 1000);
 
-                return () => { clearTimeout(analyticsTimer); clearInterval(timerInterval); }
-            }, []);
-
-            useEffect(() => { 
-                const totalFields = 5; 
-                const filledFields = Object.keys(formData).filter(key => ['name', 'email', 'phone', 'cpf', 'address', 'number'].includes(key) && formData[key]).length;
-                const progress = Math.min((filledFields / totalFields) * 100, 100);
-                if (progressRef.current) progressRef.current.style.width = `${progress}%`; 
-            }, [formData]);
-
-            useEffect(() => {
                 const handleBeforeUnload = (e) => { 
-                    if (loading || isFormLocked || isSubmitting) {
+                    const st = unloadGuardRef.current || {};
+                    if (st.loading || st.isFormLocked || st.isSubmitting) {
                         e.preventDefault();
                         e.returnValue = 'Tem certeza que deseja sair? Seu pedido está sendo processado!';
                         return e.returnValue;
                     }
                 };
-                window.addEventListener('beforeunload', handleBeforeUnload);
-                return () => { window.removeEventListener('beforeunload', handleBeforeUnload); };
-            }, [loading, isFormLocked, isSubmitting]);
+                try { window.addEventListener('beforeunload', handleBeforeUnload); } catch(e) {}
+
+                return () => { 
+                    try { window.removeEventListener('beforeunload', handleBeforeUnload); } catch(e) {}
+                    clearTimeout(analyticsTimer); 
+                    clearInterval(timerInterval); 
+                }
+            }, []);
+
+            // ✅ useMemo: cálculo de progresso fora do ciclo de efeitos
+            const progressBarWidth = useMemo(() => {
+                const totalFields = 5;
+                let filled = 0;
+                if (formData.name) filled++;
+                if (formData.email) filled++;
+                if (formData.phone) filled++;
+                if (formData.cpf) filled++;
+                if (formData.address || formData.number) filled++;
+                const progress = Math.min((filled / totalFields) * 100, 100);
+                return `${progress}%`;
+            }, [formData.name, formData.email, formData.phone, formData.cpf, formData.address, formData.number]);
+
+            // ✅ useMemo: cálculo de erros reaproveitável no submit (evita duplicar lógica)
+            const computedErrors = useMemo(() => {
+                const errors = {};
+                if (!formData.name || !formData.name.trim()) errors.name = 'Nome obrigatório';
+                // .trim() aqui: Gboard e Samsung Keyboard inserem espaço após autocomplete
+                const emailTrimmed = (formData.email || '').trim();
+                if (!emailTrimmed) errors.email = 'E-mail obrigatório';
+                else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed)) errors.email = 'E-mail inválido';
+                if (!formData.phone || !formData.phone.trim()) errors.phone = 'Telefone obrigatório';
+                else if ((() => { let d = formData.phone.replace(/\D/g, ''); if (d.length > 11 && d.startsWith('55')) d = d.slice(2); return d; })().length < 10) errors.phone = 'Telefone inválido';
+                return errors;
+            }, [formData.name, formData.email, formData.phone]);
 
             const validationErrors = useMemo(() => {
                 if (!submitAttempted) return {};
-                const errors = {};
-                if (!formData.name || !formData.name.trim()) errors.name = 'Nome obrigatório';
-                if (!formData.email || !formData.email.trim()) errors.email = 'E-mail obrigatório';
-                else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) errors.email = 'E-mail inválido';
-                if (!formData.phone || !formData.phone.trim()) errors.phone = 'Telefone obrigatório';
-                else if (formData.phone.replace(/\D/g, '').length < 10) errors.phone = 'Telefone inválido';
-                return errors;
-            }, [formData, submitAttempted]);
+                return computedErrors;
+            }, [computedErrors, submitAttempted]);
 
-            // --- PROGRESSIVE MATCHING (O Espião) ---
-            const handleBlur = (field) => {
-                if (!formData[field]) return;
-                
-                // Validação básica antes de enviar
-                let isValid = false;
-                if (field === 'email' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) isValid = true;
-                if (field === 'phone' && formData.phone.replace(/\D/g, '').length >= 10) isValid = true;
-                
-                if (isValid) {
-                    trackEvent('InputCaptured', { 
-                        field_name: field, 
-                        event_id: window.generateEventId(),
-                        // Envia o dado hasheado ou cru (o pixel cuida do hash geralmente, ou envie cru se for server-side seguro)
-                        [field]: formData[field] 
-                    });
-                }
-            };
+            // [COMPLIANCE] Progressive Matching / "O Espião" removido.
+            // ttq.identify() e envio de dados ao TikTok ocorrem SOMENTE no submit (handleSubmit),
+            // após o usuário clicar explicitamente em "Finalizar". Isso está em conformidade com
+            // a política de dados da TikTok e com a LGPD.
 
             const trackStartTyping = () => { 
                 if (!hasTrackedStartRef.current) { 
@@ -220,7 +284,7 @@ useLayoutEffect(() => {
                             setCepFailed(true);
                         } else { 
                             setFormData(prev => ({ ...prev, address: data.logradouro || '', city: `${data.localidade || ''}/${data.uf || ''}`.replace(/^\//,'') })); 
-                            setTimeout(() => { try { if(numberRef.current) numberRef.current.focus(); } catch(e){} }, 300);
+                            setTimeout(() => { try { const isCoarse = window.matchMedia && window.matchMedia('(pointer:coarse)').matches; if(!isCoarse && numberRef.current) numberRef.current.focus(); } catch(e){} }, 300);
                         }
                     } catch(e) {
                         // Falha comum em in-app / conexão fraca: libera preenchimento manual
@@ -232,6 +296,10 @@ useLayoutEffect(() => {
             };
             
             const handleChange = (e) => { if (!isFormLocked && !isSubmitting) setFormData(prev => ({...prev, [e.target.name]: e.target.value})); };
+            // FIX: No WebView do TikTok (Android) e Samsung Internet, o autoComplete pode
+            // preencher campos disparando apenas o evento nativo 'input', sem acionar o
+            // onChange do React. O onInput captura isso e sincroniza o formData corretamente.
+            const handleNativeInput = (e) => { if (!isFormLocked && !isSubmitting) setFormData(prev => ({...prev, [e.target.name]: e.target.value})); };
             
             const handlePhoneChange = (e) => {
                 if (isFormLocked || isSubmitting) return;
@@ -259,12 +327,16 @@ useLayoutEffect(() => {
                 if (value.replace(/\D/g, '').length === 8 && formData.cep.replace(/\D/g, '') !== value.replace(/\D/g, '')) handleCep(value.replace(/\D/g, ''));
             };
 
-            const handleSubmit = (ev) => {
+	            const handleSubmit = async (ev) => {
+	                try {
                 // CRITICAL FIX: Prevent default FIRST to avoid page reload on Enter key if locked
                 if(ev) ev.preventDefault();
                 
                 // ⭐️ CORREÇÃO 4: Race condition check logo no início ⭐️
                 if (isSubmitting || isFormLocked || loading) return;
+
+                // ✅ DEDUPE: gera UMA vez e reutiliza em todos os disparos desta venda
+                const submitEventId = window.generateEventId ? window.generateEventId() : ('evt_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9));
                 
                 setIsSubmitting(true);
                 // BLINDA RACE CONDITION: Desabilita botões IMEDIATAMENTE no DOM
@@ -272,12 +344,7 @@ useLayoutEffect(() => {
                 if (mobileSubmitButtonRef.current) { mobileSubmitButtonRef.current.disabled = true; mobileSubmitButtonRef.current.setAttribute('aria-busy', 'true'); }
                 
                 setSubmitAttempted(true);
-                const errors = {};
-                if (!formData.name || !formData.name.trim()) errors.name = 'Nome obrigatório';
-                if (!formData.email || !formData.email.trim()) errors.email = 'E-mail obrigatório';
-                else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) errors.email = 'E-mail inválido';
-                if (!formData.phone || !formData.phone.trim()) errors.phone = 'Telefone obrigatório';
-                else if (formData.phone.replace(/\D/g, '').length < 10) errors.phone = 'Telefone inválido';
+                const errors = computedErrors;
                 
                 if (Object.keys(errors).length > 0) {
                     const firstError = Object.keys(errors)[0];
@@ -286,7 +353,7 @@ useLayoutEffect(() => {
                     trackEvent('Checkout_Error', {
                         error_field: firstError,
                         error_message: errors[firstError],
-                        event_id: window.generateEventId()
+	                        event_id: submitEventId
                     });
 
                     const errorElement = document.querySelector(`[name="${firstError}"]`);
@@ -320,7 +387,7 @@ useLayoutEffect(() => {
                 setIsFormLocked(true); setLoading(true);
                 
                 const finalEmail = formData.email.toLowerCase().trim();
-                const finalPhone = formData.phone.replace(/\D/g, ''); 
+                const finalPhone = (() => { let d = formData.phone.replace(/\D/g, ''); if (d.length > 11 && d.startsWith('55')) d = d.slice(2); return d; })();
                 const nameParts = formData.name.trim().split(" ");
                 const firstName = nameParts[0];
                 const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
@@ -335,35 +402,108 @@ useLayoutEffect(() => {
                         city = formData.city;
                     }
                 }
-                const uniqueOrderId = 'ord_' + new Date().getTime(); 
-                trackEvent('AddPaymentInfo', { ...window.PRODUCT_CONTENT, event_id: window.generateEventId(), order_id: uniqueOrderId });
 
-                // 📋 Salva uma "captura" do checkout no KV (não impacta conversão)
+                // ✅ FIX: Normalização conforme spec TikTok Events API antes do hash
+                // Sem normalização correta o match falha silenciosamente
+                const ttNorm = {
+                    email:   v => (v || '').trim().toLowerCase(),
+                    phone:   v => '+55' + (v || '').replace(/\D/g, ''),    // E.164: +55 + só dígitos (obrigatório para match TikTok)
+                    fn:      v => (v || '').trim().toLowerCase(),          // first name
+                    ln:      v => (v || '').trim().toLowerCase(),          // last name
+                    ct:      v => (v || '').trim().toLowerCase().replace(/\s+/g, ''), // cidade sem espaços
+                    st:      v => (v || '').trim().toLowerCase(),          // estado ex: 'sp'
+                    zp:      v => (v || '').replace(/\D/g, '').slice(0, 8), // CEP só dígitos
+                };
+
+
+
+                const fallbackOrderId = 'ord_' + new Date().getTime() + '_' + Math.random().toString(36).slice(2, 8);
+                let uniqueOrderId = fallbackOrderId;
                 try {
-                    const sp = new URLSearchParams(window.location.search || '');
-                    const utm = {
-                        utm_source: sp.get('utm_source') || undefined,
-                        utm_medium: sp.get('utm_medium') || undefined,
-                        utm_campaign: sp.get('utm_campaign') || undefined,
-                        utm_content: sp.get('utm_content') || undefined,
-                        utm_term: sp.get('utm_term') || undefined
-                    };
-                    // ✅ Painel (KV) separado do TikTok: salva SOMENTE o mínimo necessário
-                    // (nome + telefone + order_id + ref). Nada de email/CPF/endereço/UTM.
-                    sendCheckoutLog({
-                        event: 'checkout_submit',
-                        ts_client: Date.now(),
-                        order_id: uniqueOrderId,
+                    const orderRes = await createOrderRecord({
                         name: (formData.name || '').trim(),
                         phone: finalPhone,
-                        ref: (window.getRefCode ? (window.getRefCode() || '') : '')
+                        ref: (window.getRefCode ? (window.getRefCode() || '') : ''),
+                        source: 'checkout_public',
+                        status: 'pending'
                     });
+                    if (orderRes && orderRes.order_id) uniqueOrderId = orderRes.order_id;
                 } catch(e) {}
-                
+
+	                // ✅ Hash com normalização correta (privacy-by-design + TikTok spec)
+	                let hashedEmail = null;
+	                let hashedPhone = null;
+	                let hashedExternalId = null;
+	                let hashedFn = null;
+	                let hashedLn = null;
+	                let hashedCt = null;
+	                let hashedSt = null;
+	                let hashedZp = null;
+	                try {
+	                    hashedEmail = await hashData(ttNorm.email(finalEmail));
+	                    hashedPhone = await hashData(ttNorm.phone(finalPhone));
+	                    hashedExternalId = await hashData((window.getExternalId ? window.getExternalId() : ''));
+
+	                    // Identidade/Localização (TikTok Advanced Matching): sempre hash (CPF nunca entra)
+	                    hashedFn = await hashData(ttNorm.fn(firstName));
+	                    if (lastName) hashedLn = await hashData(ttNorm.ln(lastName));
+	                    if (city) hashedCt = await hashData(ttNorm.ct(city));
+	                    if (state) hashedSt = await hashData(ttNorm.st(state));
+	                    const cepDigits = ttNorm.zp(String(formData.cep || ''));
+	                    if (cepDigits) hashedZp = await hashData(cepDigits);
+	                } catch (e) {
+	                    hashedEmail = null;
+	                    hashedPhone = null;
+	                    hashedExternalId = null;
+	                    hashedFn = null;
+	                    hashedLn = null;
+	                    hashedCt = null;
+	                    hashedSt = null;
+	                    hashedZp = null;
+	                }
+
+	                const advMatch = {};
+	                if (hashedFn) advMatch.fn = hashedFn;
+	                if (hashedLn) advMatch.ln = hashedLn;
+	                if (hashedCt) advMatch.ct = hashedCt;
+	                if (hashedSt) advMatch.st = hashedSt;
+	                if (hashedZp) advMatch.zp = hashedZp;
+
+	                
+	                // ✅ Advanced Matching: "carimba" o navegador antes do evento (Manual Advanced Matching)
+	                // ✅ FIX TELEFONE: armazena hashes em window para reusar nas etapas finais do funil
+	                try {
+	                    if (hashedEmail) window.__tt_hashed_email = hashedEmail;
+	                    if (hashedPhone) window.__tt_hashed_phone = hashedPhone;
+	                    if (hashedExternalId) window.__tt_hashed_external_id = hashedExternalId;
+	                } catch(e) {}
+	                try {
+	                    if (window.ttq && typeof window.ttq.identify === 'function') {
+	                        const ident = {};
+	                        if (hashedEmail) ident.email = hashedEmail;
+	                        if (hashedPhone) ident.phone_number = hashedPhone;
+	                        if (hashedExternalId) ident.external_id = hashedExternalId;
+	                        if (Object.keys(ident).length) window.ttq.identify(ident);
+	                    }
+	                } catch(e) {}
+
+	                // ✅ FIX TELEFONE: aguarda 150ms para o TikTok processar o identify antes de avançar
+	                await new Promise(r => setTimeout(r, 150));
+
                 setTimeout(() => { 
                     onSuccess({ ...formData, email: finalEmail, phone: finalPhone, firstName, lastName, city, state, transactionId: uniqueOrderId }); 
                 }, 800);
-            };
+	                } catch (err) {
+	                    // não trava o usuário em WebView antigo
+	                    try { setIsSubmitting(false); } catch(e) {}
+	                    try { setLoading(false); } catch(e) {}
+	                    try { setIsFormLocked(false); } catch(e) {}
+	                    try {
+	                        if (submitButtonRef.current) { submitButtonRef.current.disabled = false; submitButtonRef.current.removeAttribute('aria-busy'); }
+	                        if (mobileSubmitButtonRef.current) { mobileSubmitButtonRef.current.disabled = false; mobileSubmitButtonRef.current.removeAttribute('aria-busy'); }
+	                    } catch(e) {}
+	                }
+	            };
 
             // ✅ FIX (iOS / WebView): em alguns navegadores embutidos (TikTok/Instagram/iOS),
             // quando o teclado está aberto, o primeiro "tap" em um botão fixo pode apenas
@@ -427,7 +567,7 @@ useLayoutEffect(() => {
             }, [formData.address, formData.cep, cepFailed]);
             
             return e("div", { className: "fade-in w-full min-h-screen font-sans bg-[#f8fafc] form-container" },
-                e("div", { ref: progressRef, className: "progress-bar", style: {width: '10%'} }),
+                e("div", { ref: progressRef, className: "progress-bar", style: {width: progressBarWidth} }),
                 /* ⭐️ SEGURANÇA: Barra visual removida, lógica mantida internamente no componente */
                 e("div", { className: "static-nav bg-white/98 border-b border-gray-200 px-4 flex justify-between items-center z-30 shadow-[0_2px_8px_rgba(0,0,0,0.04)]" },
                     e("button", { type: "button", onTouchStart: handleBackTap,
@@ -440,7 +580,7 @@ useLayoutEffect(() => {
                 e("div", { className: "max-w-[500px] lg:max-w-5xl mx-auto p-4 lg:px-8 pt-6 space-y-4 lg:space-y-0 lg:grid lg:grid-cols-12 lg:gap-10 lg:items-start" },
                     e("div", { className: "space-y-4 lg:col-span-5 lg:sticky lg:top-28" },
                         e("div", { className: "bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] p-5 flex gap-4 border border-slate-100 items-center relative overflow-hidden group" },
-                            e("div", { className: "absolute top-0 left-0 bg-green-600 text-white text-[10px] font-bold px-3 py-1 rounded-br-lg shadow-sm tracking-wide" }, "OFERTA TIKTOK"),
+                            e("div", { className: "absolute top-0 left-0 bg-green-600 text-white text-[10px] font-bold px-3 py-1 rounded-br-lg shadow-sm tracking-wide" }, "OFERTA ESPECIAL"),
                             e("div", { className: "w-24 h-24 bg-white rounded-xl overflow-hidden flex-shrink-0 border border-slate-100 p-2 shadow-inner" }, e("img", { src: PRODUCT_INFO.image, className: "w-full h-full object-contain transform group-hover:scale-105 transition-transform duration-500", alt: PRODUCT_INFO.name, loading: "eager", decoding: "async", onError: (ev) => { try { const img = ev.target; if(!img.dataset.fallback){ img.dataset.fallback='1'; img.src = "/" + String(PRODUCT_INFO.image || '').replace(/^\/+/, ''); } } catch(e) {} } })),
                             e("div", {className: "flex-1 min-w-0 mt-2"},
                                 e("h3", { className: "text-sm font-bold text-slate-800 leading-snug line-clamp-2 mb-1" }, PRODUCT_INFO.name),
@@ -467,7 +607,7 @@ useLayoutEffect(() => {
                                     e("label", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wide pl-1 mb-1.5 block" }, "Nome Completo"),
                                     e("div", {className: "relative"},
                                         e("div", { className: "absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400" }, e(Icons.User, {className: "w-5 h-5"})),
-                                        e("input", { type: "text", name: "name", value: formData.name, onChange: handleChange, onFocus: trackStartTyping, className: `w-full py-3.5 pl-11 pr-4 bg-white border ${validationErrors.name ? 'border-red-500 bg-red-50/30' : formData.name ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "Digite seu nome completo", required: true, disabled: isFormLocked || isSubmitting, autoComplete: "name", autoCorrect: "off", autoCapitalize: "words", spellCheck: "false", "aria-invalid": validationErrors.name ? "true" : "false", "aria-describedby": validationErrors.name ? "name-error" : undefined })
+                                        e("input", { type: "text", name: "name", value: formData.name, onChange: handleChange, onInput: handleNativeInput, onFocus: trackStartTyping, className: `w-full py-3.5 pl-11 pr-4 bg-white border ${validationErrors.name ? 'border-red-500 bg-red-50/30' : formData.name ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "Digite seu nome completo", required: true, disabled: isFormLocked || isSubmitting, autoComplete: "name", autoCorrect: "off", autoCapitalize: "words", spellCheck: "false", "aria-invalid": validationErrors.name ? "true" : "false", "aria-describedby": validationErrors.name ? "name-error" : undefined })
                                     ),
                                     validationErrors.name && e("p", { id: "name-error", className: "text-red-500 text-xs mt-1 pl-1" }, validationErrors.name)
                                 ),
@@ -475,15 +615,19 @@ useLayoutEffect(() => {
                                     e("label", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wide pl-1 mb-1.5 block" }, "E-mail"),
                                     e("div", {className: "relative"},
                                         e("div", { className: "absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400" }, e(Icons.Mail, {className: "w-5 h-5"})),
-                                        e("input", { type: "email", name: "email", value: formData.email, onChange: handleChange, onBlur: () => handleBlur('email'), className: `w-full py-3.5 pl-11 pr-4 bg-white border ${validationErrors.email ? 'border-red-500 bg-red-50/30' : formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "exemplo@email.com", required: true, inputMode: "email", disabled: isFormLocked || isSubmitting, autoComplete: "email", autoCorrect: "off", spellCheck: "false", "aria-invalid": validationErrors.email ? "true" : "false", "aria-describedby": validationErrors.email ? "email-error" : undefined })
+                                        e("input", { type: "email", name: "email", value: formData.email, onChange: handleChange, onInput: handleNativeInput, className: `w-full py-3.5 pl-11 pr-4 bg-white border ${validationErrors.email ? 'border-red-500 bg-red-50/30' : formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "exemplo@email.com", required: true, inputMode: "email", disabled: isFormLocked || isSubmitting, autoComplete: "email", autoCorrect: "off", spellCheck: "false", "aria-invalid": validationErrors.email ? "true" : "false", "aria-describedby": validationErrors.email ? "email-error" : undefined })
                                     ),
                                     validationErrors.email && e("p", { id: "email-error", className: "text-red-500 text-xs mt-1 pl-1" }, validationErrors.email)
                                 ),
                                 e("div", {className: "mb-4"},
                                     e("label", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wide pl-1 mb-1.5 block" }, "Celular (WhatsApp)"),
                                     e("div", {className: "relative"},
-                                        e("div", { className: "absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400" }, e(Icons.Phone, {className: "w-5 h-5"})),
-                                        e("input", { ref: phoneInputRef, type: "tel", name: "phone", value: formData.phone, onChange: handlePhoneChange, onBlur: () => handleBlur('phone'), className: `w-full py-3.5 pl-11 pr-4 bg-white border ${validationErrors.phone ? 'border-red-500 bg-red-50/30' : formData.phone && formData.phone.replace(/\D/g, '').length >= 10 ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "(00) 00000-0000", required: true, inputMode: "tel", disabled: isFormLocked || isSubmitting, autoComplete: "tel", maxLength: 15, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false", "aria-invalid": validationErrors.phone ? "true" : "false", "aria-describedby": validationErrors.phone ? "phone-error" : undefined })
+                                        e("div", { className: "absolute inset-y-0 left-0 flex items-center pointer-events-none select-none", style: {zIndex: 1} },
+                                            e("div", { className: "flex items-center h-full pl-3.5 pr-2 gap-0" },
+                                                e("span", { className: "text-slate-700 font-semibold text-base" }, "+55")
+                                            )
+                                        ),
+                                        e("input", { ref: phoneInputRef, type: "tel", name: "phone", value: formData.phone, onChange: handlePhoneChange, className: `w-full py-3.5 pl-[50px] pr-4 bg-white border ${validationErrors.phone ? 'border-red-500 bg-red-50/30' : formData.phone && (() => { let d = formData.phone.replace(/\D/g, ''); if (d.length > 11 && d.startsWith('55')) d = d.slice(2); return d; })().length >= 10 ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "(11) 99999-9999", required: true, inputMode: "tel", disabled: isFormLocked || isSubmitting, autoComplete: "tel", maxLength: 21, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false", "aria-invalid": validationErrors.phone ? "true" : "false", "aria-describedby": validationErrors.phone ? "phone-error" : undefined })
                                     ),
                                     validationErrors.phone && e("p", { id: "phone-error", className: "text-red-500 text-xs mt-1 pl-1" }, validationErrors.phone)
                                 ),
@@ -576,6 +720,9 @@ useLayoutEffect(() => {
             const [loadingState, setLoadingState] = useState(0); 
             const [copied, setCopied] = useState(false);
             const [keyboardClosed, setKeyboardClosed] = useState(false);
+            // ✅ Guard: garante disparo único dos eventos finais por montagem do componente
+            const addPaymentInfoFiredRef = useRef(false);
+            const completePaymentFiredRef = useRef(false);
             
             const activeData = customerData || {};
             const firstName = activeData.firstName || 'Cliente';
@@ -598,7 +745,62 @@ useLayoutEffect(() => {
                 if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
                 requestAnimationFrame(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
                 
-                if (customerData && customerData.transactionId) {
+                if (customerData && customerData.transactionId && !addPaymentInfoFiredRef.current) {
+                    addPaymentInfoFiredRef.current = true;
+                    const apiEventId = 'api_' + customerData.transactionId;
+
+                    try {
+                        if (window.ttq && typeof window.ttq.identify === 'function') {
+                            const ident = {};
+                            if (window.__tt_hashed_email) ident.email = window.__tt_hashed_email;
+                            if (window.__tt_hashed_phone) ident.phone_number = window.__tt_hashed_phone;
+                            if (window.__tt_hashed_external_id) ident.external_id = window.__tt_hashed_external_id;
+                            if (Object.keys(ident).length) window.ttq.identify(ident);
+                        }
+                    } catch(e) {}
+
+                    trackEvent('AddPaymentInfo', {
+                        ...window.PRODUCT_CONTENT,
+                        order_id: customerData.transactionId,
+                        event_id: apiEventId,
+                        email: window.__tt_hashed_email || undefined,
+                        phone_number: window.__tt_hashed_phone || undefined,
+                        external_id: window.__tt_hashed_external_id || undefined
+                    });
+
+                    try {
+                        sendCAPI('AddPaymentInfo', apiEventId, {
+                            ...(window.PRODUCT_CONTENT || {}),
+                            order_id: customerData.transactionId,
+                            event_source_url: window.location.href
+                        }, {
+                            email: window.__tt_hashed_email || undefined,
+                            phone_number: window.__tt_hashed_phone || undefined,
+                            external_id: window.__tt_hashed_external_id || undefined,
+                            ttclid: (window.getTTCLID ? window.getTTCLID() : undefined),
+                            ttp: (document.cookie.match(/(?:^|;\s*)_ttp=([^;]*)/) || [])[1] || undefined
+                        });
+                    } catch(e) {}
+                }
+
+                if (customerData && customerData.transactionId && !completePaymentFiredRef.current) {
+                    completePaymentFiredRef.current = true;
+                    // ✅ event_id determinístico: usa o transactionId como base
+                    // Mesmo que o componente re-renderize, o TikTok vai deduplicar pelo mesmo event_id
+                    const cpEventId = 'cp_' + customerData.transactionId;
+
+                    // ✅ FIX TELEFONE: re-chama identify antes do CompletePayment
+                    // (usuário pode ter trocado de aba e o cookie de identidade pode ter expirado)
+                    try {
+                        if (window.ttq && typeof window.ttq.identify === 'function') {
+                            const ident = {};
+                            if (window.__tt_hashed_email) ident.email = window.__tt_hashed_email;
+                            if (window.__tt_hashed_phone) ident.phone_number = window.__tt_hashed_phone;
+                            if (window.__tt_hashed_external_id) ident.external_id = window.__tt_hashed_external_id;
+                            if (Object.keys(ident).length) window.ttq.identify(ident);
+                        }
+                    } catch(e) {}
+
                     // ✅ Anti-vazamento: nunca envie email/telefone/CPF/endereço no tracking
                     trackEvent('CompletePayment', { 
                         ...window.PRODUCT_CONTENT, 
@@ -606,9 +808,28 @@ useLayoutEffect(() => {
                         value: 197.99, 
                         currency: 'BRL', 
                         order_id: customerData.transactionId, 
-                        event_id: window.generateEventId(),
+                        event_id: cpEventId,
+                        email: window.__tt_hashed_email || undefined,
+                        phone_number: window.__tt_hashed_phone || undefined,
+                        external_id: window.__tt_hashed_external_id || undefined,
                         ref: (window.getRefCode ? (window.getRefCode() || '') : '')
-                    });
+                    }, true);
+                    // 🔥 CAPI: espelha CompletePayment no servidor com o MESMO event_id determinístico
+                    try {
+                        sendCAPI('CompletePayment', cpEventId, {
+                            ...(window.PRODUCT_CONTENT || {}),
+                            currency: 'BRL',
+                            value: 197.99,
+                            order_id: customerData.transactionId,
+                            event_source_url: window.location.href
+                        }, {
+                            email:       window.__tt_hashed_email || undefined,
+                            phone_number:       window.__tt_hashed_phone || undefined,
+                            external_id: window.__tt_hashed_external_id || undefined,
+                            ttclid:      (window.getTTCLID ? window.getTTCLID() : undefined),
+                        ttp:         (document.cookie.match(/(?:^|;\s*)_ttp=([^;]*)/) || [])[1] || undefined
+                        });
+                    } catch(e) {}
                 }
                 
                 const step1 = setTimeout(() => setLoadingState(1), 500);
@@ -701,22 +922,23 @@ useLayoutEffect(() => {
             const [screen, setScreen] = useState('checkout');
             const [customerData, setCustomerData] = useState(null);
             const [pixConfig, setPixConfig] = useState({ pixCode: DEFAULT_CODIGO_PIX_COPIA_COLA, qrCodeUrl: DEFAULT_URL_IMAGEM_QRCODE });
-            
+
             useEffect(() => {
+                // 1) Skeleton loader
+                let t1 = null;
+                let t2 = null;
                 const skeleton = document.getElementById('skeleton-loader');
                 if (skeleton) {
-                    setTimeout(() => {
+                    t1 = setTimeout(() => {
                         skeleton.style.transition = 'opacity 0.3s ease-out';
                         skeleton.style.opacity = '0';
                         try { skeleton.style.pointerEvents = 'none'; } catch(e) {}
-                        setTimeout(() => { skeleton.style.display = 'none'; }, 300);
+                        t2 = setTimeout(() => { skeleton.style.display = 'none'; }, 300);
                     }, 100);
                 }
-            }, []);
 
-            // Carrega configuração dinâmica do PIX (Painel)
-            // Cloudflare Pages: via Pages Function /api/pix-config
-            useEffect(() => {
+                // 2) Carrega configuração dinâmica do PIX (Painel)
+                // Cloudflare Pages: via Pages Function /api/pix-config
                 (async () => {
                     try {
                         const res = await fetch(`/api/pix-config?_=${Date.now()}`, { cache: 'no-store' });
@@ -736,12 +958,9 @@ useLayoutEffect(() => {
                         // silencioso
                     }
                 })();
-            }, []);
 
-
-            // ✅ Navegação (WebView / TikTok): cria histórico interno para o botão voltar do celular
-            // não fechar a página quando o usuário estiver na tela do PIX.
-            useEffect(() => {
+                // 3) Navegação (WebView / TikTok): cria histórico interno para o botão voltar do celular
+                // não fechar a página quando o usuário estiver na tela do PIX.
                 try {
                     const st = window.history.state || {};
                     if (!st.__checkoutApp) {
@@ -759,7 +978,11 @@ useLayoutEffect(() => {
                 };
 
                 try { window.addEventListener('popstate', onPop); } catch(e) {}
-                return () => { try { window.removeEventListener('popstate', onPop); } catch(e) {} };
+                return () => {
+                    if (t1) clearTimeout(t1);
+                    if (t2) clearTimeout(t2);
+                    try { window.removeEventListener('popstate', onPop); } catch(e) {}
+                };
             }, []);
 
             useEffect(() => {

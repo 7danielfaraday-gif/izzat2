@@ -1,16 +1,17 @@
 // ==================================================
-    // 1. TRACKING ZARAZ + TIKTOK TURBO (BEACON + FINGERPRINT)
+    // 1. TRACKING PROJETO + TIKTOK (BEACON — SEM FINGERPRINT)
+    // Conformidade LGPD: pixel carregado apenas após consentimento (ver index.html).
     // ==================================================
     
     // Dados do Produto
     const PRODUCT_CONTENT = {
-        contents: [{ content_id: 'AFON-12L-BI', id: 'AFON-12L-BI', quantity: 1, price: 197.99, item_price: 197.99 }],
+        contents: [{ content_id: 'AFON-12L-BI', content_type: 'product', content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial', quantity: 1, price: 197.99 }],
         content_id: 'AFON-12L-BI',
         content_ids: ['AFON-12L-BI'],
         content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial',
         description: 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI',
         content_type: 'product',
-        category: 'Eletroportáteis',
+        content_category: 'Eletroportáteis',
         quantity: 1,
         price: 197.99,
         value: 197.99,
@@ -45,16 +46,19 @@
     }
 
     function getExternalId() {
-        let eid = localStorage.getItem('user_external_id');
-        if (!eid) eid = getCookie('user_external_id'); 
-        
-        if (!eid) {
-            eid = 'user_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
-            localStorage.setItem('user_external_id', eid);
-            setCookie('user_external_id', eid, 365); 
+        // Persistência: external_id em localStorage (mantém atribuição entre sessões)
+        try {
+            let eid = localStorage.getItem('user_external_id');
+            if (!eid) {
+                eid = 'sess_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+                localStorage.setItem('user_external_id', eid);
+            }
+            return eid;
+        } catch (e) {
+            return 'sess_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
         }
-        return eid;
     }
+
 
     function getTTCLID() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -78,6 +82,9 @@
     }
 
     
+// ✅ Captura UTMs no primeiro milissegundo (antes de qualquer clique)
+try { saveUTMs(); } catch(e) {}
+
 // Compliance hardening: remove legacy hashed identifiers from previous versions
 try { localStorage.removeItem('user_hashed_email'); localStorage.removeItem('user_hashed_phone'); } catch(e) {}
 function getStoredUTMs() {
@@ -90,84 +97,52 @@ function getStoredUTMs() {
         return utms;
     }
 
-    // Contexto Avançado (Fingerprinting Lite)
+    // Contexto básico (minimização de dados)
     function getContext() {
-        let connection = 'unknown';
-        if (navigator.connection) {
-            connection = navigator.connection.effectiveType; // '4g', '3g', etc.
-        }
-        
         return {
-            user_agent: navigator.userAgent,
-            language: navigator.language,
             url: window.location.origin + window.location.pathname,
-            referrer: (document.referrer ? document.referrer.split('?')[0] : ''),
-            timestamp: Math.floor(Date.now() / 1000),
-            screen_resolution: window.screen.width + 'x' + window.screen.height,
-            connection_type: connection
+            timestamp: Math.floor(Date.now() / 1000)
         };
     }
 
-    // --- FUNÇÃO DE DISPARO HÍBRIDA (ZARAZ + MANUAL + BEACON) ---
-    function trackViaZaraz(event, data = {}, useBeacon = false) {
+    // --- CAPI: espelha eventos de conversão no servidor via /api/tiktok-events ---
+    function sendCAPI(event, event_id, properties, user) {
         try {
-
-            let payload = { 
-                ...data, 
+            var payload = JSON.stringify({ event: event, event_id: event_id, properties: properties || {}, user: user || {} });
+            if (navigator && typeof navigator.sendBeacon === 'function') {
+                var blob = new Blob([payload], { type: 'application/json' });
+                navigator.sendBeacon('/api/tiktok-events', blob);
+            } else if (typeof fetch === 'function') {
+                fetch('/api/tiktok-events', {
+                    method: 'POST',
+                    headers: { 'content-type': 'application/json' },
+                    body: payload,
+                    keepalive: true
+                }).catch(function(){});
+            }
+        } catch(e) {}
+    }
+    // --- FUNÇÃO DE DISPARO DO PROJETO (PIXEL DO NAVEGADOR) ---
+    function trackTikTokEvent(event, data = {}) {
+        try {
+            let payload = {
+                ...data,
                 ...getContext(),
-                external_id: getExternalId(),
                 ttclid: getTTCLID(),
                 ...getStoredUTMs()
             };
 
-            // Campos compatíveis com Events API (ajuda em matching/atribuição)
             payload.event_time = payload.timestamp || Math.floor(Date.now() / 1000);
             payload.event_source_url = window.location.origin + window.location.pathname;
 
-            // Injeta identificadores recuperados se existirem
-
-            // 1. DISPARO MANUAL (Browser-Side)
-            if (window.ttq && typeof window.ttq.track === 'function') {
-                if (event !== 'PageView') {
-                    window.ttq.track(event, payload);
-                }
+            if (window.ttq && typeof window.ttq.track === 'function' && event !== 'PageView') {
+                window.ttq.track(event, payload);
             }
-
-            // 2. DISPARO ZARAZ (Server-Side)
-            window.__zarazQueue = window.__zarazQueue || [];
-            if (window.zaraz && window.zaraz.track) {
-                window.zaraz.track(event, payload);
-            } else {
-                window.__zarazQueue.push({ event: event, payload: payload });
-            }
-            
-            // 3. BEACON FALLBACK (A Prova de Falhas para Mobile)
-            // Se o Zaraz falhar ou a página fechar, enviamos um sinal direto se tiver endpoint configurado
-            // (Nota: Isso é uma implementação avançada, mantida simples aqui para não quebrar sem backend próprio)
-            
         } catch (error) {
             console.error('Tracking Error:', error);
         }
     }
-
-
-
-    // Garante envio server-side assim que o Zaraz estiver disponível (muito comum no TikTok In-App)
-    (function zarazQueueFlusher(){
-        var tries = 0;
-        var timer = setInterval(function(){
-            tries++;
-            if (window.zaraz && window.zaraz.track && window.__zarazQueue && window.__zarazQueue.length) {
-                var q = window.__zarazQueue.splice(0, window.__zarazQueue.length);
-                for (var i = 0; i < q.length; i++) {
-                    try { window.zaraz.track(q[i].event, q[i].payload); } catch(e) {}
-                }
-            }
-            if (tries > 60 || ((window.zaraz && window.zaraz.track) && (!window.__zarazQueue || window.__zarazQueue.length === 0))) {
-                clearInterval(timer);
-            }
-        }, 500);
-    })();
+    window.trackTikTokEvent = trackTikTokEvent;
 
     // --- TRIGGERS ---
 
@@ -177,19 +152,23 @@ function getStoredUTMs() {
     }
     window.scrollTo(0, 0);
 
-    window.addEventListener('load', function() {
-        saveUTMs();
-    });
-
-    // 2. ViewContent Inteligente
+        // 2. ViewContent Inteligente
     var viewContentFired = false;
     function fireViewContent() {
         if (viewContentFired) return;
         viewContentFired = true;
 
-        trackViaZaraz('ViewContent', {
+        var vcEventId = generateEventId();
+        trackTikTokEvent('ViewContent', {
             ...PRODUCT_CONTENT,
-            event_id: generateEventId()
+            event_id: vcEventId
+        });
+        // CAPI: espelha ViewContent no servidor (garante sinal no in-app browser do TikTok)
+        sendCAPI('ViewContent', vcEventId, {
+            ...PRODUCT_CONTENT,
+            event_source_url: window.location.origin + window.location.pathname
+        }, {
+            ttclid: getTTCLID()
         });
     }
 
@@ -198,7 +177,7 @@ function getStoredUTMs() {
     window.addEventListener('touchmove', fireViewContent, { once: true, passive: true });
 
     // 3. CTA Comprar Agora (WebView-safe: não bloqueia navegação)
-    // Monta o link com parâmetros (ttclid/utm/eid) ANTES do clique, evitando redirect com delay.
+    // Monta o link com parâmetros (ttclid/utm) ANTES do clique, evitando redirect com delay.
     window.buildCheckoutUrl = function(baseHref) {
         try {
             const urlObj = new URL(baseHref, window.location.origin);
@@ -217,13 +196,7 @@ function getStoredUTMs() {
                 });
             } catch (e) {}
 
-            // 3) External ID (eid)
-            try {
-                const eid = (typeof getExternalId === 'function') ? getExternalId() : null;
-                if (eid && !urlObj.searchParams.has('eid')) urlObj.searchParams.set('eid', eid);
-            } catch (e) {}
-
-            // 4) ttclid persistido
+            // 3) ttclid persistido
             try {
                 const ttclid = (typeof getTTCLID === 'function') ? getTTCLID() : null;
                 if (ttclid && !urlObj.searchParams.has('ttclid')) urlObj.searchParams.set('ttclid', ttclid);
@@ -247,10 +220,18 @@ function getStoredUTMs() {
         // Tracking sem bloquear a navegação
         btn.addEventListener('click', () => {
             try {
-                trackViaZaraz('AddToCart', {
+                var atcEventId = generateEventId();
+                trackTikTokEvent('AddToCart', {
                     ...PRODUCT_CONTENT,
-                    event_id: generateEventId()
+                    event_id: atcEventId
                 }, true);
+                // CAPI: espelha AddToCart no servidor
+                sendCAPI('AddToCart', atcEventId, {
+                    ...PRODUCT_CONTENT,
+                    event_source_url: window.location.origin + window.location.pathname
+                }, {
+                            ttclid: getTTCLID()
+                });
             } catch (e) {}
         }, { passive: true });
     })();
@@ -265,7 +246,7 @@ function getStoredUTMs() {
         const scrollPercentage = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight * 100;
         if (scrollPercentage >= 50) {
             scroll50Fired = true;
-            trackViaZaraz('ScrollDepth', {
+            trackTikTokEvent('ScrollDepth', {
                 event_id: generateEventId(),
                 depth: '50%'
             });
@@ -323,11 +304,12 @@ function getStoredUTMs() {
 
       const timerInterval = setInterval(() => {
         if (timeLeft <= 0) {
-          // Quando acaba, reinicia discretamente para manter a pressão (loop infinito sutil)
-          timeLeft = 300; 
-        } else {
-          timeLeft--;
+          clearInterval(timerInterval);
+          localStorage.removeItem('offer_timer_v2');
+          countdownEl.textContent = '⚡ Oferta por tempo limitado';
+          return;
         }
+        timeLeft--;
         localStorage.setItem('offer_timer_v2', timeLeft);
         updateDisplay();
       }, 1000);
@@ -370,13 +352,23 @@ function getStoredUTMs() {
     const viewReviewsBtn = document.querySelector('.add-cart-btn');
     const reviewsSection = document.querySelector('.reviews-section');
     
-    // CORREÇÃO: Remover loader ao carregar imagem
+    // CORREÇÃO: Remover loader ao carregar imagem (inclusive se já tiver carregado antes do JS)
     if (mainImage) {
-        mainImage.onload = function() {
+        const hideLoader = () => {
             const loader = document.getElementById('image-loading');
-            if(loader) loader.style.display = 'none';
+            if (loader) loader.style.display = 'none';
+        };
+        try {
+            mainImage.addEventListener('load', hideLoader, { passive: true });
+        } catch (e) {
+            mainImage.onload = hideLoader;
+        }
+        if (mainImage.complete) {
+            // Se a imagem já carregou antes do handler ser registrado
+            hideLoader();
         }
     }
+
 
     // FIX INP: Otimização do botão "Ver Avaliações"
     // ⭐️ NOVO: Rastreamento de Micro-Conversão (Click em Avaliações)
@@ -384,8 +376,8 @@ function getStoredUTMs() {
       viewReviewsBtn.addEventListener('click', (e) => {
         
         // Dispara evento de interesse
-        if(window.trackViaZaraz) {
-            window.trackViaZaraz('Check_Reviews', { event_id: window.generateEventId() });
+        if(window.trackTikTokEvent) {
+            window.trackTikTokEvent('Check_Reviews', { event_id: window.generateEventId() });
         }
 
         // Envolve em requestAnimationFrame para não bloquear o clique inicial
@@ -520,9 +512,9 @@ function getStoredUTMs() {
         else window.changeImage(-1); // Swipe Direita -> Anterior
         
         // ⭐️ NOVO: Rastreia interação com galeria (Micro-Conversão)
-        if (!galleryEventFired && window.trackViaZaraz) {
+        if (!galleryEventFired && window.trackTikTokEvent) {
             galleryEventFired = true;
-            window.trackViaZaraz('Interact_Gallery', { event_id: window.generateEventId() });
+            window.trackTikTokEvent('Interact_Gallery', { event_id: window.generateEventId() });
         }
       }
     }
@@ -576,4 +568,3 @@ function getStoredUTMs() {
     }, 3000);
     
   });
-
