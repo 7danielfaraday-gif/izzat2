@@ -395,8 +395,10 @@
         }
 
         // ——— Focus-driven scroll: ensure input is visible above footer ———
-        // Uses scrollIntoView which respects CSS scroll-padding/scroll-margin
-        // Fires at multiple intervals to handle slow keyboard animation in WebViews
+        // In resizes-visual mode (TikTok WebView), scrollIntoView uses Layout Viewport
+        // coordinates and doesn't know the keyboard is covering the bottom half.
+        // Manual calculation using getBoundingClientRect (visual viewport relative)
+        // + actual footer height ensures the input is in the TRUE visible safe zone.
         document.addEventListener('focusin', (e) => {
             if (!['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
             document.body.classList.add('keyboard-open');
@@ -404,17 +406,33 @@
             const ensureVisible = () => {
                 try {
                     const el = e.target;
-                    if (document.activeElement !== el) return; // user moved focus
+                    if (document.activeElement !== el) return;
 
-                    // scrollIntoView respects scroll-margin-bottom (set via CSS with --kb-inset)
-                    // block:'nearest' avoids unnecessary jumps if already visible
-                    el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                    // Visual viewport height = actual visible pixels
+                    const vvH = vv ? vv.height : window.innerHeight;
+                    // Footer's real rendered height (includes padding)
+                    const footer = document.querySelector('.checkout-fixed-footer');
+                    const footerH = footer ? Math.ceil(footer.getBoundingClientRect().height) : 0;
+                    // Safe bottom = visual viewport minus footer minus breathing room
+                    const safeBottom = vvH - footerH - 16;
+                    // Input's position relative to visual viewport
+                    const rect = el.getBoundingClientRect();
+
+                    if (rect.bottom > safeBottom) {
+                        // Scroll the exact delta + small offset for visual comfort
+                        window.scrollBy({ top: rect.bottom - safeBottom + 12, behavior: 'smooth' });
+                    } else if (rect.top < 80) {
+                        // Also handle case where input scrolled too far up (behind sticky nav)
+                        window.scrollBy({ top: rect.top - 80, behavior: 'smooth' });
+                    }
                 } catch (_) {}
             };
 
             // Staggered attempts: keyboard animation takes 100-350ms in most WebViews
-            setTimeout(ensureVisible, 120);
-            setTimeout(ensureVisible, 320);
+            // TikTok WebView on some Samsung devices can take up to 450ms
+            setTimeout(ensureVisible, 150);
+            setTimeout(ensureVisible, 350);
+            setTimeout(ensureVisible, 550);
         });
         
         document.addEventListener('focusout', (e) => {
@@ -592,7 +610,7 @@
 </div>
 </div>
 <div id="checkout-root"></div>
-<script defer="" src="/assets/js/checkout.app.js?v=12.0" onerror="window.__loadScript&&window.__loadScript('../assets/js/checkout.app.js?v=12.0').then(function(){if(window.initReactCheckout&&!window.checkoutInitialized)window.initReactCheckout();})"></script>
+<script defer="" src="/assets/js/checkout.app.js?v=5.0" onerror="window.__loadScript&&window.__loadScript('../assets/js/checkout.app.js?v=5.0').then(function(){if(window.initReactCheckout&&!window.checkoutInitialized)window.initReactCheckout();})"></script>
 <script defer src="/assets/js/metrics.ping.js"></script>
 </body>
 </html>
