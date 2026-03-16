@@ -123,20 +123,17 @@ function getStoredUTMs() {
         } catch(e) {}
     }
     // --- FUNÇÃO DE DISPARO DO PROJETO (PIXEL DO NAVEGADOR) ---
+    // Standard TikTok pixel props (ONLY these go to ttq.track)
+    var TT_STD_PROPS = ['value','currency','contents','content_id','content_ids','content_type','content_name','content_category','quantity','order_id','description','query','event_id'];
+
     function trackTikTokEvent(event, data = {}) {
         try {
-            let payload = {
-                ...data,
-                ...getContext(),
-                ttclid: getTTCLID(),
-                ...getStoredUTMs()
-            };
-
-            payload.event_time = payload.timestamp || Math.floor(Date.now() / 1000);
-            payload.event_source_url = window.location.origin + window.location.pathname;
+            // Build CLEAN payload — ONLY standard TikTok properties + event_id
+            let pixelProps = {};
+            TT_STD_PROPS.forEach(k => { if (data[k] !== undefined && data[k] !== null) pixelProps[k] = data[k]; });
 
             if (window.ttq && typeof window.ttq.track === 'function' && event !== 'PageView') {
-                window.ttq.track(event, payload);
+                window.ttq.track(event, pixelProps);
             }
         } catch (error) {
             console.error('Tracking Error:', error);

@@ -542,18 +542,25 @@ var PII_DROP=["email","phone","phone_number","cpf","address","cep","number","cit
 var HASH_SAFE=["email","phone","phone_number","external_id","fn","ln","ct","st","zp"];
 function isSha256(v){return typeof v==="string"&&/^[a-f0-9]{64}$/i.test(v.trim())}
 
+// Standard TikTok pixel event properties (ONLY these go to ttq.track)
+var TT_STANDARD_PROPS=["value","currency","contents","content_id","content_ids","content_type","content_name","content_category","quantity","order_id","description","query","event_id"];
+
 function trackEvent(eventName,data){
   try{
-    var p=Object.assign({},data||{});
-    // Strip raw PII, keep only SHA-256 hashes
-    PII_DROP.forEach(function(k){if(Object.prototype.hasOwnProperty.call(p,k)){if(HASH_SAFE.indexOf(k)!==-1&&isSha256(p[k]))return;delete p[k]}});
-    if(!p.event_id)p.event_id=generateEventId();
-    p.ttclid=getTTCLID();
-    p.event_source_url=window.location.origin+window.location.pathname;
-    p.event_time=Math.floor(Date.now()/1000);
-    var utms=getStoredUTMs();Object.keys(utms).forEach(function(k){p[k]=utms[k]});
-    if(window.ttq&&typeof window.ttq.track==="function")window.ttq.track(eventName,p);
-    if(typeof gtag==="function")try{gtag("event",eventName,p)}catch(_){}
+    var raw=Object.assign({},data||{});
+    // Strip raw PII, keep only SHA-256 hashes for identify()
+    PII_DROP.forEach(function(k){if(Object.prototype.hasOwnProperty.call(raw,k)){if(HASH_SAFE.indexOf(k)!==-1&&isSha256(raw[k]))return;delete raw[k]}});
+    if(!raw.event_id)raw.event_id=generateEventId();
+
+    // Build CLEAN payload for ttq.track() — ONLY standard properties
+    var pixelProps={};
+    TT_STANDARD_PROPS.forEach(function(k){if(raw[k]!==undefined&&raw[k]!==null)pixelProps[k]=raw[k]});
+
+    // Fire browser pixel with CLEAN payload (no ttclid, no UTMs, no event_time)
+    if(window.ttq&&typeof window.ttq.track==="function")window.ttq.track(eventName,pixelProps);
+
+    // GA gets the full payload (no restrictions)
+    if(typeof gtag==="function")try{gtag("event",eventName,raw)}catch(_){}
   }catch(_){}
 }
 
@@ -611,13 +618,19 @@ function boot(){
     },300);
   },400);
 
-  // Fire ViewContent
+  // Fire ViewContent (browser + CAPI)
   var sid=getSessionEventId();
-  trackEvent("ViewContent",Object.assign({},window.PRODUCT_CONTENT,{event_id:generateEventId()}));
+  var vcId=generateEventId();
+  trackEvent("ViewContent",Object.assign({},window.PRODUCT_CONTENT,{event_id:vcId}));
+  sendCAPI("ViewContent",vcId,Object.assign({},window.PRODUCT_CONTENT,{event_source_url:window.location.href}),{
+    ttclid:getTTCLID(),
+    ttp:(document.cookie.match(/(?:^|;\s*)_ttp=([^;]*)/)||[])[1]||undefined
+  });
+
+  // Fire InitiateCheckout (browser + CAPI) — same event_id for dedup
   trackEvent("InitiateCheckout",Object.assign({},window.PRODUCT_CONTENT,{content_name:PRODUCT.name,event_id:sid}));
-  // CAPI mirror InitiateCheckout
   sendCAPI("InitiateCheckout",sid,Object.assign({},window.PRODUCT_CONTENT,{event_source_url:window.location.href}),{
-    external_id:undefined,ttclid:getTTCLID(),
+    ttclid:getTTCLID(),
     ttp:(document.cookie.match(/(?:^|;\s*)_ttp=([^;]*)/)||[])[1]||undefined
   });
 }
