@@ -23,7 +23,6 @@ input,textarea,select{-webkit-user-select:text!important;user-select:text!import
   --s50:#f8fafc;--s100:#f1f5f9;--s200:#e2e8f0;--s300:#cbd5e1;
   --s400:#94a3b8;--s500:#64748b;--s600:#475569;--s700:#334155;--s800:#1e293b;--s900:#0f172a;
   --r:12px;--rl:16px;
-  --footer-h:130px;
   --safe-b:env(safe-area-inset-bottom,0px);
 }
 
@@ -64,7 +63,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
 /* ============================================================
    MAIN / WRAPPER
    ============================================================ */
-.ck-wrap{max-width:500px;margin:0 auto;padding:14px;padding-bottom:calc(var(--footer-h) + 16px + var(--safe-b));display:flex;flex-direction:column;gap:14px}
+.ck-wrap{max-width:500px;margin:0 auto;padding:14px;padding-bottom:calc(24px + var(--safe-b));display:flex;flex-direction:column;gap:14px}
 
 /* ============================================================
    PRODUCT CARD
@@ -121,10 +120,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
 .pay-price{font-weight:800;font-size:20px;color:var(--g600);margin-top:1px}
 
 /* ============================================================
-   FIXED FOOTER
+   INLINE SUBMIT AREA (no fixed footer)
    ============================================================ */
-.ck-footer{position:fixed;bottom:0;left:0;width:100%;z-index:90;padding:12px 14px;padding-bottom:calc(12px + var(--safe-b));background:linear-gradient(to top,rgba(248,250,252,1) 80%,rgba(248,250,252,0));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-.ck-footer-in{max-width:500px;margin:0 auto}
+.submit-area{display:flex;flex-direction:column;gap:0}
 .btn-ck{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:50px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--g600),var(--g700));color:#fff;font-size:15px;font-weight:700;cursor:pointer;transition:transform .1s;touch-action:manipulation;position:relative;overflow:hidden;text-transform:uppercase;letter-spacing:.3px;box-shadow:0 4px 14px rgba(22,163,74,.3)}
 .btn-ck:active{transform:scale(.985)}
 .btn-ck:disabled{opacity:.7;cursor:not-allowed}
@@ -132,9 +130,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
 .btn-ck svg{width:18px;height:18px}
 .btn-spin{width:20px;height:20px;border:2.5px solid rgba(255,255,255,.3);border-radius:50%;border-top-color:#fff;animation:sp .7s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
-.legal-text{text-align:center;font-size:9px;color:var(--s500);margin-top:6px;line-height:1.4;padding:0 2px}
+.legal-text{text-align:center;font-size:9px;color:var(--s500);margin-top:8px;line-height:1.4;padding:0 2px}
 .legal-text a{text-decoration:underline;color:var(--s500)}
-.sec-text{text-align:center;font-size:10px;color:var(--s400);margin-top:4px;display:flex;align-items:center;justify-content:center;gap:4px}
+.sec-text{text-align:center;font-size:10px;color:var(--s400);margin-top:6px;display:flex;align-items:center;justify-content:center;gap:4px}
 .sec-text svg{width:11px;height:11px}
 
 /* ============================================================
@@ -198,10 +196,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
 .anim{animation:fadeUp .45s ease-out both}
 .d1{animation-delay:.08s}.d2{animation-delay:.16s}.d3{animation-delay:.24s}.d4{animation-delay:.32s}
 
-/* KEYBOARD — footer slides down only when VisualViewport confirms keyboard is open */
-.ck-footer{transition:transform .25s cubic-bezier(.4,0,.2,1)}
-body.kb .ck-footer{transform:translateY(100%)}
-
 /* SCREEN TOGGLE */
 .screen{display:none}
 .screen.active{display:block}
@@ -212,9 +206,7 @@ body.kb .ck-footer{transform:translateY(100%)}
    DESKTOP
    ============================================================ */
 @media(min-width:768px){
-  .ck-wrap{max-width:540px;padding:24px;padding-top:32px}
-  .ck-footer{position:sticky;background:none;backdrop-filter:none;padding:0}
-  .ck-wrap{padding-bottom:40px}
+  .ck-wrap{max-width:540px;padding:24px;padding-top:32px;padding-bottom:40px}
 }
 </style>
 
@@ -369,26 +361,8 @@ body.kb .ck-footer{transform:translateY(100%)}
       </div>
     </section>
 
-    <!-- TRUST -->
-    <div class="trust anim d4">
-      <div class="trust-i">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        <span>Compra<br>Segura</span>
-      </div>
-      <div class="trust-i">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-        <span>Dados<br>Protegidos</span>
-      </div>
-      <div class="trust-i">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
-        <span>Garantia<br>12 Meses</span>
-      </div>
-    </div>
-  </main>
-
-  <!-- FIXED FOOTER -->
-  <footer class="ck-footer" id="ck-footer">
-    <div class="ck-footer-in">
+    <!-- INLINE SUBMIT (like Pepper - no fixed footer) -->
+    <div class="submit-area anim d3">
       <button class="btn-ck" id="btn-submit" type="button">
         Finalizar com Desconto
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
@@ -405,7 +379,23 @@ body.kb .ck-footer{transform:translateY(100%)}
         Seus dados estão protegidos por criptografia 256-bit
       </div>
     </div>
-  </footer>
+
+    <!-- TRUST -->
+    <div class="trust anim d4">
+      <div class="trust-i">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>Compra<br>Segura</span>
+      </div>
+      <div class="trust-i">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        <span>Dados<br>Protegidos</span>
+      </div>
+      <div class="trust-i">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+        <span>Garantia<br>12 Meses</span>
+      </div>
+    </div>
+  </main>
 </div>
 
 <!-- =============== PIX SCREEN =============== -->
@@ -491,7 +481,7 @@ var dom={
   scrCheckout:$("screen-checkout"),scrPix:$("screen-pix"),
   pixLoading:$("pix-loading"),pixLoadingText:$("pix-loading-text"),pixContent:$("pix-content"),
   pixGreeting:$("pix-greeting"),pixCodeDisplay:$("pix-code-display"),pixOrderId:$("pix-order-id"),
-  btnCopy:$("btn-copy"),btnSubmit:$("btn-submit"),footer:$("ck-footer"),refLink:$("ref-link"),
+  btnCopy:$("btn-copy"),btnSubmit:$("btn-submit"),refLink:$("ref-link"),
   nome:$("inp-nome"),email:$("inp-email"),tel:$("inp-tel"),cpf:$("inp-cpf"),
   cep:$("inp-cep"),rua:$("inp-rua"),bairro:$("inp-bairro"),num:$("inp-num"),
   comp:$("inp-comp"),cidade:$("inp-cidade"),estado:$("inp-estado"),
@@ -777,8 +767,8 @@ function setBtnLoading(on){
 
 function showScreen(name){
   dom.scrCheckout.classList.remove("active");dom.scrPix.classList.remove("active");
-  if(name==="checkout"){dom.scrCheckout.classList.add("active");dom.footer.style.display=""}
-  else if(name==="pix"){dom.scrPix.classList.add("active");dom.footer.style.display="none"}
+  if(name==="checkout"){dom.scrCheckout.classList.add("active")}
+  else if(name==="pix"){dom.scrPix.classList.add("active")}
 }
 
 dom.btnSubmit.addEventListener("click",function(){
@@ -1037,53 +1027,6 @@ function setCopyState(copied){
     },2500);
   }
 }
-
-/* =============================================================
-   KEYBOARD DETECTION (Mobile)
-   Only visualViewport.resize is the authority for showing/hiding footer.
-   focusin/focusout are NOT used for the kb class — they caused the bug
-   where tapping outside a field didn't restore the footer.
-   ============================================================= */
-var initVH=window.visualViewport?window.visualViewport.height:window.innerHeight;
-
-(function setupKb(){
-  if(!window.visualViewport)return;
-  var vv=window.visualViewport;
-
-  // SOLE AUTHORITY: visualViewport resize controls the kb class
-  vv.addEventListener("resize",function(){
-    var c=vv.height;
-    if(c>initVH)initVH=c;
-    var diff=initVH-c;
-    if(diff>150){
-      document.body.classList.add("kb");
-    }else{
-      document.body.classList.remove("kb");
-    }
-  });
-
-  // focusin only handles scroll-into-view (NOT the kb class)
-  document.addEventListener("focusin",function(e){
-    if(e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA"||e.target.tagName==="SELECT"){
-      setTimeout(function(){
-        try{
-          var r=e.target.getBoundingClientRect();
-          var footerH=parseInt(getComputedStyle(document.documentElement).getPropertyValue("--footer-h"))||140;
-          var lim=vv.height-footerH-12;
-          if(r.bottom>lim)window.scrollBy({top:r.bottom-lim+16,behavior:"smooth"});
-        }catch(_){}
-      },200);
-    }
-  });
-})();
-
-/* =============================================================
-   FOOTER HEIGHT VAR
-   ============================================================= */
-function syncFooter(){try{var h=dom.footer.getBoundingClientRect().height;if(h>0)document.documentElement.style.setProperty("--footer-h",Math.ceil(h)+"px")}catch(_){}}
-window.addEventListener("load",syncFooter);
-window.addEventListener("resize",function(){setTimeout(syncFooter,80)});
-if(window.visualViewport)window.visualViewport.addEventListener("resize",function(){setTimeout(syncFooter,80)});
 
 /* =============================================================
    METRICS PING (visitor online status)
