@@ -140,7 +140,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
 /* ============================================================
    PIX SCREEN
    ============================================================ */
-.pix-wrap{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;padding-bottom:calc(20px + var(--safe-b))}
+.pix-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;padding-bottom:calc(20px + var(--safe-b))}
 .pix-box{background:#fff;width:100%;max-width:480px;border-radius:var(--rl);box-shadow:0 10px 40px -10px rgba(0,0,0,.08);padding:28px;border:1px solid var(--s200)}
 .pix-check{width:64px;height:64px;background:var(--g100);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
 .pix-check svg{width:32px;height:32px;color:var(--g600)}
@@ -178,7 +178,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
 .pix-how-t{font-size:13px;color:var(--s600);font-weight:500}
 
 /* LOADING OVERLAY (PIX transition) */
-.pix-loading{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
+.pix-loading{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
 .pix-loading-spin{width:72px;height:72px;border:6px solid var(--s200);border-top-color:var(--g600);border-radius:50%;animation:sp 1s linear infinite;margin-bottom:28px}
 .pix-loading-h{font-size:20px;font-weight:700;color:var(--s800);margin-bottom:12px}
 .pix-loading-p{font-size:13px;color:var(--s500);font-weight:500}
@@ -198,13 +198,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
 .anim{animation:fadeUp .45s ease-out both}
 .d1{animation-delay:.08s}.d2{animation-delay:.16s}.d3{animation-delay:.24s}.d4{animation-delay:.32s}
 
-/* KEYBOARD */
-body.kb .ck-footer{transform:translateY(100%);transition:transform .2s ease}
+/* KEYBOARD — footer slides down only when VisualViewport confirms keyboard is open */
+.ck-footer{transition:transform .25s cubic-bezier(.4,0,.2,1)}
+body.kb .ck-footer{transform:translateY(100%)}
 
 /* SCREEN TOGGLE */
 .screen{display:none}
 .screen.active{display:block}
-.pix-screen.active{display:flex}
+#screen-pix{flex-direction:column;min-height:100dvh;background:var(--s50)}
+#screen-pix.active{display:flex}
 
 /* ============================================================
    DESKTOP
@@ -407,7 +409,7 @@ body.kb .ck-footer{transform:translateY(100%);transition:transform .2s ease}
 </div>
 
 <!-- =============== PIX SCREEN =============== -->
-<div id="screen-pix" class="screen pix-screen">
+<div id="screen-pix" class="screen">
   <!-- Loading state (shown first) -->
   <div id="pix-loading" class="pix-loading">
     <div class="pix-loading-spin"></div>
@@ -1038,26 +1040,39 @@ function setCopyState(copied){
 
 /* =============================================================
    KEYBOARD DETECTION (Mobile)
+   Only visualViewport.resize is the authority for showing/hiding footer.
+   focusin/focusout are NOT used for the kb class — they caused the bug
+   where tapping outside a field didn't restore the footer.
    ============================================================= */
 var initVH=window.visualViewport?window.visualViewport.height:window.innerHeight;
 
 (function setupKb(){
   if(!window.visualViewport)return;
   var vv=window.visualViewport;
+
+  // SOLE AUTHORITY: visualViewport resize controls the kb class
   vv.addEventListener("resize",function(){
-    var c=vv.height;if(c>initVH)initVH=c;
-    if(initVH-c>150)document.body.classList.add("kb");
-    else document.body.classList.remove("kb");
-  });
-  document.addEventListener("focusin",function(e){
-    if(e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA"||e.target.tagName==="SELECT"){
+    var c=vv.height;
+    if(c>initVH)initVH=c;
+    var diff=initVH-c;
+    if(diff>150){
       document.body.classList.add("kb");
-      setTimeout(function(){try{var r=e.target.getBoundingClientRect(),lim=vv.height-60;if(r.bottom>lim)window.scrollBy({top:r.bottom-lim+16,behavior:"smooth"})}catch(_){}},150);
+    }else{
+      document.body.classList.remove("kb");
     }
   });
-  document.addEventListener("focusout",function(e){
+
+  // focusin only handles scroll-into-view (NOT the kb class)
+  document.addEventListener("focusin",function(e){
     if(e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA"||e.target.tagName==="SELECT"){
-      setTimeout(function(){var a=document.activeElement;if(!a||a.tagName!=="INPUT"&&a.tagName!=="TEXTAREA"&&a.tagName!=="SELECT")document.body.classList.remove("kb")},120);
+      setTimeout(function(){
+        try{
+          var r=e.target.getBoundingClientRect();
+          var footerH=parseInt(getComputedStyle(document.documentElement).getPropertyValue("--footer-h"))||140;
+          var lim=vv.height-footerH-12;
+          if(r.bottom>lim)window.scrollBy({top:r.bottom-lim+16,behavior:"smooth"});
+        }catch(_){}
+      },200);
     }
   });
 })();
