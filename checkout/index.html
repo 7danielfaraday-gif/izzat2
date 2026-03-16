@@ -1,575 +1,1093 @@
 <!DOCTYPE html>
-
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content" name="viewport"/>
-<link crossorigin="" href="https://analytics.tiktok.com" rel="preconnect"/>
-<link href="//analytics.tiktok.com" rel="dns-prefetch"/>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
 <title>Checkout - Fritadeira Elétrica Forno Oven 12L</title>
-<link as="image" fetchpriority="high" href="../assets/img/01.webp" rel="preload"/>
-<link href="https://viacep.com.br" rel="dns-prefetch"/>
+<link rel="preload" as="image" fetchpriority="high" href="../assets/img/01.webp">
+<link rel="dns-prefetch" href="https://viacep.com.br">
+<link rel="preconnect" href="https://analytics.tiktok.com" crossorigin>
+<link rel="dns-prefetch" href="//analytics.tiktok.com">
 <style>
-*{margin:0;padding:0;box-sizing:border-box;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;tap-highlight-color:transparent}*:not(input):not(textarea){-webkit-user-select:none;user-select:none}.select-all{-webkit-user-select:text !important;user-select:text !important}input,select,textarea{font-size:16px !important;-webkit-box-shadow:0 0 0 100px white inset !important;box-shadow:0 0 0 100px white inset !important}html,body{overflow-x:hidden;width:100%;scroll-padding-top:80px;scroll-padding-bottom:calc(var(--footer-height,120px) + 24px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}input,textarea,[contenteditable]{-webkit-user-select:text !important;user-select:text !important;scroll-margin-top:20px;scroll-margin-bottom:calc(var(--footer-height,120px) + 24px);-webkit-appearance:none;appearance:none;border-radius:0}body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background-color:#f8fafc;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh}.safe-area-padding{padding-bottom:env(safe-area-inset-bottom,20px)}:root{--safe-area-inset-top:env(safe-area-inset-top,0px);--safe-area-inset-bottom:env(safe-area-inset-bottom,0px)}#skeleton-loader{position:fixed;top:0;left:0;width:100%;height:100%;background:#f8fafc;z-index:9999;display:flex;flex-direction:column;transition:opacity 0.4s ease-out}.progress-bar{height:3px;background:linear-gradient(90deg,#22c55e 0%,#4ade80 100%);position:fixed;top:0;left:0;z-index:10000;transition:width 0.4s cubic-bezier(0.4,0,0.2,1);width:25%}.static-nav{background:rgba(255,255,255,0.98);padding:16px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:calc(env(safe-area-inset-top) - 1px);z-index:30;min-height:56px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}button,[role="button"],.btn-tactile{min-height:44px;min-width:44px;touch-action:manipulation;cursor:pointer}input[type="text"],input[type="email"],input[type="tel"]{min-height:44px;font-size:16px !important}.scrollbar-hidden{-ms-overflow-style:none;scrollbar-width:none}.scrollbar-hidden::-webkit-scrollbar{display:none}@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.fade-in{animation:fadeIn 0.4s ease-out forwards}.form-container{padding-bottom:calc(var(--footer-height,120px) + 24px + env(safe-area-inset-bottom))}.spinner-mobile{width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-radius:50%;border-top-color:white;animation:spin 0.8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.static-container{display:flex;flex-direction:column;padding:20px;max-width:500px;margin:0 auto;gap:20px}.static-card{background:white;border-radius:16px;padding:20px;display:flex;gap:16px;border:1px solid #e2e8f0;position:relative}.static-badge{position:absolute;top:0;left:0;background:#16a34a;color:white;font-size:10px;font-weight:bold;padding:4px 12px;border-bottom-right-radius:8px}.static-title{font-size:14px;font-weight:700;color:#1e293b;margin-bottom:4px;line-height:1.4}.static-old-price{font-size:12px;color:#94a3b8;text-decoration:line-through;display:block}.static-new-price{font-size:24px;color:#16a34a;font-weight:800;display:block}.sk-form-block{background:white;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden}.sk-form-header{background:#f8fafc;padding:12px 20px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:12px}.sk-circle{width:24px;height:24px;background:#16a34a;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold}.sk-title{font-size:14px;font-weight:700;color:#334155;text-transform:uppercase}.sk-body{padding:20px}.sk-input{height:48px;background:#f1f5f9;border-radius:12px;margin-bottom:16px}.checkout-fixed-footer{position:fixed;bottom:0;left:0;width:100%;z-index:50;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom));background:linear-gradient(to top,rgba(248,250,252,1) 85%,rgba(248,250,252,0.9));box-shadow:0 -4px 12px rgba(0,0,0,0.05);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1)}body.keyboard-open .checkout-fixed-footer{transform:none}@media (min-width:1024px){.static-container{max-width:1024px;flex-direction:row;align-items:flex-start}.static-left-col{width:40%}.static-right-col{width:60%}.checkout-fixed-footer{position:static;padding:0;background:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;transform:none !important}.form-container{padding-bottom:0 !important}}
+/* ============================================================
+   RESET & TOKENS
+   ============================================================ */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+*:not(input):not(textarea):not(select){-webkit-user-select:none;user-select:none}
+input,textarea,select{-webkit-user-select:text!important;user-select:text!important;-webkit-appearance:none;appearance:none;font-size:16px!important}
+.select-all{-webkit-user-select:text!important;user-select:text!important}
+
+:root{
+  --g600:#16a34a;--g700:#15803d;--g50:#f0fdf4;--g100:#dcfce7;
+  --b50:#eff6ff;--b700:#1d4ed8;
+  --s50:#f8fafc;--s100:#f1f5f9;--s200:#e2e8f0;--s300:#cbd5e1;
+  --s400:#94a3b8;--s500:#64748b;--s600:#475569;--s700:#334155;--s800:#1e293b;--s900:#0f172a;
+  --r:12px;--rl:16px;
+  --footer-h:140px;
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+
+html{scroll-padding-top:80px;-webkit-overflow-scrolling:touch}
+html,body{overflow-x:hidden;width:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--s50);-webkit-font-smoothing:antialiased;min-height:100dvh;color:var(--s800);line-height:1.5}
+
+/* ============================================================
+   SKELETON
+   ============================================================ */
+#skeleton{position:fixed;inset:0;background:var(--s50);z-index:9999;display:flex;flex-direction:column;transition:opacity .4s ease-out}
+#skeleton.hide{opacity:0;pointer-events:none}
+.sk-bar{height:3px;background:linear-gradient(90deg,var(--g600),#4ade80);position:fixed;top:0;left:0;z-index:10000;width:30%;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.sk-nav{background:#fff;padding:16px 20px;border-bottom:1px solid var(--s200);display:flex;align-items:center;min-height:56px}
+.sk-body{max-width:500px;margin:0 auto;padding:20px;display:flex;flex-direction:column;gap:20px}
+.sk-card{background:#fff;border-radius:var(--rl);padding:20px;border:1px solid var(--s200);display:flex;gap:16px}
+.sk-img{width:80px;height:80px;background:var(--s100);border-radius:var(--r);flex-shrink:0}
+.sk-lines{flex:1;display:flex;flex-direction:column;gap:8px}
+.sk-line{height:14px;background:var(--s100);border-radius:4px}
+.sk-line.w75{width:75%}.sk-line.w50{width:50%}.sk-line.w30{width:30%}
+.sk-block{background:#fff;border-radius:var(--rl);border:1px solid var(--s200);overflow:hidden}
+.sk-bh{background:var(--s50);padding:14px 20px;border-bottom:1px solid var(--s200);display:flex;align-items:center;gap:12px}
+.sk-circle{width:26px;height:26px;background:var(--g600);border-radius:50%}
+.sk-bb{padding:20px;display:flex;flex-direction:column;gap:14px}
+.sk-inp{height:48px;background:var(--s100);border-radius:var(--r)}
+.sk-p{animation:skP 1.8s cubic-bezier(.4,0,.6,1) infinite}
+@keyframes skP{0%,100%{opacity:1}50%{opacity:.5}}
+.sk-status{text-align:center;color:var(--s400);font-size:12px;font-weight:500;padding-top:4px}
+
+/* ============================================================
+   NAVBAR
+   ============================================================ */
+.nav{background:rgba(255,255,255,.97);padding:14px 20px;padding-top:calc(14px + env(safe-area-inset-top,0px));border-bottom:1px solid var(--s200);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;min-height:56px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.nav-logo{height:30px;width:auto;object-fit:contain}
+.nav-secure{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--g600)}
+.nav-secure svg{width:14px;height:14px}
+
+/* ============================================================
+   MAIN / WRAPPER
+   ============================================================ */
+.ck-wrap{max-width:500px;margin:0 auto;padding:20px;padding-bottom:calc(var(--footer-h) + 24px + var(--safe-b));display:flex;flex-direction:column;gap:20px}
+
+/* ============================================================
+   PRODUCT CARD
+   ============================================================ */
+.p-card{background:#fff;border-radius:var(--rl);padding:20px;border:1px solid var(--s200);display:flex;gap:16px;position:relative;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.p-badge{position:absolute;top:0;left:0;background:var(--g600);color:#fff;font-size:10px;font-weight:700;padding:4px 14px;border-bottom-right-radius:8px;letter-spacing:.3px;text-transform:uppercase}
+.p-img{width:80px;height:80px;object-fit:contain;border-radius:var(--r);background:var(--s50);flex-shrink:0;padding:4px}
+.p-info{flex:1;display:flex;flex-direction:column;justify-content:center;min-width:0}
+.p-title{font-size:13px;font-weight:700;color:var(--s800);line-height:1.4;margin-bottom:6px}
+.p-old{font-size:12px;color:var(--s400);text-decoration:line-through}
+.p-price{font-size:24px;font-weight:800;color:var(--g600);line-height:1.2}
+.p-lbl{font-size:12px;font-weight:600;color:var(--g700)}
+.p-tags{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.p-tag{font-size:10px;font-weight:600;padding:3px 8px;border-radius:99px;display:inline-flex;align-items:center;gap:4px;line-height:1}
+.p-tag.g{background:var(--g50);color:#166534}
+.p-tag.b{background:var(--b50);color:#1e40af}
+.p-tag svg{width:10px;height:10px}
+
+/* ============================================================
+   FORM SECTIONS
+   ============================================================ */
+.f-sec{background:#fff;border-radius:var(--rl);border:1px solid var(--s200);overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.f-hdr{background:var(--s50);padding:14px 20px;border-bottom:1px solid var(--s200);display:flex;align-items:center;gap:12px}
+.f-num{width:26px;height:26px;background:var(--g600);border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.f-ttl{font-size:13px;font-weight:700;color:var(--s700);text-transform:uppercase;letter-spacing:.3px}
+.f-body{padding:20px;display:flex;flex-direction:column;gap:14px}
+
+/* INPUTS */
+.fg{display:flex;flex-direction:column;gap:6px}
+.fl{font-size:12px;font-weight:600;color:var(--s600)}
+.fi{width:100%;height:48px;padding:0 16px;font-size:16px!important;border:1.5px solid var(--s200);border-radius:var(--r);background:#fff;color:var(--s800);outline:none;transition:border-color .2s,box-shadow .2s;-webkit-box-shadow:0 0 0 100px white inset!important;box-shadow:0 0 0 100px white inset!important}
+.fi::placeholder{color:var(--s400);font-size:14px}
+.fi:focus{border-color:var(--g600);box-shadow:0 0 0 3px rgba(22,163,74,.1),0 0 0 100px white inset!important}
+.fi.err{border-color:#ef4444;box-shadow:0 0 0 3px rgba(239,68,68,.1),0 0 0 100px white inset!important}
+.fi.ok{border-color:var(--g600)}
+.fi:disabled{background:var(--s50)!important;color:var(--s500);cursor:not-allowed;-webkit-box-shadow:0 0 0 100px var(--s50) inset!important;box-shadow:0 0 0 100px var(--s50) inset!important}
+.fi.ld{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 12 12' to='360 12 12' dur='1s' repeatCount='indefinite'/%3E%3C/path%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;background-size:18px}
+.fe{font-size:11px;color:#ef4444;font-weight:500;display:none}
+.fe.show{display:block}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fr3{display:grid;grid-template-columns:1fr 100px;gap:12px}
+.fs{width:100%;height:48px;padding:0 16px;font-size:16px!important;border:1.5px solid var(--s200);border-radius:var(--r);background:#fff;color:var(--s800);outline:none;transition:border-color .2s;cursor:pointer}
+.fs:focus{border-color:var(--g600)}
+
+/* ============================================================
+   PAYMENT CARD (Step 3)
+   ============================================================ */
+.pay-card{background:var(--g50);border:2px solid var(--g600);border-radius:var(--r);padding:16px;display:flex;align-items:center;gap:14px;position:relative;cursor:default}
+.pay-badge{position:absolute;top:-12px;right:14px;background:linear-gradient(135deg,var(--g600),var(--g700));color:#fff;font-size:10px;font-weight:700;padding:4px 12px;border-radius:99px;text-transform:uppercase;letter-spacing:.3px;box-shadow:0 2px 6px rgba(22,163,74,.3)}
+.pay-check{width:26px;height:26px;background:var(--g600);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pay-check svg{width:16px;height:16px;color:#fff}
+.pay-info{flex:1}
+.pay-label{font-weight:700;font-size:14px;color:var(--s800)}
+.pay-price{font-weight:800;font-size:22px;color:var(--g600);margin-top:2px}
+
+/* ============================================================
+   FIXED FOOTER
+   ============================================================ */
+.ck-footer{position:fixed;bottom:0;left:0;width:100%;z-index:90;padding:16px;padding-bottom:calc(16px + var(--safe-b));background:linear-gradient(to top,rgba(248,250,252,1) 80%,rgba(248,250,252,0));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.ck-footer-in{max-width:500px;margin:0 auto}
+.btn-ck{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:56px;border:none;border-radius:var(--r);background:linear-gradient(135deg,var(--g600),var(--g700));color:#fff;font-size:16px;font-weight:700;cursor:pointer;transition:transform .1s;touch-action:manipulation;position:relative;overflow:hidden;text-transform:uppercase;letter-spacing:.3px;box-shadow:0 4px 14px rgba(22,163,74,.3)}
+.btn-ck:active{transform:scale(.985)}
+.btn-ck:disabled{opacity:.7;cursor:not-allowed}
+.btn-ck:disabled:active{transform:none}
+.btn-ck svg{width:18px;height:18px}
+.btn-spin{width:20px;height:20px;border:2.5px solid rgba(255,255,255,.3);border-radius:50%;border-top-color:#fff;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.legal-text{text-align:center;font-size:10px;color:var(--s500);margin-top:8px;line-height:1.5;padding:0 4px}
+.legal-text a{text-decoration:underline;color:var(--s500)}
+.sec-text{text-align:center;font-size:11px;color:var(--s400);margin-top:6px;display:flex;align-items:center;justify-content:center;gap:4px}
+.sec-text svg{width:12px;height:12px}
+
+/* ============================================================
+   PIX SCREEN
+   ============================================================ */
+.pix-wrap{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;padding-bottom:calc(20px + var(--safe-b))}
+.pix-box{background:#fff;width:100%;max-width:480px;border-radius:var(--rl);box-shadow:0 10px 40px -10px rgba(0,0,0,.08);padding:28px;border:1px solid var(--s200)}
+.pix-check{width:64px;height:64px;background:var(--g100);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+.pix-check svg{width:32px;height:32px;color:var(--g600)}
+.pix-h1{font-size:22px;font-weight:800;color:var(--s800);text-align:center;margin-bottom:6px}
+.pix-sub{font-size:14px;color:var(--s500);text-align:center;margin-bottom:20px}
+.pix-reserved{background:var(--g50);border:1px solid var(--g100);color:var(--g700);font-weight:700;font-size:12px;padding:12px;border-radius:8px;text-align:center;text-transform:uppercase;letter-spacing:.3px;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:24px}
+.pix-reserved svg{width:14px;height:14px}
+.pix-steps{display:flex;justify-content:space-between;margin-bottom:24px;padding:0 8px}
+.pix-step{display:flex;flex-direction:column;align-items:center;gap:6px}
+.pix-step-n{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+.pix-step-n.active{background:var(--g600);color:#fff;box-shadow:0 3px 10px rgba(22,163,74,.3)}
+.pix-step-n.inactive{background:var(--s100);color:var(--s400)}
+.pix-step-t{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.pix-step-t.active{color:var(--g700)}
+.pix-step-t.inactive{color:var(--s300)}
+.pix-code-wrap{background:var(--s50);border:2px dashed var(--s300);border-radius:var(--r);padding:16px;position:relative;margin-bottom:4px}
+.pix-code-label{position:absolute;top:-10px;left:14px;background:#fff;padding:0 6px;font-size:11px;font-weight:700;color:var(--s500);text-transform:uppercase;letter-spacing:.3px}
+.pix-code-text{font-family:monospace;font-size:11px;color:var(--s400);word-break:break-all;line-height:1.5;margin-top:4px;margin-bottom:14px;max-height:42px;overflow:hidden}
+.btn-copy{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:52px;border:none;border-radius:var(--r);color:#fff;font-size:15px;font-weight:700;cursor:pointer;transition:transform .1s,background .2s;touch-action:manipulation;text-transform:uppercase}
+.btn-copy:active{transform:scale(.985)}
+.btn-copy.green{background:#22c55e}
+.btn-copy.dark{background:var(--s800)}
+.btn-copy svg{width:18px;height:18px}
+.pix-total{display:flex;justify-content:space-between;align-items:center;padding:12px 4px}
+.pix-total-l{font-size:14px;color:var(--s500);font-weight:500}
+.pix-total-v{font-size:20px;font-weight:800;color:var(--s800)}
+.pix-waiting{background:#fefce8;border:1px solid #fef08a;color:#a16207;font-weight:700;font-size:13px;padding:12px;border-radius:8px;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px}
+.pix-waiting-spin{width:16px;height:16px;border:2px solid #a16207;border-top-color:transparent;border-radius:50%;animation:sp .8s linear infinite}
+.pix-id{font-size:10px;color:var(--s400);text-align:center;margin-top:20px;font-family:monospace}
+.pix-how{background:var(--s50);border:1px solid var(--s100);border-radius:var(--r);padding:20px;margin-top:20px}
+.pix-how-title{font-size:11px;font-weight:700;color:var(--s400);text-transform:uppercase;letter-spacing:.3px;margin-bottom:12px}
+.pix-how-step{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px}
+.pix-how-step:last-child{margin-bottom:0}
+.pix-how-n{width:22px;height:22px;background:#fff;border:1px solid var(--s200);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--g600);flex-shrink:0;margin-top:1px}
+.pix-how-t{font-size:13px;color:var(--s600);font-weight:500}
+
+/* LOADING OVERLAY (PIX transition) */
+.pix-loading{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
+.pix-loading-spin{width:72px;height:72px;border:6px solid var(--s200);border-top-color:var(--g600);border-radius:50%;animation:sp 1s linear infinite;margin-bottom:28px}
+.pix-loading-h{font-size:20px;font-weight:700;color:var(--s800);margin-bottom:12px}
+.pix-loading-p{font-size:13px;color:var(--s500);font-weight:500}
+
+/* ============================================================
+   TRUST BAR
+   ============================================================ */
+.trust{display:flex;justify-content:center;gap:20px;padding:16px 0}
+.trust-i{display:flex;flex-direction:column;align-items:center;gap:4px}
+.trust-i svg{width:20px;height:20px;color:var(--s400)}
+.trust-i span{font-size:10px;font-weight:600;color:var(--s400);text-align:center}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.anim{animation:fadeUp .45s ease-out both}
+.d1{animation-delay:.08s}.d2{animation-delay:.16s}.d3{animation-delay:.24s}.d4{animation-delay:.32s}
+
+/* KEYBOARD */
+body.kb .ck-footer{transform:translateY(100%);transition:transform .2s ease}
+
+/* SCREEN TOGGLE */
+.screen{display:none}
+.screen.active{display:block}
+.pix-screen.active{display:flex}
+
+/* ============================================================
+   DESKTOP
+   ============================================================ */
+@media(min-width:768px){
+  .ck-wrap{max-width:560px;padding-top:32px}
+  .ck-footer{position:sticky;background:none;backdrop-filter:none;padding:0}
+  .ck-wrap{padding-bottom:40px}
+}
 </style>
+
+<!-- TikTok Pixel -->
 <script>
-!function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=i,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};var o=document.createElement("script");o.type="text/javascript",o.async=!0,o.src=i+"?sdkid="+e+"&lib="+t;var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(o,a)};var _ttid='D6QQNCRC77U77M85EI40';if(_ttid&&_ttid.indexOf('REPLACE')===-1){ttq.load(_ttid,{autoConfig:false});ttq.page();}}(window,document,'ttq');
+!function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"];ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e};ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{};ttq._i[e]=[];ttq._i[e]._u=i;ttq._t=ttq._t||{};ttq._t[e]=+new Date;ttq._o=ttq._o||{};ttq._o[e]=n||{};var o=document.createElement("script");o.type="text/javascript";o.async=!0;o.src=i+"?sdkid="+e+"&lib="+t;var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(o,a)};var _ttid="D6QQNCRC77U77M85EI40";if(_ttid&&_ttid.indexOf("REPLACE")===-1){ttq.load(_ttid,{autoConfig:false});ttq.page()}}(window,document,"ttq");
 </script>
-<!-- Removido: session replay/heatmap (pode capturar campos do checkout). -->
-<script>
-        // Fallback robusto para libs locais (muito comum quebrar em rotas tipo /checkout/ no in-app do TikTok)
-        window.__loadScript = window.__loadScript || function(src){
-            return new Promise(function(resolve, reject){
-                var s = document.createElement('script');
-                s.src = src;
-                s.async = true;
-                s.onload = function(){ resolve(src); };
-                s.onerror = function(){ reject(src); };
-                document.head.appendChild(s);
-            });
-        };
-        window.__localLibFallback = window.__localLibFallback || function(which){
-            try {
-                // Se já está disponível, não faz nada
-                if (which === 'react' && typeof window.React !== 'undefined') return;
-                if (which === 'react-dom' && typeof window.ReactDOM !== 'undefined') return;
-                if (which.indexOf('tailwind') === 0 && typeof window.tailwind !== 'undefined') return;
-
-                window.__libFallbackCount = window.__libFallbackCount || {};
-                window.__libFallbackCount[which] = (window.__libFallbackCount[which] || 0) + 1;
-                var n = window.__libFallbackCount[which];
-
-                var tries = [];
-                if (which === 'react') tries = ['/assets/vendor/react.production.min.js', 'https://unpkg.com/react@18/umd/react.production.min.js'];
-                if (which === 'react-dom') tries = ['/assets/vendor/react-dom.production.min.js', 'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js'];
-                if (which.indexOf('tailwind') === 0) tries = ['/assets/vendor/tailwindcss.js', 'https://cdn.tailwindcss.com'];
-
-                // primeira falha (geralmente rota /checkout/ tentando /checkout/js/...) => tenta raiz (/js/...)
-                // segunda falha => tenta CDN
-                var src = tries[Math.min(n-1, tries.length-1)];
-                if (!src) return;
-
-                window.__loadScript(src).then(function(){
-                    // quando o Tailwind carregar via CDN, mantém config existente
-                    if (typeof window.initReactCheckout === 'function') {
-                        try { window.initReactCheckout(); } catch(e) {}
-                    }
-                }).catch(function(){ /* silencioso */ });
-            } catch(e) {}
-        };
-    </script>
-<script defer="" onerror="window.__localLibFallback &amp;&amp; window.__localLibFallback('react')" src="../assets/vendor/react.production.min.js"></script>
-<script defer="" onerror="window.__localLibFallback &amp;&amp; window.__localLibFallback('react-dom')" src="../assets/vendor/react-dom.production.min.js"></script>
-<script defer="" onerror="window.__localLibFallback &amp;&amp; window.__localLibFallback('tailwind-local')" src="../assets/vendor/tailwindcss.js"></script>
-<script>
-        window.tailwind = window.tailwind || {};
-        window.tailwind.config = { 
-            theme: { 
-                extend: { 
-                    colors: { clifford: '#da373d' },
-                    spacing: {
-                        'safe-top': 'env(safe-area-inset-top)',
-                        'safe-bottom': 'env(safe-area-inset-bottom)',
-                    },
-                    keyframes: {
-                        fadeIn: {
-                            '0%': { opacity: '0', transform: 'translateY(10px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        },
-                        pulseUrgent: {
-                            '0%, 100%': { opacity: '1' },
-                            '50%': { opacity: '0.8' },
-                        }
-                    },
-                    animation: {
-                        'fade-in': 'fadeIn 0.5s ease-out forwards',
-                        'pulse-urgent': 'pulseUrgent 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                    }
-                } 
-            }
-        };
-    </script>
-<script>
-    // Watchdog Scoped
-    (function() {
-        let attempts = 0;
-        var delay = 120;
-        function checkReact() {
-            var loader = document.getElementById('skeleton-loader');
-            if (typeof React !== 'undefined' && typeof ReactDOM !== 'undefined') {
-                if(window.initReactCheckout && !window.checkoutInitialized) {
-                    window.initReactCheckout();
-                }
-                return;
-            }
-            
-            if (!loader || loader.style.display === 'none') return;
-
-            attempts++;
-            delay = Math.min(600, Math.floor(delay * 1.15));
-            if (attempts === 15) { 
-                console.warn("Carregamento local demorou. Tentando CDN de emergência...");
-                var r = document.createElement('script'); 
-                r.src = "https://unpkg.com/react@18/umd/react.production.min.js";
-                r.onload = function() {
-                    var d = document.createElement('script'); 
-                    d.src = "https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"; 
-                    d.onload = function(){ 
-                        var s = document.createElement('script'); 
-                        s.src = "https://cdn.tailwindcss.com"; 
-                        s.onload = function(){ 
-                            if(window.initReactCheckout) window.initReactCheckout(); 
-                        };
-                        document.head.appendChild(s);
-                    };
-                    document.head.appendChild(d);
-                };
-                document.head.appendChild(r);
-            }
-            
-            if (attempts > 100) { 
-                console.error("Falha crítica no carregamento (Local e CDN).");
-                try { 
-                    if (loader) {
-                        loader.innerHTML = '' +
-                            '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:24px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">' +
-                            '<div style="font-weight:800;font-size:18px;color:#0f172a;margin-bottom:8px;">Não foi possível carregar o checkout</div>' +
-                            '<div style="font-size:13px;color:#475569;max-width:420px;line-height:1.4;">Isso pode acontecer em alguns navegadores embutidos (in-app browser) quando a conexão está instável. Toque abaixo para tentar novamente.</div>' +
-                            '<button style="margin-top:16px;background:#16a34a;color:#fff;border:none;border-radius:12px;padding:14px 18px;font-weight:800;font-size:14px;min-height:44px;width:100%;max-width:320px;cursor:pointer;" onclick="location.reload()">Recarregar</button>' +
-                            '<button style="margin-top:10px;background:transparent;color:#64748b;border:1px solid #e2e8f0;border-radius:12px;padding:12px 18px;font-weight:700;font-size:13px;min-height:44px;width:100%;max-width:320px;cursor:pointer;" onclick="location.href='/'">Voltar para o site</button>' +
-                            '</div>';
-                    }
-                } catch(e) {}
-                return;
-            }
-            
-            setTimeout(checkReact, delay);
-        }
-        setTimeout(checkReact, delay);
-    })();
-
-    const DEBUG_MODE = window.location.hostname === 'localhost' || window.location.search.includes('debug_tracking');
-    if (DEBUG_MODE) { window.trackingDebug = true; }
-
-    function getExternalId() {
-        // Persistência: external_id em localStorage (mantém atribuição entre sessões)
-        try {
-            let eid = localStorage.getItem('user_external_id');
-            if (!eid) {
-                eid = 'sess_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
-                localStorage.setItem('user_external_id', eid);
-            }
-            return eid;
-        } catch(e) {
-            return 'sess_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
-        }
-    }
-    window.getExternalId = getExternalId;
-
-    function getTTCLID() { 
-        try { 
-            const u = new URLSearchParams(window.location.search); 
-            const val = u.get('ttclid');
-            if(val) { 
-                try { localStorage.setItem('ttclid', val); } catch(e) {}
-                return val; 
-            }
-            return localStorage.getItem('ttclid');
-        } catch (e) { return null; } 
-    }
-    window.getTTCLID = getTTCLID;
-
-    // REF (estilo Monetizze): últimos 8 caracteres do ttclid (quando existir)
-    function getRefCode() {
-        try {
-            var t = getTTCLID();
-            if (!t) return '';
-            t = String(t);
-            return t.length > 8 ? t.slice(-8) : t;
-        } catch(e) { return ''; }
-    }
-    window.getRefCode = getRefCode;
-
-    const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid', 'msclkid'];
-    function getStoredUTMs() {
-        let utms = {};
-        try { 
-            const u = new URLSearchParams(window.location.search); 
-            UTM_KEYS.forEach(key => { 
-                const v = u.get(key); 
-                if (v) { 
-                    utms[key] = v; 
-                    try { localStorage.setItem(key, v); } catch(e) {} 
-                } else { 
-                    const saved = localStorage.getItem(key); 
-                    if(saved) utms[key] = saved; 
-                }
-            }); 
-        } catch(e){}
-        return utms;
-    }
-    window.getStoredUTMs = getStoredUTMs;
-
-    function cleanPhone(p) { 
-        if (!p) return null; 
-        return p.replace(/\D/g, '');
-    }
-    window.cleanPhone = cleanPhone;
-    // (Compliance) Removido hashing/armazenamento de identificadores no front-end.
-
-    function getSessionEventId() {
-        // Sessão do checkout: um único event_id para todos os disparos desta transação
-        try {
-            var key = 'checkout_event_id';
-            var eid = sessionStorage.getItem(key);
-            if (!eid) {
-                eid = 'evt_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
-                sessionStorage.setItem(key, eid);
-            }
-            return eid;
-        } catch(e) {
-            window.__checkout_event_id = window.__checkout_event_id || ('evt_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9));
-            return window.__checkout_event_id;
-        }
-    }
-    window.getSessionEventId = getSessionEventId;
-
-    // ✅ FIX: generateEventId gera ID único por evento (não por sessão)
-    // getSessionEventId() mantido para CompletePayment (browser+server precisam do mesmo ID)
-    function generateEventId() {
-        return 'evt_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
-    }
-    window.generateEventId = generateEventId;
-
-    // Gera imediatamente no início da transação
-    try { window.__checkout_event_id = getSessionEventId(); } catch(e) {}
-    function trackPixel(event, data = {}, useBeacon = false) {
-        requestAnimationFrame(() => {
-            Promise.resolve().then(() => {
-                var finalData = Object.assign({}, data || {});
-
-                // ✅ Anti-vazamento: nunca envie PII/sensíveis para TikTok
-                // (checkout pode ter email/telefone/CPF/endereço, mas isso NÃO vai no tracking)
-                var DROP = ['email','phone','phone_number','external_id','cpf','address','cep','number','city','state','name','firstName','lastName','nome','telefone','tel','mail'];
-                var HASH_ONLY = ['email','phone','phone_number','external_id','fn','ln','ct','st','zp'];
-                var IS_SHA256 = function(v){ try { return typeof v === 'string' && /^[a-f0-9]{64}$/i.test(v.trim()); } catch(e){ return false; } };
-
-                // ✅ Anti-vazamento: remove PII bruta e só deixa passar hashes (SHA-256) nos campos de matching
-                for (var i = 0; i < DROP.length; i++) {
-                    try {
-                        var k = DROP[i];
-                        if (!finalData || !Object.prototype.hasOwnProperty.call(finalData, k)) continue;
-
-                        // ✅ Permite SOMENTE hash SHA-256 em email/phone (anti-ban + privacidade)
-                        if ((k === 'email' || k === 'phone' || k === 'phone_number' || k === 'external_id') && IS_SHA256(finalData[k])) continue;
-
-                        delete finalData[k];
-                    } catch(e) {}
-                }
-
-                // ✅ Campos de matching: passam apenas se forem hashes válidos (64 chars hex)
-                for (var j = 0; j < HASH_ONLY.length; j++) {
-                    try {
-                        var hk = HASH_ONLY[j];
-                        if (!finalData || !Object.prototype.hasOwnProperty.call(finalData, hk)) continue;
-                        if (!IS_SHA256(finalData[hk])) delete finalData[hk];
-                    } catch(e) {}
-                }
-
-                // ✅ FIX: respeita event_id único passado por cada chamada (não sobrescreve)
-                // CompletePayment usa getSessionEventId() para sincronizar browser+server
-                // Todos os outros eventos usam generateEventId() único por disparo
-                if (!finalData.event_id) {
-                    finalData.event_id = generateEventId();
-                }
-
-
-                var payload = Object.assign({}, finalData, {
-                    ttclid: window.getTTCLID(),
-                    ...window.getStoredUTMs(),
-                    event_source_url: window.location.origin + window.location.pathname,
-                    event_time: Math.floor(Date.now() / 1000)
-                });
-                // Browser Pixel do projeto
-                if (window.ttq && typeof window.ttq.track === 'function') {
-                    try { window.ttq.track(event, payload); } catch(e) {}
-                }
-
-                // GA fallback (opcional) — payload já está sanitizado
-                if (typeof gtag === 'function') {
-                    try { gtag('event', event, payload); } catch(e) {}
-                }
-            }).catch((error) => {
-                if (DEBUG_MODE) console.error('trackPixel error:', error);
-            });
-        });
-    }
-    window.trackPixel = trackPixel;
-
- 
-
-    const PRODUCT_CONTENT = { 
-        contents: [{ 
-            content_id: 'AFON-12L-BI', 
-            content_type: 'product', 
-            content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial',
-            quantity: 1, 
-            price: 197.99
-        }], 
-        content_id: 'AFON-12L-BI',
-        content_ids: ['AFON-12L-BI'],
-        content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI',
-        content_type: 'product',
-        value: 197.99, 
-        currency: 'BRL' 
-    };
-    window.PRODUCT_CONTENT = PRODUCT_CONTENT;
-
-    // (Compliance) Analytics de terceiros desativado nesta página.
-
-    let INITIAL_HEIGHT = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-
-    function updateFooterHeightVar() {
-        try {
-            const footer = document.querySelector('.checkout-fixed-footer');
-            if (!footer) return;
-            const h = Math.ceil(footer.getBoundingClientRect().height || 0);
-            if (h > 0) document.documentElement.style.setProperty('--footer-height', h + 'px');
-        } catch(e) {}
-    }
-
-    
-    function setupKeyboardDetection() {
-        const isVisualViewportSupported = typeof window.visualViewport !== 'undefined';
-        
-        if (isVisualViewportSupported) {
-            const visualViewport = window.visualViewport;
-            const handleResize = () => {
-                const currentHeight = visualViewport.height;
-                if (currentHeight > INITIAL_HEIGHT) INITIAL_HEIGHT = currentHeight;
-                const diff = INITIAL_HEIGHT - currentHeight;
-                
-                if (diff > 150) { 
-                    document.documentElement.style.setProperty('--keyboard-height', diff + 'px');
-                    document.body.classList.add('keyboard-open');
-                } else {
-                    document.body.classList.remove('keyboard-open');
-                    document.documentElement.style.setProperty('--keyboard-height', '0px');
-                }
-            };
-            visualViewport.addEventListener('resize', handleResize);
-        }
-
-        window.addEventListener('resize', () => {
-            if (isVisualViewportSupported) return; 
-            const currentHeight = window.innerHeight;
-            const diff = INITIAL_HEIGHT - currentHeight;
-            if (diff > 150) {
-                document.body.classList.add('keyboard-open');
-            } else {
-                document.body.classList.remove('keyboard-open');
-            }
-        });
-
-        document.addEventListener('focusin', (e) => {
-            if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
-                document.body.classList.add('keyboard-open');
-
-                const adjustForFooter = () => {
-                    try {
-                        const footerH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--footer-height')) || 0;
-                        const vvH = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-                        const rect = e.target.getBoundingClientRect();
-                        const bottomLimit = vvH - footerH - 12;
-                        if (rect.bottom > bottomLimit) {
-                            window.scrollBy(0, rect.bottom - bottomLimit);
-                        }
-                    } catch (_) {}
-                };
-
-                setTimeout(adjustForFooter, 60);
-                setTimeout(adjustForFooter, 260);
-            }
-        });
-        
-        document.addEventListener('focusout', (e) => {
-            if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
-               setTimeout(() => {
-                   if (document.activeElement && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
-                       document.body.classList.remove('keyboard-open');
-                   }
-               }, 150);
-            }
-        });
-
-        window.addEventListener('orientationchange', () => {
-            setTimeout(() => { INITIAL_HEIGHT = window.visualViewport ? window.visualViewport.height : window.innerHeight; updateFooterHeightVar(); }, 200);
-        });
-
-        updateFooterHeightVar();
-        window.addEventListener('load', updateFooterHeightVar);
-        window.addEventListener('resize', () => setTimeout(updateFooterHeightVar, 50));
-        if (isVisualViewportSupported) {
-            window.visualViewport.addEventListener('resize', () => setTimeout(updateFooterHeightVar, 50));
-        }
-    }
-    
-    function isTikTokWebView() {
-        // TikTok in-app browser adiciona "https://" no início ao usar navigator.clipboard.writeText
-        // Detectamos pelo userAgent para usar o método alternativo (textarea)
-        return /musical_ly|tiktok|bytedancewebview|musical\.ly/i.test(navigator.userAgent);
-    }
-
-    function safeCopyToClipboard(text) {
-        return new Promise((resolve, reject) => {
-            // ⚠️ BUG TIKTOK WEBVIEW: o clipboard nativo prefixa "https://" no texto.
-            // Forçamos o fallback via textarea para garantir cópia limpa.
-            if (isTikTokWebView()) {
-                fallbackCopy(text) ? resolve() : reject();
-                return;
-            }
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).then(resolve).catch(() => fallbackCopy(text) ? resolve() : reject());
-            } else {
-                fallbackCopy(text) ? resolve() : reject();
-            }
-        });
-    }
-    
-    function fallbackCopy(text) {
-        try {
-            const textArea = document.createElement('textarea');
-            textArea.value = text;
-            textArea.style.position = 'fixed';
-            textArea.style.left = '-999999px';
-            textArea.style.top = '-999999px';
-            textArea.style.opacity = '0';
-            textArea.setAttribute('readonly', '');
-            document.body.appendChild(textArea);
-            
-            if (navigator.userAgent.match(/ipad|iphone/i)) {
-                const range = document.createRange();
-                range.selectNodeContents(textArea);
-                const selection = window.getSelection();
-                selection.removeAllRanges();
-                selection.addRange(range);
-                textArea.setSelectionRange(0, 999999);
-            } else {
-                textArea.select();
-            }
-            
-            const successful = document.execCommand('copy');
-            document.body.removeChild(textArea);
-            return successful;
-        } catch (err) {
-            return false;
-        }
-    }
-    
-    window.safeCopyToClipboard = safeCopyToClipboard;
-
-    function createInputMask(type) {
-        return {
-            format: function(value, selectionStart) {
-                if (!value) return { formatted: "", cursorPosition: 0 };
-                let rawNumbers = value.replace(/\D/g, '');
-                
-                if (type === 'phone') { if (rawNumbers.length > 13) rawNumbers = rawNumbers.substring(0, 13); }
-                if (type === 'cpf' && rawNumbers.length > 11) rawNumbers = rawNumbers.substring(0, 11);
-                if (type === 'cep' && rawNumbers.length > 8) rawNumbers = rawNumbers.substring(0, 8);
-
-                let formatted = "";
-                switch(type) {
-                    case 'phone':
-                        (function() {
-                            var prefix = '';
-                            var digits = rawNumbers;
-                            if (rawNumbers.startsWith('55') && rawNumbers.length > 2) {
-                                prefix = '+55 ';
-                                digits = rawNumbers.substring(2);
-                            }
-                            var ddd = digits.substring(0, 2);
-                            var part1 = digits.substring(2, 7);
-                            var part2 = digits.substring(7, 11);
-                            if (digits.length === 0) formatted = prefix;
-                            else if (digits.length <= 2) formatted = prefix + '(' + ddd;
-                            else if (digits.length <= 7) formatted = prefix + '(' + ddd + ') ' + part1;
-                            else formatted = prefix + '(' + ddd + ') ' + part1 + '-' + part2;
-                        })();
-                        break;
-                    case 'cpf':
-                        formatted = rawNumbers.replace(/^(\d{0,3})(\d{0,3})(\d{0,3})(\d{0,2})/, (match, g1, g2, g3, g4) => {
-                            let result = '';
-                            if (g1) result += g1; if (g2) result += `.${g2}`; if (g3) result += `.${g3}`; if (g4) result += `-${g4}`;
-                            return result;
-                        });
-                        break;
-                    case 'cep':
-                        formatted = rawNumbers.replace(/^(\d{0,5})(\d{0,3})/, (match, g1, g2) => {
-                            let result = '';
-                            if (g1) result += g1; if (g2) result += `-${g2}`;
-                            return result;
-                        });
-                        break;
-                }
-                
-                let digitsBeforeCursor = 0;
-                if (selectionStart !== undefined && selectionStart !== null) {
-                    for (let i = 0; i < Math.min(selectionStart, value.length); i++) {
-                        if (value[i] >= '0' && value[i] <= '9') digitsBeforeCursor++;
-                    }
-                }
-                
-                let newPos = 0;
-                let digitCount = 0;
-                for (let i = 0; i < formatted.length; i++) {
-                    if (formatted[i] >= '0' && formatted[i] <= '9') digitCount++;
-                    if (digitCount >= digitsBeforeCursor) { newPos = i + 1; break; }
-                }
-                if (digitsBeforeCursor === 0) newPos = 0;
-                if (formatted.length < value.length && selectionStart === value.length) newPos = formatted.length;
-                
-                return { formatted, cursorPosition: newPos };
-            }
-        };
-    }
-    
-    window.createInputMask = createInputMask;
-    </script>
 </head>
 <body>
-<div id="skeleton-loader" style="min-height: 100dvh; background: #f8fafc;">
-<div class="progress-bar" style="width: 25%;"></div>
-<div class="static-nav">
-<img alt="Logo" decoding="async" loading="lazy" onerror="this.onerror=null; this.src='/assets/img/logo.webp'" src="../assets/img/logo.webp" style="height: 32px; width: auto; object-fit: contain;"/>
+
+<!-- SKELETON -->
+<div id="skeleton">
+  <div class="sk-bar sk-p" id="sk-bar"></div>
+  <div class="sk-nav"><div class="sk-line w50 sk-p" style="height:28px;width:100px;border-radius:8px"></div></div>
+  <div class="sk-body">
+    <div class="sk-card">
+      <div class="sk-img sk-p"></div>
+      <div class="sk-lines"><div class="sk-line w75 sk-p"></div><div class="sk-line w50 sk-p"></div><div class="sk-line w30 sk-p"></div></div>
+    </div>
+    <div class="sk-block">
+      <div class="sk-bh"><div class="sk-circle sk-p"></div><div class="sk-line w50 sk-p" style="height:12px"></div></div>
+      <div class="sk-bb"><div class="sk-inp sk-p"></div><div class="sk-inp sk-p"></div></div>
+    </div>
+    <div class="sk-status">Carregando ambiente seguro...</div>
+  </div>
 </div>
-<div class="static-container">
-<div class="static-left-col">
-<div class="static-card">
-<div class="static-badge">OFERTA ESPECIAL</div>
-<div class="static-img-box"><img alt="Fritadeira" class="static-img" decoding="async" height="80" loading="eager" src="../assets/img/01.webp" width="80"/></div>
-<div class="static-info">
-<h3 class="static-title">Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI</h3>
-<div><span class="static-old-price">De R$ 399,90</span><span class="static-new-price">Por R$ 197,99</span></div>
-<div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;">
-<span style="font-size: 10px; background: #f0fdf4; color: #166534; padding: 3px 8px; border-radius: 99px; display: inline-flex; align-items: center; gap: 3px; font-weight: 600;">Compra Segura</span>
-<span style="font-size: 10px; background: #eff6ff; color: #1e40af; padding: 3px 8px; border-radius: 99px; display: inline-flex; align-items: center; gap: 3px; font-weight: 600;">Garantia 12 Meses</span>
+
+<!-- =============== CHECKOUT SCREEN =============== -->
+<div id="screen-checkout" class="screen">
+  <nav class="nav">
+    <img class="nav-logo" src="../assets/img/logo.webp" alt="Logo" onerror="this.style.display='none'">
+    <div class="nav-secure">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      Compra Segura
+    </div>
+  </nav>
+
+  <main class="ck-wrap">
+    <!-- PRODUCT -->
+    <section class="p-card anim">
+      <div class="p-badge">Oferta Especial</div>
+      <img class="p-img" src="../assets/img/01.webp" alt="Fritadeira Elétrica Forno Oven 12L" loading="eager">
+      <div class="p-info">
+        <h1 class="p-title">Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI</h1>
+        <span class="p-old">De R$ 399,90</span>
+        <span class="p-lbl">Por</span>
+        <span class="p-price">R$ 197,99</span>
+        <div class="p-tags">
+          <span class="p-tag g"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>Compra Segura</span>
+          <span class="p-tag b"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Garantia 12 Meses</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 1 -->
+    <section class="f-sec anim d1">
+      <div class="f-hdr"><div class="f-num">1</div><span class="f-ttl">Dados Pessoais</span></div>
+      <div class="f-body">
+        <div class="fg">
+          <label class="fl" for="inp-nome">Nome Completo</label>
+          <input class="fi" id="inp-nome" type="text" placeholder="Seu nome completo" autocomplete="name" inputmode="text">
+          <span class="fe" id="err-nome">Informe seu nome completo</span>
+        </div>
+        <div class="fg">
+          <label class="fl" for="inp-email">E-mail</label>
+          <input class="fi" id="inp-email" type="email" placeholder="seu@email.com" autocomplete="email" inputmode="email">
+          <span class="fe" id="err-email">Informe um e-mail válido</span>
+        </div>
+        <div class="fr">
+          <div class="fg">
+            <label class="fl" for="inp-tel">Telefone</label>
+            <input class="fi" id="inp-tel" type="tel" placeholder="(00) 00000-0000" autocomplete="tel" inputmode="tel">
+            <span class="fe" id="err-tel">Telefone inválido</span>
+          </div>
+          <div class="fg">
+            <label class="fl" for="inp-cpf">CPF</label>
+            <input class="fi" id="inp-cpf" type="tel" placeholder="000.000.000-00" inputmode="numeric">
+            <span class="fe" id="err-cpf">CPF inválido</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 2 -->
+    <section class="f-sec anim d2">
+      <div class="f-hdr"><div class="f-num">2</div><span class="f-ttl">Endereço de Entrega</span></div>
+      <div class="f-body">
+        <div class="fg">
+          <label class="fl" for="inp-cep">CEP</label>
+          <input class="fi" id="inp-cep" type="tel" placeholder="00000-000" inputmode="numeric" autocomplete="postal-code">
+          <span class="fe" id="err-cep">Informe um CEP válido</span>
+        </div>
+        <div class="fg">
+          <label class="fl" for="inp-rua">Rua</label>
+          <input class="fi" id="inp-rua" type="text" placeholder="Nome da rua" autocomplete="street-address">
+          <span class="fe" id="err-rua">Informe a rua</span>
+        </div>
+        <div class="fr3">
+          <div class="fg">
+            <label class="fl" for="inp-bairro">Bairro</label>
+            <input class="fi" id="inp-bairro" type="text" placeholder="Bairro">
+            <span class="fe" id="err-bairro">Informe o bairro</span>
+          </div>
+          <div class="fg">
+            <label class="fl" for="inp-num">Número</label>
+            <input class="fi" id="inp-num" type="tel" placeholder="Nº" inputmode="numeric">
+            <span class="fe" id="err-num">Obrigatório</span>
+          </div>
+        </div>
+        <div class="fg">
+          <label class="fl" for="inp-comp">Complemento <span style="color:var(--s400);font-weight:400">(opcional)</span></label>
+          <input class="fi" id="inp-comp" type="text" placeholder="Apto, bloco, etc.">
+        </div>
+        <div class="fr">
+          <div class="fg">
+            <label class="fl" for="inp-cidade">Cidade</label>
+            <input class="fi" id="inp-cidade" type="text" placeholder="Cidade">
+            <span class="fe" id="err-cidade">Informe a cidade</span>
+          </div>
+          <div class="fg">
+            <label class="fl" for="inp-estado">Estado</label>
+            <select class="fs" id="inp-estado">
+              <option value="">UF</option>
+              <option value="AC">AC</option><option value="AL">AL</option><option value="AP">AP</option>
+              <option value="AM">AM</option><option value="BA">BA</option><option value="CE">CE</option>
+              <option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option>
+              <option value="MA">MA</option><option value="MT">MT</option><option value="MS">MS</option>
+              <option value="MG">MG</option><option value="PA">PA</option><option value="PB">PB</option>
+              <option value="PR">PR</option><option value="PE">PE</option><option value="PI">PI</option>
+              <option value="RJ">RJ</option><option value="RN">RN</option><option value="RS">RS</option>
+              <option value="RO">RO</option><option value="RR">RR</option><option value="SC">SC</option>
+              <option value="SP">SP</option><option value="SE">SE</option><option value="TO">TO</option>
+            </select>
+            <span class="fe" id="err-estado">Selecione</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 3: PAGAMENTO -->
+    <section class="f-sec anim d3">
+      <div class="f-hdr"><div class="f-num">3</div><span class="f-ttl">Pagamento</span></div>
+      <div class="f-body">
+        <div class="pay-card">
+          <div class="pay-badge">Aprovação Imediata</div>
+          <div class="pay-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="pay-info">
+            <div class="pay-label">PIX</div>
+            <div class="pay-price">R$ 197,99</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRUST -->
+    <div class="trust anim d4">
+      <div class="trust-i">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>Compra<br>Segura</span>
+      </div>
+      <div class="trust-i">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        <span>Dados<br>Protegidos</span>
+      </div>
+      <div class="trust-i">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+        <span>Garantia<br>12 Meses</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- FIXED FOOTER -->
+  <footer class="ck-footer" id="ck-footer">
+    <div class="ck-footer-in">
+      <button class="btn-ck" id="btn-submit" type="button">
+        Finalizar com Desconto
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <div class="legal-text">
+        Ao clicar em 'Finalizar compra', você aceita que a Izzat processe o pedido, concorda com os
+        <a href="/termos-de-compra/">Termos de compra</a>, com a
+        <a href="/politica-de-privacidade/">Política de Privacidade</a>
+        e confirmação de maioridade ou supervisão de tutor.
+        <span style="opacity:.8">REF: </span><a href="/ref/" style="opacity:.8" id="ref-link">—</a>
+      </div>
+      <div class="sec-text">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        Seus dados estão protegidos por criptografia 256-bit
+      </div>
+    </div>
+  </footer>
 </div>
+
+<!-- =============== PIX SCREEN =============== -->
+<div id="screen-pix" class="screen pix-screen">
+  <!-- Loading state (shown first) -->
+  <div id="pix-loading" class="pix-loading">
+    <div class="pix-loading-spin"></div>
+    <h2 class="pix-loading-h" id="pix-loading-text">Iniciando transação segura...</h2>
+    <p class="pix-loading-p">Por favor, não feche esta página.</p>
+  </div>
+  <!-- PIX content (shown after loading) -->
+  <div id="pix-content" class="pix-wrap" style="display:none">
+    <div class="pix-box">
+      <div class="pix-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <h1 class="pix-h1" id="pix-greeting">Quase lá!</h1>
+      <p class="pix-sub">Finalize o pagamento para garantir a oferta.</p>
+      <div class="pix-reserved">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        Pedido Reservado com Sucesso
+      </div>
+      <div class="pix-steps">
+        <div class="pix-step"><div class="pix-step-n active">1</div><span class="pix-step-t active">Copiar</span></div>
+        <div class="pix-step"><div class="pix-step-n inactive">2</div><span class="pix-step-t inactive">App Banco</span></div>
+        <div class="pix-step"><div class="pix-step-n inactive">3</div><span class="pix-step-t inactive">Colar</span></div>
+        <div class="pix-step"><div class="pix-step-n inactive">4</div><span class="pix-step-t inactive">Pagar</span></div>
+      </div>
+      <div class="pix-code-wrap">
+        <div class="pix-code-label">Código PIX</div>
+        <div class="pix-code-text select-all" id="pix-code-display"></div>
+        <button class="btn-copy green" id="btn-copy" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Clique para Copiar
+        </button>
+      </div>
+      <div class="pix-total">
+        <span class="pix-total-l">Valor Total:</span>
+        <span class="pix-total-v">R$ 197,99</span>
+      </div>
+      <div class="pix-waiting">
+        <div class="pix-waiting-spin"></div>
+        Aguardando confirmação do banco...
+      </div>
+      <div class="pix-id" id="pix-order-id"></div>
+      <div class="pix-how">
+        <div class="pix-how-title">Como Pagar:</div>
+        <div class="pix-how-step"><div class="pix-how-n">1</div><span class="pix-how-t">Abra o aplicativo do seu banco</span></div>
+        <div class="pix-how-step"><div class="pix-how-n">2</div><span class="pix-how-t">Selecione PIX › Pix Copia e Cola</span></div>
+        <div class="pix-how-step"><div class="pix-how-n">3</div><span class="pix-how-t">Cole o código copiado</span></div>
+        <div class="pix-how-step"><div class="pix-how-n">4</div><span class="pix-how-t">Confirme os dados e o valor</span></div>
+      </div>
+    </div>
+  </div>
 </div>
-</div>
-</div>
-<div class="static-right-col">
-<div class="sk-form-block">
-<div class="sk-form-header"><div class="sk-circle">1</div><div class="sk-title">Dados Pessoais</div></div>
-<div class="sk-body"><div class="sk-input"></div><div class="sk-input"></div></div>
-</div>
-<div style="text-align: center; margin-top: 24px; color: #94a3b8; font-size: 12px; font-weight: 500;">Carregando ambiente seguro...</div>
-</div>
-</div>
-</div>
-<div id="checkout-root"></div>
-<script defer="" src="/assets/js/checkout.app.js?v=12.0" onerror="window.__loadScript&&window.__loadScript('../assets/js/checkout.app.js?v=12.0').then(function(){if(window.initReactCheckout&&!window.checkoutInitialized)window.initReactCheckout();})"></script>
-<script defer src="/assets/js/metrics.ping.js"></script>
+
+<!-- =============== ALL JAVASCRIPT =============== -->
+<script>
+(function(){
+"use strict";
+
+/* =============================================================
+   PRODUCT CONFIG
+   ============================================================= */
+var PRODUCT = {
+  id:"AFON-12L-BI",
+  name:"Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI",
+  price:197.99,
+  currency:"BRL"
+};
+
+var DEFAULT_PIX_CODE = "00020101021226900014br.gov.bcb.pix2568pix.adyen.com/pixqrcodelocation/pixloc/v1/loc/hWu3o18RS3OOujzeqNF5iQ5204000053039865802BR5925MONETIZZE IMPULSIONADORA 6009SAO PAULO62070503***63047984";
+
+window.PRODUCT_CONTENT = {
+  contents:[{content_id:PRODUCT.id,content_type:"product",content_name:PRODUCT.name,quantity:1,price:PRODUCT.price}],
+  content_id:PRODUCT.id,content_ids:[PRODUCT.id],content_name:PRODUCT.name,content_type:"product",value:PRODUCT.price,currency:PRODUCT.currency
+};
+
+/* =============================================================
+   DOM CACHE
+   ============================================================= */
+var $=function(id){return document.getElementById(id)};
+var dom={
+  skeleton:$("skeleton"),skBar:$("sk-bar"),
+  scrCheckout:$("screen-checkout"),scrPix:$("screen-pix"),
+  pixLoading:$("pix-loading"),pixLoadingText:$("pix-loading-text"),pixContent:$("pix-content"),
+  pixGreeting:$("pix-greeting"),pixCodeDisplay:$("pix-code-display"),pixOrderId:$("pix-order-id"),
+  btnCopy:$("btn-copy"),btnSubmit:$("btn-submit"),footer:$("ck-footer"),refLink:$("ref-link"),
+  nome:$("inp-nome"),email:$("inp-email"),tel:$("inp-tel"),cpf:$("inp-cpf"),
+  cep:$("inp-cep"),rua:$("inp-rua"),bairro:$("inp-bairro"),num:$("inp-num"),
+  comp:$("inp-comp"),cidade:$("inp-cidade"),estado:$("inp-estado"),
+  errNome:$("err-nome"),errEmail:$("err-email"),errTel:$("err-tel"),errCpf:$("err-cpf"),
+  errCep:$("err-cep"),errRua:$("err-rua"),errBairro:$("err-bairro"),errNum:$("err-num"),
+  errCidade:$("err-cidade"),errEstado:$("err-estado")
+};
+
+/* =============================================================
+   PIX CONFIG (loaded from KV admin via /api/pix-config)
+   ============================================================= */
+var pixConfig = { code: DEFAULT_PIX_CODE, qrUrl: "/assets/img/qrcode.webp" };
+
+(function loadPixConfig(){
+  try {
+    fetch("/api/pix-config?_="+Date.now(),{cache:"no-store"})
+      .then(function(r){return r.ok?r.json():null})
+      .then(function(cfg){
+        if(!cfg||typeof cfg!=="object") return;
+        if(typeof cfg.pix_code==="string"&&cfg.pix_code.trim()) pixConfig.code=cfg.pix_code.trim();
+        if(typeof cfg.qrcode_url==="string") pixConfig.qrUrl=cfg.qrcode_url;
+        if(cfg.qrcode_url===null) pixConfig.qrUrl="";
+      }).catch(function(){});
+  } catch(e){}
+})();
+
+/* =============================================================
+   TRACKING UTILITIES
+   ============================================================= */
+function generateEventId(){return "evt_"+Date.now()+"_"+Math.random().toString(36).slice(2,9)}
+
+function getSessionEventId(){
+  try{var k="checkout_event_id",e=sessionStorage.getItem(k);if(!e){e=generateEventId();sessionStorage.setItem(k,e)}return e}
+  catch(_){if(!window.__ckEvtId)window.__ckEvtId=generateEventId();return window.__ckEvtId}
+}
+
+function getExternalId(){
+  try{var e=localStorage.getItem("user_external_id");if(!e){e="sess_"+Math.random().toString(36).slice(2,11)+"_"+Date.now();localStorage.setItem("user_external_id",e)}return e}
+  catch(_){return "sess_"+Math.random().toString(36).slice(2,11)+"_"+Date.now()}
+}
+
+function getTTCLID(){
+  try{var p=new URLSearchParams(window.location.search),v=p.get("ttclid");if(v){try{localStorage.setItem("ttclid",v)}catch(_){}return v}return localStorage.getItem("ttclid")}catch(_){return null}
+}
+
+function getRefCode(){
+  try{var t=getTTCLID();if(!t)return"";t=String(t);return t.length>8?t.slice(-8):t}catch(_){return""}
+}
+
+function getStoredUTMs(){
+  var keys=["utm_source","utm_medium","utm_campaign","utm_term","utm_content","gclid","fbclid","msclkid"],u={};
+  try{var p=new URLSearchParams(window.location.search);keys.forEach(function(k){var v=p.get(k);if(v){u[k]=v;try{localStorage.setItem(k,v)}catch(_){}}else{var s=localStorage.getItem(k);if(s)u[k]=s}})}catch(_){}
+  return u;
+}
+
+// PII fields NEVER sent to tracking
+var PII_DROP=["email","phone","phone_number","cpf","address","cep","number","city","state","name","firstName","lastName","nome","telefone","tel","mail","rua","bairro","cidade","estado","complemento","numero","external_id"];
+var HASH_SAFE=["email","phone","phone_number","external_id","fn","ln","ct","st","zp"];
+function isSha256(v){return typeof v==="string"&&/^[a-f0-9]{64}$/i.test(v.trim())}
+
+function trackEvent(eventName,data){
+  try{
+    var p=Object.assign({},data||{});
+    // Strip raw PII, keep only SHA-256 hashes
+    PII_DROP.forEach(function(k){if(Object.prototype.hasOwnProperty.call(p,k)){if(HASH_SAFE.indexOf(k)!==-1&&isSha256(p[k]))return;delete p[k]}});
+    if(!p.event_id)p.event_id=generateEventId();
+    p.ttclid=getTTCLID();
+    p.event_source_url=window.location.origin+window.location.pathname;
+    p.event_time=Math.floor(Date.now()/1000);
+    var utms=getStoredUTMs();Object.keys(utms).forEach(function(k){p[k]=utms[k]});
+    if(window.ttq&&typeof window.ttq.track==="function")window.ttq.track(eventName,p);
+    if(typeof gtag==="function")try{gtag("event",eventName,p)}catch(_){}
+  }catch(_){}
+}
+
+// SHA-256 hashing (native Web Crypto)
+function hashData(text){
+  try{
+    if(!text)return Promise.resolve(null);
+    if(!window.crypto||!window.crypto.subtle)return Promise.resolve(null);
+    var msg=new TextEncoder().encode(String(text).trim().toLowerCase());
+    return window.crypto.subtle.digest("SHA-256",msg).then(function(buf){
+      return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,"0")}).join("")
+    })
+  }catch(_){return Promise.resolve(null)}
+}
+
+// CAPI: server-side event mirroring
+function sendCAPI(event,eventId,properties,user){
+  try{
+    var payload=JSON.stringify({event:event,event_id:eventId,properties:properties||{},user:user||{}});
+    if(navigator&&typeof navigator.sendBeacon==="function"){
+      navigator.sendBeacon("/api/tiktok-events",new Blob([payload],{type:"application/json"}))
+    }else{
+      fetch("/api/tiktok-events",{method:"POST",headers:{"content-type":"application/json"},body:payload,keepalive:true}).catch(function(){})
+    }
+  }catch(_){}
+}
+
+// Order creation (encrypted PII → KV)
+function createOrderRecord(payload){
+  return fetch("/api/order-create",{
+    method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(payload||{}),credentials:"same-origin"
+  }).then(function(r){return r.json()}).then(function(d){
+    if(!d||!d.ok||!d.order_id)throw new Error("fail");return d
+  }).catch(function(){return null})
+}
+
+// Expose globals
+window.getExternalId=getExternalId;window.getTTCLID=getTTCLID;window.getStoredUTMs=getStoredUTMs;
+window.getSessionEventId=getSessionEventId;window.generateEventId=generateEventId;
+window.getRefCode=getRefCode;window.trackPixel=trackEvent;
+
+/* =============================================================
+   BOOT: Skeleton → Content
+   ============================================================= */
+function boot(){
+  dom.skBar.style.width="60%";
+  setTimeout(function(){
+    dom.skBar.style.width="100%";
+    setTimeout(function(){
+      dom.skeleton.classList.add("hide");
+      dom.scrCheckout.classList.add("active");
+      // Set REF link
+      var ref=getRefCode();dom.refLink.textContent=ref||"—";
+      setTimeout(function(){dom.skeleton.style.display="none"},450);
+    },300);
+  },400);
+
+  // Fire ViewContent
+  var sid=getSessionEventId();
+  trackEvent("ViewContent",Object.assign({},window.PRODUCT_CONTENT,{event_id:generateEventId()}));
+  trackEvent("InitiateCheckout",Object.assign({},window.PRODUCT_CONTENT,{content_name:PRODUCT.name,event_id:sid}));
+  // CAPI mirror InitiateCheckout
+  sendCAPI("InitiateCheckout",sid,Object.assign({},window.PRODUCT_CONTENT,{event_source_url:window.location.href}),{
+    external_id:undefined,ttclid:getTTCLID(),
+    ttp:(document.cookie.match(/(?:^|;\s*)_ttp=([^;]*)/)||[])[1]||undefined
+  });
+}
+
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);
+else requestAnimationFrame(boot);
+
+/* =============================================================
+   INPUT MASKS (phone allows +55 prefix → up to 13 digits)
+   ============================================================= */
+function maskPhone(raw){
+  var d=raw.replace(/\D/g,"");
+  // Allow +55 prefix: up to 13 digits total (55 + 11)
+  if(d.length>13)d=d.slice(0,13);
+  var prefix="",digits=d;
+  if(d.startsWith("55")&&d.length>2){prefix="+55 ";digits=d.slice(2)}
+  if(digits.length===0)return prefix;
+  if(digits.length<=2)return prefix+"("+digits;
+  if(digits.length<=7)return prefix+"("+digits.slice(0,2)+") "+digits.slice(2);
+  return prefix+"("+digits.slice(0,2)+") "+digits.slice(2,7)+"-"+digits.slice(7,11);
+}
+
+function maskCPF(raw){
+  var d=raw.replace(/\D/g,"").slice(0,11);
+  if(d.length<=3)return d;
+  if(d.length<=6)return d.slice(0,3)+"."+d.slice(3);
+  if(d.length<=9)return d.slice(0,3)+"."+d.slice(3,6)+"."+d.slice(6);
+  return d.slice(0,3)+"."+d.slice(3,6)+"."+d.slice(6,9)+"-"+d.slice(9);
+}
+
+function maskCEP(raw){
+  var d=raw.replace(/\D/g,"").slice(0,8);
+  if(d.length<=5)return d;
+  return d.slice(0,5)+"-"+d.slice(5);
+}
+
+function applyMask(input,fn){
+  input.addEventListener("input",function(){
+    var pos=input.selectionStart,prev=input.value.length;
+    var dbc=0;for(var i=0;i<Math.min(pos,prev);i++){if(input.value[i]>="0"&&input.value[i]<="9")dbc++}
+    input.value=fn(input.value);
+    var np=0,cnt=0;
+    for(var j=0;j<input.value.length;j++){if(input.value[j]>="0"&&input.value[j]<="9")cnt++;if(cnt>=dbc){np=j+1;break}}
+    if(dbc===0)np=0;if(np>input.value.length)np=input.value.length;
+    try{input.setSelectionRange(np,np)}catch(_){}
+  });
+}
+applyMask(dom.tel,maskPhone);
+applyMask(dom.cpf,maskCPF);
+applyMask(dom.cep,maskCEP);
+
+/* =============================================================
+   CEP AUTO-FILL (ViaCEP)
+   ============================================================= */
+var cepCache={},cepAbort=null;
+
+function fetchCEP(cep){
+  var d=cep.replace(/\D/g,"");if(d.length!==8)return;
+  if(cepCache[d]){fillAddr(cepCache[d]);return}
+  if(cepAbort)try{cepAbort.abort()}catch(_){}
+  dom.cep.classList.add("ld");setAddrState(true);
+  cepAbort=new AbortController();
+  fetch("https://viacep.com.br/ws/"+d+"/json/",{signal:cepAbort.signal})
+    .then(function(r){return r.json()})
+    .then(function(data){
+      dom.cep.classList.remove("ld");
+      if(data.erro){showErr(dom.cep,dom.errCep,"CEP não encontrado");setAddrState(false);return}
+      cepCache[d]=data;fillAddr(data);
+    }).catch(function(e){dom.cep.classList.remove("ld");if(e.name!=="AbortError")setAddrState(false)});
+}
+
+function fillAddr(d){
+  dom.rua.value=d.logradouro||"";dom.bairro.value=d.bairro||"";dom.cidade.value=d.localidade||"";dom.estado.value=d.uf||"";
+  setAddrState(false);
+  if(d.logradouro)dom.rua.disabled=true;
+  if(d.bairro)dom.bairro.disabled=true;
+  dom.cidade.disabled=true;dom.estado.disabled=true;
+  clrErr(dom.rua,dom.errRua);clrErr(dom.bairro,dom.errBairro);clrErr(dom.cidade,dom.errCidade);clrErr(dom.estado,dom.errEstado);
+  setTimeout(function(){dom.num.focus()},100);
+}
+
+function setAddrState(loading){
+  [dom.rua,dom.bairro,dom.num,dom.cidade].forEach(function(f){f.disabled=loading});
+  dom.estado.disabled=loading;
+}
+
+dom.cep.addEventListener("input",function(){
+  var d=dom.cep.value.replace(/\D/g,"");
+  if(d.length<8){dom.rua.value="";dom.bairro.value="";dom.cidade.value="";dom.estado.value="";dom.rua.disabled=false;dom.bairro.disabled=false;dom.cidade.disabled=false;dom.estado.disabled=false;return}
+  if(d.length===8)fetchCEP(d);
+});
+
+/* =============================================================
+   VALIDATION
+   ============================================================= */
+function digits(s){return(s||"").replace(/\D/g,"")}
+function showErr(inp,el,msg){inp.classList.add("err");inp.classList.remove("ok");if(msg)el.textContent=msg;el.classList.add("show")}
+function clrErr(inp,el){inp.classList.remove("err");el.classList.remove("show")}
+function markOk(inp,el){inp.classList.remove("err");inp.classList.add("ok");el.classList.remove("show")}
+
+function valNome(v){v=v.trim();if(v.length<3)return"Informe seu nome completo";if(v.indexOf(" ")===-1)return"Informe nome e sobrenome";return true}
+function valEmail(v){v=v.trim();if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v))return"Informe um e-mail válido";return true}
+function valTel(v){var d=digits(v);if(d.length>11&&d.startsWith("55"))d=d.slice(2);if(d.length<10||d.length>11)return"Telefone inválido";return true}
+function valCPF(v){
+  var d=digits(v);if(d.length!==11)return"CPF inválido";
+  if(/^(\d)\1{10}$/.test(d))return"CPF inválido";
+  var s=0;for(var i=0;i<9;i++)s+=parseInt(d[i])*(10-i);var r=(s*10)%11;if(r===10)r=0;if(r!==parseInt(d[9]))return"CPF inválido";
+  s=0;for(var j=0;j<10;j++)s+=parseInt(d[j])*(11-j);r=(s*10)%11;if(r===10)r=0;if(r!==parseInt(d[10]))return"CPF inválido";
+  return true;
+}
+function valCEP(v){if(digits(v).length!==8)return"Informe um CEP válido";return true}
+function valReq(v){if(!v.trim())return"Campo obrigatório";return true}
+
+// Blur validation
+function addBlur(inp,el,fn){
+  inp.addEventListener("blur",function(){if(!inp.value.trim())return;var r=fn(inp.value);r===true?markOk(inp,el):showErr(inp,el,r)});
+  inp.addEventListener("focus",function(){clrErr(inp,el)});
+}
+addBlur(dom.nome,dom.errNome,valNome);
+addBlur(dom.email,dom.errEmail,valEmail);
+addBlur(dom.tel,dom.errTel,valTel);
+addBlur(dom.cpf,dom.errCpf,valCPF);
+addBlur(dom.cep,dom.errCep,valCEP);
+
+/* =============================================================
+   FORM SUBMIT → PIX SCREEN
+   ============================================================= */
+var isSubmitting=false;
+
+function validateAll(){
+  var ok=true,first=null;
+  function chk(inp,el,fn){var r=fn(inp.value);if(r!==true){showErr(inp,el,r);if(!first)first=inp;ok=false}else{markOk(inp,el)}}
+  chk(dom.nome,dom.errNome,valNome);chk(dom.email,dom.errEmail,valEmail);
+  chk(dom.tel,dom.errTel,valTel);chk(dom.cpf,dom.errCpf,valCPF);
+  chk(dom.cep,dom.errCep,valCEP);chk(dom.rua,dom.errRua,valReq);
+  chk(dom.bairro,dom.errBairro,valReq);chk(dom.num,dom.errNum,valReq);
+  chk(dom.cidade,dom.errCidade,valReq);
+  if(!dom.estado.value){showErr(dom.estado,dom.errEstado,"Selecione");if(!first)first=dom.estado;ok=false}else{clrErr(dom.estado,dom.errEstado)}
+  if(first){first.scrollIntoView({behavior:"smooth",block:"center"});setTimeout(function(){first.focus()},400)}
+  return ok;
+}
+
+function setBtnLoading(on){
+  isSubmitting=on;dom.btnSubmit.disabled=on;
+  dom.btnSubmit.innerHTML=on?'<div class="btn-spin"></div> Processando...':'Finalizar com Desconto <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>';
+}
+
+function showScreen(name){
+  dom.scrCheckout.classList.remove("active");dom.scrPix.classList.remove("active");
+  if(name==="checkout"){dom.scrCheckout.classList.add("active");dom.footer.style.display=""}
+  else if(name==="pix"){dom.scrPix.classList.add("active");dom.footer.style.display="none"}
+}
+
+dom.btnSubmit.addEventListener("click",function(){
+  if(isSubmitting)return;
+  if(!validateAll())return;
+  setBtnLoading(true);
+
+  // Blur active input
+  try{if(document.activeElement&&document.activeElement.blur)document.activeElement.blur()}catch(_){}
+
+  // Collect data
+  var finalEmail=dom.email.value.trim().toLowerCase();
+  var rawPhone=digits(dom.tel.value);
+  var finalPhone=rawPhone;if(finalPhone.length>11&&finalPhone.startsWith("55"))finalPhone=finalPhone.slice(2);
+  var nameParts=dom.nome.value.trim().split(" ");
+  var firstName=nameParts[0];
+  var lastName=nameParts.length>1?nameParts.slice(1).join(" "):"";
+  var city=dom.cidade.value.trim();
+  var state=dom.estado.value;
+  var cepVal=digits(dom.cep.value);
+
+  // TikTok normalization
+  var ttNorm={
+    email:function(v){return(v||"").trim().toLowerCase()},
+    phone:function(v){return "+55"+(v||"").replace(/\D/g,"")},
+    fn:function(v){return(v||"").trim().toLowerCase()},
+    ln:function(v){return(v||"").trim().toLowerCase()},
+    ct:function(v){return(v||"").trim().toLowerCase().replace(/\s+/g,"")},
+    st:function(v){return(v||"").trim().toLowerCase()},
+    zp:function(v){return(v||"").replace(/\D/g,"").slice(0,8)}
+  };
+
+  // Async flow
+  var fallbackOrderId="ord_"+Date.now()+"_"+Math.random().toString(36).slice(2,8);
+  var uniqueOrderId=fallbackOrderId;
+
+  // 1) Create order record (encrypted name+phone → KV)
+  createOrderRecord({
+    name:dom.nome.value.trim(),
+    phone:finalPhone,
+    ref:getRefCode()||"",
+    source:"checkout_public",
+    status:"pending"
+  }).then(function(res){
+    if(res&&res.order_id)uniqueOrderId=res.order_id;
+  }).catch(function(){}).then(function(){
+    // 2) Hash PII for TikTok
+    return Promise.all([
+      hashData(ttNorm.email(finalEmail)),
+      hashData(ttNorm.phone(finalPhone)),
+      hashData(getExternalId()),
+      hashData(ttNorm.fn(firstName)),
+      lastName?hashData(ttNorm.ln(lastName)):Promise.resolve(null),
+      city?hashData(ttNorm.ct(city)):Promise.resolve(null),
+      state?hashData(ttNorm.st(state)):Promise.resolve(null),
+      cepVal?hashData(ttNorm.zp(cepVal)):Promise.resolve(null)
+    ]);
+  }).then(function(hashes){
+    var hEmail=hashes[0],hPhone=hashes[1],hExtId=hashes[2];
+    var hFn=hashes[3],hLn=hashes[4],hCt=hashes[5],hSt=hashes[6],hZp=hashes[7];
+
+    // Store hashes for reuse in PIX screen events
+    window.__tt_hashed_email=hEmail;
+    window.__tt_hashed_phone=hPhone;
+    window.__tt_hashed_external_id=hExtId;
+
+    // TikTok identify (Manual Advanced Matching)
+    try{
+      if(window.ttq&&typeof window.ttq.identify==="function"){
+        var ident={};
+        if(hEmail)ident.email=hEmail;
+        if(hPhone)ident.phone_number=hPhone;
+        if(hExtId)ident.external_id=hExtId;
+        if(Object.keys(ident).length)window.ttq.identify(ident);
+      }
+    }catch(_){}
+
+    // Wait for TikTok to process identify
+    return new Promise(function(r){setTimeout(r,150)}).then(function(){
+      return {hEmail:hEmail,hPhone:hPhone,hExtId:hExtId,hFn:hFn,hLn:hLn,hCt:hCt,hSt:hSt,hZp:hZp};
+    });
+  }).then(function(h){
+    // 3) Transition to PIX screen
+    setTimeout(function(){
+      showPixScreen({
+        firstName:firstName,
+        transactionId:uniqueOrderId,
+        hEmail:h.hEmail,hPhone:h.hPhone,hExtId:h.hExtId
+      });
+    },800);
+  }).catch(function(){
+    // Fallback: still show PIX screen even if something fails
+    setTimeout(function(){
+      showPixScreen({firstName:firstName,transactionId:uniqueOrderId});
+    },800);
+  });
+});
+
+/* =============================================================
+   PIX SCREEN LOGIC
+   ============================================================= */
+function showPixScreen(data){
+  setBtnLoading(false);
+  showScreen("pix");
+  window.scrollTo({top:0,behavior:"smooth"});
+
+  // History management (back button in WebView)
+  try{
+    var st=window.history.state||{};
+    if(!(st.__ck&&st.screen==="pix")){
+      window.history.pushState({__ck:true,screen:"pix"},document.title);
+    }
+  }catch(_){}
+
+  // Populate PIX screen
+  dom.pixGreeting.textContent="Quase lá, "+(data.firstName||"Cliente")+"!";
+  dom.pixCodeDisplay.textContent=pixConfig.code;
+  dom.pixOrderId.textContent="ID: "+data.transactionId;
+
+  // Loading animation → reveal
+  dom.pixLoading.style.display="";
+  dom.pixContent.style.display="none";
+  var msgs=["Iniciando transação segura...","Reservando estoque...","Aplicando cupom de oferta..."];
+  var t1=setTimeout(function(){dom.pixLoadingText.textContent=msgs[1]},500);
+  var t2=setTimeout(function(){dom.pixLoadingText.textContent=msgs[2]},1200);
+  var t3=setTimeout(function(){
+    dom.pixLoading.style.display="none";
+    dom.pixContent.style.display="";
+  },2000);
+
+  // Fire AddPaymentInfo
+  var apiEventId="api_"+data.transactionId;
+  try{
+    if(window.ttq&&typeof window.ttq.identify==="function"){
+      var ident={};
+      if(window.__tt_hashed_email)ident.email=window.__tt_hashed_email;
+      if(window.__tt_hashed_phone)ident.phone_number=window.__tt_hashed_phone;
+      if(window.__tt_hashed_external_id)ident.external_id=window.__tt_hashed_external_id;
+      if(Object.keys(ident).length)window.ttq.identify(ident);
+    }
+  }catch(_){}
+
+  trackEvent("AddPaymentInfo",Object.assign({},window.PRODUCT_CONTENT,{
+    order_id:data.transactionId,event_id:apiEventId,
+    email:window.__tt_hashed_email||undefined,
+    phone_number:window.__tt_hashed_phone||undefined,
+    external_id:window.__tt_hashed_external_id||undefined
+  }));
+
+  sendCAPI("AddPaymentInfo",apiEventId,
+    Object.assign({},window.PRODUCT_CONTENT,{order_id:data.transactionId,event_source_url:window.location.href}),
+    {email:window.__tt_hashed_email||undefined,phone_number:window.__tt_hashed_phone||undefined,
+     external_id:window.__tt_hashed_external_id||undefined,ttclid:getTTCLID(),
+     ttp:(document.cookie.match(/(?:^|;\s*)_ttp=([^;]*)/)||[])[1]||undefined}
+  );
+
+  // Fire CompletePayment
+  var cpEventId="cp_"+data.transactionId;
+
+  try{
+    if(window.ttq&&typeof window.ttq.identify==="function"){
+      var ident2={};
+      if(window.__tt_hashed_email)ident2.email=window.__tt_hashed_email;
+      if(window.__tt_hashed_phone)ident2.phone_number=window.__tt_hashed_phone;
+      if(window.__tt_hashed_external_id)ident2.external_id=window.__tt_hashed_external_id;
+      if(Object.keys(ident2).length)window.ttq.identify(ident2);
+    }
+  }catch(_){}
+
+  trackEvent("CompletePayment",Object.assign({},window.PRODUCT_CONTENT,{
+    content_name:PRODUCT.name,value:PRODUCT.price,currency:PRODUCT.currency,
+    order_id:data.transactionId,event_id:cpEventId,
+    email:window.__tt_hashed_email||undefined,
+    phone_number:window.__tt_hashed_phone||undefined,
+    external_id:window.__tt_hashed_external_id||undefined,
+    ref:getRefCode()||""
+  }),true);
+
+  sendCAPI("CompletePayment",cpEventId,
+    Object.assign({},window.PRODUCT_CONTENT,{currency:"BRL",value:PRODUCT.price,order_id:data.transactionId,event_source_url:window.location.href}),
+    {email:window.__tt_hashed_email||undefined,phone_number:window.__tt_hashed_phone||undefined,
+     external_id:window.__tt_hashed_external_id||undefined,ttclid:getTTCLID(),
+     ttp:(document.cookie.match(/(?:^|;\s*)_ttp=([^;]*)/)||[])[1]||undefined}
+  );
+}
+
+// History popstate (WebView back button)
+try{
+  window.history.replaceState({__ck:true,screen:"checkout"},document.title);
+  window.addEventListener("popstate",function(ev){
+    try{
+      var st=ev&&ev.state?ev.state:null;
+      if(st&&st.__ck){
+        if(st.screen==="checkout"){showScreen("checkout")}
+      }
+    }catch(_){}
+  });
+}catch(_){}
+
+/* =============================================================
+   COPY PIX CODE (TikTok WebView safe)
+   ============================================================= */
+function isTikTokWebView(){return /musical_ly|tiktok|bytedancewebview|musical\.ly/i.test(navigator.userAgent)}
+
+function fallbackCopy(text){
+  try{
+    var ta=document.createElement("textarea");ta.value=text;ta.setAttribute("readonly","");
+    Object.assign(ta.style,{position:"fixed",left:"-9999px",top:"-9999px",opacity:"0"});
+    document.body.appendChild(ta);
+    if(/ipad|iphone/i.test(navigator.userAgent)){var r=document.createRange();r.selectNodeContents(ta);var s=window.getSelection();s.removeAllRanges();s.addRange(r);ta.setSelectionRange(0,999999)}
+    else{ta.select()}
+    var ok=document.execCommand("copy");document.body.removeChild(ta);return ok
+  }catch(_){return false}
+}
+
+window.safeCopyToClipboard=function(text){
+  return new Promise(function(resolve,reject){
+    if(isTikTokWebView()){return fallbackCopy(text)?resolve():reject()}
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(resolve).catch(function(){fallbackCopy(text)?resolve():reject()})
+    }else{fallbackCopy(text)?resolve():reject()}
+  })
+};
+
+var copyTimeout=null;
+dom.btnCopy.addEventListener("click",function(){
+  // Track copy click
+  trackEvent("Pix_Copy_Click",{event_id:generateEventId(),order_id:dom.pixOrderId.textContent.replace("ID: ","")});
+
+  // Metric beacon
+  try{
+    var p=JSON.stringify({ts:Date.now(),order_id:dom.pixOrderId.textContent.replace("ID: ","")});
+    if(navigator.sendBeacon)navigator.sendBeacon("/api/metrics/pix-copy",p);
+    else fetch("/api/metrics/pix-copy",{method:"POST",headers:{"content-type":"application/json"},body:p,keepalive:true}).catch(function(){})
+  }catch(_){}
+
+  window.safeCopyToClipboard(pixConfig.code).then(function(){
+    setCopyState(true);
+  }).catch(function(){
+    try{
+      var ok=fallbackCopy(pixConfig.code);
+      if(!ok)window.prompt("Copie o código PIX abaixo:",pixConfig.code);
+    }catch(_){}
+    setCopyState(true);
+  });
+});
+
+function setCopyState(copied){
+  if(copied){
+    dom.btnCopy.className="btn-copy dark";
+    dom.btnCopy.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Código Copiado!';
+    clearTimeout(copyTimeout);
+    copyTimeout=setTimeout(function(){
+      dom.btnCopy.className="btn-copy green";
+      dom.btnCopy.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Clique para Copiar';
+    },2500);
+  }
+}
+
+/* =============================================================
+   KEYBOARD DETECTION (Mobile)
+   ============================================================= */
+var initVH=window.visualViewport?window.visualViewport.height:window.innerHeight;
+
+(function setupKb(){
+  if(!window.visualViewport)return;
+  var vv=window.visualViewport;
+  vv.addEventListener("resize",function(){
+    var c=vv.height;if(c>initVH)initVH=c;
+    if(initVH-c>150)document.body.classList.add("kb");
+    else document.body.classList.remove("kb");
+  });
+  document.addEventListener("focusin",function(e){
+    if(e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA"||e.target.tagName==="SELECT"){
+      document.body.classList.add("kb");
+      setTimeout(function(){try{var r=e.target.getBoundingClientRect(),lim=vv.height-60;if(r.bottom>lim)window.scrollBy({top:r.bottom-lim+16,behavior:"smooth"})}catch(_){}},150);
+    }
+  });
+  document.addEventListener("focusout",function(e){
+    if(e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA"||e.target.tagName==="SELECT"){
+      setTimeout(function(){var a=document.activeElement;if(!a||a.tagName!=="INPUT"&&a.tagName!=="TEXTAREA"&&a.tagName!=="SELECT")document.body.classList.remove("kb")},120);
+    }
+  });
+})();
+
+/* =============================================================
+   FOOTER HEIGHT VAR
+   ============================================================= */
+function syncFooter(){try{var h=dom.footer.getBoundingClientRect().height;if(h>0)document.documentElement.style.setProperty("--footer-h",Math.ceil(h)+"px")}catch(_){}}
+window.addEventListener("load",syncFooter);
+window.addEventListener("resize",function(){setTimeout(syncFooter,80)});
+if(window.visualViewport)window.visualViewport.addEventListener("resize",function(){setTimeout(syncFooter,80)});
+
+/* =============================================================
+   METRICS PING (visitor online status)
+   ============================================================= */
+(function metricsPing(){
+  try{
+    var sid=getExternalId();
+    var ping=function(){
+      try{
+        var p=JSON.stringify({sid:sid,path:window.location.pathname});
+        if(navigator.sendBeacon)navigator.sendBeacon("/api/metrics/ping",p);
+        else fetch("/api/metrics/ping",{method:"POST",headers:{"content-type":"application/json"},body:p,keepalive:true}).catch(function(){})
+      }catch(_){}
+    };
+    ping();setInterval(ping,60000);
+  }catch(_){}
+})();
+
+})();
+</script>
 </body>
 </html>
