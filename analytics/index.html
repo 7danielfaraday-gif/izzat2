@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkout Analytics</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --g:#16a34a;--gl:#f0fdf4;--gd:#15803d;--gb:#dcfce7;
+  --r:#ef4444;--rl:#fef2f2;
+  --y:#f59e0b;--yl:#fffbeb;
+  --b:#3b82f6;--bl:#eff6ff;
+  --p:#8b5cf6;--pl:#f5f3ff;
+  --s50:#f8fafc;--s100:#f1f5f9;--s200:#e2e8f0;--s300:#cbd5e1;
+  --s400:#94a3b8;--s500:#64748b;--s600:#475569;--s700:#334155;--s800:#1e293b;--s900:#0f172a;
+  --radius:12px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--s50);color:var(--s800);-webkit-font-smoothing:antialiased;min-height:100vh}
+
+/* ── NAV ── */
+.nav{background:#fff;border-bottom:1px solid var(--s200);height:54px;padding:0 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200}
+.nav-brand{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800;color:var(--s900)}
+.nav-brand svg{color:var(--g)}
+.nav-ts{font-size:11px;color:var(--s400)}
+
+/* ── TABS ── */
+.tabs{background:#fff;border-bottom:1px solid var(--s200);padding:0 20px;display:flex;gap:0}
+.tab{padding:12px 18px;font-size:13px;font-weight:600;color:var(--s500);cursor:pointer;border-bottom:2.5px solid transparent;transition:color .15s,border-color .15s;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.tab svg{width:14px;height:14px}
+.tab:hover{color:var(--s700)}
+.tab.active{color:var(--g);border-bottom-color:var(--g)}
+
+/* ── TOOLBAR ── */
+.toolbar{padding:10px 20px;background:#fff;border-bottom:1px solid var(--s100);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.tb-lbl{font-size:12px;font-weight:600;color:var(--s500)}
+select,button{font-family:inherit;font-size:13px}
+select{height:32px;padding:0 10px;border:1.5px solid var(--s200);border-radius:8px;background:#fff;color:var(--s700);cursor:pointer;outline:none}
+select:focus{border-color:var(--g)}
+.btn{height:32px;padding:0 14px;border:none;border-radius:8px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.btn svg{width:13px;height:13px}
+.btn-green{background:var(--g);color:#fff}
+.btn-green:hover{background:var(--gd)}
+.btn-purple{background:linear-gradient(135deg,#6366f1,var(--p));color:#fff}
+.btn-purple:hover{opacity:.9}
+.btn-ghost{background:var(--s100);color:var(--s700)}
+.btn-ghost:hover{background:var(--s200)}
+.sep{width:1px;height:22px;background:var(--s200)}
+
+/* ── LOADING BAR ── */
+#lbar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--g),#4ade80);z-index:999;width:0;transition:width .3s}
+
+/* ── PAGES ── */
+.page{display:none}.page.active{display:block}
+
+/* ── MAIN ── */
+.wrap{padding:20px;max-width:1280px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+
+/* ── STATUS ── */
+.empty{text-align:center;padding:60px 20px;color:var(--s400)}
+.empty svg{width:36px;height:36px;display:block;margin:0 auto 10px}
+.empty p{font-size:13px}
+.dots::after{content:'';animation:dots 1.2s steps(4) infinite}
+@keyframes dots{0%,100%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
+
+/* ── KPI GRID ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px}
+.kpi{background:#fff;border:1px solid var(--s200);border-radius:var(--radius);padding:14px 16px}
+.kpi-lbl{font-size:10px;font-weight:700;color:var(--s500);text-transform:uppercase;letter-spacing:.5px}
+.kpi-val{font-size:24px;font-weight:800;color:var(--s900);line-height:1.15;margin-top:2px}
+.kpi-sub{font-size:11px;color:var(--s400);margin-top:1px}
+.kpi.c-g .kpi-val{color:var(--g)}.kpi.c-r .kpi-val{color:var(--r)}.kpi.c-y .kpi-val{color:var(--y)}.kpi.c-b .kpi-val{color:var(--b)}
+
+/* ── SECTION LABEL ── */
+.sec-lbl{font-size:10px;font-weight:700;color:var(--s400);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px}
+
+/* ── FUNNEL ── */
+.funnel{background:#fff;border:1px solid var(--s200);border-radius:var(--radius);padding:18px;display:flex;flex-direction:column;gap:8px}
+.f-row{display:flex;align-items:center;gap:12px}
+.f-name{width:190px;font-size:12px;font-weight:600;color:var(--s700);flex-shrink:0}
+.f-track{flex:1;background:var(--s100);border-radius:99px;height:26px;overflow:hidden;position:relative}
+.f-fill{height:100%;border-radius:99px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;transition:width 1s cubic-bezier(.4,0,.2,1)}
+.f-fill.c-g{background:linear-gradient(90deg,var(--g),#4ade80)}
+.f-fill.c-y{background:linear-gradient(90deg,var(--y),#fcd34d)}
+.f-fill.c-r{background:linear-gradient(90deg,var(--r),#fca5a5)}
+.f-pct-lbl{font-size:10px;font-weight:800;color:#fff;white-space:nowrap}
+.f-n{width:36px;text-align:right;font-size:12px;font-weight:700;color:var(--s600);flex-shrink:0}
+.f-drop{width:54px;font-size:10px;font-weight:700;color:var(--r);text-align:right;flex-shrink:0}
+
+/* ── TWO COL ── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:760px){.two-col{grid-template-columns:1fr}}
+
+/* ── CARD ── */
+.card{background:#fff;border:1px solid var(--s200);border-radius:var(--radius);padding:16px}
+.card-title{font-size:12px;font-weight:700;color:var(--s800);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.card-title svg{width:14px;height:14px;color:var(--s400)}
+
+/* ── HEALTH BANNER ── */
+.health{border-radius:var(--radius);padding:12px 16px;display:flex;align-items:center;gap:12px}
+.health.ok{background:var(--gl);border:1px solid var(--gb)}
+.health.warn{background:var(--yl);border:1px solid #fde68a}
+.health.bad{background:var(--rl);border:1px solid #fecaca}
+.health-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.health.ok .health-icon{background:var(--gb)} .health.ok .health-icon svg{color:var(--g)}
+.health.warn .health-icon{background:#fde68a} .health.warn .health-icon svg{color:#92400e}
+.health.bad .health-icon{background:#fecaca} .health.bad .health-icon svg{color:var(--r)}
+.health-icon svg{width:18px;height:18px}
+.health-body{}
+.health-title{font-size:13px;font-weight:700}
+.health.ok .health-title{color:var(--gd)}.health.warn .health-title{color:#92400e}.health.bad .health-title{color:#991b1b}
+.health-sub{font-size:11px;color:var(--s500);margin-top:2px}
+
+/* ── TABLE ── */
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{text-align:left;padding:6px 10px;background:var(--s50);color:var(--s500);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--s200)}
+.tbl td{padding:7px 10px;border-bottom:1px solid var(--s100);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:99px;font-size:10px;font-weight:700}
+.badge-g{background:var(--gl);color:var(--gd)}.badge-r{background:var(--rl);color:#991b1b}.badge-y{background:var(--yl);color:#92400e}.badge-b{background:var(--bl);color:#1e40af}
+
+/* ── DEVICE BARS ── */
+.dev-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.dev-row:last-child{margin-bottom:0}
+.dev-name{width:110px;font-size:12px;font-weight:600;color:var(--s700)}
+.dev-track{flex:1;background:var(--s100);border-radius:99px;height:8px;overflow:hidden}
+.dev-fill{height:100%;border-radius:99px;transition:width .8s ease}
+.dev-fill.mobile{background:var(--b)}.dev-fill.desktop{background:var(--p)}.dev-fill.tablet{background:var(--y)}.dev-fill.tiktok{background:#ee2a2a}
+.dev-pct{font-size:11px;font-weight:700;color:var(--s600);width:34px;text-align:right}
+
+/* ── MINI CHART ── */
+.chart{display:flex;align-items:flex-end;gap:5px;height:80px}
+.chart-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.chart-bars{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center;gap:2px}
+.chart-bar{width:45%;border-radius:3px 3px 0 0;min-height:2px}
+.chart-bar.s{background:#bfdbfe;border:1px solid #93c5fd}.chart-bar.p{background:var(--gb);border:1px solid #86efac}
+.chart-dt{font-size:9px;color:var(--s400)}
+
+/* ═══════════════════════════════════════════════
+   SESSION FEED (Hotjar-style)
+═══════════════════════════════════════════════ */
+.feed-wrap{display:flex;flex-direction:column;gap:0}
+.sess-card{background:#fff;border:1px solid var(--s200);border-radius:var(--radius);overflow:hidden;transition:box-shadow .15s}
+.sess-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.07)}
+
+/* Session header (always visible) */
+.sess-head{padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none}
+.sess-head:hover{background:var(--s50)}
+.sess-outcome{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.sess-outcome.converted{background:var(--g)}
+.sess-outcome.pix_shown{background:var(--b)}
+.sess-outcome.submitted{background:var(--y)}
+.sess-outcome.abandoned{background:var(--s300)}
+.sess-outcome.rage{background:var(--r)}
+.sess-meta{flex:1;min-width:0}
+.sess-time{font-size:12px;font-weight:700;color:var(--s800)}
+.sess-desc{font-size:11px;color:var(--s500);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sess-chips{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:99px;font-size:10px;font-weight:600;border:1px solid;white-space:nowrap}
+.chip-device{background:#f0f4ff;color:#3730a3;border-color:#c7d2fe}
+.chip-tiktok{background:#fff1f2;color:#9f1239;border-color:#fecdd3}
+.chip-rage{background:var(--rl);color:#991b1b;border-color:#fecaca}
+.chip-hesit{background:var(--yl);color:#92400e;border-color:#fde68a}
+.chip-load-ok{background:var(--gl);color:var(--gd);border-color:var(--gb)}
+.chip-load-bad{background:var(--rl);color:#991b1b;border-color:#fecaca}
+.chip-step{background:var(--s100);color:var(--s600);border-color:var(--s200)}
+.sess-dur{font-size:11px;color:var(--s400);white-space:nowrap}
+.sess-chevron{color:var(--s400);transition:transform .2s;flex-shrink:0}
+.sess-chevron svg{width:14px;height:14px;display:block}
+.sess-card.open .sess-chevron{transform:rotate(180deg)}
+
+/* Session body (expandable timeline) */
+.sess-body{display:none;border-top:1px solid var(--s100);padding:0 16px 16px}
+.sess-card.open .sess-body{display:block}
+.tl{display:flex;flex-direction:column;gap:0;margin-top:14px}
+.tl-row{display:flex;align-items:flex-start;gap:10px;position:relative;padding-bottom:14px}
+.tl-row:last-child{padding-bottom:0}
+.tl-row::before{content:'';position:absolute;left:11px;top:22px;bottom:0;width:1.5px;background:var(--s200)}
+.tl-row:last-child::before{display:none}
+.tl-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:0}
+.tl-dot svg{width:11px;height:11px}
+.tl-dot.green{background:var(--gl);color:var(--g)}.tl-dot.blue{background:var(--bl);color:var(--b)}
+.tl-dot.yellow{background:var(--yl);color:var(--y)}.tl-dot.red{background:var(--rl);color:var(--r)}
+.tl-dot.gray{background:var(--s100);color:var(--s400)}.tl-dot.purple{background:var(--pl);color:var(--p)}
+.tl-content{}
+.tl-label{font-size:12px;font-weight:600;color:var(--s800)}
+.tl-detail{font-size:11px;color:var(--s500);margin-top:1px;line-height:1.5}
+.tl-ts{font-size:10px;color:var(--s400);margin-top:2px}
+
+/* Field summary inside session */
+.fields-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:6px;margin-top:10px}
+.field-cell{background:var(--s50);border:1px solid var(--s200);border-radius:8px;padding:8px 10px}
+.field-cell.has-error{background:var(--rl);border-color:#fecaca}
+.fc-name{font-size:10px;font-weight:700;color:var(--s600);text-transform:uppercase;letter-spacing:.3px}
+.fc-time{font-size:13px;font-weight:700;color:var(--s800);margin-top:2px}
+.fc-meta{font-size:10px;color:var(--s400);margin-top:1px}
+
+/* ── AI MODAL ── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;align-items:center;justify-content:center;padding:20px}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:660px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden}
+.modal-hd{padding:16px 18px;border-bottom:1px solid var(--s200);display:flex;align-items:center;justify-content:space-between}
+.modal-hd h2{font-size:14px;font-weight:800}
+.modal-x{border:none;background:none;font-size:20px;color:var(--s400);cursor:pointer;line-height:1;padding:2px 6px}
+.modal-bd{flex:1;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:10px}
+.modal-hint{font-size:12px;color:var(--s500);background:var(--s50);border-radius:8px;padding:10px 12px;line-height:1.5}
+#ai-out{font-family:monospace;font-size:11px;color:var(--s700);background:var(--s50);border:1px solid var(--s200);border-radius:8px;padding:12px;white-space:pre-wrap;max-height:280px;overflow-y:auto;line-height:1.6}
+.modal-ft{padding:12px 18px;border-top:1px solid var(--s200);display:flex;gap:8px;justify-content:flex-end}
+</style>
+</head>
+<body>
+<div id="lbar"></div>
+
+<nav class="nav">
+  <div class="nav-brand">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+    Checkout Analytics
+  </div>
+  <span class="nav-ts" id="nav-ts"></span>
+</nav>
+
+<div class="tabs">
+  <div class="tab active" data-tab="overview">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    Visão Geral
+  </div>
+  <div class="tab" data-tab="sessions">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+    Sessões
+  </div>
+</div>
+
+<div class="toolbar">
+  <span class="tb-lbl">Período:</span>
+  <select id="sel-days"><option value="1">Hoje</option><option value="7" selected>7 dias</option><option value="14">14 dias</option><option value="30">30 dias</option></select>
+  <span id="sess-date-wrap" style="display:none;align-items:center;gap:6px">
+    <span class="tb-lbl">Data:</span>
+    <select id="sel-date"></select>
+  </span>
+  <button class="btn btn-green" id="btn-refresh">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 12a9 9 0 11-1.7-5.3"/><path d="M21 3v4h-4"/></svg>
+    Atualizar
+  </button>
+  <div class="sep"></div>
+  <button class="btn btn-purple" id="btn-ai">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+    Exportar para IA
+  </button>
+  <div class="sep"></div>
+  <button class="btn" id="btn-clear" style="background:#fef2f2;color:#dc2626;border:1.5px solid #fecaca" title="Limpar todos os dados de analytics do KV">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:13px;height:13px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+    Limpar Dados
+  </button>
+</div>
+
+<!-- ═══ OVERVIEW PAGE ═══ -->
+<div class="page active" id="page-overview">
+  <div class="wrap" id="overview-content">
+    <div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="color:var(--s300)"><path d="M18 20V10M12 20V4M6 20v-6"/></svg><p class="dots">Carregando</p></div>
+  </div>
+</div>
+
+<!-- ═══ SESSIONS PAGE ═══ -->
+<div class="page" id="page-sessions">
+  <div class="wrap">
+    <div id="sessions-content">
+      <div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="color:var(--s300)"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><p>Selecione uma data para ver as sessões</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ AI MODAL ═══ -->
+<div class="modal-bg" id="modal-ai">
+  <div class="modal">
+    <div class="modal-hd">
+      <h2>🤖 Exportar Relatório para IA</h2>
+      <button class="modal-x" id="modal-x">×</button>
+    </div>
+    <div class="modal-bd">
+      <div class="modal-hint">Cole o relatório abaixo no ChatGPT ou Claude com: <em>"Analise este relatório de comportamento do meu checkout, identifique os principais pontos de abandono e sugira melhorias concretas para aumentar a conversão."</em></div>
+      <div id="ai-out"><span class="dots">Gerando relatório</span></div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" id="modal-close2">Fechar</button>
+      <button class="btn btn-purple" id="btn-copy-ai">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        Copiar Tudo
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ── UTILS ── */
+const $  = id => document.getElementById(id);
+const pct = (a,b) => b>0?((a/b)*100).toFixed(1)+'%':'–';
+const num = n => (n||0).toLocaleString('pt-BR');
+const ms2m = ms => { const m=Math.floor(ms/60000),s=Math.floor((ms%60000)/1000); return `${m}m${s<10?'0':''}${s}s`; };
+const ms2s = ms => (ms/1000).toFixed(1)+'s';
+const clr = (v,ok,warn) => v>=ok?'c-g':v>=warn?'c-y':'c-r';
+
+/* ── AUTH (login inline — sem prompt duplo) ── */
+const creds={user:'',pass:''};
+
+function showLoginModal(onSuccess){
+  let ov=document.getElementById('login-ov');
+  if(!ov){
+    ov=document.createElement('div');
+    ov.id='login-ov';
+    ov.style.cssText='position:fixed;inset:0;background:rgba(15,23,42,.7);display:flex;align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(4px)';
+    ov.innerHTML=`<div style="background:#fff;border-radius:16px;padding:28px 24px;width:320px;box-shadow:0 20px 60px rgba(0,0,0,.25)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        <span style="font-size:15px;font-weight:800;color:#0f172a">Checkout Analytics</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <input id="li-user" type="text" placeholder="Usuário" autocomplete="username"
+          style="height:44px;padding:0 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:15px;outline:none;width:100%;box-sizing:border-box">
+        <input id="li-pass" type="password" placeholder="Senha" autocomplete="current-password"
+          style="height:44px;padding:0 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:15px;outline:none;width:100%;box-sizing:border-box">
+        <div id="li-err" style="color:#ef4444;font-size:12px;font-weight:600;display:none;padding:0 2px">Usuário ou senha incorretos</div>
+        <button id="li-btn" style="height:44px;background:#16a34a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px">
+          Entrar
+        </button>
+      </div>
+    </div>`;
+    document.body.appendChild(ov);
+    ov.querySelector('#li-pass').addEventListener('keydown',e=>{ if(e.key==='Enter') ov.querySelector('#li-btn').click(); });
+    ov.querySelector('#li-user').addEventListener('keydown',e=>{ if(e.key==='Enter') ov.querySelector('#li-pass').focus(); });
+  }
+  document.getElementById('li-err').style.display='none';
+  ov.style.display='flex';
+  setTimeout(()=>document.getElementById('li-user').focus(),100);
+  document.getElementById('li-btn').onclick=function(){
+    const u=document.getElementById('li-user').value.trim();
+    const p=document.getElementById('li-pass').value;
+    if(!u||!p){ document.getElementById('li-err').style.display='block'; return; }
+    creds.user=u; creds.pass=p;
+    ov.style.display='none';
+    onSuccess();
+  };
+}
+
+async function api(path){
+  return new Promise((resolve,reject)=>{
+    function doFetch(){
+      if(!creds.user){ showLoginModal(doFetch); return; }
+      fetch(path,{headers:{'authorization':'Basic '+btoa(creds.user+':'+creds.pass)}})
+        .then(r=>{
+          if(r.status===401){
+            creds.user=''; creds.pass='';
+            const err=document.getElementById('li-err');
+            if(err) err.style.display='block';
+            showLoginModal(doFetch);
+            return;
+          }
+          if(!r.ok){ reject(new Error('HTTP '+r.status)); return; }
+          r.json().then(resolve).catch(reject);
+        }).catch(reject);
+    }
+    doFetch();
+  });
+}
+
+/* ── LOADING BAR ── */
+let lbT;
+function lbStart(){ $('lbar').style.width='10%'; lbT=setInterval(()=>{ const c=parseFloat($('lbar').style.width); $('lbar').style.width=Math.min(c+7,90)+'%'; },200); }
+function lbDone(){ clearInterval(lbT); $('lbar').style.width='100%'; setTimeout(()=>$('lbar').style.width='0',400); }
+
+/* ── TABS ── */
+let activeTab = 'overview';
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    activeTab=t.dataset.tab;
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    $('page-'+activeTab).classList.add('active');
+    $('sess-date-wrap').style.display = activeTab==='sessions'?'flex':'none';
+    if(activeTab==='sessions' && !sessionsLoaded) loadSessions();
+  });
+});
+
+/* ══════════════════════════════════════════════
+   OVERVIEW
+══════════════════════════════════════════════ */
+let dailyData=[];
+
+async function loadOverview(){
+  lbStart();
+  $('overview-content').innerHTML='<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="color:var(--s300)"><path d="M18 20V10M12 20V4M6 20v-6"/></svg><p class="dots">Carregando</p></div>';
+  const days=+$('sel-days').value;
+  try{
+    const r=await api('/api/metrics/behavior-report?mode=daily&days='+days);
+    lbDone(); if(!r.ok) throw new Error(r.error);
+    dailyData=r.data||[];
+    $('nav-ts').textContent='Atualizado: '+new Date().toLocaleTimeString('pt-BR');
+    renderOverview(dailyData);
+  }catch(e){ lbDone(); if(e.message==='auth')return loadOverview(); $('overview-content').innerHTML=`<div class="empty"><p style="color:var(--r)">Erro: ${e.message}</p></div>`; }
+}
+
+function renderOverview(days){
+  const T={sessions:0,step1:0,step2:0,submits:0,pix:0,copied:0,ordered:0,rage:0,hesit:0,back:0,mobile:0,desktop:0,tablet:0,tiktok:0,dSum:0,dCnt:0,s1Sum:0,s1Cnt:0,s2Sum:0,s2Cnt:0,loadOk:0,loadTimeout:0,loadError:0,loadMs:0,loadMsCnt:0,fe:{}};
+  for(const d of days){
+    T.sessions+=d.sessions_total||0; T.step1+=d.funnel_step1_starts||0; T.step2+=d.funnel_step2_starts||0;
+    T.submits+=d.funnel_submit_clicks||0; T.pix+=d.funnel_pix_shown||0; T.copied+=d.funnel_pix_copied||0;
+    T.ordered+=d.sessions_ordered||0; T.rage+=d.sessions_with_rage||0; T.hesit+=d.sessions_with_hesitation||0;
+    T.back+=d.sessions_back_nav||0; T.mobile+=d.device_mobile||0; T.desktop+=d.device_desktop||0;
+    T.tablet+=d.device_tablet||0; T.tiktok+=d.device_tiktok_wv||0;
+    T.dSum+=d.duration_sum_ms||0; T.dCnt+=d.duration_count||0;
+    T.s1Sum+=d.step1_time_sum_ms||0; T.s1Cnt+=d.step1_time_count||0;
+    T.s2Sum+=d.step2_time_sum_ms||0; T.s2Cnt+=d.step2_time_count||0;
+    T.loadOk+=d.load_ok||0; T.loadTimeout+=d.load_timeout||0; T.loadError+=d.load_error||0;
+    T.loadMs+=d.load_ready_ms_sum||0; T.loadMsCnt+=d.load_ready_ms_count||0;
+    for(const[f,n]of Object.entries(d.field_errors||{}))T.fe[f]=(T.fe[f]||0)+n;
+  }
+
+  const maxSess=Math.max(...days.map(d=>d.sessions_total||0),1);
+  const loadBad=T.loadTimeout+T.loadError;
+  const loadBadPct=T.sessions>0?(loadBad/T.sessions*100).toFixed(1):0;
+  const avgLoad=T.loadMsCnt>0?ms2s(T.loadMs/T.loadMsCnt):'–';
+
+  // Health banner
+  let healthClass='ok', healthTitle='Checkout carregando normalmente', healthSub=`Tempo médio de carregamento: ${avgLoad}`;
+  if(loadBad>0 && T.sessions>0){
+    const pctBad=loadBad/T.sessions;
+    if(pctBad>0.1){ healthClass='bad'; healthTitle=`${loadBadPct}% das sessões tiveram falha no carregamento`; healthSub=`${T.loadTimeout} timeouts + ${T.loadError} erros JS detectados`; }
+    else{ healthClass='warn'; healthTitle=`Atenção: ${loadBadPct}% das sessões com problema de carregamento`; healthSub=`${T.loadTimeout} timeouts + ${T.loadError} erros JS`; }
+  }
+
+  const funnelSteps=[
+    {name:'Página carregada', val:T.sessions},{name:'Iniciou Step 1', val:T.step1},
+    {name:'Chegou ao Step 2', val:T.step2},{name:'Clicou Finalizar', val:T.submits},
+    {name:'Tela PIX mostrada', val:T.pix},{name:'Copiou PIX', val:T.copied},
+  ];
+  const funnelHTML=funnelSteps.map((s,i)=>{
+    const w=T.sessions>0?Math.max(2,(s.val/T.sessions*100)):0;
+    const prev=i>0?funnelSteps[i-1].val:s.val;
+    const drop=i>0&&prev>0?`▼ ${((prev-s.val)/prev*100).toFixed(0)}%`:'';
+    const fc=w>60?'c-g':w>30?'c-y':'c-r';
+    return `<div class="f-row"><div class="f-name">${s.name}</div><div class="f-track"><div class="f-fill ${fc}" style="width:${w}%"><span class="f-pct-lbl">${pct(s.val,T.sessions)}</span></div></div><div class="f-n">${num(s.val)}</div><div class="f-drop">${drop?`<span>${drop}</span>`:''}</div></div>`;
+  }).join('');
+
+  const sortedErr=Object.entries(T.fe).sort((a,b)=>b[1]-a[1]);
+  const maxErr=sortedErr[0]?sortedErr[0][1]:1;
+  const errLabels={'inp-nome':'Nome','inp-email':'E-mail','inp-tel':'Telefone','inp-cpf':'CPF','inp-cep':'CEP','inp-rua':'Rua','inp-bairro':'Bairro','inp-num':'Número','inp-cidade':'Cidade','inp-estado':'Estado'};
+  const errHTML=sortedErr.length?`<table class="tbl"><thead><tr><th>Campo</th><th>Erros</th><th>Impacto</th></tr></thead><tbody>${sortedErr.map(([f,n])=>`<tr><td><strong>${errLabels[f]||f}</strong></td><td><span class="badge badge-r">${n}</span></td><td><div style="background:var(--s100);border-radius:99px;height:6px;overflow:hidden"><div style="height:100%;background:var(--r);border-radius:99px;width:${Math.round(n/maxErr*100)}%"></div></div></td></tr>`).join('')}</tbody></table>`:'<p style="font-size:12px;color:var(--s400);text-align:center;padding:16px">Nenhum erro registrado</p>';
+
+  const chartDays=[...days].reverse().slice(-10);
+  const chartHTML=chartDays.length?`<div class="chart">${chartDays.map(d=>{const sh=Math.max(3,((d.sessions_total||0)/maxSess*100));const ph=Math.max(0,((d.funnel_pix_shown||0)/maxSess*100));return`<div class="chart-col"><div class="chart-bars"><div class="chart-bar s" style="height:${sh}%" title="${d.sessions_total||0}"></div><div class="chart-bar p" style="height:${ph}%" title="${d.funnel_pix_shown||0}"></div></div><div class="chart-dt">${(d.date||'').slice(5)}</div></div>`;}).join('')}</div><div style="font-size:10px;color:var(--s400);margin-top:6px;display:flex;gap:12px"><span><span style="display:inline-block;width:8px;height:8px;background:#bfdbfe;border-radius:2px;margin-right:4px"></span>Sessões</span><span><span style="display:inline-block;width:8px;height:8px;background:var(--gb);border-radius:2px;margin-right:4px"></span>PIX</span></div>`:'<p style="font-size:12px;color:var(--s400)">Sem dados</p>';
+
+  $('overview-content').innerHTML=`
+    <div>
+      <div class="sec-lbl">Saúde do Carregamento</div>
+      <div class="health ${healthClass}">
+        <div class="health-icon">${healthClass==='ok'?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'}</div>
+        <div class="health-body"><div class="health-title">${healthTitle}</div><div class="health-sub">${healthSub}</div></div>
+      </div>
+    </div>
+
+    <div class="sec-lbl">Visão Geral</div>
+    <div class="kpi-grid">
+      <div class="kpi c-b"><div class="kpi-lbl">Sessões</div><div class="kpi-val">${num(T.sessions)}</div><div class="kpi-sub">no período</div></div>
+      <div class="kpi ${clr(parseFloat(pct(T.copied,T.sessions)),30,15)}"><div class="kpi-lbl">Conversão</div><div class="kpi-val">${pct(T.copied,T.sessions)}</div><div class="kpi-sub">→ cópia PIX</div></div>
+      <div class="kpi"><div class="kpi-lbl">Duração Média</div><div class="kpi-val" style="font-size:20px">${T.dCnt>0?ms2m(T.dSum/T.dCnt):'–'}</div><div class="kpi-sub">por sessão</div></div>
+      <div class="kpi"><div class="kpi-lbl">Tempo Step 1</div><div class="kpi-val" style="font-size:20px">${T.s1Cnt>0?ms2s(T.s1Sum/T.s1Cnt):'–'}</div><div class="kpi-sub">dados pessoais</div></div>
+      <div class="kpi"><div class="kpi-lbl">Tempo Step 2</div><div class="kpi-val" style="font-size:20px">${T.s2Cnt>0?ms2s(T.s2Sum/T.s2Cnt):'–'}</div><div class="kpi-sub">endereço</div></div>
+      <div class="kpi ${T.rage>0?'c-y':''}"><div class="kpi-lbl">Rage Clicks</div><div class="kpi-val">${num(T.rage)}</div><div class="kpi-sub">${pct(T.rage,T.sessions)}</div></div>
+      <div class="kpi ${T.hesit>0?'c-y':''}"><div class="kpi-lbl">Hesitações</div><div class="kpi-val">${num(T.hesit)}</div><div class="kpi-sub">${pct(T.hesit,T.sessions)}</div></div>
+      <div class="kpi ${T.back>0?'c-r':''}"><div class="kpi-lbl">Back Nav</div><div class="kpi-val">${num(T.back)}</div><div class="kpi-sub">${pct(T.back,T.sessions)}</div></div>
+    </div>
+
+    <div class="sec-lbl">Funil de Conversão</div>
+    <div class="funnel">${funnelHTML}</div>
+
+    <div class="two-col">
+      <div>
+        <div class="sec-lbl">Erros por Campo</div>
+        <div class="card">${errHTML}</div>
+      </div>
+      <div>
+        <div class="sec-lbl">Dispositivos</div>
+        <div class="card">
+          ${[['Mobile',T.mobile,'mobile'],['Desktop',T.desktop,'desktop'],['Tablet',T.tablet,'tablet'],['TikTok WebView',T.tiktok,'tiktok']].map(([lbl,val,cls])=>`<div class="dev-row"><div class="dev-name">${lbl}</div><div class="dev-track"><div class="dev-fill ${cls}" style="width:${T.sessions>0?Math.max(1,val/T.sessions*100):0}%"></div></div><div class="dev-pct">${pct(val,T.sessions)}</div></div>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <div class="sec-lbl">Sessões por Dia</div>
+        <div class="card">${chartHTML}</div>
+      </div>
+      <div>
+        <div class="sec-lbl">Detalhe Diário</div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <table class="tbl">
+            <thead><tr><th>Data</th><th>Sess.</th><th>S1</th><th>S2</th><th>Submit</th><th>PIX</th><th>Conv.</th><th>⚡Load</th></tr></thead>
+            <tbody>${[...days].reverse().map(d=>`<tr><td><strong>${d.date||''}</strong></td><td>${d.sessions_total||0}</td><td>${d.funnel_step1_starts||0}</td><td>${d.funnel_step2_starts||0}</td><td>${d.funnel_submit_clicks||0}</td><td>${d.funnel_pix_shown||0}</td><td><span class="badge ${(d.funnel_pix_copied||0)/(d.sessions_total||1)>0.3?'badge-g':'badge-r'}">${pct(d.funnel_pix_copied||0,d.sessions_total||0)}</span></td><td>${(d.load_timeout||0)+(d.load_error||0)>0?`<span class="badge badge-r">⚠ ${(d.load_timeout||0)+(d.load_error||0)}</span>`:'<span class="badge badge-g">OK</span>'}</td></tr>`).join('')}</tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ══════════════════════════════════════════════
+   SESSIONS FEED
+══════════════════════════════════════════════ */
+let sessionsLoaded=false;
+
+function buildDateOptions(){
+  const sel=$('sel-date');
+  sel.innerHTML='';
+  const days=+$('sel-days').value;
+  for(let i=0;i<days;i++){
+    const d=new Date(Date.now()-i*86400000);
+    const iso=[d.getUTCFullYear(),String(d.getUTCMonth()+1).padStart(2,'0'),String(d.getUTCDate()).padStart(2,'0')].join('-');
+    const opt=document.createElement('option');
+    opt.value=iso; opt.textContent=i===0?`Hoje (${iso})`:iso;
+    sel.appendChild(opt);
+  }
+}
+
+async function loadSessions(){
+  sessionsLoaded=true;
+  buildDateOptions();
+  await fetchSessionsForDate($('sel-date').value);
+}
+
+$('sel-date').addEventListener('change',()=>fetchSessionsForDate($('sel-date').value));
+
+async function fetchSessionsForDate(date){
+  $('sessions-content').innerHTML='<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="color:var(--s300)"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><p class="dots">Carregando sessões</p></div>';
+  lbStart();
+  try{
+    const r=await api('/api/metrics/behavior-report?mode=sessions&date='+date);
+    lbDone(); if(!r.ok) throw new Error(r.error);
+    renderSessionFeed(r.sessions||[],date);
+  }catch(e){ lbDone(); if(e.message==='auth')return fetchSessionsForDate(date); $('sessions-content').innerHTML=`<div class="empty"><p style="color:var(--r)">Erro: ${e.message}</p></div>`; }
+}
+
+function renderSessionFeed(sessions, date){
+  if(!sessions.length){
+    $('sessions-content').innerHTML='<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="color:var(--s300)"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><p>Nenhuma sessão registrada em '+date+'</p></div>';
+    return;
+  }
+
+  // Sort newest first
+  const sorted=[...sessions].sort((a,b)=>(b.ts_start||0)-(a.ts_start||0));
+
+  const cards=sorted.map((s,i)=>buildSessionCard(s,i)).join('');
+  $('sessions-content').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div class="sec-lbl" style="margin:0">${sorted.length} sessão${sorted.length!==1?'ões':''} em ${date}</div>
+      <div style="display:flex;gap:6px;font-size:11px;color:var(--s400);align-items:center">
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--g)"></span>Converteu
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--b)"></span>PIX mostrado
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--y)"></span>Submeteu
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--s300)"></span>Abandonou
+      </div>
+    </div>
+    <div class="feed-wrap" style="display:flex;flex-direction:column;gap:8px">${cards}</div>
+  `;
+
+  // Attach expand/collapse
+  document.querySelectorAll('.sess-head').forEach(h=>{
+    h.addEventListener('click',()=>h.closest('.sess-card').classList.toggle('open'));
+  });
+}
+
+function buildSessionCard(s, idx){
+  // Determine outcome
+  let outcomeClass='abandoned', outcomeLabel='Abandonou';
+  if(s.funnel?.pix_copy_click!=null){ outcomeClass='converted'; outcomeLabel='Copiou PIX ✓'; }
+  else if(s.funnel?.pix_shown!=null){ outcomeClass='pix_shown'; outcomeLabel='Viu tela PIX'; }
+  else if(s.funnel?.submit_click!=null){ outcomeClass='submitted'; outcomeLabel='Clicou Finalizar'; }
+  else if((s.rage_clicks||[]).length>0){ outcomeClass='rage'; outcomeLabel='Rage clicks '; }
+
+  // Format start time
+  const ts=new Date(s.ts_start||Date.now());
+  const timeStr=ts.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const fullTs=ts.toLocaleString('pt-BR');
+
+  // Headline description (human readable)
+  const maxStep=s.max_step_reached||0;
+  const stepDesc=['não interagiu com o formulário','preencheu dados pessoais','chegou ao endereço','clicou em finalizar','viu a tela de pagamento PIX'][Math.min(maxStep,4)];
+  const durStr=s.duration_ms?`• ${ms2m(s.duration_ms)}`:'';
+
+  // Chips
+  const chips=[];
+  const dev=(s.device?.type||'?');
+  chips.push(`<span class="chip chip-device">${dev==='mobile'?'📱':'🖥️'} ${dev}</span>`);
+  if(s.device?.tiktok_webview) chips.push(`<span class="chip chip-tiktok">TikTok</span>`);
+  if((s.rage_clicks||[]).length>0) chips.push(`<span class="chip chip-rage">😡 Rage</span>`);
+  if((s.hesitations||[]).length>0) chips.push(`<span class="chip chip-hesit">⏳ Hesitou</span>`);
+  const lh=s.load_health||{};
+  if(lh.status==='ok'&&lh.ready_ms!=null) chips.push(`<span class="chip chip-load-ok">⚡ ${ms2s(lh.ready_ms)}</span>`);
+  else if(lh.status==='timeout'||lh.status==='error') chips.push(`<span class="chip chip-load-bad">⚠️ Falha carregamento</span>`);
+
+  // Build timeline
+  const tl=buildTimeline(s);
+
+  return `
+  <div class="sess-card" id="sess-${idx}">
+    <div class="sess-head">
+      <div class="sess-outcome ${outcomeClass}"></div>
+      <div class="sess-meta">
+        <div class="sess-time">${timeStr} &nbsp;<span style="font-size:11px;font-weight:500;color:var(--s500)">${outcomeLabel}</span></div>
+        <div class="sess-desc">${fullTs} ${durStr} — ${stepDesc}</div>
+      </div>
+      <div class="sess-chips">${chips.join('')}</div>
+      <div class="sess-dur"></div>
+      <div class="sess-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </div>
+    <div class="sess-body">
+      <div class="tl">${tl}</div>
+      ${buildFieldSummary(s)}
+    </div>
+  </div>`;
+}
+
+function tlRow(dotClass, icon, label, detail, ts){
+  const icons={
+    check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>',
+    eye:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
+    form:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
+    click:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 11l3 3L22 4"/></svg>',
+    warn:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+    pix:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>',
+    truck:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 6v4h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>',
+    bolt:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+    back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>',
+    user:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+    map:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>',
+  };
+  const tsStr=ts!=null?`<div class="tl-ts">t+${ts<1000?ts+'ms':(ts/1000).toFixed(1)+'s'}</div>`:'';
+  return `<div class="tl-row"><div class="tl-dot ${dotClass}">${icons[icon]||icons.bolt}</div><div class="tl-content"><div class="tl-label">${label}</div>${detail?`<div class="tl-detail">${detail}</div>`:''}${tsStr}</div></div>`;
+}
+
+function buildTimeline(s){
+  const rows=[];
+  const f=s.funnel||{};
+  const lh=s.load_health||{};
+
+  // Load
+  if(lh.status==='ok') rows.push(tlRow('green','bolt','Checkout carregado com sucesso',`Skeleton removido em ${lh.ready_ms!=null?ms2s(lh.ready_ms):'?'}`,lh.ready_ms));
+  else if(lh.status==='timeout') rows.push(tlRow('red','warn','⚠️ Checkout NÃO carregou (timeout)','Skeleton ainda visível após 25s — usuário pode ter visto tela em branco',0));
+  else if(lh.status==='error') rows.push(tlRow('red','warn',`⚠️ Erro JS durante carregamento`,lh.error||'erro desconhecido',0));
+  else rows.push(tlRow('gray','bolt','Checkout aberto','Status de carregamento não confirmado',0));
+
+  // First interact
+  if(f.first_interact!=null) rows.push(tlRow('blue','user','Primeira interação com o formulário','',f.first_interact));
+
+  // Step 1
+  if(f.step1_first_focus!=null){
+    const t1=f.step1_last_blur!=null?(f.step1_last_blur-f.step1_first_focus):null;
+    rows.push(tlRow('blue','form','Iniciou preenchimento — Dados Pessoais',t1?`Levou ${ms2s(t1)} para preencher`:null,f.step1_first_focus));
+  }
+
+  // Hesitations
+  for(const h of (s.hesitations||[])){
+    rows.push(tlRow('yellow','warn',`Pausa longa de ${(h.gap_ms/1000).toFixed(0)}s detectada`,'Usuário ficou parado — possível confusão ou distração',h.t));
+  }
+
+  // Errors
+  const errs=Object.entries(s.errors||{});
+  if(errs.length){
+    const errLabels={'inp-nome':'Nome','inp-email':'E-mail','inp-tel':'Telefone','inp-cpf':'CPF','inp-cep':'CEP','inp-rua':'Rua','inp-bairro':'Bairro','inp-num':'Número','inp-cidade':'Cidade','inp-estado':'Estado'};
+    const errStr=errs.map(([f,n])=>`${errLabels[f]||f} (${n}x)`).join(', ');
+    rows.push(tlRow('yellow','warn','Erros de validação disparados',errStr,null));
+  }
+
+  // Step 2
+  if(f.step2_first_focus!=null){
+    const t2=f.step2_last_blur!=null?(f.step2_last_blur-f.step2_first_focus):null;
+    rows.push(tlRow('blue','map','Iniciou preenchimento — Endereço',t2?`Levou ${ms2s(t2)} para preencher`:null,f.step2_first_focus));
+  }
+
+  // Rage clicks
+  for(const rc of (s.rage_clicks||[])){
+    rows.push(tlRow('red','warn',`Rage click — ${rc.count} cliques rápidos`,`Elemento: "${rc.target}"`,rc.t));
+  }
+
+  // Submit
+  if(f.submit_click!=null){
+    const attempts=s.submit_attempts||1;
+    rows.push(tlRow('purple','click',`Clicou em Finalizar${attempts>1?` (tentativa ${attempts})`:''}`,null,f.submit_click));
+  }
+
+  // PIX shown
+  if(f.pix_shown!=null) rows.push(tlRow('green','pix','Tela PIX mostrada','Pedido gerado com sucesso',f.pix_shown));
+
+  // PIX copied
+  if(f.pix_copy_click!=null) rows.push(tlRow('green','check','✅ Copiou o código PIX','Conversão completa!',f.pix_copy_click));
+
+  // Back nav
+  if(s.back_attempt) rows.push(tlRow('red','back','Botão voltar pressionado','Usuário tentou sair ou voltar à página anterior',null));
+
+  // Order
+  if(f.order_confirmed!=null) rows.push(tlRow('green','truck','Pedido confirmado','Pagamento PIX confirmado',f.order_confirmed));
+
+  if(!rows.length) rows.push(tlRow('gray','eye','Sessão sem eventos registrados','O usuário pode ter carregado a página mas não interagiu',null));
+
+  return rows.join('');
+}
+
+function buildFieldSummary(s){
+  const fields=s.fields||{};
+  const errors=s.errors||{};
+  const labels={'inp-nome':'Nome','inp-email':'E-mail','inp-tel':'Telefone','inp-cpf':'CPF','inp-cep':'CEP','inp-rua':'Rua','inp-bairro':'Bairro','inp-num':'Número','inp-comp':'Complemento','inp-cidade':'Cidade','inp-estado':'Estado'};
+  const keys=Object.keys(fields);
+  if(!keys.length) return '';
+  const cells=keys.map(k=>{
+    const f=fields[k];
+    const hasErr=errors[k]>0;
+    return `<div class="field-cell ${hasErr?'has-error':''}">
+      <div class="fc-name">${labels[k]||k}</div>
+      <div class="fc-time">${ms2s(f.total_time_ms||0)}</div>
+      <div class="fc-meta">foco: ${f.focus_count||0}× | teclas: ${f.key_presses||0} | ←: ${f.delete_presses||0}${hasErr?` | <span style="color:var(--r);font-weight:700">${errors[k]} erros</span>`:''}${f.left_empty?' | <span style="color:var(--y);font-weight:700">vazio</span>':''}</div>
+    </div>`;
+  }).join('');
+  return `<div style="margin-top:12px"><div style="font-size:10px;font-weight:700;color:var(--s400);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Campos interagidos</div><div class="fields-grid">${cells}</div></div>`;
+}
+
+/* ══════════════════════════════════════════════
+   AI EXPORT
+══════════════════════════════════════════════ */
+async function loadAiReport(){
+  $('ai-out').innerHTML='<span class="dots">Gerando relatório</span>';
+  const days=+$('sel-days').value;
+  try{
+    const r=await api('/api/metrics/behavior-report?mode=ai&days='+days);
+    if(!r.ok) throw new Error(r.error);
+    $('ai-out').textContent=r.ai_text_report||'Relatório vazio.';
+  }catch(e){ $('ai-out').textContent='Erro: '+e.message; }
+}
+
+$('btn-ai').addEventListener('click',()=>{ $('modal-ai').classList.add('open'); loadAiReport(); });
+$('modal-x').addEventListener('click',()=>$('modal-ai').classList.remove('open'));
+$('modal-close2').addEventListener('click',()=>$('modal-ai').classList.remove('open'));
+$('modal-ai').addEventListener('click',e=>{ if(e.target===$('modal-ai'))$('modal-ai').classList.remove('open'); });
+$('btn-copy-ai').addEventListener('click',function(){
+  const t=$('ai-out').textContent;
+  (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).catch(()=>{ const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta); });
+  this.textContent='✓ Copiado!'; setTimeout(()=>this.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:13px;height:13px"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copiar Tudo',2000);
+});
+
+/* ── CLEAR DATA ── */
+$('btn-clear').addEventListener('click',async()=>{
+  if(!confirm('⚠️ Tem certeza? Isso vai apagar TODOS os dados de analytics (sessões, agregados diários e cliques no PIX). Esta ação não pode ser desfeita.')) return;
+  try {
+    lbStart();
+    // Precisa ser POST — o endpoint rejeita GET com 405
+    if(!creds.user){ alert('Faça login primeiro.'); return; }
+    const r = await fetch('/api/metrics/clear-data', {
+      method: 'POST',
+      headers: { 'authorization': 'Basic ' + btoa(creds.user + ':' + creds.pass) }
+    }).then(res => res.json());
+    lbDone();
+    if(r.ok){
+      alert(`✅ Dados apagados!\n${r.deleted} chaves removidas.`);
+      loadOverview();
+    } else {
+      alert('Erro ao limpar: ' + (r.error||'desconhecido'));
+    }
+  } catch(e) { lbDone(); alert('Erro: '+e.message); }
+});
+
+/* ── REFRESH ── */
+$('btn-refresh').addEventListener('click',()=>{
+  if(activeTab==='overview') loadOverview();
+  else{ sessionsLoaded=false; loadSessions(); }
+});
+$('sel-days').addEventListener('change',()=>{ if(activeTab==='overview') loadOverview(); else buildDateOptions(); });
+
+/* ── INIT ── */
+loadOverview();
+
+})();
+</script>
+</body>
+</html>
