@@ -60,21 +60,3 @@ Como funciona:
 
 Observação importante:
 - KV não tem "increment" atômico; para volumes muito altos, o ideal é migrar o contador de cliques para Durable Objects ou D1.
-
-
-✅ Painel - Capturas do Checkout (Formulário) + Data/Hora
-
-O checkout agora envia (sem travar) um log resumido para o KV via endpoint público:
-- /api/checkout-log (POST)
-
-Você visualiza no painel protegido (mesmo usuário/senha do /admin):
-- /admin/checkout-log  (agora existe também como página estática em /admin/checkout-log/index.html, protegida por middleware)
-
-O painel lê os registros do KV via:
-- /api/checkout-log (GET) — protegido por PIX_ADMIN_USER / PIX_ADMIN_PASS
-
-Retenção (opcional):
-- Se quiser controlar por quanto tempo manter os registros no KV, crie a variável (não secret) em:
-  Settings -> Variables and Secrets
-  Name: CHECKOUT_LOG_TTL_DAYS
-  Value: 45   (padrão)  |  ex.: 7 / 30 / 90
