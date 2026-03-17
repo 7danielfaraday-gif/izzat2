@@ -277,9 +277,13 @@
                     event_time: Math.floor(Date.now() / 1000)
                 });
 
-                // Browser Pixel
+                // Browser Pixel — deduplicação correta com CAPI: o event_id precisa ir no 3º argumento
                 if (window.ttq && typeof window.ttq.track === 'function') {
-                    try { window.ttq.track(event, payload); } catch(e) {}
+                    try {
+                        var browserPayload = Object.assign({}, payload);
+                        delete browserPayload.event_id;
+                        window.ttq.track(event, browserPayload, { event_id: eventId });
+                    } catch(e) {}
                 }
 
                 // Server-side (Zaraz)

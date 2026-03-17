@@ -607,6 +607,80 @@ document.addEventListener('DOMContentLoaded', function(){
                 }
             }, []);
 
+            useEffect(() => {
+                let rafId = 0;
+                let timeoutId = 0;
+                let cancelled = false;
+
+                const isInteractive = () => {
+                    const form = document.getElementById('checkout-form');
+                    if (!form) return false;
+
+                    const requiredSelectors = [
+                        'input[name="name"]',
+                        'input[name="email"]',
+                        'input[name="phone"]'
+                    ];
+
+                    return requiredSelectors.every((selector) => {
+                        const el = form.querySelector(selector);
+                        return !!(el && !el.disabled && typeof el.focus === 'function');
+                    });
+                };
+
+                const sendReadyBeacon = () => {
+                    if (cancelled || window.__checkoutReadyBeaconSent) return;
+                    if (!isInteractive()) {
+                        timeoutId = window.setTimeout(waitForInteractive, 120);
+                        return;
+                    }
+
+                    window.checkoutFullInteractive = true;
+                    window.__checkoutReadyBeaconSent = true;
+
+                    const getSessionId = () => {
+                        try {
+                            if (window && typeof window.getSessionEventId === 'function') return window.getSessionEventId();
+                            if (typeof getSessionEventId === 'function') return getSessionEventId();
+                        } catch (_) {}
+                        return 'unknown';
+                    };
+
+                    const sessionId = getSessionId();
+                    const now = Date.now();
+                    const payload = JSON.stringify({
+                        event: 'checkout_ready',
+                        session_id: sessionId,
+                        sid: sessionId,
+                        timestamp: now,
+                        ts: now,
+                        path: window.location && window.location.pathname ? window.location.pathname : '/checkout'
+                    });
+
+                    try {
+                        if (navigator.sendBeacon) {
+                            const blob = new Blob([payload], { type: 'application/json; charset=UTF-8' });
+                            navigator.sendBeacon('/api/metrics/ping', blob);
+                        }
+                    } catch (_) {}
+                };
+
+                const waitForInteractive = () => {
+                    if (cancelled || window.__checkoutReadyBeaconSent) return;
+                    rafId = window.requestAnimationFrame(() => {
+                        rafId = window.requestAnimationFrame(sendReadyBeacon);
+                    });
+                };
+
+                waitForInteractive();
+
+                return () => {
+                    cancelled = true;
+                    if (rafId) window.cancelAnimationFrame(rafId);
+                    if (timeoutId) window.clearTimeout(timeoutId);
+                };
+            }, []);
+
             // Carrega configuração dinâmica do PIX (Painel)
             // Cloudflare Pages: via Pages Function /api/pix-config
             useEffect(() => {
@@ -638,8 +712,8 @@ document.addEventListener('DOMContentLoaded', function(){
         const rootElement = document.getElementById('checkout-root');
         if (rootElement) {
             // ⭐️ CORREÇÃO 5: Evita race condition se o script for executado duas vezes
-            if (!window.checkoutMounted) {
-                window.checkoutMounted = true;
+            if (!window.__checkoutRenderStarted) {
+                window.__checkoutRenderStarted = true;
                 try {
                     if (ReactDOM.createRoot) {
                         const root = ReactDOM.createRoot(rootElement);

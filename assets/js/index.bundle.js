@@ -116,15 +116,86 @@
         };
     }
 
+    function getTTP() {
+        var match = document.cookie.match(/(?:^|;\s*)_ttp=([^;]*)/);
+        return match ? match[1] : undefined;
+    }
+
+    function sendTikTokServerEvent(event, payload) {
+        try {
+            var eventId = (payload && payload.event_id) || generateEventId();
+            var body = JSON.stringify({
+                event: event,
+                event_id: eventId,
+                properties: payload || {},
+                user: {
+                    email: payload && payload.email ? payload.email : undefined,
+                    phone_number: payload && payload.phone ? payload.phone : undefined,
+                    external_id: payload && payload.external_id ? payload.external_id : getExternalId(),
+                    ttclid: payload && payload.ttclid ? payload.ttclid : getTTCLID(),
+                    ttp: getTTP()
+                }
+            });
+
+            if (navigator.sendBeacon) {
+                navigator.sendBeacon('/api/tiktok-events', new Blob([body], { type: 'application/json' }));
+            } else {
+                fetch('/api/tiktok-events', {
+                    method: 'POST',
+                    headers: { 'content-type': 'application/json' },
+                    body: body,
+                    keepalive: true
+                }).catch(function(){});
+            }
+        } catch (_) {}
+    }
+
+    function trackPixelAndCAPI(event, data = {}) {
+        try {
+            const savedEmail = localStorage.getItem('user_hashed_email');
+            const savedPhone = localStorage.getItem('user_hashed_phone');
+            const eventId = data.event_id || generateEventId();
+
+            let payload = {
+                ...data,
+                ...getContext(),
+                event_id: eventId,
+                external_id: getExternalId(),
+                ttclid: getTTCLID(),
+                ...getStoredUTMs()
+            };
+
+            payload.event_time = payload.timestamp || Math.floor(Date.now() / 1000);
+            payload.event_source_url = getTikTokEventSourceUrl();
+
+            if (savedEmail && !payload.email) payload.email = savedEmail;
+            if (savedPhone && !payload.phone) payload.phone = savedPhone;
+
+            if (window.ttq && typeof window.ttq.track === 'function') {
+                try {
+                    var browserPayload = { ...payload };
+                    delete browserPayload.event_id;
+                    window.ttq.track(event, browserPayload, { event_id: eventId });
+                } catch (e) {}
+            }
+
+            sendTikTokServerEvent(event, payload);
+        } catch (error) {
+            console.error('Tracking Error:', error);
+        }
+    }
+
     // --- FUNÇÃO DE DISPARO HÍBRIDA (ZARAZ + MANUAL + BEACON) ---
     function trackViaZaraz(event, data = {}, useBeacon = false) {
         try {
             // Tenta recuperar dados de usuário salvos (Sessão anterior persistente)
             const savedEmail = localStorage.getItem('user_hashed_email');
             const savedPhone = localStorage.getItem('user_hashed_phone');
+            const eventId = data.event_id || generateEventId();
 
             let payload = { 
                 ...data, 
+                event_id: eventId,
                 ...getContext(),
                 external_id: getExternalId(),
                 ttclid: getTTCLID(),
@@ -142,7 +213,9 @@
             // 1. DISPARO MANUAL (Browser-Side)
             if (window.ttq && typeof window.ttq.track === 'function') {
                 if (event !== 'PageView') {
-                    window.ttq.track(event, payload);
+                    var browserPayload = { ...payload };
+                    delete browserPayload.event_id;
+                    window.ttq.track(event, browserPayload, { event_id: eventId });
                 }
             }
 
@@ -192,6 +265,25 @@
 
     window.addEventListener('load', function() {
         saveUTMs();
+
+        if (window.__izzatLandingSignalsFired) return;
+        window.__izzatLandingSignalsFired = true;
+
+        const landingPayload = {
+            ...PRODUCT_CONTENT,
+            content_name: PRODUCT_CONTENT.content_name,
+            description: PRODUCT_CONTENT.description
+        };
+
+        trackPixelAndCAPI('Pageview', {
+            ...landingPayload,
+            event_id: generateEventId()
+        });
+
+        trackPixelAndCAPI('LandingPageView', {
+            ...landingPayload,
+            event_id: generateEventId()
+        });
     });
 
     // 2. ViewContent Inteligente
