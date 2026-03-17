@@ -43,7 +43,7 @@
                 var tries = [];
                 if (which === 'react') tries = ['/assets/vendor/react.production.min.js', 'https://unpkg.com/react@18/umd/react.production.min.js'];
                 if (which === 'react-dom') tries = ['/assets/vendor/react-dom.production.min.js', 'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js'];
-                if (which.indexOf('tailwind') === 0) tries = ['/assets/vendor/tailwindcss.js', 'https://cdn.tailwindcss.com'];
+                if (which.indexOf('tailwind') === 0) return; // Tailwind agora é CSS estático, sem fallback necessário
 
                 // primeira falha (geralmente rota /checkout/ tentando /checkout/js/...) => tenta raiz (/js/...)
                 // segunda falha => tenta CDN
@@ -61,36 +61,7 @@
     </script>
 <script defer="" onerror="window.__localLibFallback &amp;&amp; window.__localLibFallback('react')" src="assets/vendor/react.production.min.js"></script>
 <script defer="" onerror="window.__localLibFallback &amp;&amp; window.__localLibFallback('react-dom')" src="assets/vendor/react-dom.production.min.js"></script>
-<script defer="" onerror="window.__localLibFallback &amp;&amp; window.__localLibFallback('tailwind-local')" src="assets/vendor/tailwindcss.js"></script>
-<script>
-        window.tailwind = window.tailwind || {};
-        window.tailwind.config = { 
-            theme: { 
-                extend: { 
-                    colors: { clifford: '#da373d' },
-                    spacing: {
-                        'safe-top': 'env(safe-area-inset-top)',
-                        'safe-bottom': 'env(safe-area-inset-bottom)',
-                    },
-                    keyframes: {
-                        fadeIn: {
-                            '0%': { opacity: '0', transform: 'translateY(10px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        },
-                        pulseUrgent: {
-                            '0%, 100%': { opacity: '1' },
-                            '50%': { opacity: '0.8' },
-                        }
-                    },
-                    animation: {
-                        'fade-in': 'fadeIn 0.5s ease-out forwards',
-                        'pulse-urgent': 'pulseUrgent 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                    }
-                } 
-            }
-        };
-    </script>
+<link rel="stylesheet" href="assets/css/tailwind.css"/>
 <script>
     // Watchdog Scoped
     (function() {
@@ -117,12 +88,8 @@
                     var d = document.createElement('script'); 
                     d.src = "https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"; 
                     d.onload = function(){ 
-                        var s = document.createElement('script'); 
-                        s.src = "https://cdn.tailwindcss.com"; 
-                        s.onload = function(){ 
-                            if(window.initReactCheckout) window.initReactCheckout(); 
-                        };
-                        document.head.appendChild(s);
+                        // Tailwind agora é CSS estático - não precisa de CDN fallback
+                        if(window.initReactCheckout) window.initReactCheckout(); 
                     };
                     document.head.appendChild(d);
                 };
