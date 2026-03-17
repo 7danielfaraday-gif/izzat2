@@ -106,6 +106,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
 .fe.show{display:block}
 .fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .fr3{display:grid;grid-template-columns:1fr 90px;gap:10px}
+
+/* CPF label with badge */
+.fl-row{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.fl-badge{font-size:9px;font-weight:700;color:var(--g700);background:var(--g50);border:1px solid var(--g100);padding:2px 7px;border-radius:99px;letter-spacing:.2px;white-space:nowrap}
+
+/* Delivery estimate box */
+.delivery-box{display:flex;align-items:center;gap:10px;background:var(--g50);border:1px solid var(--g100);border-radius:10px;padding:10px 12px;margin-top:2px}
+.delivery-box-icon{width:32px;height:32px;background:var(--g100);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.delivery-box-icon svg{width:16px;height:16px;color:var(--g700)}
+.delivery-box-text{}
+.delivery-box-label{font-size:10px;font-weight:700;color:var(--g700);text-transform:uppercase;letter-spacing:.4px}
+.delivery-box-date{font-size:13px;font-weight:800;color:var(--s800);margin-top:1px}
 .fs{width:100%;height:44px;padding:0 12px;font-size:16px!important;border:1.5px solid var(--s200);border-radius:10px;background:#fff;color:var(--s800);outline:none;transition:border-color .2s;cursor:pointer}
 .fs:focus{border-color:var(--g600)}
 
@@ -276,17 +288,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
           <input class="fi" id="inp-email" type="email" placeholder="seu@email.com" autocomplete="email" inputmode="email">
           <span class="fe" id="err-email">Informe um e-mail válido</span>
         </div>
-        <div class="fr">
-          <div class="fg">
-            <label class="fl" for="inp-tel">Telefone</label>
-            <input class="fi" id="inp-tel" type="tel" placeholder="(00) 00000-0000" autocomplete="tel" inputmode="tel">
-            <span class="fe" id="err-tel">Telefone inválido</span>
-          </div>
-          <div class="fg">
+        <div class="fg">
+          <label class="fl" for="inp-tel">Celular (WhatsApp)</label>
+          <input class="fi" id="inp-tel" type="tel" placeholder="+55 (11) 99999-9999" autocomplete="tel" inputmode="tel">
+          <span class="fe" id="err-tel">Telefone inválido</span>
+        </div>
+        <div class="fg">
+          <div class="fl-row">
             <label class="fl" for="inp-cpf">CPF</label>
-            <input class="fi" id="inp-cpf" type="tel" placeholder="000.000.000-00" inputmode="numeric">
-            <span class="fe" id="err-cpf">CPF inválido</span>
+            <span class="fl-badge">Necessário para Nota Fiscal</span>
           </div>
+          <input class="fi" id="inp-cpf" type="tel" placeholder="000.000.000-00" inputmode="numeric">
+          <span class="fe" id="err-cpf">CPF inválido</span>
         </div>
       </div>
     </section>
@@ -299,6 +312,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
           <label class="fl" for="inp-cep">CEP</label>
           <input class="fi" id="inp-cep" type="tel" placeholder="00000-000" inputmode="numeric" autocomplete="postal-code">
           <span class="fe" id="err-cep">Informe um CEP válido</span>
+        </div>
+        <div class="delivery-box" id="delivery-estimate">
+          <div class="delivery-box-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 6v4h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          </div>
+          <div class="delivery-box-text">
+            <div class="delivery-box-label">Frete Grátis Chegando:</div>
+            <div class="delivery-box-date" id="delivery-date">calculando...</div>
+          </div>
         </div>
         <div class="fg">
           <label class="fl" for="inp-rua">Rua</label>
@@ -368,17 +390,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
         Finalizar com Desconto
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
-      <div class="legal-text">
-        Ao clicar em 'Finalizar compra', você aceita que a Izzat processe o pedido, concorda com os
-        <a href="/termos-de-compra/">Termos de compra</a>, com a
-        <a href="/politica-de-privacidade/">Política de Privacidade</a>
-        e confirmação de maioridade ou supervisão de tutor.
-        <span style="opacity:.8">REF: </span><a href="/ref/" style="opacity:.8" id="ref-link">—</a>
-      </div>
-      <div class="sec-text">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-        Seus dados estão protegidos por criptografia 256-bit
-      </div>
+
     </div>
 
     <!-- TRUST -->
@@ -1043,8 +1055,28 @@ function setCopyState(copied){
 }
 
 /* =============================================================
-   METRICS PING (visitor online status)
+   DELIVERY DATE ESTIMATE
    ============================================================= */
+(function(){
+  try{
+    var days=["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
+    var months=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+    var d=new Date();
+    // Add 4-6 business days
+    var added=0,target=5;
+    while(added<target){
+      d.setDate(d.getDate()+1);
+      var dow=d.getDay();
+      if(dow!==0&&dow!==6)added++; // skip weekends
+    }
+    // If lands on weekend, push to next Monday
+    if(d.getDay()===6)d.setDate(d.getDate()+2);
+    if(d.getDay()===0)d.setDate(d.getDate()+1);
+    var label=days[d.getDay()]+", "+d.getDate()+" De "+months[d.getMonth()];
+    var el=document.getElementById("delivery-date");
+    if(el)el.textContent=label;
+  }catch(_){}
+})();
 (function metricsPing(){
   try{
     var sid=getExternalId();
