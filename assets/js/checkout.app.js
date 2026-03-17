@@ -77,6 +77,8 @@ document.addEventListener('DOMContentLoaded', function(){
             
             // ⭐️ SEGURANÇA: Lógica de tempo mantida para evitar ReferenceError (Crash)
             const [timeLeft, setTimeLeft] = useState(15 * 60);
+            const [currentStep, setCurrentStep] = useState(1);
+            const [step1Attempted, setStep1Attempted] = useState(false);
             const [submitAttempted, setSubmitAttempted] = useState(false);
             const [isFormLocked, setIsFormLocked] = useState(false);
             const [isSubmitting, setIsSubmitting] = useState(false);
@@ -144,6 +146,31 @@ document.addEventListener('DOMContentLoaded', function(){
                 window.addEventListener('beforeunload', handleBeforeUnload);
                 return () => { window.removeEventListener('beforeunload', handleBeforeUnload); };
             }, [loading, isFormLocked, isSubmitting]);
+
+            const step1Errors = useMemo(() => {
+                if (!step1Attempted) return {};
+                const errors = {};
+                if (!formData.name || !formData.name.trim()) errors.name = 'Nome obrigatório';
+                if (!formData.email || !formData.email.trim()) errors.email = 'E-mail obrigatório';
+                else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) errors.email = 'E-mail inválido';
+                if (!formData.phone || !formData.phone.trim()) errors.phone = 'Telefone obrigatório';
+                else if (formData.phone.replace(/\D/g, '').length < 10) errors.phone = 'Telefone inválido';
+                return errors;
+            }, [formData, step1Attempted]);
+
+            const handleNextStep = () => {
+                setStep1Attempted(true);
+                const errors = {};
+                if (!formData.name || !formData.name.trim()) errors.name = true;
+                if (!formData.email || !formData.email.trim()) errors.email = true;
+                else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) errors.email = true;
+                if (!formData.phone || !formData.phone.trim()) errors.phone = true;
+                else if (formData.phone.replace(/\D/g, '').length < 10) errors.phone = true;
+                if (Object.keys(errors).length > 0) return;
+                trackEvent('ClickButton', { content_name: 'Avancou Etapa 1', button_name: 'next_step' });
+                setCurrentStep(2);
+                requestAnimationFrame(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+            };
 
             const validationErrors = useMemo(() => {
                 if (!submitAttempted) return {};
@@ -354,43 +381,56 @@ document.addEventListener('DOMContentLoaded', function(){
                                 )
                             )
                         ),
-                        e("div", { className: "bg-amber-50 border border-amber-100 rounded-xl p-4 mb-4" }, 
-                            e("div", {className: "flex items-start gap-3"},
-                                e("div", { className: "bg-amber-100 p-2 rounded-full flex-shrink-0 text-amber-600" }, e(Icons.Star, {className: "w-4 h-4"})),
-                                e("div", null, e("p", { className: "font-bold text-amber-900 text-sm mb-0.5" }, "Satisfação Garantida"), e("p", { className: "text-amber-800/80 text-xs leading-relaxed" }, "Se não gostar, devolvemos seu dinheiro em até 7 dias. Sem burocracia."))
-                            )
-                        )
+
                     ),
                     e("form", { id: "checkout-form", ref: formRef, onSubmit: handleSubmit, className: "space-y-4 lg:col-span-7", noValidate: true, "data-testid": "checkout-form" },
                         e("button", { type: "submit", style: { display: 'none' } }), 
-                        e("div", { className: "bg-white rounded-2xl shadow-[0_2px_15px_rgb(0,0,0,0.03)] border border-slate-100 overflow-hidden" },
-                            e("div", { className: "bg-slate-50/50 px-5 py-3 border-b border-slate-100 flex items-center gap-3" }, e("span", { className: "bg-green-600 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shadow-md shadow-green-600/20" }, "1"), e("h3", { className: "text-sm font-bold text-slate-700 uppercase tracking-wide" }, "Dados Pessoais")),
+
+                        // ── STEP INDICATOR ──
+                        e("div", { className: "flex items-center gap-3 px-1 mb-2" },
+                            e("div", { className: "flex items-center gap-2 flex-1" },
+                                e("div", { className: `flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold shadow-sm ${currentStep === 1 ? 'bg-green-600 text-white shadow-green-500/30' : 'bg-green-600 text-white'}` }, currentStep > 1 ? e(Icons.Check, {className: "w-3.5 h-3.5"}) : "1"),
+                                e("span", { className: `text-xs font-bold ${currentStep === 1 ? 'text-slate-700' : 'text-green-600'}` }, "Dados Pessoais")
+                            ),
+                            e("div", { className: `h-px flex-1 mx-1 transition-all duration-500 ${currentStep >= 2 ? 'bg-green-500' : 'bg-slate-200'}` }),
+                            e("div", { className: "flex items-center gap-2 flex-1 justify-end" },
+                                e("span", { className: `text-xs font-bold ${currentStep === 2 ? 'text-slate-700' : 'text-slate-300'}` }, "Endereço"),
+                                e("div", { className: `flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold shadow-sm ${currentStep === 2 ? 'bg-green-600 text-white shadow-green-500/30' : 'bg-slate-200 text-slate-400'}` }, "2")
+                            )
+                        ),
+
+                        // ── ETAPA 1: DADOS PESSOAIS ──
+                        currentStep === 1 && e("div", { className: "bg-white rounded-2xl shadow-[0_2px_15px_rgb(0,0,0,0.03)] border border-slate-100 overflow-hidden" },
+                            e("div", { className: "bg-slate-50/50 px-5 py-3 border-b border-slate-100 flex items-center justify-between gap-3" },
+                                e("div", {className: "flex items-center gap-3"}, e("span", { className: "bg-green-600 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shadow-md shadow-green-600/20" }, "1"), e("h3", { className: "text-sm font-bold text-slate-700 uppercase tracking-wide" }, "Dados Pessoais")),
+                                e("span", { className: "text-[10px] font-semibold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full" }, "Etapa 1 de 2")
+                            ),
                             e("div", {className: "p-5 pt-6"},
                                 e("div", {className: "mb-4"},
                                     e("label", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wide pl-1 mb-1.5 block" }, "Nome Completo"),
                                     e("div", {className: "relative"},
                                         e("div", { className: "absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400" }, e(Icons.User, {className: "w-5 h-5"})),
-                                        e("input", { type: "text", name: "name", value: formData.name, onChange: handleChange, onFocus: trackStartTyping, className: `w-full py-3.5 pl-11 pr-4 bg-white border ${validationErrors.name ? 'border-red-500 bg-red-50/30' : formData.name ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "Digite seu nome completo", required: true, disabled: isFormLocked || isSubmitting, autoComplete: "name", autoCorrect: "off", autoCapitalize: "words", spellCheck: "false", "aria-invalid": validationErrors.name ? "true" : "false", "aria-describedby": validationErrors.name ? "name-error" : undefined })
+                                        e("input", { type: "text", name: "name", value: formData.name, onChange: handleChange, onFocus: trackStartTyping, className: `w-full py-3.5 pl-11 pr-4 bg-white border ${step1Errors.name ? 'border-red-500 bg-red-50/30' : formData.name ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "Digite seu nome completo", required: true, disabled: isFormLocked || isSubmitting, autoComplete: "name", autoCorrect: "off", autoCapitalize: "words", spellCheck: "false", "aria-invalid": step1Errors.name ? "true" : "false" })
                                     ),
-                                    validationErrors.name && e("p", { id: "name-error", className: "text-red-500 text-xs mt-1 pl-1" }, validationErrors.name)
+                                    step1Errors.name && e("p", { className: "text-red-500 text-xs mt-1 pl-1" }, step1Errors.name)
                                 ),
                                 e("div", {className: "mb-4"},
                                     e("label", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wide pl-1 mb-1.5 block" }, "E-mail"),
                                     e("div", {className: "relative"},
                                         e("div", { className: "absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400" }, e(Icons.Mail, {className: "w-5 h-5"})),
-                                        e("input", { type: "email", name: "email", value: formData.email, onChange: handleChange, onBlur: () => handleBlur('email'), className: `w-full py-3.5 pl-11 pr-4 bg-white border ${validationErrors.email ? 'border-red-500 bg-red-50/30' : formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "exemplo@email.com", required: true, inputMode: "email", disabled: isFormLocked || isSubmitting, autoComplete: "email", autoCorrect: "off", spellCheck: "false", "aria-invalid": validationErrors.email ? "true" : "false", "aria-describedby": validationErrors.email ? "email-error" : undefined })
+                                        e("input", { type: "email", name: "email", value: formData.email, onChange: handleChange, onBlur: () => handleBlur('email'), className: `w-full py-3.5 pl-11 pr-4 bg-white border ${step1Errors.email ? 'border-red-500 bg-red-50/30' : formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "exemplo@email.com", required: true, inputMode: "email", disabled: isFormLocked || isSubmitting, autoComplete: "email", autoCorrect: "off", spellCheck: "false", "aria-invalid": step1Errors.email ? "true" : "false" })
                                     ),
-                                    validationErrors.email && e("p", { id: "email-error", className: "text-red-500 text-xs mt-1 pl-1" }, validationErrors.email)
+                                    step1Errors.email && e("p", { className: "text-red-500 text-xs mt-1 pl-1" }, step1Errors.email)
                                 ),
                                 e("div", {className: "mb-4"},
                                     e("label", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wide pl-1 mb-1.5 block" }, "Celular (WhatsApp)"),
                                     e("div", {className: "relative"},
                                         e("div", { className: "absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400" }, e(Icons.Phone, {className: "w-5 h-5"})),
-                                        e("input", { ref: phoneInputRef, type: "tel", name: "phone", value: formData.phone, onChange: handlePhoneChange, onBlur: () => handleBlur('phone'), className: `w-full py-3.5 pl-11 pr-4 bg-white border ${validationErrors.phone ? 'border-red-500 bg-red-50/30' : formData.phone && formData.phone.replace(/\D/g, '').length >= 10 ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "(00) 00000-0000", required: true, inputMode: "tel", disabled: isFormLocked || isSubmitting, autoComplete: "tel", maxLength: 20, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false", "aria-invalid": validationErrors.phone ? "true" : "false", "aria-describedby": validationErrors.phone ? "phone-error" : undefined })
+                                        e("input", { ref: phoneInputRef, type: "tel", name: "phone", value: formData.phone, onChange: handlePhoneChange, onBlur: () => handleBlur('phone'), className: `w-full py-3.5 pl-11 pr-4 bg-white border ${step1Errors.phone ? 'border-red-500 bg-red-50/30' : formData.phone && formData.phone.replace(/\D/g, '').length >= 10 ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "(00) 00000-0000", required: true, inputMode: "tel", disabled: isFormLocked || isSubmitting, autoComplete: "tel", maxLength: 20, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false", "aria-invalid": step1Errors.phone ? "true" : "false" })
                                     ),
-                                    validationErrors.phone && e("p", { id: "phone-error", className: "text-red-500 text-xs mt-1 pl-1" }, validationErrors.phone)
+                                    step1Errors.phone && e("p", { className: "text-red-500 text-xs mt-1 pl-1" }, step1Errors.phone)
                                 ),
-                                e("div", {className: "mb-4"},
+                                e("div", {className: "mb-2"},
                                     e("label", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wide pl-1 mb-1.5 flex justify-between items-center" }, 
                                         "CPF",
                                         e("span", {className: "text-[9px] text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100 normal-case"}, "Necessário para Nota Fiscal")
@@ -403,59 +443,88 @@ document.addEventListener('DOMContentLoaded', function(){
                                         e("div", {className: "flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden"}, e("div", { className: `h-full rounded-full transition-all duration-500 ${formData.cpf.replace(/\D/g, '').length >= 11 ? 'bg-green-500 w-full' : 'bg-gray-300 w-2/3'}` })),
                                         e("span", { className: `text-[10px] font-semibold transition-colors ${formData.cpf.replace(/\D/g, '').length >= 11 ? 'text-green-600' : 'text-gray-400'}` }, formData.cpf.replace(/\D/g, '').length >= 11 ? 'CPF Válido' : 'Digitando...')
                                     )
+                                ),
+                                e("button", { type: "button", onClick: handleNextStep, className: "hidden lg:flex w-full mt-2 bg-gradient-to-r from-green-600 to-green-700 text-white font-bold py-4 rounded-xl text-lg transition-all active:scale-[0.98] justify-center items-center gap-2 shadow-xl shadow-green-500/30 hover:shadow-green-500/50 hover:-translate-y-0.5 btn-tactile min-h-[56px]" },
+                                    e("span", {className: "flex items-center gap-2"}, "CONTINUAR", e("svg", { className: "w-5 h-5", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3" }, e("polyline", {points: "9 18 15 12 9 6"})))
                                 )
                             )
                         ),
-                        e("div", { className: "bg-white rounded-2xl shadow-[0_2px_15px_rgb(0,0,0,0.03)] border border-slate-100 overflow-hidden" },
-                            e("div", { className: "bg-slate-50/50 px-5 py-3 border-b border-slate-100 flex items-center gap-3" }, e("span", { className: "bg-green-600 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shadow-md shadow-green-600/20" }, "2"), e("h3", { className: "text-sm font-bold text-slate-700 uppercase tracking-wide" }, "Entrega")),
-                            e("div", {className: "p-5 pt-6 space-y-4"},
-                                e("div", {className: "relative"},
-                                    e("label", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wide pl-1 mb-1.5 block" }, "CEP"),
+
+                        // ── ETAPA 2: ENDEREÇO ──
+                        currentStep === 2 && e("div", { className: "space-y-4" },
+                            e("div", { className: "bg-white rounded-2xl shadow-[0_2px_15px_rgb(0,0,0,0.03)] border border-slate-100 overflow-hidden" },
+                                e("div", { className: "bg-slate-50/50 px-5 py-3 border-b border-slate-100 flex items-center justify-between gap-3" },
+                                    e("div", {className: "flex items-center gap-3"}, e("span", { className: "bg-green-600 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shadow-md shadow-green-600/20" }, "2"), e("h3", { className: "text-sm font-bold text-slate-700 uppercase tracking-wide" }, "Endereço de Entrega")),
+                                    e("span", { className: "text-[10px] font-semibold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full" }, "Etapa 2 de 2")
+                                ),
+                                e("div", {className: "p-5 pt-6 space-y-4"},
                                     e("div", {className: "relative"},
-                                        e("input", { ref: cepInputRef, type: "text", name: "cep", value: formData.cep, onChange: handleCepChange, className: "w-full py-3.5 pl-4 pr-12 border border-slate-200 rounded-xl text-base focus:border-green-500 focus:ring-4 focus:ring-green-500/10 outline-none transition-all duration-200 shadow-sm", placeholder: "00000-000", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "postal-code", maxLength: 9, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false" }),
-                                        e("div", { className: "absolute inset-y-0 right-3 flex items-center" }, loadingCep ? e("div", { className: "spinner-mobile border-green-500 border-t-transparent" }) : e("svg", { className: "w-5 h-5 text-gray-400", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor" }, e("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" })))
+                                        e("label", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wide pl-1 mb-1.5 block" }, "CEP"),
+                                        e("div", {className: "relative"},
+                                            e("input", { ref: cepInputRef, type: "text", name: "cep", value: formData.cep, onChange: handleCepChange, className: "w-full py-3.5 pl-4 pr-12 border border-slate-200 rounded-xl text-base focus:border-green-500 focus:ring-4 focus:ring-green-500/10 outline-none transition-all duration-200 shadow-sm", placeholder: "00000-000", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "postal-code", maxLength: 9, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false" }),
+                                            e("div", { className: "absolute inset-y-0 right-3 flex items-center" }, loadingCep ? e("div", { className: "spinner-mobile border-green-500 border-t-transparent" }) : e("svg", { className: "w-5 h-5 text-gray-400", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor" }, e("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" })))
+                                        )
+                                    ),
+                                    e("div", { className: "bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100 rounded-xl p-4 flex items-center gap-4 shadow-sm" },
+                                        e("div", { className: "bg-white p-2.5 rounded-full shadow-sm text-green-600" }, e(Icons.Truck, {className: "w-5 h-5"})),
+                                        e("div", {className: "flex-1"}, e("p", { className: "text-[10px] uppercase tracking-wider text-green-800 font-bold mb-0.5 opacity-80" }, "Frete Grátis Chegando:"), e("p", { className: "text-sm font-black text-green-900 capitalize leading-none tracking-tight" }, getDeliveryDate()))
+                                    ),
+                                    cepFailed && e("div", { className: "bg-rose-50 border border-rose-100 text-rose-700 text-xs font-semibold rounded-xl p-3" }, "Não conseguimos buscar seu endereço automaticamente. Preencha abaixo para finalizar."),
+                                    shouldShowAddressFields && e("div", { className: "grid grid-cols-4 gap-3" },
+                                        e("div", {className: "col-span-4"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Endereço"), e("input", { name: "address", value: formData.address, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none", placeholder: "Rua, Avenida...", disabled: isFormLocked || isSubmitting, autoComplete: "street-address", autoCorrect: "off", spellCheck: "false" })),
+                                        e("div", {className: "col-span-1"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Nº"), e("input", { ref: numberRef, name: "number", value: formData.number, onChange: handleChange, placeholder: "123", className: "w-full p-3.5 border border-green-300 bg-white ring-2 ring-green-500/10 rounded-xl focus:ring-green-500 focus:border-green-500 outline-none font-bold text-center", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "off" })),
+                                        e("div", {className: "col-span-3"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Cidade"), e("input", { name: "city", value: formData.city, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none", placeholder: "Cidade/UF", disabled: isFormLocked || isSubmitting, autoComplete: "address-level2", autoCorrect: "off", spellCheck: "false" }))
                                     )
-                                ),
-                                e("div", { className: "bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100 rounded-xl p-4 flex items-center gap-4 animate-pulse-slow shadow-sm" },
-                                    e("div", { className: "bg-white p-2.5 rounded-full shadow-sm text-green-600" }, e(Icons.Truck, {className: "w-5 h-5"})),
-                                    e("div", {className: "flex-1"}, e("p", { className: "text-[10px] uppercase tracking-wider text-green-800 font-bold mb-0.5 opacity-80" }, "Frete Grátis Chegando:"), e("p", { className: "text-sm font-black text-green-900 capitalize leading-none tracking-tight" }, getDeliveryDate()))
-                                ),
-                                cepFailed && e("div", { className: "bg-rose-50 border border-rose-100 text-rose-700 text-xs font-semibold rounded-xl p-3" }, "Não conseguimos buscar seu endereço automaticamente. Preencha abaixo para finalizar.") ,
-                                shouldShowAddressFields && e("div", { className: "grid grid-cols-4 gap-3 animate-fade-in" },
-                                    e("div", {className: "col-span-4"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Endereço"), e("input", { name: "address", value: formData.address, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none", placeholder: "Rua, Avenida...", disabled: isFormLocked || isSubmitting, autoComplete: "street-address", autoCorrect: "off", spellCheck: "false" })),
-                                    e("div", {className: "col-span-1"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Nº"), e("input", { ref: numberRef, name: "number", value: formData.number, onChange: handleChange, placeholder: "123", className: "w-full p-3.5 border border-green-300 bg-white ring-2 ring-green-500/10 rounded-xl focus:ring-green-500 focus:border-green-500 outline-none font-bold text-center", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "off" })),
-                                    e("div", {className: "col-span-3"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Cidade"), e("input", { name: "city", value: formData.city, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none", placeholder: "Cidade/UF", disabled: isFormLocked || isSubmitting, autoComplete: "address-level2", autoCorrect: "off", spellCheck: "false" }))
                                 )
-                            )
-                        ),
-                        e("div", { className: "hidden lg:block bg-white rounded-2xl shadow-[0_2px_15px_rgb(0,0,0,0.03)] border border-slate-100 overflow-hidden" },
-                            e("div", { className: "bg-slate-50/50 px-5 py-3 border-b border-slate-100 flex items-center gap-3" }, e("span", { className: "bg-green-600 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shadow-md shadow-green-600/20" }, "3"), e("h3", { className: "text-sm font-bold text-slate-700 uppercase tracking-wide" }, "Pagamento")),
-                            e("div", {className: "p-5"},
-                                e("div", { className: "bg-green-50/50 border-2 border-green-500 rounded-xl p-4 relative flex items-center gap-4 cursor-pointer hover:bg-green-50 transition-colors shadow-sm ring-4 ring-green-500/5" },
-                                    e("div", { className: "absolute -top-3 right-4 bg-gradient-to-r from-green-600 to-green-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase shadow-md tracking-wide" }, "Aprovação Imediata"),
-                                    e("div", { className: "w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-md flex-shrink-0 text-white" }, e(Icons.Check, {className: "w-4 h-4"})),
-                                    e("div", {className: "flex-1 py-1"}, e("div", { className: "font-bold text-slate-800 text-sm flex items-center gap-1.5" }, "PIX"), e("div", { className: "text-green-700 font-extrabold text-xl mt-0.5 tracking-tight" }, "R$ " + PRODUCT_INFO.price.toFixed(2).replace('.',',')))
-                                ),
-                                e("button", { ref: submitButtonRef, disabled: loading || isFormLocked || isSubmitting, type: "submit", className: `w-full mt-6 bg-gradient-to-r from-green-600 to-green-700 text-white font-bold py-4 rounded-xl text-lg transition-all active:scale-[0.98] flex justify-center items-center gap-2 shadow-xl shadow-green-500/30 ${loading || isFormLocked || isSubmitting ? 'opacity-80 grayscale cursor-not-allowed' : 'hover:shadow-green-500/50 hover:-translate-y-0.5'} btn-tactile min-h-[56px]`, "aria-busy": loading }, 
-                                    loading ? e("span", {className: "flex items-center gap-2"}, e("div", { className: "spinner-mobile" }), "Processando...") : e("span", {className: "flex items-center gap-2"}, "FINALIZAR COM DESCONTO", e("svg", { className: "w-5 h-5", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3" }, e("polyline", {points: "9 18 15 12 9 6"})))
-                                ),
-                                e("div", {className: "text-center mt-3"}, e("span", { className: "text-[10px] text-gray-400 flex justify-center items-center gap-1" }, e(Icons.Lock, {className: "w-3 h-3"}), "Seus dados estão protegidos por criptografia 256-bit"))
+                            ),
+                            e("div", { className: "hidden lg:block bg-white rounded-2xl shadow-[0_2px_15px_rgb(0,0,0,0.03)] border border-slate-100 overflow-hidden" },
+                                e("div", { className: "bg-slate-50/50 px-5 py-3 border-b border-slate-100 flex items-center gap-3" }, e("span", { className: "bg-green-600 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shadow-md shadow-green-600/20" }, "3"), e("h3", { className: "text-sm font-bold text-slate-700 uppercase tracking-wide" }, "Pagamento")),
+                                e("div", {className: "p-5"},
+                                    e("div", { className: "bg-green-50/50 border-2 border-green-500 rounded-xl p-4 relative flex items-center gap-4 cursor-pointer hover:bg-green-50 transition-colors shadow-sm ring-4 ring-green-500/5" },
+                                        e("div", { className: "absolute -top-3 right-4 bg-gradient-to-r from-green-600 to-green-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase shadow-md tracking-wide" }, "Aprovação Imediata"),
+                                        e("div", { className: "w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-md flex-shrink-0 text-white" }, e(Icons.Check, {className: "w-4 h-4"})),
+                                        e("div", {className: "flex-1 py-1"}, e("div", { className: "font-bold text-slate-800 text-sm flex items-center gap-1.5" }, "PIX"), e("div", { className: "text-green-700 font-extrabold text-xl mt-0.5 tracking-tight" }, "R$ " + PRODUCT_INFO.price.toFixed(2).replace('.',',')))
+                                    ),
+                                    e("button", { ref: submitButtonRef, disabled: loading || isFormLocked || isSubmitting, type: "submit", className: `w-full mt-6 bg-gradient-to-r from-green-600 to-green-700 text-white font-bold py-4 rounded-xl text-lg transition-all active:scale-[0.98] flex justify-center items-center gap-2 shadow-xl shadow-green-500/30 ${loading || isFormLocked || isSubmitting ? 'opacity-80 grayscale cursor-not-allowed' : 'hover:shadow-green-500/50 hover:-translate-y-0.5'} btn-tactile min-h-[56px]`, "aria-busy": loading }, 
+                                        loading ? e("span", {className: "flex items-center gap-2"}, e("div", { className: "spinner-mobile" }), "Processando...") : e("span", {className: "flex items-center gap-2"}, "FINALIZAR COMPRA", e("svg", { className: "w-5 h-5", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3" }, e("polyline", {points: "9 18 15 12 9 6"})))
+                                    ),
+                                    e("div", {className: "text-center mt-3"}, e("span", { className: "text-[10px] text-gray-400 flex justify-center items-center gap-1" }, e(Icons.Lock, {className: "w-3 h-3"}), "Seus dados estão protegidos por criptografia 256-bit"))
+                                )
                             )
                         )
                     ),
                 ),
                 e("div", {className: "lg:hidden checkout-fixed-footer"},
-                    e("button", { ref: mobileSubmitButtonRef, 
-                        onClick: (e) => { handleSubmit(e); }, 
-                        disabled: loading || isFormLocked || isSubmitting, 
-                        type: "button", 
-                        form: "checkout-form",
-                        className: `w-full bg-gradient-to-r from-green-600 to-green-700 text-white font-bold py-4 rounded-xl text-lg transition-all active:scale-[0.98] flex justify-center items-center gap-2 shadow-xl shadow-green-500/30 ${loading || isFormLocked || isSubmitting ? 'opacity-80 grayscale cursor-not-allowed' : 'hover:shadow-green-500/50'} btn-tactile min-h-[56px]`, "aria-busy": loading }, 
-                        loading ? e("span", {className: "flex items-center gap-2"}, e("div", { className: "spinner-mobile" }), "Processando...") : e("span", {className: "flex items-center gap-2"}, "FINALIZAR COM DESCONTO", e("svg", { className: "w-5 h-5", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3" }, e("polyline", {points: "9 18 15 12 9 6"})))
-                    )
+                    currentStep === 1
+                        ? e("button", {
+                            type: "button",
+                            onClick: handleNextStep,
+                            className: "w-full bg-gradient-to-r from-green-600 to-green-700 text-white font-bold py-4 rounded-xl text-lg transition-all active:scale-[0.98] flex justify-center items-center gap-2 shadow-xl shadow-green-500/30 hover:shadow-green-500/50 btn-tactile min-h-[56px]"
+                          },
+                            e("span", {className: "flex items-center gap-2"}, "CONTINUAR", e("svg", { className: "w-5 h-5", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3" }, e("polyline", {points: "9 18 15 12 9 6"})))
+                        )
+                        : e("div", {className: "space-y-2"},
+                            e("button", { ref: mobileSubmitButtonRef, 
+                                onClick: (e) => { handleSubmit(e); }, 
+                                disabled: loading || isFormLocked || isSubmitting, 
+                                type: "button", 
+                                form: "checkout-form",
+                                className: `w-full bg-gradient-to-r from-green-600 to-green-700 text-white font-bold py-4 rounded-xl text-lg transition-all active:scale-[0.98] flex justify-center items-center gap-2 shadow-xl shadow-green-500/30 ${loading || isFormLocked || isSubmitting ? 'opacity-80 grayscale cursor-not-allowed' : 'hover:shadow-green-500/50'} btn-tactile min-h-[56px]`, "aria-busy": loading }, 
+                                loading ? e("span", {className: "flex items-center gap-2"}, e("div", { className: "spinner-mobile" }), "Processando...") : e("span", {className: "flex items-center gap-2"}, "FINALIZAR COMPRA", e("svg", { className: "w-5 h-5", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3" }, e("polyline", {points: "9 18 15 12 9 6"})))
+                            ),
+                            e("button", {
+                                type: "button",
+                                onClick: () => { setCurrentStep(1); window.scrollTo({top:0,behavior:'smooth'}); },
+                                className: "w-full text-slate-500 text-sm font-semibold py-2 flex justify-center items-center gap-1.5"
+                              },
+                                e("svg", { className: "w-4 h-4", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" }, e("polyline", {points: "15 18 9 12 15 6"})),
+                                "Voltar para dados pessoais"
+                            )
+                          )
                 )
             );
         }
+
 
         function PixScreen({ customerData, pixCode, qrCodeUrl }) {
             const [loadingState, setLoadingState] = useState(0); 
