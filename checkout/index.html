@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8"/>
@@ -10,544 +9,447 @@
 <link as="image" fetchpriority="high" href="../assets/img/01.webp" rel="preload"/>
 <link href="https://www.googletagmanager.com" rel="dns-prefetch"/>
 <link href="https://viacep.com.br" rel="dns-prefetch"/>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;tap-highlight-color:transparent}*:not(input):not(textarea){-webkit-user-select:none;user-select:none}.select-all{-webkit-user-select:text !important;user-select:text !important}input,select,textarea{font-size:16px !important;-webkit-box-shadow:0 0 0 100px white inset !important;box-shadow:0 0 0 100px white inset !important}html,body{overflow-x:hidden;width:100%;scroll-padding-top:80px;-webkit-overflow-scrolling:touch}input,textarea,[contenteditable]{-webkit-user-select:text !important;user-select:text !important;scroll-margin-top:20px;-webkit-appearance:none;appearance:none;border-radius:0}body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background-color:#f8fafc;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh}.safe-area-padding{padding-bottom:env(safe-area-inset-bottom,20px)}:root{--safe-area-inset-top:env(safe-area-inset-top,0px);--safe-area-inset-bottom:env(safe-area-inset-bottom,0px)}#skeleton-loader{position:fixed;top:0;left:0;width:100%;height:100%;background:#f8fafc;z-index:9999;display:flex;flex-direction:column;transition:opacity 0.4s ease-out}.progress-bar{height:3px;background:linear-gradient(90deg,#22c55e 0%,#4ade80 100%);position:fixed;top:0;left:0;z-index:10000;transition:width 0.4s cubic-bezier(0.4,0,0.2,1);width:25%}.static-nav{background:rgba(255,255,255,0.98);padding:16px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:calc(env(safe-area-inset-top) - 1px);z-index:30;min-height:56px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}button,[role="button"],.btn-tactile{min-height:44px;min-width:44px;touch-action:manipulation;cursor:pointer}input[type="text"],input[type="email"],input[type="tel"]{min-height:44px;font-size:16px !important}.scrollbar-hidden{-ms-overflow-style:none;scrollbar-width:none}.scrollbar-hidden::-webkit-scrollbar{display:none}@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.fade-in{animation:fadeIn 0.4s ease-out forwards}.form-container{padding-bottom:calc(100px + env(safe-area-inset-bottom))}.spinner-mobile{width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-radius:50%;border-top-color:white;animation:spin 0.8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.static-container{display:flex;flex-direction:column;padding:20px;max-width:500px;margin:0 auto;gap:20px}.static-card{background:white;border-radius:16px;padding:20px;display:flex;gap:16px;border:1px solid #e2e8f0;position:relative}.static-badge{position:absolute;top:0;left:0;background:#16a34a;color:white;font-size:10px;font-weight:bold;padding:4px 12px;border-bottom-right-radius:8px}.static-title{font-size:14px;font-weight:700;color:#1e293b;margin-bottom:4px;line-height:1.4}.static-old-price{font-size:12px;color:#94a3b8;text-decoration:line-through;display:block}.static-new-price{font-size:24px;color:#16a34a;font-weight:800;display:block}.sk-form-block{background:white;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden}.sk-form-header{background:#f8fafc;padding:12px 20px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:12px}.sk-circle{width:24px;height:24px;background:#16a34a;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold}.sk-title{font-size:14px;font-weight:700;color:#334155;text-transform:uppercase}.sk-body{padding:20px}.sk-input{height:48px;background:#f1f5f9;border-radius:12px;margin-bottom:16px}.checkout-fixed-footer{position:fixed;bottom:0;left:0;width:100%;z-index:50;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom));background:linear-gradient(to top,rgba(248,250,252,1) 85%,rgba(248,250,252,0.9));box-shadow:0 -4px 12px rgba(0,0,0,0.05);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1)}body.keyboard-open .checkout-fixed-footer{transform:none}@media (min-width:1024px){.static-container{max-width:1024px;flex-direction:row;align-items:flex-start}.static-left-col{width:40%}.static-right-col{width:60%}.checkout-fixed-footer{position:static;padding:0;background:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;transform:none !important}.form-container{padding-bottom:0 !important}}
-</style>
-<script>
-!function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=i,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};var o=document.createElement("script");o.type="text/javascript",o.async=!0,o.src=i+"?sdkid="+e+"&lib="+t;var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(o,a)};ttq.load('D5KFBTRC77U4919NK6GG');ttq.page();}(window,document,'ttq');
-</script>
-<script>!function(){function l(){if(window.__csLoaded)return;window.__csLoaded=!0;var s=document.createElement('script');s.src='https://t.contentsquare.net/uxa/61ca396337c0d.js';s.async=!0;document.head.appendChild(s)}if('requestIdleCallback'in window)requestIdleCallback(l,{timeout:2500});else setTimeout(l,2500)}();</script>
-<script>
-        // Fallback robusto para libs locais (muito comum quebrar em rotas tipo /checkout/ no in-app do TikTok)
-        window.__loadScript = window.__loadScript || function(src){
-            return new Promise(function(resolve, reject){
-                var s = document.createElement('script');
-                s.src = src;
-                s.async = true;
-                s.onload = function(){ resolve(src); };
-                s.onerror = function(){ reject(src); };
-                document.head.appendChild(s);
-            });
-        };
-        window.__localLibFallback = window.__localLibFallback || function(which){
-            try {
-                // Se já está disponível, não faz nada
-                if (which === 'react' && typeof window.React !== 'undefined') return;
-                if (which === 'react-dom' && typeof window.ReactDOM !== 'undefined') return;
-                if (which.indexOf('tailwind') === 0 && typeof window.tailwind !== 'undefined') return;
-
-                window.__libFallbackCount = window.__libFallbackCount || {};
-                window.__libFallbackCount[which] = (window.__libFallbackCount[which] || 0) + 1;
-                var n = window.__libFallbackCount[which];
-
-                var tries = [];
-                if (which === 'react') tries = ['/assets/vendor/react.production.min.js', 'https://unpkg.com/react@18/umd/react.production.min.js'];
-                if (which === 'react-dom') tries = ['/assets/vendor/react-dom.production.min.js', 'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js'];
-                if (which.indexOf('tailwind') === 0) return; // Tailwind agora é CSS estático, sem fallback necessário
-
-                // primeira falha (geralmente rota /checkout/ tentando /checkout/js/...) => tenta raiz (/js/...)
-                // segunda falha => tenta CDN
-                var src = tries[Math.min(n-1, tries.length-1)];
-                if (!src) return;
-
-                window.__loadScript(src).then(function(){
-                    // quando o Tailwind carregar via CDN, mantém config existente
-                    if (typeof window.initReactCheckout === 'function') {
-                        try { window.initReactCheckout(); } catch(e) {}
-                    }
-                }).catch(function(){ /* silencioso */ });
-            } catch(e) {}
-        };
-    </script>
-<script defer="" onerror="window.__localLibFallback &amp;&amp; window.__localLibFallback('react')" src="../assets/vendor/react.production.min.js"></script>
-<script defer="" onerror="window.__localLibFallback &amp;&amp; window.__localLibFallback('react-dom')" src="../assets/vendor/react-dom.production.min.js"></script>
 <link rel="stylesheet" href="../assets/css/tailwind.css"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+*:not(input):not(textarea):not(select){-webkit-user-select:none;user-select:none}
+input,select,textarea{font-size:16px!important;-webkit-box-shadow:0 0 0 100px white inset!important;box-shadow:0 0 0 100px white inset!important;-webkit-user-select:text!important;user-select:text!important;scroll-margin-top:20px;-webkit-appearance:none;appearance:none;border-radius:0}
+html,body{overflow-x:hidden;width:100%;-webkit-overflow-scrolling:touch}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#f8fafc;min-height:100dvh;-webkit-font-smoothing:antialiased}
+:root{--safe-area-inset-top:env(safe-area-inset-top,0px);--safe-area-inset-bottom:env(safe-area-inset-bottom,0px)}
+button,[role="button"]{min-height:44px;min-width:44px;touch-action:manipulation;cursor:pointer}
+/* Nav */
+#checkout-nav{background:rgba(255,255,255,.98);padding:12px 16px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:30;min-height:56px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 2px 8px rgba(0,0,0,.04)}
+/* Progress */
+#progress-bar{height:3px;background:linear-gradient(90deg,#16a34a,#4ade80);position:fixed;top:0;left:0;z-index:100;transition:width .4s cubic-bezier(.4,0,.2,1);width:5%}
+/* Form container */
+#checkout-screen{padding-bottom:calc(100px + env(safe-area-inset-bottom))}
+@media(min-width:1024px){#checkout-screen{padding-bottom:0}}
+/* Footer flutuante mobile */
+#footer-bar{position:fixed;bottom:0;left:0;width:100%;z-index:50;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom));background:linear-gradient(to top,rgba(248,250,252,1) 85%,rgba(248,250,252,.9));box-shadow:0 -4px 12px rgba(0,0,0,.05);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+body.keyboard-open #footer-bar{transform:none}
+@media(min-width:1024px){#footer-bar{display:none}}
+/* PIX screen */
+#pix-screen{display:none;min-height:100vh;background:#f8fafc;padding:24px 16px 60px;padding-bottom:calc(60px + env(safe-area-inset-bottom))}
+/* Spinner */
+.spinner{width:20px;height:20px;border:2px solid rgba(255,255,255,.3);border-radius:50%;border-top-color:white;animation:spin .8s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* Animations */
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .4s ease-out forwards}
+@keyframes pulseSlow{0%,100%{opacity:1}50%{opacity:.85}}
+.pulse-slow{animation:pulseSlow 3s ease-in-out infinite}
+/* Input states */
+input.valid{border-color:#16a34a!important;background-color:rgba(240,253,244,.5)!important}
+input.error{border-color:#ef4444!important;background-color:rgba(254,242,242,.3)!important}
+/* Field label */
+.field-label{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;padding-left:4px;margin-bottom:6px;display:block}
+/* Base input */
+.field-input{width:100%;padding:14px 16px 14px 44px;background:white;border:1px solid #e2e8f0;border-radius:12px;color:#334155;font-size:16px;box-shadow:0 1px 3px rgba(0,0,0,.04);outline:none;transition:border-color .2s,box-shadow .2s}
+.field-input:focus{border-color:#16a34a;box-shadow:0 0 0 4px rgba(22,163,74,.08)}
+.field-input.no-icon{padding-left:16px}
+/* Field icon */
+.field-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#94a3b8;pointer-events:none}
+/* Error message */
+.field-error{color:#ef4444;font-size:12px;margin-top:4px;padding-left:4px;display:none}
+.field-error.visible{display:block}
+/* Address grid */
+#address-fields{display:none}
+#address-fields.visible{display:block}
+/* CPF progress */
+#cpf-progress{display:none;margin-top:6px;padding:0 4px}
+#cpf-progress.visible{display:flex;align-items:center;gap:8px}
+/* PIX loading */
+#pix-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center}
+#pix-content{display:none;opacity:0;transition:opacity .5s,transform .5s;transform:translateY(16px)}
+#pix-content.visible{display:block;opacity:1;transform:translateY(0)}
+/* Dashed code box */
+.pix-code-box{background:#f8fafc;border:2px dashed #cbd5e1;border-radius:12px;padding:16px;position:relative;transition:border-color .2s}
+.pix-code-box:hover{border-color:#16a34a}
+.pix-code-label{position:absolute;top:-10px;left:12px;background:white;padding:0 8px;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase}
+.pix-code-text{font-family:monospace;font-size:11px;color:#94a3b8;word-break:break-all;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:12px;margin-top:4px;user-select:all;-webkit-user-select:all}
+/* Payment card select */
+.payment-card{border:2px solid #16a34a;background:rgba(240,253,244,.5);border-radius:12px;padding:16px;display:flex;align-items:center;gap:12px;position:relative}
+.pix-badge{position:absolute;top:-12px;right:12px;background:linear-gradient(to right,#16a34a,#15803d);color:white;font-size:10px;font-weight:700;padding:4px 12px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em;box-shadow:0 2px 8px rgba(22,163,74,.3)}
+/* Step badges */
+.step-badge{background:#16a34a;color:white;font-size:12px;font-weight:700;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 6px rgba(22,163,74,.25)}
+/* How-to steps */
+.how-step{display:flex;gap:12px;align-items:flex-start;margin-bottom:8px}
+.how-step:last-child{margin-bottom:0}
+.how-num{background:white;border:1px solid #e2e8f0;color:#16a34a;width:20px;height:20px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-top:2px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+</style>
+<!-- TikTok Pixel -->
+<script>!function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=i,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};var o=document.createElement("script");o.type="text/javascript",o.async=!0,o.src=i+"?sdkid="+e+"&lib="+t;var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(o,a)};ttq.load('D5KFBTRC77U4919NK6GG');ttq.page();}(window,document,'ttq');</script>
+<script>!function(){function l(){if(window.__csLoaded)return;window.__csLoaded=!0;var s=document.createElement('script');s.src='https://t.contentsquare.net/uxa/61ca396337c0d.js';s.async=!0;document.head.appendChild(s)}if('requestIdleCallback'in window)requestIdleCallback(l,{timeout:2500});else setTimeout(l,2500)}();</script>
+<!-- Utilities (tracking, masking, clipboard) -->
 <script>
-    // Watchdog Scoped
-    (function() {
-        let attempts = 0;
-        var delay = 120;
-        function checkReact() {
-            var loader = document.getElementById('skeleton-loader');
-            if (typeof React !== 'undefined' && typeof ReactDOM !== 'undefined') {
-                if(window.initReactCheckout && !window.checkoutInitialized) {
-                    window.initReactCheckout();
-                }
-                return;
-            }
-            
-            if (!loader || loader.style.display === 'none') return;
+(function(){
+  var DEBUG_MODE = window.location.hostname==='localhost'||window.location.search.includes('debug_tracking');
+  var SID_KEY='izzat_sid_v1';
+  var UTM_KEYS=['utm_source','utm_medium','utm_campaign','utm_term','utm_content','gclid','fbclid','msclkid'];
 
-            attempts++;
-            delay = Math.min(600, Math.floor(delay * 1.15));
-            if (attempts === 15) { 
-                console.warn("Carregamento local demorou. Tentando CDN de emergência...");
-                var r = document.createElement('script'); 
-                r.src = "https://unpkg.com/react@18/umd/react.production.min.js";
-                r.onload = function() {
-                    var d = document.createElement('script'); 
-                    d.src = "https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"; 
-                    d.onload = function(){ 
-                        // Tailwind agora é CSS estático - não precisa de CDN fallback
-                        if(window.initReactCheckout) window.initReactCheckout(); 
-                    };
-                    document.head.appendChild(d);
-                };
-                document.head.appendChild(r);
-            }
-            
-            if (attempts > 100) { 
-                console.error("Falha crítica no carregamento (Local e CDN).");
-                try { 
-                    if (loader) {
-                        loader.innerHTML = '' +
-                            '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:24px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">' +
-                            '<div style="font-weight:800;font-size:18px;color:#0f172a;margin-bottom:8px;">Não foi possível carregar o checkout</div>' +
-                            '<div style="font-size:13px;color:#475569;max-width:420px;line-height:1.4;">Isso pode acontecer em alguns navegadores embutidos (TikTok/Instagram) quando a conexão está instável. Toque abaixo para tentar novamente.</div>' +
-                            '<button style="margin-top:16px;background:#16a34a;color:#fff;border:none;border-radius:12px;padding:14px 18px;font-weight:800;font-size:14px;min-height:44px;width:100%;max-width:320px;cursor:pointer;" onclick="location.reload()">Recarregar</button>' +
-                            '<button style="margin-top:10px;background:transparent;color:#64748b;border:1px solid #e2e8f0;border-radius:12px;padding:12px 18px;font-weight:700;font-size:13px;min-height:44px;width:100%;max-width:320px;cursor:pointer;" onclick="location.href='/'">Voltar para o site</button>' +
-                            '</div>';
-                    }
-                } catch(e) {}
-                return;
-            }
-            
-            setTimeout(checkReact, delay);
-        }
-        setTimeout(checkReact, delay);
-    })();
-
-    const DEBUG_MODE = window.location.hostname === 'localhost' || window.location.search.includes('debug_tracking');
-    if (DEBUG_MODE) { window.trackingDebug = true; }
-
-    function getExternalId() { 
-        const urlParams = new URLSearchParams(window.location.search);
-        let eid = urlParams.get('eid');
-        if (eid) { 
-            try { localStorage.setItem('user_external_id', eid); } catch(e) {}
-            return eid; 
-        }
-        try { eid = localStorage.getItem('user_external_id'); } catch(e) {}
-        if (eid) return eid;
-        eid = 'user_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now(); 
-        try { localStorage.setItem('user_external_id', eid); } catch(e) {}
-        return eid;
-    }
-    window.getExternalId = getExternalId;
-
-    function getTTCLID() { 
-        try { 
-            const u = new URLSearchParams(window.location.search); 
-            const val = u.get('ttclid');
-            if(val) { 
-                try { localStorage.setItem('ttclid', val); } catch(e) {}
-                return val; 
-            }
-            return localStorage.getItem('ttclid');
-        } catch (e) { return null; } 
-    }
-    window.getTTCLID = getTTCLID;
-
-    const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid', 'msclkid'];
-    function getStoredUTMs() {
-        let utms = {};
-        try { 
-            const u = new URLSearchParams(window.location.search); 
-            UTM_KEYS.forEach(key => { 
-                const v = u.get(key); 
-                if (v) { 
-                    utms[key] = v; 
-                    try { localStorage.setItem(key, v); } catch(e) {} 
-                } else { 
-                    const saved = localStorage.getItem(key); 
-                    if(saved) utms[key] = saved; 
-                }
-            }); 
-        } catch(e){}
-        return utms;
-    }
-    window.getStoredUTMs = getStoredUTMs;
-
-    function cleanPhone(p) { 
-        if (!p) return null; 
-        return p.replace(/\D/g, '');
-    }
-    window.cleanPhone = cleanPhone;
-
-    // --- Normalização + Hash SHA-256 (Advanced Matching / Zaraz -> Events API) ---
-    function isSha256Hex(v) {
-        return typeof v === 'string' && /^[a-f0-9]{64}$/i.test(v);
-    }
-
-    function normalizeEmail(v) {
-        if (!v) return null;
-        return String(v).trim().toLowerCase();
-    }
-
-    function normalizePhone(v) {
-        if (!v) return null;
-        return String(v).replace(/\D/g, '');
-    }
-
-    async function sha256Hex(input) {
-        try {
-            if (!input) return null;
-            if (!window.crypto || !window.crypto.subtle) return null;
-            var enc = new TextEncoder();
-            var data = enc.encode(input);
-            var hash = await window.crypto.subtle.digest('SHA-256', data);
-            var hex = Array.from(new Uint8Array(hash)).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
-            return hex;
-        } catch (e) {
-            return null;
-        }
-    }
-
-    async function hashIdentifiers(data) {
-        var out = Object.assign({}, data);
-
-        // Email
-        if (out.email) {
-            var emailNorm = normalizeEmail(out.email);
-            var emailHashed = isSha256Hex(emailNorm) ? emailNorm : (await sha256Hex(emailNorm));
-            if (emailHashed) {
-                out.email = emailHashed;
-                try { localStorage.setItem('user_hashed_email', emailHashed); } catch(e) {}
-            }
-        } else {
-            try {
-                var savedE = localStorage.getItem('user_hashed_email');
-                if (savedE) out.email = savedE;
-            } catch(e) {}
-        }
-
-        // Phone
-        if (out.phone) {
-            var phoneNorm = normalizePhone(out.phone);
-            var phoneHashed = isSha256Hex(phoneNorm) ? phoneNorm : (await sha256Hex(phoneNorm));
-            if (phoneHashed) {
-                out.phone = phoneHashed;
-                try { localStorage.setItem('user_hashed_phone', phoneHashed); } catch(e) {}
-            }
-        } else {
-            try {
-                var savedP = localStorage.getItem('user_hashed_phone');
-                if (savedP) out.phone = savedP;
-            } catch(e) {}
-        }
-
-        return out;
-    }
-
-    
-    function generateEventId() { 
-        return 'evt_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9); 
-    }
-    window.generateEventId = generateEventId;
-
-    // ✅ CAPI — envia evento server-side para /api/tiktok-events (substitui Zaraz)
-    function sendCAPI(event, eventId, properties, user) {
-        try {
-            var payload = JSON.stringify({ event: event, event_id: eventId, properties: properties || {}, user: user || {} });
-            if (navigator && typeof navigator.sendBeacon === 'function') {
-                navigator.sendBeacon('/api/tiktok-events', new Blob([payload], { type: 'application/json' }));
-            } else {
-                fetch('/api/tiktok-events', { method: 'POST', headers: { 'content-type': 'application/json' }, body: payload, keepalive: true }).catch(function(){});
-            }
-        } catch(_) {}
-    }
-    window.sendCAPI = sendCAPI;
-
-    function trackPixel(event, data = {}) {
-        requestAnimationFrame(() => {
-            Promise.resolve().then(async () => {
-                var finalData = Object.assign({}, data);
-
-                // Normalização
-                if (finalData.phone) finalData.phone = normalizePhone(finalData.phone);
-                if (finalData.email) finalData.email = normalizeEmail(finalData.email);
-
-                // Hash PII (email/phone) para Advanced Matching e Events API
-                finalData = await hashIdentifiers(finalData);
-
-                var eventId = finalData.event_id || window.generateEventId();
-
-                var payload = Object.assign({}, finalData, {
-                    external_id: window.getExternalId(),
-                    ttclid: window.getTTCLID(),
-                    ...window.getStoredUTMs(),
-                    event_source_url: window.location.href,
-                    event_time: Math.floor(Date.now() / 1000)
-                });
-
-                // Browser Pixel
-                if (window.ttq && typeof window.ttq.track === 'function') {
-                    try { window.ttq.track(event, payload); } catch(e) {}
-                }
-
-                // ✅ Server-side via CAPI (substitui Zaraz)
-                sendCAPI(event, eventId,
-                    Object.assign({}, window.PRODUCT_CONTENT, { event_source_url: window.location.href }),
-                    {
-                        email: finalData.email || undefined,
-                        phone_number: finalData.phone || undefined,
-                        external_id: window.getExternalId(),
-                        ttclid: window.getTTCLID(),
-                        ttp: (document.cookie.match(/(?:^|;\\s*)_ttp=([^;]*)/) || [])[1] || undefined
-                    }
-                );
-
-                // GA fallback (opcional)
-                if (typeof gtag === 'function') {
-                    try { gtag('event', event, payload); } catch(e) {}
-                }
-            }).catch((error) => {
-                if (DEBUG_MODE) console.error('trackPixel error:', error);
-            });
-        });
-    }
-    window.trackPixel = trackPixel;
-
- 
-
-    const PRODUCT_CONTENT = { 
-        content_type: 'product', 
-        contents: [{ 
-            content_id: 'AFON-12L-BI', 
-            id: 'AFON-12L-BI', 
-            quantity: 1, 
-            price: 197.99, 
-            item_price: 197.99 
-        }], 
-        content_id: 'AFON-12L-BI',
-        content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI',
-        content_ids: ['AFON-12L-BI'],
-        value: 197.99, 
-        currency: 'BRL' 
-    };
-    window.PRODUCT_CONTENT = PRODUCT_CONTENT;
-
-    function loadAnalytics() {
-        if(window.analyticsLoaded) return;
-        window.analyticsLoaded = true;
-        var s = document.createElement('script'); 
-        s.async = true; 
-        s.src = "https://www.googletagmanager.com/gtag/js?id=G-E373VKT4H4"; 
-        document.head.appendChild(s);
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        window.gtag = gtag; 
-        gtag('js', new Date()); 
-        gtag('config', 'G-E373VKT4H4');
-        
-        if (window.trackingQueue && window.trackingQueue.length > 0) {
-            setTimeout(() => {
-                window.trackingQueue.forEach(item => {
-                    gtag('event', item.event, item.data);
-                });
-                window.trackingQueue = [];
-            }, 1000);
-        }
-    }
-    
-    let INITIAL_HEIGHT = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-    
-    function setupKeyboardDetection() {
-        const isVisualViewportSupported = typeof window.visualViewport !== 'undefined';
-        
-        if (isVisualViewportSupported) {
-            const visualViewport = window.visualViewport;
-            const handleResize = () => {
-                const currentHeight = visualViewport.height;
-                if (currentHeight > INITIAL_HEIGHT) INITIAL_HEIGHT = currentHeight;
-                const diff = INITIAL_HEIGHT - currentHeight;
-                
-                if (diff > 150) { 
-                    document.documentElement.style.setProperty('--keyboard-height', diff + 'px');
-                    document.body.classList.add('keyboard-open');
-                } else {
-                    document.body.classList.remove('keyboard-open');
-                    document.documentElement.style.setProperty('--keyboard-height', '0px');
-                }
-            };
-            visualViewport.addEventListener('resize', handleResize);
-        }
-
-        window.addEventListener('resize', () => {
-            if (isVisualViewportSupported) return; 
-            const currentHeight = window.innerHeight;
-            const diff = INITIAL_HEIGHT - currentHeight;
-            if (diff > 150) {
-                document.body.classList.add('keyboard-open');
-            } else {
-                document.body.classList.remove('keyboard-open');
-            }
-        });
-
-        document.addEventListener('focusin', (e) => {
-            if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
-                document.body.classList.add('keyboard-open');
-            }
-        });
-        
-        document.addEventListener('focusout', (e) => {
-            if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
-               setTimeout(() => {
-                   if (document.activeElement && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
-                       document.body.classList.remove('keyboard-open');
-                   }
-               }, 150);
-            }
-        });
-
-        window.addEventListener('orientationchange', () => {
-            setTimeout(() => { INITIAL_HEIGHT = window.visualViewport ? window.visualViewport.height : window.innerHeight; }, 200);
-        });
-    }
-    
-    function safeCopyToClipboard(text) {
-        return new Promise((resolve, reject) => {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).then(resolve).catch(() => fallbackCopy(text) ? resolve() : reject());
-            } else {
-                fallbackCopy(text) ? resolve() : reject();
-            }
-        });
-    }
-    
-    function fallbackCopy(text) {
-        try {
-            const textArea = document.createElement('textarea');
-            textArea.value = text;
-            textArea.style.position = 'fixed';
-            textArea.style.left = '-999999px';
-            textArea.style.top = '-999999px';
-            textArea.style.opacity = '0';
-            textArea.setAttribute('readonly', '');
-            document.body.appendChild(textArea);
-            
-            if (navigator.userAgent.match(/ipad|iphone/i)) {
-                const range = document.createRange();
-                range.selectNodeContents(textArea);
-                const selection = window.getSelection();
-                selection.removeAllRanges();
-                selection.addRange(range);
-                textArea.setSelectionRange(0, 999999);
-            } else {
-                textArea.select();
-            }
-            
-            const successful = document.execCommand('copy');
-            document.body.removeChild(textArea);
-            return successful;
-        } catch (err) {
-            return false;
-        }
-    }
-    
-    window.safeCopyToClipboard = safeCopyToClipboard;
-
-    function createInputMask(type) {
-        return {
-            format: function(value, selectionStart) {
-                if (!value) return { formatted: "", cursorPosition: 0 };
-                let rawNumbers = value.replace(/\D/g, '');
-                
-                // ✅ Telefone: aceita prefixo +55 → até 13 dígitos (55 + 11)
-                if (type === 'phone') {
-                    if (rawNumbers.length > 13) rawNumbers = rawNumbers.substring(0, 13);
-                }
-                if (type === 'cpf' && rawNumbers.length > 11) rawNumbers = rawNumbers.substring(0, 11);
-                if (type === 'cep' && rawNumbers.length > 8) rawNumbers = rawNumbers.substring(0, 8);
-
-                let formatted = "";
-                switch(type) {
-                    case 'phone': {
-                        // Se começar com 55 e tiver dígitos suficientes → mostra +55
-                        let prefix = "", digits = rawNumbers;
-                        if (rawNumbers.startsWith('55') && rawNumbers.length > 2) {
-                            prefix = '+55 ';
-                            digits = rawNumbers.slice(2);
-                        }
-                        if (digits.length === 0) formatted = prefix;
-                        else if (digits.length <= 2) formatted = prefix + '(' + digits;
-                        else if (digits.length <= 7) formatted = prefix + '(' + digits.slice(0,2) + ') ' + digits.slice(2);
-                        else formatted = prefix + '(' + digits.slice(0,2) + ') ' + digits.slice(2,7) + '-' + digits.slice(7,11);
-                        break;
-                    }
-                    case 'cpf':
-                        formatted = rawNumbers.replace(/^(\d{0,3})(\d{0,3})(\d{0,3})(\d{0,2})/, (match, g1, g2, g3, g4) => {
-                            let result = '';
-                            if (g1) result += g1; if (g2) result += `.${g2}`; if (g3) result += `.${g3}`; if (g4) result += `-${g4}`;
-                            return result;
-                        });
-                        break;
-                    case 'cep':
-                        formatted = rawNumbers.replace(/^(\d{0,5})(\d{0,3})/, (match, g1, g2) => {
-                            let result = '';
-                            if (g1) result += g1; if (g2) result += `-${g2}`;
-                            return result;
-                        });
-                        break;
-                }
-                
-                let digitsBeforeCursor = 0;
-                if (selectionStart !== undefined && selectionStart !== null) {
-                    for (let i = 0; i < Math.min(selectionStart, value.length); i++) {
-                        if (value[i] >= '0' && value[i] <= '9') digitsBeforeCursor++;
-                    }
-                }
-                
-                let newPos = 0;
-                let digitCount = 0;
-                for (let i = 0; i < formatted.length; i++) {
-                    if (formatted[i] >= '0' && formatted[i] <= '9') digitCount++;
-                    if (digitCount >= digitsBeforeCursor) { newPos = i + 1; break; }
-                }
-                if (digitsBeforeCursor === 0) newPos = 0;
-                if (formatted.length < value.length && selectionStart === value.length) newPos = formatted.length;
-                
-                return { formatted, cursorPosition: newPos };
-            }
-        };
-    }
-    
-    window.createInputMask = createInputMask;
-    </script>
+  function getExternalId(){var u=new URLSearchParams(window.location.search),eid=u.get('eid');if(eid){try{localStorage.setItem('user_external_id',eid)}catch(e){}return eid;}try{eid=localStorage.getItem('user_external_id')}catch(e){}if(eid)return eid;eid='user_'+Math.random().toString(36).substring(2,11)+'_'+Date.now();try{localStorage.setItem('user_external_id',eid)}catch(e){}return eid;}
+  function getTTCLID(){try{var u=new URLSearchParams(window.location.search),v=u.get('ttclid');if(v){try{localStorage.setItem('ttclid',v)}catch(e){}return v;}return localStorage.getItem('ttclid');}catch(e){return null;}}
+  function getStoredUTMs(){var utms={};try{var u=new URLSearchParams(window.location.search);UTM_KEYS.forEach(function(k){var v=u.get(k);if(v){utms[k]=v;try{localStorage.setItem(k,v)}catch(e){}}else{var s=localStorage.getItem(k);if(s)utms[k]=s;}});}catch(e){}return utms;}
+  function generateEventId(){return'evt_'+Date.now()+'_'+Math.random().toString(36).substring(2,9);}
+  function normalizeEmail(v){return v?String(v).trim().toLowerCase():null;}
+  function normalizePhone(v){return v?String(v).replace(/\D/g,''):null;}
+  function isSha256Hex(v){return typeof v==='string'&&/^[a-f0-9]{64}$/i.test(v);}
+  async function sha256Hex(input){try{if(!input||!window.crypto||!window.crypto.subtle)return null;var enc=new TextEncoder(),data=enc.encode(input),hash=await window.crypto.subtle.digest('SHA-256',data);return Array.from(new Uint8Array(hash)).map(function(b){return b.toString(16).padStart(2,'0')}).join('');}catch(e){return null;}}
+  async function hashIdentifiers(data){var out=Object.assign({},data);if(out.email){var en=normalizeEmail(out.email),eh=isSha256Hex(en)?en:(await sha256Hex(en));if(eh){out.email=eh;try{localStorage.setItem('user_hashed_email',eh)}catch(e){}}}else{try{var se=localStorage.getItem('user_hashed_email');if(se)out.email=se;}catch(e){}}if(out.phone){var pn=normalizePhone(out.phone),ph=isSha256Hex(pn)?pn:(await sha256Hex(pn));if(ph){out.phone=ph;try{localStorage.setItem('user_hashed_phone',ph)}catch(e){}}}else{try{var sp=localStorage.getItem('user_hashed_phone');if(sp)out.phone=sp;}catch(e){}}return out;}
+  window.trackingQueue=window.trackingQueue||[];
+  function trackPixel(event,data){
+    data=data||{};
+    requestAnimationFrame(function(){Promise.resolve().then(async function(){
+      var fd=Object.assign({},data);
+      if(fd.phone)fd.phone=normalizePhone(fd.phone);
+      if(fd.email)fd.email=normalizeEmail(fd.email);
+      fd=await hashIdentifiers(fd);
+      var payload=Object.assign({},fd,{external_id:getExternalId(),ttclid:getTTCLID()},getStoredUTMs(),{event_source_url:window.location.href,event_time:Math.floor(Date.now()/1000)});
+      if(window.ttq&&typeof window.ttq.track==='function')try{window.ttq.track(event,payload);}catch(e){}
+      if(window.zaraz&&window.zaraz.track)try{window.zaraz.track(event,payload);}catch(e){}
+      else window.trackingQueue.push({event:event,data:payload});
+      if(typeof gtag==='function')try{gtag('event',event,payload);}catch(e){}
+    }).catch(function(e){if(DEBUG_MODE)console.error('trackPixel:',e);});});
+  }
+  (function(){var tries=0,t=setInterval(function(){tries++;if(window.zaraz&&window.zaraz.track&&window.trackingQueue&&window.trackingQueue.length){var q=window.trackingQueue.splice(0);q.forEach(function(i){try{window.zaraz.track(i.event,i.data);}catch(e){}});}if(tries>60)clearInterval(t);},500);})();
+  var PRODUCT_CONTENT={content_type:'product',contents:[{content_id:'AFON-12L-BI',id:'AFON-12L-BI',quantity:1,price:197.99,item_price:197.99}],content_id:'AFON-12L-BI',content_name:'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI',content_ids:['AFON-12L-BI'],value:197.99,currency:'BRL'};
+  function loadAnalytics(){if(window.analyticsLoaded)return;window.analyticsLoaded=true;var s=document.createElement('script');s.async=true;s.src='https://www.googletagmanager.com/gtag/js?id=G-E373VKT4H4';document.head.appendChild(s);window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}window.gtag=gtag;gtag('js',new Date());gtag('config','G-E373VKT4H4');}
+  function safeCopyToClipboard(text){return new Promise(function(resolve,reject){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(resolve).catch(function(){fallbackCopy(text)?resolve():reject();});}else{fallbackCopy(text)?resolve():reject();}});}
+  function fallbackCopy(text){try{var ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;left:-999999px;top:-999999px;opacity:0';ta.setAttribute('readonly','');document.body.appendChild(ta);if(/ipad|iphone/i.test(navigator.userAgent)){var r=document.createRange();r.selectNodeContents(ta);var sel=window.getSelection();sel.removeAllRanges();sel.addRange(r);ta.setSelectionRange(0,999999);}else{ta.select();}var ok=document.execCommand('copy');document.body.removeChild(ta);return ok;}catch(e){return false;}}
+  function createInputMask(type){return{format:function(value,selectionStart){if(!value)return{formatted:'',cursorPosition:0};var raw=value.replace(/\D/g,'');if(type==='phone'&&raw.length>11)raw=raw.substring(0,11);if(type==='cpf'&&raw.length>11)raw=raw.substring(0,11);if(type==='cep'&&raw.length>8)raw=raw.substring(0,8);var fmt='';switch(type){case 'phone':if(raw.length<=2)fmt=raw.replace(/^(\d{0,2})/,'($1');else if(raw.length<=7)fmt=raw.replace(/^(\d{2})(\d{0,5})/,'($1) $2');else fmt=raw.replace(/^(\d{2})(\d{5})(\d{0,4})/,'($1) $2-$3');break;case 'cpf':fmt=raw.replace(/^(\d{0,3})(\d{0,3})(\d{0,3})(\d{0,2})/,function(m,g1,g2,g3,g4){var r='';if(g1)r+=g1;if(g2)r+='.'+g2;if(g3)r+='.'+g3;if(g4)r+='-'+g4;return r;});break;case 'cep':fmt=raw.replace(/^(\d{0,5})(\d{0,3})/,function(m,g1,g2){var r='';if(g1)r+=g1;if(g2)r+='-'+g2;return r;});break;}var dgb=0;if(selectionStart!=null){for(var i=0;i<Math.min(selectionStart,value.length);i++){if(value[i]>='0'&&value[i]<='9')dgb++;}}var pos=0,dc=0;for(var j=0;j<fmt.length;j++){if(fmt[j]>='0'&&fmt[j]<='9')dc++;if(dc>=dgb){pos=j+1;break;}}if(dgb===0)pos=0;if(fmt.length<value.length&&selectionStart===value.length)pos=fmt.length;return{formatted:fmt,cursorPosition:pos};}};} 
+  function setupKeyboardDetection(){var isVV=typeof window.visualViewport!=='undefined',IH=isVV?window.visualViewport.height:window.innerHeight;if(isVV){window.visualViewport.addEventListener('resize',function(){var h=window.visualViewport.height;if(h>IH)IH=h;document.body.classList[IH-h>150?'add':'remove']('keyboard-open');});}document.addEventListener('focusin',function(e){if(['INPUT','TEXTAREA'].includes(e.target.tagName))document.body.classList.add('keyboard-open');});document.addEventListener('focusout',function(e){if(['INPUT','TEXTAREA'].includes(e.target.tagName))setTimeout(function(){if(!['INPUT','TEXTAREA'].includes(document.activeElement&&document.activeElement.tagName||''))document.body.classList.remove('keyboard-open');},150);});}
+  window.getExternalId=getExternalId;window.getTTCLID=getTTCLID;window.getStoredUTMs=getStoredUTMs;window.generateEventId=generateEventId;window.trackPixel=trackPixel;window.PRODUCT_CONTENT=PRODUCT_CONTENT;window.loadAnalytics=loadAnalytics;window.safeCopyToClipboard=safeCopyToClipboard;window.fallbackCopy=fallbackCopy;window.createInputMask=createInputMask;window.setupKeyboardDetection=setupKeyboardDetection;
+})();
+</script>
 </head>
 <body>
-<div id="skeleton-loader" style="min-height: 100dvh; background: #f8fafc;">
-<div class="progress-bar" style="width: 25%;"></div>
-<div class="static-nav">
-<img alt="Logo" decoding="async" loading="lazy" onerror="this.onerror=null; this.src='/assets/img/logo.webp'" src="../assets/img/logo.webp" style="height: 32px; width: auto; object-fit: contain;"/>
+
+<!-- Barra de progresso -->
+<div id="progress-bar"></div>
+
+<!-- ═══════════════════════════════════════
+     CHECKOUT SCREEN  (visível imediatamente)
+═══════════════════════════════════════ -->
+<div id="checkout-screen">
+
+  <!-- Nav -->
+  <nav id="checkout-nav">
+    <button id="btn-back" type="button" aria-label="Voltar" style="background:none;border:none;padding:8px;margin-left:-8px;display:flex;align-items:center;color:#94a3b8">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <img src="../assets/img/logo.webp" alt="Logo" style="height:32px;width:auto;object-fit:contain" onerror="this.src='/assets/img/logo.webp'" loading="eager"/>
+    <div style="width:40px"></div>
+  </nav>
+
+  <!-- Layout principal -->
+  <div style="max-width:500px;margin:0 auto;padding:20px 16px;display:flex;flex-direction:column;gap:16px">
+
+    <!-- ── Coluna esquerda: produto ── -->
+    <div style="background:white;border-radius:16px;border:1px solid #f1f5f9;box-shadow:0 4px 20px rgba(0,0,0,.03);padding:20px;display:flex;gap:16px;align-items:center;position:relative;overflow:hidden">
+      <div style="position:absolute;top:0;left:0;background:#16a34a;color:white;font-size:10px;font-weight:700;padding:4px 12px;border-bottom-right-radius:8px;letter-spacing:.05em">OFERTA TIKTOK</div>
+      <div style="width:96px;height:96px;background:white;border-radius:12px;overflow:hidden;flex-shrink:0;border:1px solid #f1f5f9;padding:8px;box-shadow:inset 0 2px 4px rgba(0,0,0,.04)">
+        <img src="../assets/img/01.webp" alt="Fritadeira Elétrica" style="width:100%;height:100%;object-fit:contain" loading="eager" decoding="async"/>
+      </div>
+      <div style="flex:1;min-width:0;margin-top:8px">
+        <h3 style="font-size:14px;font-weight:700;color:#1e293b;line-height:1.4;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI</h3>
+        <span style="font-size:12px;color:#94a3b8;text-decoration:line-through;display:block">De R$ 399,90</span>
+        <span style="font-size:24px;color:#16a34a;font-weight:800;display:block;line-height:1.2">Por R$ 197,99</span>
+        <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+          <span style="font-size:10px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;padding:3px 10px;border-radius:99px;font-weight:600;display:inline-flex;align-items:center;gap:4px">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+            Compra Segura
+          </span>
+          <span style="font-size:10px;background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe;padding:3px 10px;border-radius:99px;font-weight:600;display:inline-flex;align-items:center;gap:4px">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+            Garantia 12 Meses
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Banner satisfação -->
+    <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:16px;display:flex;gap:12px;align-items:flex-start">
+      <div style="background:#fef3c7;border-radius:50%;padding:8px;flex-shrink:0;color:#d97706">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </div>
+      <div>
+        <p style="font-weight:700;color:#78350f;font-size:13px;margin-bottom:2px">Satisfação Garantida</p>
+        <p style="color:#92400e;font-size:12px;line-height:1.5;opacity:.85">Se não gostar, devolvemos seu dinheiro em até 7 dias. Sem burocracia.</p>
+      </div>
+    </div>
+
+    <!-- ── Formulário ── -->
+    <form id="checkout-form" novalidate>
+
+      <!-- STEP 1: Dados Pessoais -->
+      <div style="background:white;border-radius:16px;border:1px solid #f1f5f9;box-shadow:0 2px 15px rgba(0,0,0,.03);overflow:hidden;margin-bottom:16px">
+        <div style="background:#fafafa;padding:12px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:12px">
+          <span class="step-badge">1</span>
+          <h3 style="font-size:13px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.05em">Dados Pessoais</h3>
+        </div>
+        <div style="padding:20px 20px 16px;display:flex;flex-direction:column;gap:16px">
+
+          <!-- Nome -->
+          <div>
+            <label class="field-label" for="inp-nome">Nome Completo</label>
+            <div style="position:relative">
+              <span class="field-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </span>
+              <input class="field-input" type="text" id="inp-nome" name="nome" placeholder="Digite seu nome completo" autocomplete="name" autocapitalize="words" autocorrect="off" spellcheck="false"/>
+            </div>
+            <p class="field-error" id="err-nome">Nome obrigatório</p>
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label class="field-label" for="inp-email">E-mail</label>
+            <div style="position:relative">
+              <span class="field-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              </span>
+              <input class="field-input" type="email" id="inp-email" name="email" placeholder="exemplo@email.com" inputmode="email" autocomplete="email" autocorrect="off" spellcheck="false"/>
+            </div>
+            <p class="field-error" id="err-email">E-mail inválido</p>
+          </div>
+
+          <!-- Telefone -->
+          <div>
+            <label class="field-label" for="inp-tel">Celular (WhatsApp)</label>
+            <div style="position:relative">
+              <span class="field-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.07 12.7 19.79 19.79 0 0 1 1 4.11 2 2 0 0 1 2.98 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              </span>
+              <input class="field-input" type="tel" id="inp-tel" name="tel" placeholder="(00) 00000-0000" inputmode="tel" autocomplete="tel" maxlength="20"/>
+            </div>
+            <p class="field-error" id="err-tel">Telefone inválido</p>
+          </div>
+
+          <!-- CPF -->
+          <div>
+            <label class="field-label" for="inp-cpf" style="display:flex;justify-content:space-between;align-items:center">
+              CPF
+              <span style="font-size:9px;color:#16a34a;background:#f0fdf4;border:1px solid #bbf7d0;padding:2px 8px;border-radius:99px;font-weight:600;text-transform:none">Necessário para Nota Fiscal</span>
+            </label>
+            <div style="position:relative">
+              <span class="field-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </span>
+              <input class="field-input" type="text" id="inp-cpf" name="cpf" placeholder="000.000.000-00" inputmode="numeric" maxlength="14" autocomplete="off"/>
+            </div>
+            <div class="field-error" id="err-cpf">CPF inválido</div>
+            <div id="cpf-progress" class="pulse-slow">
+              <div style="flex:1;height:6px;background:#f1f5f9;border-radius:99px;overflow:hidden">
+                <div id="cpf-bar" style="height:100%;border-radius:99px;background:#d1d5db;width:0%;transition:width .3s,background .3s"></div>
+              </div>
+              <span id="cpf-label" style="font-size:10px;font-weight:600;color:#9ca3af;white-space:nowrap">Digitando...</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- STEP 2: Entrega -->
+      <div style="background:white;border-radius:16px;border:1px solid #f1f5f9;box-shadow:0 2px 15px rgba(0,0,0,.03);overflow:hidden;margin-bottom:16px">
+        <div style="background:#fafafa;padding:12px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:12px">
+          <span class="step-badge">2</span>
+          <h3 style="font-size:13px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.05em">Entrega</h3>
+        </div>
+        <div style="padding:20px 20px 16px;display:flex;flex-direction:column;gap:14px">
+
+          <!-- CEP -->
+          <div>
+            <label class="field-label" for="inp-cep">CEP</label>
+            <div style="position:relative">
+              <input class="field-input no-icon" type="text" id="inp-cep" name="cep" placeholder="00000-000" inputmode="numeric" maxlength="9" autocomplete="postal-code" style="padding-right:44px"/>
+              <div style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#94a3b8" id="cep-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </div>
+              <div style="position:absolute;right:12px;top:50%;transform:translateY(-50%);display:none" id="cep-spinner">
+                <div style="width:20px;height:20px;border:2px solid #e2e8f0;border-radius:50%;border-top-color:#16a34a;animation:spin .8s linear infinite"></div>
+              </div>
+            </div>
+            <p class="field-error" id="err-cep">CEP não encontrado. Preencha o endereço abaixo.</p>
+          </div>
+
+          <!-- Frete grátis banner -->
+          <div class="pulse-slow" style="background:linear-gradient(to right,#f0fdf4,#ecfdf5);border:1px solid #bbf7d0;border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px;box-shadow:0 1px 4px rgba(22,163,74,.06)">
+            <div style="background:white;padding:10px;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.06);color:#16a34a;flex-shrink:0">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            </div>
+            <div style="flex:1">
+              <p style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#15803d;font-weight:700;margin-bottom:2px;opacity:.8">Frete Grátis Chegando:</p>
+              <p id="delivery-date" style="font-size:14px;font-weight:900;color:#14532d;line-height:1.2;letter-spacing:-.01em"></p>
+            </div>
+          </div>
+
+          <!-- Endereço (aparece após CEP) -->
+          <div id="address-fields">
+            <div id="cep-error-msg" style="display:none;background:#fff1f2;border:1px solid #fecdd3;color:#be123c;font-size:12px;font-weight:600;border-radius:10px;padding:12px 14px;margin-bottom:12px">
+              Não conseguimos buscar automaticamente. Preencha abaixo para finalizar.
+            </div>
+            <div class="fade-in" style="display:flex;flex-direction:column;gap:12px">
+              <div>
+                <label class="field-label" for="inp-rua">Endereço</label>
+                <input class="field-input no-icon" type="text" id="inp-rua" name="rua" placeholder="Rua, Avenida..." autocomplete="street-address" autocorrect="off" spellcheck="false"/>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 3fr;gap:12px">
+                <div>
+                  <label class="field-label" for="inp-num">Nº</label>
+                  <input class="field-input no-icon" type="text" id="inp-num" name="num" placeholder="123" inputmode="numeric" autocomplete="off" style="text-align:center;font-weight:700;border-color:#86efac;box-shadow:0 0 0 2px rgba(22,163,74,.08)"/>
+                </div>
+                <div>
+                  <label class="field-label" for="inp-cidade">Cidade</label>
+                  <input class="field-input no-icon" type="text" id="inp-cidade" name="cidade" placeholder="Cidade/UF" autocomplete="address-level2" autocorrect="off" spellcheck="false"/>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- STEP 3: Pagamento (desktop only - mobile usa footer) -->
+      <div style="background:white;border-radius:16px;border:1px solid #f1f5f9;box-shadow:0 2px 15px rgba(0,0,0,.03);overflow:hidden">
+        <div style="background:#fafafa;padding:12px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:12px">
+          <span class="step-badge">3</span>
+          <h3 style="font-size:13px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.05em">Pagamento</h3>
+        </div>
+        <div style="padding:20px">
+          <!-- PIX card -->
+          <div class="payment-card">
+            <div class="pix-badge">Aprovação Imediata</div>
+            <div style="width:24px;height:24px;background:#16a34a;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 6px rgba(22,163,74,.3)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div style="flex:1;padding:4px 0">
+              <div style="font-weight:700;color:#1e293b;font-size:14px">PIX</div>
+              <div style="color:#16a34a;font-weight:800;font-size:20px;margin-top:2px;letter-spacing:-.01em">R$ 197,99</div>
+            </div>
+          </div>
+          <!-- Botão desktop -->
+          <button id="btn-submit-desktop" type="submit" style="display:none;width:100%;margin-top:20px;background:linear-gradient(to right,#16a34a,#15803d);color:white;font-weight:700;padding:16px;border-radius:12px;font-size:17px;border:none;box-shadow:0 8px 24px rgba(22,163,74,.3);transition:all .2s;min-height:56px;align-items:center;justify-content:center;gap:8px" onclick="handleSubmit(event)">
+            <span id="btn-submit-desktop-text" style="display:flex;align-items:center;gap:8px">
+              FINALIZAR COM DESCONTO
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="9 18 15 12 9 6"/></svg>
+            </span>
+          </button>
+          <p style="text-align:center;margin-top:12px;font-size:10px;color:#94a3b8;display:flex;align-items:center;justify-content:center;gap:4px">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Seus dados estão protegidos por criptografia 256-bit
+          </p>
+        </div>
+      </div>
+
+    </form>
+  </div><!-- /layout -->
+</div><!-- /#checkout-screen -->
+
+<!-- ── Mobile Footer ── -->
+<div id="footer-bar">
+  <button id="btn-submit-mobile" type="button" style="width:100%;background:linear-gradient(to right,#16a34a,#15803d);color:white;font-weight:700;padding:16px;border-radius:12px;font-size:17px;border:none;box-shadow:0 8px 24px rgba(22,163,74,.3);transition:all .2s;min-height:56px;display:flex;align-items:center;justify-content:center;gap:8px" onclick="handleSubmit(event)">
+    <span id="btn-mobile-text" style="display:flex;align-items:center;gap:8px">
+      FINALIZAR COM DESCONTO
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="9 18 15 12 9 6"/></svg>
+    </span>
+  </button>
 </div>
-<div class="static-container">
-<div class="static-left-col">
-<div class="static-card">
-<div class="static-badge">OFERTA TIKTOK</div>
-<div class="static-img-box"><img alt="Fritadeira" class="static-img" decoding="async" height="80" loading="eager" src="../assets/img/01.webp" width="80"/></div>
-<div class="static-info">
-<h3 class="static-title">Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI</h3>
-<div><span class="static-old-price">De R$ 399,90</span><span class="static-new-price">Por R$ 197,99</span></div>
-<div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;">
-<span style="font-size: 10px; background: #f0fdf4; color: #166534; padding: 3px 8px; border-radius: 99px; display: inline-flex; align-items: center; gap: 3px; font-weight: 600;">Compra Segura</span>
-<span style="font-size: 10px; background: #eff6ff; color: #1e40af; padding: 3px 8px; border-radius: 99px; display: inline-flex; align-items: center; gap: 3px; font-weight: 600;">Garantia 12 Meses</span>
+
+<!-- ═══════════════════════════════════════
+     PIX SCREEN  (hidden, shown after submit)
+═══════════════════════════════════════ -->
+<div id="pix-screen">
+
+  <!-- Loading state -->
+  <div id="pix-loading">
+    <div style="width:72px;height:72px;border:6px solid #e2e8f0;border-top-color:#16a34a;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:28px;box-shadow:0 4px 20px rgba(22,163,74,.15)"></div>
+    <h2 id="pix-loading-text" style="font-size:20px;font-weight:800;color:#1e293b;letter-spacing:-.01em;animation:pulseSlow 1.5s ease-in-out infinite">Iniciando transação segura...</h2>
+    <p style="font-size:13px;color:#64748b;margin-top:12px;font-weight:500">Por favor, não feche esta página.</p>
+  </div>
+
+  <!-- PIX content -->
+  <div id="pix-content" style="max-width:500px;margin:0 auto">
+    <div style="background:white;border-radius:20px;border:1px solid #f1f5f9;box-shadow:0 10px 40px rgba(0,0,0,.07);padding:24px">
+
+      <!-- Header -->
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="width:60px;height:60px;background:#f0fdf4;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 2px 10px rgba(22,163,74,.1)">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <h1 id="pix-greeting" style="font-size:22px;font-weight:900;color:#1e293b;letter-spacing:-.02em;margin-bottom:6px">Quase lá!</h1>
+        <p style="font-size:13px;color:#64748b">Finalize o pagamento para garantir a oferta.</p>
+      </div>
+
+      <!-- Reservado badge -->
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px;text-align:center;margin-bottom:24px;display:flex;align-items:center;justify-content:center;gap:6px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span style="font-size:12px;font-weight:700;color:#15803d;text-transform:uppercase;letter-spacing:.05em">Pedido Reservado com Sucesso</span>
+      </div>
+
+      <!-- Steps progressão -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;padding:0 8px">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+          <div style="width:40px;height:40px;border-radius:50%;background:#16a34a;color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;box-shadow:0 4px 12px rgba(22,163,74,.3)">1</div>
+          <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#15803d">Copiar</span>
+        </div>
+        <div style="flex:1;height:2px;background:#e2e8f0;margin:0 4px;margin-bottom:18px"></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+          <div style="width:40px;height:40px;border-radius:50%;background:#f1f5f9;color:#94a3b8;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px">2</div>
+          <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#94a3b8">App Banco</span>
+        </div>
+        <div style="flex:1;height:2px;background:#e2e8f0;margin:0 4px;margin-bottom:18px"></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+          <div style="width:40px;height:40px;border-radius:50%;background:#f1f5f9;color:#94a3b8;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px">3</div>
+          <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#94a3b8">Colar</span>
+        </div>
+        <div style="flex:1;height:2px;background:#e2e8f0;margin:0 4px;margin-bottom:18px"></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+          <div style="width:40px;height:40px;border-radius:50%;background:#f1f5f9;color:#94a3b8;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px">4</div>
+          <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#94a3b8">Pagar</span>
+        </div>
+      </div>
+
+      <!-- Código PIX -->
+      <div class="pix-code-box" style="margin-bottom:16px">
+        <div class="pix-code-label">Código PIX</div>
+        <p id="pix-code-text" class="pix-code-text"></p>
+        <button id="btn-copy-pix" type="button" onclick="copyPix()" style="width:100%;padding:16px;border-radius:12px;font-weight:700;font-size:16px;color:white;background:#22c55e;border:none;box-shadow:0 4px 14px rgba(34,197,94,.3);transition:all .15s;min-height:52px;display:flex;align-items:center;justify-content:center;gap:10px">
+          <svg id="copy-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <span id="copy-btn-text">CLIQUE PARA COPIAR</span>
+        </button>
+      </div>
+
+      <!-- Valor total -->
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:0 4px;margin-bottom:20px">
+        <span style="font-size:14px;color:#64748b;font-weight:500">Valor Total:</span>
+        <span style="font-size:22px;font-weight:900;color:#1e293b;letter-spacing:-.02em">R$ 197,99</span>
+      </div>
+
+      <!-- Aguardando -->
+      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:14px;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:20px">
+        <div style="width:14px;height:14px;border:2px solid #d97706;border-top-color:transparent;border-radius:50%;animation:spin .9s linear infinite;flex-shrink:0"></div>
+        <span style="font-size:13px;font-weight:700;color:#92400e">Aguardando confirmação do banco...</span>
+      </div>
+
+      <!-- Como pagar -->
+      <div style="background:#f8fafc;border:1px solid #f1f5f9;border-radius:12px;padding:16px">
+        <h4 style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Como Pagar:</h4>
+        <div class="how-step"><div class="how-num">1</div><p style="font-size:13px;color:#475569;font-weight:500;line-height:1.4">Abra o aplicativo do seu banco</p></div>
+        <div class="how-step"><div class="how-num">2</div><p style="font-size:13px;color:#475569;font-weight:500;line-height:1.4">Selecione PIX › Pix Copia e Cola</p></div>
+        <div class="how-step"><div class="how-num">3</div><p style="font-size:13px;color:#475569;font-weight:500;line-height:1.4">Cole o código copiado e confirme</p></div>
+        <div class="how-step"><div class="how-num">4</div><p style="font-size:13px;color:#475569;font-weight:500;line-height:1.4">Aguarde a confirmação automática</p></div>
+      </div>
+
+      <!-- Transaction ID -->
+      <p id="pix-tid" style="font-size:10px;color:#cbd5e1;text-align:center;margin-top:16px;font-family:monospace"></p>
+    </div>
+  </div>
 </div>
-</div>
-</div>
-</div>
-<div class="static-right-col">
-<div class="sk-form-block">
-<div class="sk-form-header"><div class="sk-circle">1</div><div class="sk-title">Dados Pessoais</div></div>
-<div class="sk-body"><div class="sk-input"></div><div class="sk-input"></div></div>
-</div>
-<div style="text-align: center; margin-top: 24px; color: #94a3b8; font-size: 12px; font-weight: 500;">Carregando ambiente seguro...</div>
-</div>
-</div>
-</div>
-<div id="checkout-root"></div>
-<script defer src="../assets/js/checkout-analytics.js"></script>
-<script defer="" src="../assets/js/checkout.app.js"></script>
-<script defer src="../assets/js/metrics.ping.js"></script>
+
+<!-- Analytics + App logic -->
+<script src="../assets/js/checkout-analytics.js" defer></script>
+<script src="../assets/js/checkout.app.js" defer></script>
+<script src="../assets/js/metrics.ping.js" defer></script>
 </body>
 </html>
