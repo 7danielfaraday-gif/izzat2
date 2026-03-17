@@ -257,6 +257,7 @@ document.addEventListener('DOMContentLoaded', function(){
                 if (isSubmitting || isFormLocked || loading) return;
                 
                 setIsSubmitting(true);
+                window.__ckSubmitAt = Date.now(); // Analytics: guarda timestamp do submit
                 // BLINDA RACE CONDITION: Desabilita botões IMEDIATAMENTE no DOM
                 if (submitButtonRef.current) { submitButtonRef.current.disabled = true; submitButtonRef.current.setAttribute('aria-busy', 'true'); }
                 if (mobileSubmitButtonRef.current) { mobileSubmitButtonRef.current.disabled = true; mobileSubmitButtonRef.current.setAttribute('aria-busy', 'true'); }

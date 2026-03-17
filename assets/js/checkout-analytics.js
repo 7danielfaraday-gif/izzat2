@@ -393,18 +393,38 @@
 
   /* ─── SUBMIT BUTTON ──────────────────────────────────────── */
   function watchSubmit() {
-    var btn = document.getElementById('btn-submit') ||
-              document.querySelector('button[type="submit"]') ||
-              document.querySelector('.btn-ck') ||
-              document.querySelector('[aria-busy]');
-    if (!btn) return;
-    btn.addEventListener('click', function() {
-      touchInteraction();
-      state.submit_attempts++;
-      state.funnel.submit_click = now();
-      if (state.max_step_reached < 3) state.max_step_reached = 3;
-      logTime('submit_click', { attempt: state.submit_attempts });
-      flush(false);
+    // Usa event delegation no document — funciona mesmo com React e múltiplos botões
+    // Detecta clique em qualquer botão que pareça ser o de finalizar
+    document.addEventListener('click', function(e) {
+      var el = e.target;
+      // Sobe até 3 níveis (caso clique em SVG ou span dentro do botão)
+      for (var i = 0; i < 3; i++) {
+        if (!el || el === document) break;
+        var tag = el.tagName;
+        var txt = (el.textContent || '').toLowerCase();
+        var cls = (el.className || '').toLowerCase();
+        var isBtn = tag === 'BUTTON' || el.getAttribute('role') === 'button';
+        var isSubmitType = el.getAttribute('type') === 'submit';
+        var isHidden = el.style && el.style.display === 'none';
+        var looksLikeSubmit =
+          isBtn && !isHidden && (
+            isSubmitType ||
+            txt.indexOf('finalizar') > -1 ||
+            txt.indexOf('comprar') > -1 ||
+            txt.indexOf('pagar') > -1 ||
+            cls.indexOf('btn-ck') > -1
+          );
+        if (looksLikeSubmit) {
+          touchInteraction();
+          state.submit_attempts++;
+          state.funnel.submit_click = now();
+          if (state.max_step_reached < 3) state.max_step_reached = 3;
+          logTime('submit_click', { attempt: state.submit_attempts });
+          flush(false);
+          break;
+        }
+        el = el.parentElement;
+      }
     }, { passive: true });
   }
 
@@ -445,7 +465,14 @@
       state.funnel.pix_copy_click = Math.max(0, now());
       logTime('pix_copied_early');
     }
-    if (window.__ckReadyAt || window.__ckPixShownAt || window.__ckPixCopiedAt) {
+    // submit clicado antes do tracker carregar
+    if (window.__ckSubmitAt && !state.funnel.submit_click) {
+      state.funnel.submit_click = Math.max(0, now());
+      state.submit_attempts = Math.max(state.submit_attempts, 1);
+      if (state.max_step_reached < 3) state.max_step_reached = 3;
+      logTime('submit_click_early');
+    }
+    if (window.__ckReadyAt || window.__ckPixShownAt || window.__ckPixCopiedAt || window.__ckSubmitAt) {
       flush(false);
     }
   })();
