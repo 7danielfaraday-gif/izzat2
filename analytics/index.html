@@ -754,7 +754,12 @@ $('btn-clear').addEventListener('click',async()=>{
   if(!confirm('⚠️ Tem certeza? Isso vai apagar TODOS os dados de analytics (sessões, agregados diários e cliques no PIX). Esta ação não pode ser desfeita.')) return;
   try {
     lbStart();
-    const r = await api('/api/metrics/clear-data');
+    // Precisa ser POST — o endpoint rejeita GET com 405
+    if(!creds.user){ alert('Faça login primeiro.'); return; }
+    const r = await fetch('/api/metrics/clear-data', {
+      method: 'POST',
+      headers: { 'authorization': 'Basic ' + btoa(creds.user + ':' + creds.pass) }
+    }).then(res => res.json());
     lbDone();
     if(r.ok){
       alert(`✅ Dados apagados!\n${r.deleted} chaves removidas.`);
