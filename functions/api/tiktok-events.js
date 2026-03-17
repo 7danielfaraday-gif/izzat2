@@ -44,14 +44,16 @@ function buildSafeUser(user) {
   return safe;
 }
 
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      'content-type': 'application/json; charset=utf-8',
-      'cache-control': 'no-store, max-age=0',
-    },
-  });
+// json agora recebe opcionalmente o request para adicionar CORS
+function json(data, status = 200, request = null) {
+  const headers = {
+    'content-type': 'application/json; charset=utf-8',
+    'cache-control': 'no-store, max-age=0',
+  };
+  if (request) {
+    headers['access-control-allow-origin'] = getAllowedOrigin(request);
+  }
+  return new Response(JSON.stringify(data), { status, headers });
 }
 
 function pick(obj, fields) {
@@ -65,14 +67,26 @@ function pick(obj, fields) {
   return out;
 }
 
+function getAllowedOrigin(request) {
+  const reqOrigin = request.headers.get('origin');
+  if (reqOrigin) return reqOrigin;
+  return new URL(request.url).origin;
+}
+
+function corsHeaders(request) {
+  return {
+    'access-control-allow-origin': getAllowedOrigin(request),
+    'access-control-allow-methods': 'POST, OPTIONS',
+    'access-control-allow-headers': 'content-type',
+    'access-control-expose-headers': 'content-type',
+  };
+}
+
 export async function onRequestOptions(context) {
-  const origin = new URL(context.request.url).origin;
   return new Response(null, {
     status: 204,
     headers: {
-      'access-control-allow-origin': origin,
-      'access-control-allow-methods': 'POST, OPTIONS',
-      'access-control-allow-headers': 'content-type',
+      ...corsHeaders(context.request),
       'cache-control': 'no-store',
     },
   });
@@ -89,10 +103,10 @@ export async function onRequestPost(context) {
 
     if (!pixelId || pixelId.indexOf('REPLACE') !== -1) {
       // Pixel ainda não configurado — ignora silenciosamente para não quebrar o checkout
-      return json({ ok: true, skipped: 'pixel_not_configured' });
+      return json({ ok: true, skipped: 'pixel_not_configured' }, 200, context.request);
     }
     if (!accessToken) {
-      return json({ ok: false, error: 'access_token_not_configured' }, 500);
+      return json({ ok: false, error: 'access_token_not_configured' }, 500, context.request);
     }
 
     // ── Parse do body enviado pelo browser ───────────────────────────────────
@@ -105,7 +119,7 @@ export async function onRequestPost(context) {
     const user       = body.user       || {};
     const context_b  = body.context    || {};
 
-    if (!event) return json({ ok: false, error: 'missing_event' }, 400);
+    if (!event) return json({ ok: false, error: 'missing_event' }, 400, context.request);
 
     // ── Metadados server-side (mais confiáveis que o browser) ─────────────────
     const ip        = context.request.headers.get('cf-connecting-ip')
@@ -198,13 +212,13 @@ export async function onRequestPost(context) {
     if (!apiRes.ok) {
       // Loga no Cloudflare Workers Logs mas não quebra o checkout
       console.error('[tiktok-events] API error', apiRes.status, JSON.stringify(apiJson));
-      return json({ ok: false, error: 'api_error', status: apiRes.status, detail: apiJson }, 200);
+      return json({ ok: false, error: 'api_error', status: apiRes.status, detail: apiJson }, 200, context.request);
     }
 
-    return json({ ok: true, event, event_id: event_id || null });
+    return json({ ok: true, event, event_id: event_id || null }, 200, context.request);
 
   } catch (err) {
     console.error('[tiktok-events] Unexpected error:', err);
-    return json({ ok: false, error: 'server_error' }, 500);
+    return json({ ok: false, error: 'server_error' }, 500, context.request);
   }
 }

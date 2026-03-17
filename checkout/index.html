@@ -486,17 +486,28 @@
                 if (!value) return { formatted: "", cursorPosition: 0 };
                 let rawNumbers = value.replace(/\D/g, '');
                 
-                if (type === 'phone' && rawNumbers.length > 11) rawNumbers = rawNumbers.substring(0, 11);
+                // ✅ Telefone: aceita prefixo +55 → até 13 dígitos (55 + 11)
+                if (type === 'phone') {
+                    if (rawNumbers.length > 13) rawNumbers = rawNumbers.substring(0, 13);
+                }
                 if (type === 'cpf' && rawNumbers.length > 11) rawNumbers = rawNumbers.substring(0, 11);
                 if (type === 'cep' && rawNumbers.length > 8) rawNumbers = rawNumbers.substring(0, 8);
 
                 let formatted = "";
                 switch(type) {
-                    case 'phone':
-                        if (rawNumbers.length <= 2) formatted = rawNumbers.replace(/^(\d{0,2})/, '($1');
-                        else if (rawNumbers.length <= 7) formatted = rawNumbers.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
-                        else formatted = rawNumbers.replace(/^(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+                    case 'phone': {
+                        // Se começar com 55 e tiver dígitos suficientes → mostra +55
+                        let prefix = "", digits = rawNumbers;
+                        if (rawNumbers.startsWith('55') && rawNumbers.length > 2) {
+                            prefix = '+55 ';
+                            digits = rawNumbers.slice(2);
+                        }
+                        if (digits.length === 0) formatted = prefix;
+                        else if (digits.length <= 2) formatted = prefix + '(' + digits;
+                        else if (digits.length <= 7) formatted = prefix + '(' + digits.slice(0,2) + ') ' + digits.slice(2);
+                        else formatted = prefix + '(' + digits.slice(0,2) + ') ' + digits.slice(2,7) + '-' + digits.slice(7,11);
                         break;
+                    }
                     case 'cpf':
                         formatted = rawNumbers.replace(/^(\d{0,3})(\d{0,3})(\d{0,3})(\d{0,2})/, (match, g1, g2, g3, g4) => {
                             let result = '';
