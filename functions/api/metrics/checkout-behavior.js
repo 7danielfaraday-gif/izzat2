@@ -307,6 +307,69 @@ function mergeDailyAggregate(existing, session) {
   return agg;
 }
 
+/**
+ * Called on subsequent flushes (pings) for an already-counted session.
+ * Only increments funnel metrics if the session reached a NEW milestone
+ * compared to its previous state — prevents double-counting.
+ */
+function updateDailyFunnelOnly(agg, prevSession, newSession) {
+  if (!agg) return mergeDailyAggregate(null, newSession); // safety fallback
+
+  const pf = prevSession.funnel || {};
+  const nf = newSession.funnel  || {};
+
+  // Only increment a funnel counter if it's newly reached (was null before, now has a value)
+  if (pf.step1_first_focus == null && nf.step1_first_focus != null) agg.funnel_step1_starts++;
+  if (pf.step2_first_focus == null && nf.step2_first_focus != null) agg.funnel_step2_starts++;
+  if (pf.submit_click      == null && nf.submit_click      != null) agg.funnel_submit_clicks++;
+  if (pf.pix_shown         == null && nf.pix_shown         != null) {
+    agg.funnel_pix_shown++;
+    agg.sessions_completed++;
+  }
+  if (pf.pix_copy_click    == null && nf.pix_copy_click    != null) {
+    agg.funnel_pix_copied++;
+    agg.sessions_copied_pix++;
+  }
+  if (!prevSession.order_id_hint && newSession.order_id_hint) agg.sessions_ordered++;
+
+  // Update back_attempt if newly set
+  if (!prevSession.back_attempt && newSession.back_attempt) agg.sessions_back_nav++;
+
+  // Update rage/hesitation if newly appeared
+  const hadRage  = (prevSession.rage_clicks  || []).length > 0;
+  const hadHesit = (prevSession.hesitations  || []).length > 0;
+  if (!hadRage  && (newSession.rage_clicks  || []).length > 0) agg.sessions_with_rage++;
+  if (!hadHesit && (newSession.hesitations  || []).length > 0) agg.sessions_with_hesitation++;
+
+  // Add any new field errors (delta only)
+  for (const [field, newCount] of Object.entries(newSession.errors || {})) {
+    const prevCount = (prevSession.errors || {})[field] || 0;
+    const delta = newCount - prevCount;
+    if (delta > 0) agg.field_errors[field] = (agg.field_errors[field] || 0) + delta;
+  }
+
+  // Update scroll depth if newly reached
+  const prevSd = new Set(prevSession.scroll_depth || []);
+  const newSd  = newSession.scroll_depth || [];
+  if (!prevSd.has(25)  && newSd.includes(25))  agg.scroll_25++;
+  if (!prevSd.has(50)  && newSd.includes(50))  agg.scroll_50++;
+  if (!prevSd.has(75)  && newSd.includes(75))  agg.scroll_75++;
+  if (!prevSd.has(100) && newSd.includes(100)) agg.scroll_100++;
+
+  // Update duration (replace prev contribution with new one)
+  if (prevSession.duration_ms != null) {
+    agg.duration_sum_ms  -= prevSession.duration_ms;
+    agg.duration_count   = Math.max(0, agg.duration_count - 1);
+  }
+  if (newSession.duration_ms != null) {
+    agg.duration_sum_ms += newSession.duration_ms;
+    agg.duration_count++;
+  }
+
+  agg._updated_at = Date.now();
+  return agg;
+}
+
 export async function onRequestPost(context) {
   try {
     const kv = context.env.PIX_STORE;
@@ -329,23 +392,41 @@ export async function onRequestPost(context) {
     const session = sanitize(raw);
     if (!session) return json({ ok: false, error: 'invalid_payload' }, 400);
 
-    const date = dateKey(session.ts_start || Date.now());
+    const date     = dateKey(session.ts_start || Date.now());
     const sessKey  = `beh_sess_v1:${date}:${session.session_id}`;
     const dailyKey = `beh_day_v1:${date}`;
 
-    // Store/update individual session
-    await kv.put(sessKey, JSON.stringify(session), { expirationTtl: SESSION_TTL });
-
-    // Update daily aggregate (read-modify-write)
-    // Note: KV has eventual consistency. For very high traffic, use Durable Objects.
-    // For typical checkout volumes this is fine.
-    let existing = null;
+    // ── Check if this session already exists (ping vs new session) ──
+    // A session sends multiple flushes (periodic pings + final).
+    // We only count it as a NEW session the FIRST time we see its ID.
+    let existingSession = null;
     try {
-      const raw2 = await kv.get(dailyKey, { type: 'text' });
-      if (raw2) existing = JSON.parse(raw2);
+      const prev = await kv.get(sessKey, { type: 'text' });
+      if (prev) existingSession = JSON.parse(prev);
     } catch(_) {}
 
-    const merged = mergeDailyAggregate(existing, session);
+    const isNewSession = existingSession === null;
+
+    // Always update the session record (latest state wins)
+    await kv.put(sessKey, JSON.stringify(session), { expirationTtl: SESSION_TTL });
+
+    // ── Update daily aggregate ──
+    let existingDaily = null;
+    try {
+      const raw2 = await kv.get(dailyKey, { type: 'text' });
+      if (raw2) existingDaily = JSON.parse(raw2);
+    } catch(_) {}
+
+    let merged;
+    if (isNewSession) {
+      // First time we see this session → full merge including sessions_total++
+      merged = mergeDailyAggregate(existingDaily, session);
+    } else {
+      // Subsequent flush (ping/update) → only update funnel completion metrics
+      // that could have progressed since the last flush, without re-counting the session
+      merged = updateDailyFunnelOnly(existingDaily, existingSession, session);
+    }
+
     merged.date = date;
     await kv.put(dailyKey, JSON.stringify(merged), { expirationTtl: DAILY_TTL });
 
