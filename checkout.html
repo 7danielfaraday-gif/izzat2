@@ -1,542 +1,483 @@
-<!DOCTYPE html>
+<!--
+  ╔══════════════════════════════════════════════════════════════╗
+  ║   PEPPER — #skeleton-loader Refatorado                       ║
+  ║   Shimmer otimizado para Android WebView / TikTok Browser    ║
+  ║   Cole este bloco completo dentro do <head> ou no topo do    ║
+  ║   <body>, antes de qualquer outro conteúdo.                  ║
+  ╚══════════════════════════════════════════════════════════════╝
+-->
 
-<html lang="pt-BR">
-<head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content" name="viewport"/>
-<link crossorigin="" href="https://analytics.tiktok.com" rel="preconnect"/>
-<link href="//analytics.tiktok.com" rel="dns-prefetch"/>
-<title>Checkout - Fritadeira Elétrica Forno Oven 12L</title>
-<link as="image" fetchpriority="high" href="assets/img/01.webp" rel="preload"/>
-<link href="https://www.googletagmanager.com" rel="dns-prefetch"/>
-<link href="https://viacep.com.br" rel="dns-prefetch"/>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;tap-highlight-color:transparent}*:not(input):not(textarea){-webkit-user-select:none;user-select:none}.select-all{-webkit-user-select:text !important;user-select:text !important}input,select,textarea{font-size:16px !important;-webkit-box-shadow:0 0 0 100px white inset !important;box-shadow:0 0 0 100px white inset !important}html,body{overflow-x:hidden;width:100%;scroll-padding-top:80px;-webkit-overflow-scrolling:touch}input,textarea,[contenteditable]{-webkit-user-select:text !important;user-select:text !important;scroll-margin-top:20px;-webkit-appearance:none;appearance:none;border-radius:0}body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background-color:#f8fafc;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh}.safe-area-padding{padding-bottom:env(safe-area-inset-bottom,20px)}:root{--safe-area-inset-top:env(safe-area-inset-top,0px);--safe-area-inset-bottom:env(safe-area-inset-bottom,0px)}#skeleton-loader{position:fixed;top:0;left:0;width:100%;height:100%;background:#f8fafc;z-index:9999;display:flex;flex-direction:column;transition:opacity 0.4s ease-out}.progress-bar{height:3px;background:linear-gradient(90deg,#22c55e 0%,#4ade80 100%);position:fixed;top:0;left:0;z-index:10000;transition:width 0.4s cubic-bezier(0.4,0,0.2,1);width:25%}.static-nav{background:rgba(255,255,255,0.98);padding:16px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:calc(env(safe-area-inset-top) - 1px);z-index:30;min-height:56px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}button,[role="button"],.btn-tactile{min-height:44px;min-width:44px;touch-action:manipulation;cursor:pointer}input[type="text"],input[type="email"],input[type="tel"]{min-height:44px;font-size:16px !important}.scrollbar-hidden{-ms-overflow-style:none;scrollbar-width:none}.scrollbar-hidden::-webkit-scrollbar{display:none}@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.fade-in{animation:fadeIn 0.4s ease-out forwards}.form-container{padding-bottom:calc(100px + env(safe-area-inset-bottom))}.spinner-mobile{width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-radius:50%;border-top-color:white;animation:spin 0.8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.static-container{display:flex;flex-direction:column;padding:20px;max-width:500px;margin:0 auto;gap:20px}.static-card{background:white;border-radius:16px;padding:20px;display:flex;gap:16px;border:1px solid #e2e8f0;position:relative}.static-badge{position:absolute;top:0;left:0;background:#16a34a;color:white;font-size:10px;font-weight:bold;padding:4px 12px;border-bottom-right-radius:8px}.static-title{font-size:14px;font-weight:700;color:#1e293b;margin-bottom:4px;line-height:1.4}.static-old-price{font-size:12px;color:#94a3b8;text-decoration:line-through;display:block}.static-new-price{font-size:24px;color:#16a34a;font-weight:800;display:block}.sk-form-block{background:white;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden}.sk-form-header{background:#f8fafc;padding:12px 20px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:12px}.sk-circle{width:24px;height:24px;background:#16a34a;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold}.sk-title{font-size:14px;font-weight:700;color:#334155;text-transform:uppercase}.sk-body{padding:20px}.sk-input{height:48px;background:#f1f5f9;border-radius:12px;margin-bottom:16px}.checkout-fixed-footer{position:fixed;bottom:0;left:0;width:100%;z-index:50;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom));background:linear-gradient(to top,rgba(248,250,252,1) 85%,rgba(248,250,252,0.9));box-shadow:0 -4px 12px rgba(0,0,0,0.05);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1)}body.keyboard-open .checkout-fixed-footer{transform:none}@media (min-width:1024px){.static-container{max-width:1024px;flex-direction:row;align-items:flex-start}.static-left-col{width:40%}.static-right-col{width:60%}.checkout-fixed-footer{position:static;padding:0;background:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;transform:none !important}.form-container{padding-bottom:0 !important}}
+  /* ─── Reset pontual para o skeleton ─────────────────────────── */
+  #skeleton-loader *,
+  #skeleton-loader *::before,
+  #skeleton-loader *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* ─── Variáveis Pepper ───────────────────────────────────────── */
+  :root {
+    --sk-bg:            #f8fafc;
+    --sk-card:          #ffffff;
+    --sk-border:        #e2e8f0;
+    --sk-green:         #16a34a;
+    --sk-green-light:   #22c55e;
+    --sk-base:          #e8edf3;   /* cor base dos blocos */
+    --sk-shine:         #f4f7fb;   /* cor do brilho (shimmer) */
+    --sk-radius-sm:     8px;
+    --sk-radius-md:     12px;
+    --sk-radius-lg:     16px;
+    --sk-anim-dur:      1.5s;
+  }
+
+  /* ─── Shimmer: single keyframe usando background-position ────
+     Usa GPU compositing sem forçar layout/paint.
+     Compatível com Android 5+ WebView.                        ── */
+  @keyframes sk-shimmer {
+    0%   { background-position: 200% center; }
+    100% { background-position: -200% center; }
+  }
+
+  /* ─── Classe base reutilizável ───────────────────────────────── */
+  .sk-bone {
+    background: linear-gradient(
+      90deg,
+      var(--sk-base)  25%,
+      var(--sk-shine) 50%,
+      var(--sk-base)  75%
+    );
+    background-size: 400% 100%;
+    animation: sk-shimmer var(--sk-anim-dur) ease-in-out infinite;
+    /* Hardware acceleration explícita */
+    will-change: background-position;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    border-radius: var(--sk-radius-sm);
+  }
+
+  /* ─── Wrapper principal ──────────────────────────────────────── */
+  #skeleton-loader {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    min-height: 100dvh;
+    background: var(--sk-bg);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    transition: opacity 0.35s ease-out;
+  }
+
+  /* ─── Barra de progresso (topo) ──────────────────────────────── */
+  .sk-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    width: 40%;
+    background: linear-gradient(90deg, var(--sk-green), var(--sk-green-light));
+    z-index: 10001;
+    border-radius: 0 2px 2px 0;
+    /* Animação suave de progresso */
+    animation: sk-progress-grow 2s ease-in-out forwards;
+  }
+  @keyframes sk-progress-grow {
+    0%   { width: 25%; }
+    60%  { width: 72%; }
+    100% { width: 72%; }
+  }
+
+  /* ─── Nav / Cabeçalho ────────────────────────────────────────── */
+  .sk-nav {
+    background: rgba(255,255,255,0.98);
+    border-bottom: 1px solid var(--sk-border);
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 56px;
+    flex-shrink: 0;
+    /* Espaço para o progress bar */
+    padding-top: calc(14px + 3px);
+  }
+  .sk-nav-logo {
+    height: 28px;
+    width: 110px;
+    border-radius: 6px;
+  }
+  .sk-nav-badge {
+    height: 22px;
+    width: 80px;
+    border-radius: 99px;
+  }
+
+  /* ─── Container de conteúdo ──────────────────────────────────── */
+  .sk-container {
+    display: flex;
+    flex-direction: column;
+    padding: 20px 16px;
+    gap: 16px;
+    max-width: 500px;
+    width: 100%;
+    margin: 0 auto;
+    /* Espaço para o footer fixo */
+    padding-bottom: calc(160px + env(safe-area-inset-bottom, 20px));
+  }
+
+  /* ─── Cartão do Produto ──────────────────────────────────────── */
+  .sk-product-card {
+    background: var(--sk-card);
+    border-radius: var(--sk-radius-lg);
+    border: 1px solid var(--sk-border);
+    padding: 16px;
+    display: flex;
+    gap: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  /* Badge fantasma "OFERTA TIKTOK" */
+  .sk-product-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 96px;
+    height: 22px;
+    background: linear-gradient(
+      90deg,
+      var(--sk-base)  25%,
+      var(--sk-shine) 50%,
+      var(--sk-base)  75%
+    );
+    background-size: 400% 100%;
+    animation: sk-shimmer var(--sk-anim-dur) ease-in-out infinite;
+    will-change: background-position;
+    transform: translateZ(0);
+    border-bottom-right-radius: var(--sk-radius-sm);
+  }
+  .sk-product-img {
+    width: 88px;
+    height: 88px;
+    flex-shrink: 0;
+    border-radius: var(--sk-radius-md);
+    margin-top: 10px;
+  }
+  .sk-product-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .sk-product-title-1 { height: 14px; width: 100%; }
+  .sk-product-title-2 { height: 14px; width: 75%; }
+  .sk-product-old-price { height: 12px; width: 80px; border-radius: 4px; }
+  .sk-product-new-price { height: 26px; width: 120px; border-radius: 6px; }
+  .sk-product-tags {
+    display: flex;
+    gap: 6px;
+    margin-top: 2px;
+  }
+  .sk-tag { height: 20px; width: 90px; border-radius: 99px; }
+  .sk-tag-sm { width: 76px; }
+
+  /* ─── Seletor de Quantidade ──────────────────────────────────── */
+  .sk-qty-card {
+    background: var(--sk-card);
+    border-radius: var(--sk-radius-lg);
+    border: 1px solid var(--sk-border);
+    padding: 16px 20px;
+  }
+  .sk-section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .sk-section-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+  }
+  .sk-section-title {
+    height: 13px;
+    width: 130px;
+    border-radius: 4px;
+  }
+  .sk-qty-row {
+    display: flex;
+    gap: 10px;
+  }
+  /* 3 opções de quantidade */
+  .sk-qty-btn {
+    flex: 1;
+    height: 54px;
+    border-radius: var(--sk-radius-md);
+  }
+
+  /* ─── Bloco de Formulário (Dados / Endereço) ─────────────────── */
+  .sk-form-card {
+    background: var(--sk-card);
+    border-radius: var(--sk-radius-lg);
+    border: 1px solid var(--sk-border);
+    overflow: hidden;
+  }
+  .sk-form-head {
+    background: #f8fafc;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--sk-border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .sk-form-body {
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  /* Label fantasma acima do input */
+  .sk-label { height: 11px; width: 90px; border-radius: 4px; margin-bottom: 6px; }
+  .sk-input-field {
+    height: 48px;
+    width: 100%;
+    border-radius: var(--sk-radius-md);
+  }
+  /* Linha com 2 inputs (ex: Num + Complemento) */
+  .sk-input-row {
+    display: flex;
+    gap: 10px;
+  }
+  .sk-input-half { flex: 1; }
+
+  /* ─── Resumo do Pedido ───────────────────────────────────────── */
+  .sk-summary-card {
+    background: var(--sk-card);
+    border-radius: var(--sk-radius-lg);
+    border: 1px solid var(--sk-border);
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .sk-summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .sk-summary-label { height: 13px; width: 110px; border-radius: 4px; }
+  .sk-summary-value { height: 13px; width: 70px; border-radius: 4px; }
+  .sk-summary-divider {
+    height: 1px;
+    background: var(--sk-border);
+    border-radius: 99px;
+    animation: none; /* divisor estático — não precisa de shimmer */
+  }
+  .sk-summary-total-label { height: 15px; width: 90px; border-radius: 4px; }
+  .sk-summary-total-value { height: 22px; width: 100px; border-radius: 6px; }
+
+  /* ─── Footer Fixo (Botão de Compra Fantasma) ─────────────────── */
+  .sk-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 10000;
+    padding: 12px 16px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 20px));
+    background: linear-gradient(
+      to top,
+      rgba(248,250,252,1) 75%,
+      rgba(248,250,252,0)
+    );
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .sk-btn-buy {
+    height: 54px;
+    width: 100%;
+    max-width: 500px;
+    border-radius: var(--sk-radius-md);
+    /* Shimmer levemente mais brilhante no botão para chamar atenção */
+    background: linear-gradient(
+      90deg,
+      #bbf7d0 25%,
+      #d1fae5 50%,
+      #bbf7d0 75%
+    );
+    background-size: 400% 100%;
+    animation: sk-shimmer var(--sk-anim-dur) ease-in-out infinite;
+    will-change: background-position;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    border-radius: var(--sk-radius-md);
+  }
+  .sk-footer-trust {
+    height: 11px;
+    width: 180px;
+    border-radius: 4px;
+  }
+
+  /* ─── Texto "Carregando..." ───────────────────────────────────── */
+  .sk-loading-text {
+    text-align: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 12px;
+    color: #94a3b8;
+    font-weight: 500;
+    /* pulso sutil no texto */
+    animation: sk-pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes sk-pulse {
+    0%, 100% { opacity: 0.6; }
+    50%       { opacity: 1;   }
+  }
 </style>
-<script>
-!function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=i,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};var o=document.createElement("script");o.type="text/javascript",o.async=!0,o.src=i+"?sdkid="+e+"&lib="+t;var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(o,a)};ttq.load('D5KFBTRC77U4919NK6GG');ttq.page();}(window,document,'ttq');
-</script>
-<script>!function(){function l(){if(window.__csLoaded)return;window.__csLoaded=!0;var s=document.createElement('script');s.src='https://t.contentsquare.net/uxa/61ca396337c0d.js';s.async=!0;document.head.appendChild(s)}if('requestIdleCallback'in window)requestIdleCallback(l,{timeout:2500});else setTimeout(l,2500)}();</script>
-<script>
-        // Fallback robusto para libs locais (muito comum quebrar em rotas tipo /checkout/ no in-app do TikTok)
-        window.__loadScript = window.__loadScript || function(src){
-            return new Promise(function(resolve, reject){
-                var s = document.createElement('script');
-                s.src = src;
-                s.async = true;
-                s.onload = function(){ resolve(src); };
-                s.onerror = function(){ reject(src); };
-                document.head.appendChild(s);
-            });
-        };
-        window.__localLibFallback = window.__localLibFallback || function(which){
-            try {
-                // Se já está disponível, não faz nada
-                if (which === 'react' && typeof window.React !== 'undefined') return;
-                if (which === 'react-dom' && typeof window.ReactDOM !== 'undefined') return;
-                if (which.indexOf('tailwind') === 0 && typeof window.tailwind !== 'undefined') return;
 
-                window.__libFallbackCount = window.__libFallbackCount || {};
-                window.__libFallbackCount[which] = (window.__libFallbackCount[which] || 0) + 1;
-                var n = window.__libFallbackCount[which];
+<!-- ═══════════════════════════════════════════════════════════════
+     #skeleton-loader — HTML Estrutural
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="skeleton-loader">
 
-                var tries = [];
-                if (which === 'react') tries = ['/assets/vendor/react.production.min.js', 'https://unpkg.com/react@18/umd/react.production.min.js'];
-                if (which === 'react-dom') tries = ['/assets/vendor/react-dom.production.min.js', 'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js'];
-                if (which.indexOf('tailwind') === 0) return; // Tailwind agora é CSS estático, sem fallback necessário
+  <!-- Barra de progresso verde Pepper -->
+  <div class="sk-progress"></div>
 
-                // primeira falha (geralmente rota /checkout/ tentando /checkout/js/...) => tenta raiz (/js/...)
-                // segunda falha => tenta CDN
-                var src = tries[Math.min(n-1, tries.length-1)];
-                if (!src) return;
+  <!-- ① Cabeçalho (Nav) -->
+  <nav class="sk-nav">
+    <div class="sk-bone sk-nav-logo"></div>
+    <div class="sk-bone sk-nav-badge"></div>
+  </nav>
 
-                window.__loadScript(src).then(function(){
-                    // quando o Tailwind carregar via CDN, mantém config existente
-                    if (typeof window.initReactCheckout === 'function') {
-                        try { window.initReactCheckout(); } catch(e) {}
-                    }
-                }).catch(function(){ /* silencioso */ });
-            } catch(e) {}
-        };
-    </script>
-<script defer="" onerror="window.__localLibFallback &amp;&amp; window.__localLibFallback('react')" src="assets/vendor/react.production.min.js"></script>
-<script defer="" onerror="window.__localLibFallback &amp;&amp; window.__localLibFallback('react-dom')" src="assets/vendor/react-dom.production.min.js"></script>
-<link rel="stylesheet" href="assets/css/tailwind.css"/>
-<script>
-    // Watchdog Scoped
-    (function() {
-        let attempts = 0;
-        var delay = 120;
-        function checkReact() {
-            var loader = document.getElementById('skeleton-loader');
-            if (typeof React !== 'undefined' && typeof ReactDOM !== 'undefined') {
-                if(window.initReactCheckout && !window.checkoutInitialized) {
-                    window.initReactCheckout();
-                }
-                return;
-            }
-            
-            if (!loader || loader.style.display === 'none') return;
+  <!-- ② Conteúdo rolável -->
+  <div class="sk-container">
 
-            attempts++;
-            delay = Math.min(600, Math.floor(delay * 1.15));
-            if (attempts === 15) { 
-                console.warn("Carregamento local demorou. Tentando CDN de emergência...");
-                var r = document.createElement('script'); 
-                r.src = "https://unpkg.com/react@18/umd/react.production.min.js";
-                r.onload = function() {
-                    var d = document.createElement('script'); 
-                    d.src = "https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"; 
-                    d.onload = function(){ 
-                        // Tailwind agora é CSS estático - não precisa de CDN fallback
-                        if(window.initReactCheckout) window.initReactCheckout(); 
-                    };
-                    document.head.appendChild(d);
-                };
-                document.head.appendChild(r);
-            }
-            
-            if (attempts > 100) { 
-                console.error("Falha crítica no carregamento (Local e CDN).");
-                try { 
-                    if (loader) {
-                        loader.innerHTML = '' +
-                            '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:24px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">' +
-                            '<div style="font-weight:800;font-size:18px;color:#0f172a;margin-bottom:8px;">Não foi possível carregar o checkout</div>' +
-                            '<div style="font-size:13px;color:#475569;max-width:420px;line-height:1.4;">Isso pode acontecer em alguns navegadores embutidos (TikTok/Instagram) quando a conexão está instável. Toque abaixo para tentar novamente.</div>' +
-                            '<button style="margin-top:16px;background:#16a34a;color:#fff;border:none;border-radius:12px;padding:14px 18px;font-weight:800;font-size:14px;min-height:44px;width:100%;max-width:320px;cursor:pointer;" onclick="location.reload()">Recarregar</button>' +
-                            '<button style="margin-top:10px;background:transparent;color:#64748b;border:1px solid #e2e8f0;border-radius:12px;padding:12px 18px;font-weight:700;font-size:13px;min-height:44px;width:100%;max-width:320px;cursor:pointer;" onclick="location.href='/'">Voltar para o site</button>' +
-                            '</div>';
-                    }
-                } catch(e) {}
-                return;
-            }
-            
-            setTimeout(checkReact, delay);
-        }
-        setTimeout(checkReact, delay);
-    })();
+    <!-- Cartão do Produto -->
+    <div class="sk-product-card">
+      <div class="sk-bone sk-product-img"></div>
+      <div class="sk-product-info">
+        <div class="sk-bone sk-product-title-1"></div>
+        <div class="sk-bone sk-product-title-2"></div>
+        <div style="height:6px;"></div>
+        <div class="sk-bone sk-product-old-price"></div>
+        <div class="sk-bone sk-product-new-price"></div>
+        <div class="sk-product-tags">
+          <div class="sk-bone sk-tag"></div>
+          <div class="sk-bone sk-tag sk-tag-sm"></div>
+        </div>
+      </div>
+    </div>
 
-    const DEBUG_MODE = window.location.hostname === 'localhost' || window.location.search.includes('debug_tracking');
-    if (DEBUG_MODE) { window.trackingDebug = true; }
+    <!-- Seletor de Quantidade -->
+    <div class="sk-qty-card">
+      <div class="sk-section-header">
+        <div class="sk-bone sk-section-icon"></div>
+        <div class="sk-bone sk-section-title"></div>
+      </div>
+      <div class="sk-qty-row">
+        <div class="sk-bone sk-qty-btn"></div>
+        <div class="sk-bone sk-qty-btn"></div>
+        <div class="sk-bone sk-qty-btn"></div>
+      </div>
+    </div>
 
-    function getExternalId() { 
-        const urlParams = new URLSearchParams(window.location.search);
-        let eid = urlParams.get('eid');
-        if (eid) { 
-            try { localStorage.setItem('user_external_id', eid); } catch(e) {}
-            return eid; 
-        }
-        try { eid = localStorage.getItem('user_external_id'); } catch(e) {}
-        if (eid) return eid;
-        eid = 'user_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now(); 
-        try { localStorage.setItem('user_external_id', eid); } catch(e) {}
-        return eid;
-    }
-    window.getExternalId = getExternalId;
+    <!-- Bloco: Dados Pessoais -->
+    <div class="sk-form-card">
+      <div class="sk-form-head">
+        <div class="sk-bone sk-section-icon"></div>
+        <div class="sk-bone sk-section-title"></div>
+      </div>
+      <div class="sk-form-body">
+        <div>
+          <div class="sk-bone sk-label"></div>
+          <div class="sk-bone sk-input-field"></div>
+        </div>
+        <div>
+          <div class="sk-bone sk-label"></div>
+          <div class="sk-bone sk-input-field"></div>
+        </div>
+        <div>
+          <div class="sk-bone sk-label"></div>
+          <div class="sk-bone sk-input-field"></div>
+        </div>
+      </div>
+    </div>
 
-    function getTTCLID() { 
-        try { 
-            const u = new URLSearchParams(window.location.search); 
-            const val = u.get('ttclid');
-            if(val) { 
-                try { localStorage.setItem('ttclid', val); } catch(e) {}
-                return val; 
-            }
-            return localStorage.getItem('ttclid');
-        } catch (e) { return null; } 
-    }
-    window.getTTCLID = getTTCLID;
+    <!-- Bloco: Endereço de Entrega -->
+    <div class="sk-form-card">
+      <div class="sk-form-head">
+        <div class="sk-bone sk-section-icon"></div>
+        <div class="sk-bone sk-section-title" style="width:150px;"></div>
+      </div>
+      <div class="sk-form-body">
+        <div>
+          <div class="sk-bone sk-label"></div>
+          <div class="sk-bone sk-input-field"></div>
+        </div>
+        <div>
+          <div class="sk-bone sk-label"></div>
+          <div class="sk-bone sk-input-field"></div>
+        </div>
+        <!-- Linha dupla: Número + Complemento -->
+        <div class="sk-input-row">
+          <div class="sk-input-half">
+            <div class="sk-bone sk-label" style="width:60px;"></div>
+            <div class="sk-bone sk-input-field"></div>
+          </div>
+          <div class="sk-input-half">
+            <div class="sk-bone sk-label" style="width:90px;"></div>
+            <div class="sk-bone sk-input-field"></div>
+          </div>
+        </div>
+        <div class="sk-input-row">
+          <div class="sk-input-half">
+            <div class="sk-bone sk-label" style="width:50px;"></div>
+            <div class="sk-bone sk-input-field"></div>
+          </div>
+          <div class="sk-input-half">
+            <div class="sk-bone sk-label" style="width:40px;"></div>
+            <div class="sk-bone sk-input-field"></div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid', 'msclkid'];
-    function getStoredUTMs() {
-        let utms = {};
-        try { 
-            const u = new URLSearchParams(window.location.search); 
-            UTM_KEYS.forEach(key => { 
-                const v = u.get(key); 
-                if (v) { 
-                    utms[key] = v; 
-                    try { localStorage.setItem(key, v); } catch(e) {} 
-                } else { 
-                    const saved = localStorage.getItem(key); 
-                    if(saved) utms[key] = saved; 
-                }
-            }); 
-        } catch(e){}
-        return utms;
-    }
-    window.getStoredUTMs = getStoredUTMs;
+    <!-- Resumo do Pedido -->
+    <div class="sk-summary-card">
+      <div class="sk-section-header" style="margin-bottom:0">
+        <div class="sk-bone sk-section-icon"></div>
+        <div class="sk-bone sk-section-title" style="width:140px;"></div>
+      </div>
+      <div class="sk-summary-divider"></div>
+      <div class="sk-summary-row">
+        <div class="sk-bone sk-summary-label"></div>
+        <div class="sk-bone sk-summary-value"></div>
+      </div>
+      <div class="sk-summary-row">
+        <div class="sk-bone sk-summary-label" style="width:80px;"></div>
+        <div class="sk-bone sk-summary-value" style="width:50px;"></div>
+      </div>
+      <div class="sk-summary-divider"></div>
+      <div class="sk-summary-row">
+        <div class="sk-bone sk-summary-total-label"></div>
+        <div class="sk-bone sk-summary-total-value"></div>
+      </div>
+    </div>
 
-    function cleanPhone(p) { 
-        if (!p) return null; 
-        return p.replace(/\D/g, '');
-    }
-    window.cleanPhone = cleanPhone;
+    <!-- Texto de status -->
+    <p class="sk-loading-text">Carregando ambiente seguro...</p>
 
-    // --- Normalização + Hash SHA-256 (Advanced Matching / Zaraz -> Events API) ---
-    function isSha256Hex(v) {
-        return typeof v === 'string' && /^[a-f0-9]{64}$/i.test(v);
-    }
+  </div><!-- /sk-container -->
 
-    function normalizeEmail(v) {
-        if (!v) return null;
-        return String(v).trim().toLowerCase();
-    }
+  <!-- ③ Footer Fixo — Botão de Compra Fantasma -->
+  <footer class="sk-footer">
+    <div class="sk-btn-buy"></div>
+    <div class="sk-bone sk-footer-trust"></div>
+  </footer>
 
-    function normalizePhone(v) {
-        if (!v) return null;
-        return String(v).replace(/\D/g, '');
-    }
-
-    async function sha256Hex(input) {
-        try {
-            if (!input) return null;
-            if (!window.crypto || !window.crypto.subtle) return null;
-            var enc = new TextEncoder();
-            var data = enc.encode(input);
-            var hash = await window.crypto.subtle.digest('SHA-256', data);
-            var hex = Array.from(new Uint8Array(hash)).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
-            return hex;
-        } catch (e) {
-            return null;
-        }
-    }
-
-    async function hashIdentifiers(data) {
-        var out = Object.assign({}, data);
-
-        // Email
-        if (out.email) {
-            var emailNorm = normalizeEmail(out.email);
-            var emailHashed = isSha256Hex(emailNorm) ? emailNorm : (await sha256Hex(emailNorm));
-            if (emailHashed) {
-                out.email = emailHashed;
-                try { localStorage.setItem('user_hashed_email', emailHashed); } catch(e) {}
-            }
-        } else {
-            try {
-                var savedE = localStorage.getItem('user_hashed_email');
-                if (savedE) out.email = savedE;
-            } catch(e) {}
-        }
-
-        // Phone
-        if (out.phone) {
-            var phoneNorm = normalizePhone(out.phone);
-            var phoneHashed = isSha256Hex(phoneNorm) ? phoneNorm : (await sha256Hex(phoneNorm));
-            if (phoneHashed) {
-                out.phone = phoneHashed;
-                try { localStorage.setItem('user_hashed_phone', phoneHashed); } catch(e) {}
-            }
-        } else {
-            try {
-                var savedP = localStorage.getItem('user_hashed_phone');
-                if (savedP) out.phone = savedP;
-            } catch(e) {}
-        }
-
-        return out;
-    }
-
-    
-    function generateEventId() { 
-        return 'evt_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9); 
-    }
-    window.generateEventId = generateEventId;
-
-    window.trackingQueue = window.trackingQueue || [];
-    
-    function trackPixel(event, data = {}) {
-        requestAnimationFrame(() => {
-            Promise.resolve().then(async () => {
-                var finalData = Object.assign({}, data);
-
-                // Normalização
-                if (finalData.phone) finalData.phone = normalizePhone(finalData.phone);
-                if (finalData.email) finalData.email = normalizeEmail(finalData.email);
-
-                // Hash PII (email/phone) para Advanced Matching e Events API
-                finalData = await hashIdentifiers(finalData);
-
-                var payload = Object.assign({}, finalData, {
-                    external_id: window.getExternalId(),
-                    ttclid: window.getTTCLID(),
-                    ...window.getStoredUTMs(),
-                    event_source_url: window.location.href,
-                    event_time: Math.floor(Date.now() / 1000)
-                });
-
-                // Browser Pixel
-                if (window.ttq && typeof window.ttq.track === 'function') {
-                    try { window.ttq.track(event, payload); } catch(e) {}
-                }
-
-                // Server-side (Zaraz)
-                window.trackingQueue = window.trackingQueue || [];
-                if (window.zaraz && window.zaraz.track) {
-                    try { window.zaraz.track(event, payload); } catch(e) {}
-                } else {
-                    window.trackingQueue.push({ event: event, data: payload });
-                }
-
-                // GA fallback (opcional)
-                if (typeof gtag === 'function') {
-                    try { gtag('event', event, payload); } catch(e) {}
-                }
-            }).catch((error) => {
-                if (DEBUG_MODE) console.error('trackPixel error:', error);
-            });
-        });
-    }
-    window.trackPixel = trackPixel;
-
-    // Flush: se o Zaraz carregar depois (muito comum no navegador do TikTok), envia os eventos enfileirados
-    (function zarazQueueFlusher(){
-        var tries = 0;
-        var timer = setInterval(function(){
-            tries++;
-            if (window.zaraz && window.zaraz.track && window.trackingQueue && window.trackingQueue.length) {
-                var q = window.trackingQueue.splice(0, window.trackingQueue.length);
-                for (var i = 0; i < q.length; i++) {
-                    try { window.zaraz.track(q[i].event, q[i].data); } catch(e) {}
-                }
-            }
-            if (tries > 60 || ((window.zaraz && window.zaraz.track) && (!window.trackingQueue || window.trackingQueue.length === 0))) {
-                clearInterval(timer);
-            }
-        }, 500);
-    })();
-
- 
-
-    const PRODUCT_CONTENT = { 
-        content_type: 'product', 
-        contents: [{ 
-            content_id: 'AFON-12L-BI', 
-            id: 'AFON-12L-BI', 
-            quantity: 1, 
-            price: 197.99, 
-            item_price: 197.99 
-        }], 
-        content_id: 'AFON-12L-BI',
-        content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI',
-        content_ids: ['AFON-12L-BI'],
-        value: 197.99, 
-        currency: 'BRL' 
-    };
-    window.PRODUCT_CONTENT = PRODUCT_CONTENT;
-
-    function loadAnalytics() {
-        if(window.analyticsLoaded) return;
-        window.analyticsLoaded = true;
-        var s = document.createElement('script'); 
-        s.async = true; 
-        s.src = "https://www.googletagmanager.com/gtag/js?id=G-E373VKT4H4"; 
-        document.head.appendChild(s);
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        window.gtag = gtag; 
-        gtag('js', new Date()); 
-        gtag('config', 'G-E373VKT4H4');
-        
-        if (window.trackingQueue && window.trackingQueue.length > 0) {
-            setTimeout(() => {
-                window.trackingQueue.forEach(item => {
-                    gtag('event', item.event, item.data);
-                });
-                window.trackingQueue = [];
-            }, 1000);
-        }
-    }
-    
-    let INITIAL_HEIGHT = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-    
-    function setupKeyboardDetection() {
-        const isVisualViewportSupported = typeof window.visualViewport !== 'undefined';
-        
-        if (isVisualViewportSupported) {
-            const visualViewport = window.visualViewport;
-            const handleResize = () => {
-                const currentHeight = visualViewport.height;
-                if (currentHeight > INITIAL_HEIGHT) INITIAL_HEIGHT = currentHeight;
-                const diff = INITIAL_HEIGHT - currentHeight;
-                
-                if (diff > 150) { 
-                    document.documentElement.style.setProperty('--keyboard-height', diff + 'px');
-                    document.body.classList.add('keyboard-open');
-                } else {
-                    document.body.classList.remove('keyboard-open');
-                    document.documentElement.style.setProperty('--keyboard-height', '0px');
-                }
-            };
-            visualViewport.addEventListener('resize', handleResize);
-        }
-
-        window.addEventListener('resize', () => {
-            if (isVisualViewportSupported) return; 
-            const currentHeight = window.innerHeight;
-            const diff = INITIAL_HEIGHT - currentHeight;
-            if (diff > 150) {
-                document.body.classList.add('keyboard-open');
-            } else {
-                document.body.classList.remove('keyboard-open');
-            }
-        });
-
-        document.addEventListener('focusin', (e) => {
-            if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
-                document.body.classList.add('keyboard-open');
-            }
-        });
-        
-        document.addEventListener('focusout', (e) => {
-            if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
-               setTimeout(() => {
-                   if (document.activeElement && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
-                       document.body.classList.remove('keyboard-open');
-                   }
-               }, 150);
-            }
-        });
-
-        window.addEventListener('orientationchange', () => {
-            setTimeout(() => { INITIAL_HEIGHT = window.visualViewport ? window.visualViewport.height : window.innerHeight; }, 200);
-        });
-    }
-    
-    function safeCopyToClipboard(text) {
-        return new Promise((resolve, reject) => {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).then(resolve).catch(() => fallbackCopy(text) ? resolve() : reject());
-            } else {
-                fallbackCopy(text) ? resolve() : reject();
-            }
-        });
-    }
-    
-    function fallbackCopy(text) {
-        try {
-            const textArea = document.createElement('textarea');
-            textArea.value = text;
-            textArea.style.position = 'fixed';
-            textArea.style.left = '-999999px';
-            textArea.style.top = '-999999px';
-            textArea.style.opacity = '0';
-            textArea.setAttribute('readonly', '');
-            document.body.appendChild(textArea);
-            
-            if (navigator.userAgent.match(/ipad|iphone/i)) {
-                const range = document.createRange();
-                range.selectNodeContents(textArea);
-                const selection = window.getSelection();
-                selection.removeAllRanges();
-                selection.addRange(range);
-                textArea.setSelectionRange(0, 999999);
-            } else {
-                textArea.select();
-            }
-            
-            const successful = document.execCommand('copy');
-            document.body.removeChild(textArea);
-            return successful;
-        } catch (err) {
-            return false;
-        }
-    }
-    
-    window.safeCopyToClipboard = safeCopyToClipboard;
-
-    function createInputMask(type) {
-        return {
-            format: function(value, selectionStart) {
-                if (!value) return { formatted: "", cursorPosition: 0 };
-                let rawNumbers = value.replace(/\D/g, '');
-                
-                if (type === 'phone' && rawNumbers.length > 11) rawNumbers = rawNumbers.substring(0, 11);
-                if (type === 'cpf' && rawNumbers.length > 11) rawNumbers = rawNumbers.substring(0, 11);
-                if (type === 'cep' && rawNumbers.length > 8) rawNumbers = rawNumbers.substring(0, 8);
-
-                let formatted = "";
-                switch(type) {
-                    case 'phone':
-                        if (rawNumbers.length <= 2) formatted = rawNumbers.replace(/^(\d{0,2})/, '($1');
-                        else if (rawNumbers.length <= 7) formatted = rawNumbers.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
-                        else formatted = rawNumbers.replace(/^(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
-                        break;
-                    case 'cpf':
-                        formatted = rawNumbers.replace(/^(\d{0,3})(\d{0,3})(\d{0,3})(\d{0,2})/, (match, g1, g2, g3, g4) => {
-                            let result = '';
-                            if (g1) result += g1; if (g2) result += `.${g2}`; if (g3) result += `.${g3}`; if (g4) result += `-${g4}`;
-                            return result;
-                        });
-                        break;
-                    case 'cep':
-                        formatted = rawNumbers.replace(/^(\d{0,5})(\d{0,3})/, (match, g1, g2) => {
-                            let result = '';
-                            if (g1) result += g1; if (g2) result += `-${g2}`;
-                            return result;
-                        });
-                        break;
-                }
-                
-                let digitsBeforeCursor = 0;
-                if (selectionStart !== undefined && selectionStart !== null) {
-                    for (let i = 0; i < Math.min(selectionStart, value.length); i++) {
-                        if (value[i] >= '0' && value[i] <= '9') digitsBeforeCursor++;
-                    }
-                }
-                
-                let newPos = 0;
-                let digitCount = 0;
-                for (let i = 0; i < formatted.length; i++) {
-                    if (formatted[i] >= '0' && formatted[i] <= '9') digitCount++;
-                    if (digitCount >= digitsBeforeCursor) { newPos = i + 1; break; }
-                }
-                if (digitsBeforeCursor === 0) newPos = 0;
-                if (formatted.length < value.length && selectionStart === value.length) newPos = formatted.length;
-                
-                return { formatted, cursorPosition: newPos };
-            }
-        };
-    }
-    
-    window.createInputMask = createInputMask;
-    </script>
-</head>
-<body>
-<div id="skeleton-loader" style="min-height: 100dvh; background: #f8fafc;">
-<div class="progress-bar" style="width: 25%;"></div>
-<div class="static-nav">
-<img alt="Logo" decoding="async" loading="lazy" onerror="this.onerror=null; this.src='/assets/img/logo.webp'" src="assets/img/logo.webp" style="height: 32px; width: auto; object-fit: contain;"/>
-</div>
-<div class="static-container">
-<div class="static-left-col">
-<div class="static-card">
-<div class="static-badge">OFERTA TIKTOK</div>
-<div class="static-img-box"><img alt="Fritadeira" class="static-img" decoding="async" height="80" loading="eager" src="assets/img/01.webp" width="80"/></div>
-<div class="static-info">
-<h3 class="static-title">Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI</h3>
-<div><span class="static-old-price">De R$ 399,90</span><span class="static-new-price">Por R$ 197,99</span></div>
-<div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;">
-<span style="font-size: 10px; background: #f0fdf4; color: #166534; padding: 3px 8px; border-radius: 99px; display: inline-flex; align-items: center; gap: 3px; font-weight: 600;">Compra Segura</span>
-<span style="font-size: 10px; background: #eff6ff; color: #1e40af; padding: 3px 8px; border-radius: 99px; display: inline-flex; align-items: center; gap: 3px; font-weight: 600;">Garantia 12 Meses</span>
-</div>
-</div>
-</div>
-</div>
-<div class="static-right-col">
-<div class="sk-form-block">
-<div class="sk-form-header"><div class="sk-circle">1</div><div class="sk-title">Dados Pessoais</div></div>
-<div class="sk-body"><div class="sk-input"></div><div class="sk-input"></div></div>
-</div>
-<div style="text-align: center; margin-top: 24px; color: #94a3b8; font-size: 12px; font-weight: 500;">Carregando ambiente seguro...</div>
-</div>
-</div>
-</div>
-<div id="checkout-root"></div>
-<script defer src="assets/js/checkout-analytics.js"></script>
-<script defer="" src="assets/js/checkout.app.js"></script>
-<script defer src="assets/js/metrics.ping.js"></script>
-</body>
-</html>
+</div><!-- /#skeleton-loader -->
