@@ -278,8 +278,19 @@
     }
     window.generateEventId = generateEventId;
 
-    window.trackingQueue = window.trackingQueue || [];
-    
+    // ✅ CAPI — envia evento server-side para /api/tiktok-events (substitui Zaraz)
+    function sendCAPI(event, eventId, properties, user) {
+        try {
+            var payload = JSON.stringify({ event: event, event_id: eventId, properties: properties || {}, user: user || {} });
+            if (navigator && typeof navigator.sendBeacon === 'function') {
+                navigator.sendBeacon('/api/tiktok-events', new Blob([payload], { type: 'application/json' }));
+            } else {
+                fetch('/api/tiktok-events', { method: 'POST', headers: { 'content-type': 'application/json' }, body: payload, keepalive: true }).catch(function(){});
+            }
+        } catch(_) {}
+    }
+    window.sendCAPI = sendCAPI;
+
     function trackPixel(event, data = {}) {
         requestAnimationFrame(() => {
             Promise.resolve().then(async () => {
@@ -291,6 +302,8 @@
 
                 // Hash PII (email/phone) para Advanced Matching e Events API
                 finalData = await hashIdentifiers(finalData);
+
+                var eventId = finalData.event_id || window.generateEventId();
 
                 var payload = Object.assign({}, finalData, {
                     external_id: window.getExternalId(),
@@ -305,13 +318,17 @@
                     try { window.ttq.track(event, payload); } catch(e) {}
                 }
 
-                // Server-side (Zaraz)
-                window.trackingQueue = window.trackingQueue || [];
-                if (window.zaraz && window.zaraz.track) {
-                    try { window.zaraz.track(event, payload); } catch(e) {}
-                } else {
-                    window.trackingQueue.push({ event: event, data: payload });
-                }
+                // ✅ Server-side via CAPI (substitui Zaraz)
+                sendCAPI(event, eventId,
+                    Object.assign({}, window.PRODUCT_CONTENT, { event_source_url: window.location.href }),
+                    {
+                        email: finalData.email || undefined,
+                        phone_number: finalData.phone || undefined,
+                        external_id: window.getExternalId(),
+                        ttclid: window.getTTCLID(),
+                        ttp: (document.cookie.match(/(?:^|;\\s*)_ttp=([^;]*)/) || [])[1] || undefined
+                    }
+                );
 
                 // GA fallback (opcional)
                 if (typeof gtag === 'function') {
@@ -323,23 +340,6 @@
         });
     }
     window.trackPixel = trackPixel;
-
-    // Flush: se o Zaraz carregar depois (muito comum no navegador do TikTok), envia os eventos enfileirados
-    (function zarazQueueFlusher(){
-        var tries = 0;
-        var timer = setInterval(function(){
-            tries++;
-            if (window.zaraz && window.zaraz.track && window.trackingQueue && window.trackingQueue.length) {
-                var q = window.trackingQueue.splice(0, window.trackingQueue.length);
-                for (var i = 0; i < q.length; i++) {
-                    try { window.zaraz.track(q[i].event, q[i].data); } catch(e) {}
-                }
-            }
-            if (tries > 60 || ((window.zaraz && window.zaraz.track) && (!window.trackingQueue || window.trackingQueue.length === 0))) {
-                clearInterval(timer);
-            }
-        }, 500);
-    })();
 
  
 
@@ -570,5 +570,6 @@
 <div id="checkout-root"></div>
 <script defer="" src="../assets/js/checkout.app.js"></script>
 <script defer src="../assets/js/metrics.ping.js"></script>
+<script defer src="../assets/js/checkout-analytics.js"></script>
 </body>
 </html>

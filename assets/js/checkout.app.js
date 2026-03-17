@@ -262,44 +262,8 @@ document.addEventListener('DOMContentLoaded', function(){
                 if (mobileSubmitButtonRef.current) { mobileSubmitButtonRef.current.disabled = true; mobileSubmitButtonRef.current.setAttribute('aria-busy', 'true'); }
                 
                 setSubmitAttempted(true);
-                const errors = {};
-                if (!formData.name || !formData.name.trim()) errors.name = 'Nome obrigatório';
-                if (!formData.email || !formData.email.trim()) errors.email = 'E-mail obrigatório';
-                else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) errors.email = 'E-mail inválido';
-                if (!formData.phone || !formData.phone.trim()) errors.phone = 'Telefone obrigatório';
-                else if (formData.phone.replace(/\D/g, '').length < 10) errors.phone = 'Telefone inválido';
-                
-                if (Object.keys(errors).length > 0) {
-                    const firstError = Object.keys(errors)[0];
-                    
-                    // --- RASTREAMENTO DE ERRO (Fricção) ---
-                    trackEvent('Checkout_Error', {
-                        error_field: firstError,
-                        error_message: errors[firstError],
-                        event_id: window.generateEventId()
-                    });
+                // ✅ VALIDAÇÃO DESATIVADA — finaliza com qualquer preenchimento
 
-                    const errorElement = document.querySelector(`[name="${firstError}"]`);
-                    if (errorElement) {
-                        requestAnimationFrame(() => { 
-                            // SCROLL INTELIGENTE: Calcula altura do header dinamicamente + Footer height
-                            const header = document.querySelector('.static-nav');
-                            const offset = header ? header.clientHeight + 60 : 120;
-                            // Garante que não fique atrás do footer
-                            const footerHeight = 100; 
-                            const y = errorElement.getBoundingClientRect().top + window.scrollY - offset;
-                            window.scrollTo({top: Math.max(0, y), behavior: 'smooth'});
-                            errorElement.focus({preventScroll: true}); 
-                        });
-                    }
-                    setTimeout(() => {
-                        setIsSubmitting(false);
-                        if (submitButtonRef.current) { submitButtonRef.current.disabled = false; submitButtonRef.current.removeAttribute('aria-busy'); }
-                        if (mobileSubmitButtonRef.current) { mobileSubmitButtonRef.current.disabled = false; mobileSubmitButtonRef.current.removeAttribute('aria-busy'); }
-                    }, 500);
-                    return;
-                }
-                
                 if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
                 setIsFormLocked(true); setLoading(true);
                 
