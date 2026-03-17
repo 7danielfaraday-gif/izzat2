@@ -128,7 +128,7 @@
   };
 
   /* ─── LOAD HEALTH WATCHDOG ───────────────────────────────── */
-  // If checkout doesn't call checkoutReady() within 8s → flag as timeout
+  // Se checkoutReady() não for chamado em 20s → timeout (aumentado de 8s para cobrir React + CDN fallback no TikTok)
   var loadWatchdog = setTimeout(function() {
     if (state.load_health.status === 'loading') {
       state.load_health.status = 'timeout';
@@ -136,7 +136,7 @@
       logTime('load_timeout', { ms: now() });
       flush(false);
     }
-  }, 8000);
+  }, 20000);
 
   // Also catch JS errors that happen during checkout init
   window.addEventListener('error', function(e) {
@@ -424,6 +424,32 @@
   }
 
   /* ─── PIX SCREEN EVENTS ──────────────────────────────────── */
+  // Se o checkout já chamou checkoutReady() antes do analytics carregar,
+  // o timestamp fica em window.__ckReadyAt — consumimos aqui imediatamente.
+  (function checkEarlyEvents() {
+    // checkoutReady chamado antes do tracker carregar
+    if (window.__ckReadyAt) {
+      state.load_health.ready_ms = Math.max(0, now());
+      state.load_health.status   = 'ok';
+      clearTimeout(loadWatchdog);
+      logTime('checkout_ready_early', { ms: state.load_health.ready_ms });
+    }
+    // pixShown chamado antes do tracker carregar
+    if (window.__ckPixShownAt) {
+      state.funnel.pix_shown = Math.max(0, now());
+      if (state.max_step_reached < 4) state.max_step_reached = 4;
+      logTime('pix_shown_early');
+    }
+    // pixCopied chamado antes do tracker carregar
+    if (window.__ckPixCopiedAt) {
+      state.funnel.pix_copy_click = Math.max(0, now());
+      logTime('pix_copied_early');
+    }
+    if (window.__ckReadyAt || window.__ckPixShownAt || window.__ckPixCopiedAt) {
+      flush(false);
+    }
+  })();
+
   // Expose hooks for the checkout script to call
   window.__ckTrack = {
     checkoutReady: function() {
