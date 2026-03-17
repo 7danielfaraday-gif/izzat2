@@ -190,10 +190,11 @@
   }
 
   function watchSkeletonHide() {
-    var skeleton = document.getElementById('skeleton');
+    // Suporta dois IDs: 'skeleton' (projeto zero) e 'skeleton-loader' (projeto bom)
+    var skeleton = document.getElementById('skeleton') || document.getElementById('skeleton-loader');
     if (!skeleton) { onCheckoutLoaded(); return; } // no skeleton = already loaded
 
-    if (skeleton.classList.contains('hide') || skeleton.style.display === 'none') {
+    if (skeleton.classList.contains('hide') || skeleton.style.display === 'none' || skeleton.style.opacity === '0') {
       onCheckoutLoaded();
       return;
     }
@@ -203,7 +204,7 @@
         for (var m of muts) {
           if (m.type === 'attributes') {
             var el = m.target;
-            if (el.classList.contains('hide') || el.style.display === 'none') {
+            if (el.classList.contains('hide') || el.style.display === 'none' || el.style.opacity === '0') {
               onCheckoutLoaded();
               obs.disconnect();
             }
@@ -213,15 +214,15 @@
       obs.observe(skeleton, { attributes: true, attributeFilter: ['class','style'] });
     }
 
-    // Fallback timeout: if not loaded in 6s → failure
+    // Fallback timeout: if not loaded in 8s → failure (aumentado de 6s para 8s para redes lentas)
     setTimeout(function() {
       if (!loadDetected) {
         state.checkout_loaded = false;
         state.checkout_load_ms = null;
-        logTime('checkout_load_failed', { timeout_ms: 6000 });
+        logTime('checkout_load_failed', { timeout_ms: 8000 });
         flush(false);
       }
-    }, 6000);
+    }, 8000);
   }
 
   // Run immediately (skeleton may already be hidden if tracker loads late)
@@ -305,9 +306,26 @@
     'inp-cep','inp-rua','inp-bairro','inp-num','inp-comp','inp-cidade','inp-estado'
   ];
 
+  // Mapa: ID do projeto zero → name do projeto bom
+  var FIELD_NAME_MAP = {
+    'inp-nome': 'name', 'inp-email': 'email', 'inp-tel': 'phone',
+    'inp-cpf': 'cpf', 'inp-cep': 'cep', 'inp-rua': 'address',
+    'inp-bairro': 'neighborhood', 'inp-num': 'number',
+    'inp-comp': 'complement', 'inp-cidade': 'city', 'inp-estado': 'state'
+  };
+
+  function findField(id) {
+    // Tenta por ID primeiro (projeto zero), depois por name (projeto bom)
+    var el = document.getElementById(id);
+    if (el) return el;
+    var nameAttr = FIELD_NAME_MAP[id];
+    if (nameAttr) return document.querySelector('[name="' + nameAttr + '"]');
+    return null;
+  }
+
   function attachFieldListeners() {
     FIELD_IDS.forEach(function(id) {
-      var el = document.getElementById(id);
+      var el = findField(id);
       if (!el) return;
       el.addEventListener('focus',   function() { onFieldFocus(id); }, { passive: true });
       el.addEventListener('blur',    function() { onFieldBlur(id, el); }, { passive: true });
@@ -375,7 +393,10 @@
 
   /* ─── SUBMIT BUTTON ──────────────────────────────────────── */
   function watchSubmit() {
-    var btn = document.getElementById('btn-submit');
+    var btn = document.getElementById('btn-submit') ||
+              document.querySelector('button[type="submit"]') ||
+              document.querySelector('.btn-ck') ||
+              document.querySelector('[aria-busy]');
     if (!btn) return;
     btn.addEventListener('click', function() {
       touchInteraction();
@@ -389,7 +410,7 @@
 
   /* ─── CEP LOOKUP COUNTER ─────────────────────────────────── */
   function watchCep() {
-    var cep = document.getElementById('inp-cep');
+    var cep = document.getElementById('inp-cep') || document.querySelector('[name="cep"]');
     if (!cep) return;
     var last = '';
     cep.addEventListener('input', function() {
@@ -479,11 +500,24 @@
 
   /* ─── INIT AFTER DOM ─────────────────────────────────────── */
   function init() {
-    attachFieldListeners();
-    watchErrors();
-    watchSubmit();
-    watchCep();
-    logTime('tracker_init');
+    // Projeto bom usa React — inputs só existem no DOM após render (~300-600ms)
+    // Tentamos imediatamente e retentamos até encontrar os campos ou atingir 10s
+    function tryAttach(attempt) {
+      var hasFields = !!(
+        document.querySelector('[name="name"]') ||
+        document.getElementById('inp-nome')
+      );
+      if (hasFields) {
+        attachFieldListeners();
+        watchErrors();
+        watchSubmit();
+        watchCep();
+        logTime('tracker_init', { attempt: attempt });
+      } else if (attempt < 20) {
+        setTimeout(function() { tryAttach(attempt + 1); }, 500);
+      }
+    }
+    tryAttach(0);
   }
 
   if (document.readyState === 'loading') {
