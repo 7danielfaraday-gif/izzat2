@@ -44,6 +44,17 @@
         return 'evt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     }
 
+    function getTikTokEventSourceUrl() {
+        try {
+            var u = new URL(window.location.href);
+            u.protocol = 'https:';
+            u.host = 'lojaizzat.shop';
+            return u.toString();
+        } catch (_) {
+            return 'https://lojaizzat.shop/';
+        }
+    }
+
     function getExternalId() {
         let eid = localStorage.getItem('user_external_id');
         if (!eid) eid = getCookie('user_external_id'); 
@@ -122,7 +133,7 @@
 
             // Campos compatíveis com Events API (ajuda em matching/atribuição)
             payload.event_time = payload.timestamp || Math.floor(Date.now() / 1000);
-            payload.event_source_url = payload.url || window.location.href;
+            payload.event_source_url = getTikTokEventSourceUrl();
 
             // Injeta identificadores recuperados se existirem
             if (savedEmail && !payload.email) payload.email = savedEmail;

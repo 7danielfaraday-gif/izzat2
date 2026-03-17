@@ -434,7 +434,7 @@ document.addEventListener('DOMContentLoaded', function(){
                                 e("button", { ref: submitButtonRef, disabled: loading || isFormLocked || isSubmitting, type: "submit", className: `w-full mt-6 bg-gradient-to-r from-green-600 to-green-700 text-white font-bold py-4 rounded-xl text-lg transition-all active:scale-[0.98] flex justify-center items-center gap-2 shadow-xl shadow-green-500/30 ${loading || isFormLocked || isSubmitting ? 'opacity-80 grayscale cursor-not-allowed' : 'hover:shadow-green-500/50 hover:-translate-y-0.5'} btn-tactile min-h-[56px]`, "aria-busy": loading }, 
                                     loading ? e("span", {className: "flex items-center gap-2"}, e("div", { className: "spinner-mobile" }), "Processando...") : e("span", {className: "flex items-center gap-2"}, "FINALIZAR COM DESCONTO", e("svg", { className: "w-5 h-5", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3" }, e("polyline", {points: "9 18 15 12 9 6"})))
                                 ),
-                                e("div", {className: "text-center mt-3.5"}, e("span", { className: "text-[11px] text-[#94a3b8] font-normal flex justify-center items-center gap-1.5" }, "Ambiente criptografado e 100% seguro."))
+                                e("div", {className: "text-center mt-3.5"}, e("span", { className: "text-[11px] text-slate-400 font-normal flex justify-center items-center gap-1.5" }, "Ambiente criptografado e 100% seguro."))
                             )
                         )
                     ),
@@ -448,27 +448,27 @@ document.addEventListener('DOMContentLoaded', function(){
                         className: `w-full bg-gradient-to-r from-green-600 to-green-700 text-white font-bold py-4 rounded-xl text-lg transition-all active:scale-[0.98] flex justify-center items-center gap-2 shadow-xl shadow-green-500/30 ${loading || isFormLocked || isSubmitting ? 'opacity-80 grayscale cursor-not-allowed' : 'hover:shadow-green-500/50'} btn-tactile min-h-[56px]`, "aria-busy": loading }, 
                         loading ? e("span", {className: "flex items-center gap-2"}, e("div", { className: "spinner-mobile" }), "Processando...") : e("span", {className: "flex items-center gap-2"}, "FINALIZAR COM DESCONTO", e("svg", { className: "w-5 h-5", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3" }, e("polyline", {points: "9 18 15 12 9 6"})))
                     ),
-                    e("div", {className: "text-center mt-3.5"}, e("span", { className: "text-[11px] text-[#94a3b8] font-normal flex justify-center items-center gap-1.5" }, "Ambiente criptografado e 100% seguro."))
+                    e("div", {className: "text-center mt-3.5"}, e("span", { className: "text-[11px] text-slate-400 font-normal flex justify-center items-center gap-1.5" }, "Ambiente criptografado e 100% seguro."))
                 ),
-                e("div", { className: "h-24 md:h-16 lg:h-20" }),
-                e("footer", { className: "w-full px-4 pt-0 pb-12 md:pb-14" },
-                    e("div", { className: "flex justify-center items-center gap-6 mb-3" },
-                        e("div", { className: "flex items-center gap-2 text-[11px] md:text-[12px] text-[#64748b] font-normal tracking-[-0.01em]" },
+                e("div", { className: "h-24 md:h-16 lg:h-20 flex flex-col items-center justify-center gap-2" },
+                    e("div", { className: "flex justify-center items-center gap-6" },
+                        e("div", { className: "flex items-center gap-2 text-[11px] md:text-[12px] text-slate-500 font-normal tracking-[-0.01em]" },
                             e("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.75" },
                                 e("rect", { x: "3", y: "11", width: "18", height: "11", rx: "2", ry: "2" }),
                                 e("path", { d: "M7 11V7a5 5 0 0 1 10 0v4" })
                             ),
                             "Compra segura"
                         ),
-                        e("div", { className: "flex items-center gap-2 text-[11px] md:text-[12px] text-[#64748b] font-normal tracking-[-0.01em]" },
+                        e("div", { className: "flex items-center gap-2 text-[11px] md:text-[12px] text-slate-500 font-normal tracking-[-0.01em]" },
                             e("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.75" },
                                 e("path", { d: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" })
                             ),
                             "Dados protegidos"
                         )
                     ),
-                    e("p", { className: "text-center text-[11px] text-[#94a3b8] leading-[1.5] max-w-[320px] mx-auto font-normal" },
-                        "Compra processada por Izzat © 2026 - Todos os direitos reservados"
+                    e("p", { className: "text-center text-[11px] text-slate-400 leading-[1.5] max-w-[320px] mx-auto font-normal pb-4" },
+                        e("span", { style: {display:"block"} }, "Compra processada por Izzat © 2026"),
+                        e("span", { style: {display:"block"} }, "Todos os direitos reservados")
                     )
                 )
             );

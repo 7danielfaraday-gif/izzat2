@@ -22,6 +22,18 @@ const PROPS_FIELDS = [
   'event_source_url', 'description'
 ];
 
+
+function normalizeEventSourceUrl(value) {
+  try {
+    const base = value ? new URL(value) : new URL('https://lojaizzat.shop/');
+    base.protocol = 'https:';
+    base.host = 'lojaizzat.shop';
+    return base.toString();
+  } catch {
+    return 'https://lojaizzat.shop/';
+  }
+}
+
 function isSha256Hex(value) {
   return typeof value === 'string' && /^[a-f0-9]{64}$/i.test(value.trim());
 }
@@ -148,10 +160,11 @@ export async function onRequestPost(context) {
             : {}
         ),
         // URL confiável: prefere o header Origin/Referer server-side
-        event_source_url:
+        event_source_url: normalizeEventSourceUrl(
           context.request.headers.get('referer') ||
           properties.event_source_url ||
-          undefined,
+          undefined
+        ),
       },
 
       user: {
