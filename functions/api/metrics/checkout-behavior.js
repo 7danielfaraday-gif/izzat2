@@ -186,6 +186,15 @@ function sanitize(raw) {
     flush_type:       ['ping','final'].includes(raw.flush_type) ? raw.flush_type : 'unknown',
     flush_ts:         safeNum(raw.flush_ts),
     timeline,
+    // Load health
+    load_health: (function() {
+      const lh = raw.load_health || {};
+      return {
+        status:   ['ok','timeout','error','loading'].includes(lh.status) ? lh.status : 'unknown',
+        ready_ms: lh.ready_ms != null ? clamp(safeNum(lh.ready_ms), 0, 30000) : null,
+        error:    lh.error ? String(lh.error).replace(/[^a-zA-Z0-9_\- ]/g,'').slice(0,100) : null,
+      };
+    })(),
     _saved_at:        Date.now(),
   };
 }
@@ -236,6 +245,9 @@ function mergeDailyAggregate(existing, session) {
     scroll_25: 0, scroll_50: 0, scroll_75: 0, scroll_100: 0,
     // Submit attempts distribution
     submit_1: 0, submit_2plus: 0,
+    // Load health
+    load_ok: 0, load_timeout: 0, load_error: 0,
+    load_ready_ms_sum: 0, load_ready_ms_count: 0,
     _updated_at: null,
   };
 
@@ -302,6 +314,16 @@ function mergeDailyAggregate(existing, session) {
   // Submit attempts
   if (session.submit_attempts === 1)       agg.submit_1++;
   else if (session.submit_attempts >= 2)   agg.submit_2plus++;
+
+  // Load health
+  const lh = session.load_health || {};
+  if (lh.status === 'ok')      agg.load_ok++;
+  if (lh.status === 'timeout') agg.load_timeout++;
+  if (lh.status === 'error')   agg.load_error++;
+  if (lh.ready_ms != null) {
+    agg.load_ready_ms_sum   += lh.ready_ms;
+    agg.load_ready_ms_count++;
+  }
 
   agg._updated_at = Date.now();
   return agg;

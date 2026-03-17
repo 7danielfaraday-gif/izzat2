@@ -660,7 +660,11 @@ function boot(){
       dom.scrCheckout.classList.add("active");
       // Set REF link
       var ref=getRefCode();dom.refLink.textContent=ref||"—";
-      setTimeout(function(){dom.skeleton.style.display="none"},450);
+      setTimeout(function(){
+        dom.skeleton.style.display="none";
+        // Analytics: checkout fully rendered and interactive
+        try{if(window.__ckTrack)window.__ckTrack.checkoutReady();}catch(_){}
+      },450);
     },300);
   },400);
 

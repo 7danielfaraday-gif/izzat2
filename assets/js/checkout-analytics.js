@@ -75,6 +75,13 @@
     ts_end: null,
     duration_ms: null,
 
+    // ── Checkout load health ──────────────────────────────────
+    load_health: {
+      status: 'loading',  // 'ok' | 'timeout' | 'error'
+      ready_ms: null,     // ms from T0 until skeleton hid and checkout was interactive
+      error: null,        // error message if something went wrong
+    },
+
     // Funnel milestones (timestamps relative to T0)
     funnel: {
       page_load: 0,
@@ -120,6 +127,27 @@
     timeline: [],
   };
 
+  /* ─── LOAD HEALTH WATCHDOG ───────────────────────────────── */
+  // If checkout doesn't call checkoutReady() within 8s → flag as timeout
+  var loadWatchdog = setTimeout(function() {
+    if (state.load_health.status === 'loading') {
+      state.load_health.status = 'timeout';
+      state.load_health.error  = 'skeleton_not_hidden_after_8s';
+      logTime('load_timeout', { ms: now() });
+      flush(false);
+    }
+  }, 8000);
+
+  // Also catch JS errors that happen during checkout init
+  window.addEventListener('error', function(e) {
+    if (state.load_health.status === 'loading') {
+      state.load_health.status = 'error';
+      state.load_health.error  = String(e.message || 'unknown_error').slice(0, 100);
+      logTime('load_error');
+      flush(false);
+    }
+  }, { passive: true, once: true });
+
   /* ─── HELPERS ────────────────────────────────────────────── */
   function now() { return Date.now() - T0; }
 
@@ -146,6 +174,58 @@
       logTime('first_interact');
     }
   }
+
+  /* ─── CHECKOUT LOAD DETECTION ───────────────────────────── */
+  // Watches for the skeleton element to be hidden (= JS ran + checkout is visible)
+  // Also sets a timeout: if skeleton hasn't hidden in 6s → checkout_load_failed
+  var loadDetected = false;
+
+  function onCheckoutLoaded() {
+    if (loadDetected) return;
+    loadDetected = true;
+    state.checkout_loaded = true;
+    state.checkout_load_ms = now();
+    logTime('checkout_loaded', { load_ms: state.checkout_load_ms });
+    flush(false);
+  }
+
+  function watchSkeletonHide() {
+    var skeleton = document.getElementById('skeleton');
+    if (!skeleton) { onCheckoutLoaded(); return; } // no skeleton = already loaded
+
+    if (skeleton.classList.contains('hide') || skeleton.style.display === 'none') {
+      onCheckoutLoaded();
+      return;
+    }
+
+    if (window.MutationObserver) {
+      var obs = new MutationObserver(function(muts) {
+        for (var m of muts) {
+          if (m.type === 'attributes') {
+            var el = m.target;
+            if (el.classList.contains('hide') || el.style.display === 'none') {
+              onCheckoutLoaded();
+              obs.disconnect();
+            }
+          }
+        }
+      });
+      obs.observe(skeleton, { attributes: true, attributeFilter: ['class','style'] });
+    }
+
+    // Fallback timeout: if not loaded in 6s → failure
+    setTimeout(function() {
+      if (!loadDetected) {
+        state.checkout_loaded = false;
+        state.checkout_load_ms = null;
+        logTime('checkout_load_failed', { timeout_ms: 6000 });
+        flush(false);
+      }
+    }, 6000);
+  }
+
+  // Run immediately (skeleton may already be hidden if tracker loads late)
+  watchSkeletonHide();
 
   /* ─── FIELD TRACKING ─────────────────────────────────────── */
   var fieldFocusTime = {};
@@ -325,6 +405,14 @@
   /* ─── PIX SCREEN EVENTS ──────────────────────────────────── */
   // Expose hooks for the checkout script to call
   window.__ckTrack = {
+    checkoutReady: function() {
+      var ms = now();
+      state.load_health.ready_ms = ms;
+      state.load_health.status   = 'ok';
+      clearTimeout(loadWatchdog);
+      logTime('checkout_ready', { ms: ms });
+      flush(false);
+    },
     pixShown: function() {
       state.funnel.pix_shown = now();
       if (state.max_step_reached < 4) state.max_step_reached = 4;
