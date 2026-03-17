@@ -459,6 +459,7 @@ document.addEventListener('DOMContentLoaded', function(){
         function PixScreen({ customerData, pixCode, qrCodeUrl }) {
             const [loadingState, setLoadingState] = useState(0); 
             const [copied, setCopied] = useState(false);
+            useEffect(() => { try { if(window.__ckTrack) window.__ckTrack.pixShown(); } catch(_){} }, []);
             const [keyboardClosed, setKeyboardClosed] = useState(false);
             
             const activeData = customerData || {};
@@ -495,7 +496,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
             const copyPix = async () => { 
                 // ⭐️ RASTREAMENTO DE CÓPIA DO PIX ⭐️
-                trackEvent('Pix_Copy_Click', { event_id: window.generateEventId(), order_id: transactionId });
+                trackEvent('Pix_Copy_Click', { event_id: window.generateEventId(), order_id: transactionId }); try { if(window.__ckTrack) window.__ckTrack.pixCopied(); } catch(_){}
 
                 // contador (admin) - cliques no botao Copiar PIX
                 try {
@@ -583,7 +584,7 @@ document.addEventListener('DOMContentLoaded', function(){
                     setTimeout(() => {
                         skeleton.style.transition = 'opacity 0.3s ease-out';
                         skeleton.style.opacity = '0';
-                        setTimeout(() => { skeleton.style.display = 'none'; }, 300);
+                        setTimeout(() => { skeleton.style.display = 'none'; try { if(window.__ckTrack) window.__ckTrack.checkoutReady(); } catch(_){} }, 300);
                     }, 100);
                 }
             }, []);
