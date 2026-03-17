@@ -448,6 +448,30 @@ document.addEventListener('DOMContentLoaded', function(){
                         className: `w-full bg-gradient-to-r from-green-600 to-green-700 text-white font-bold py-4 rounded-xl text-lg transition-all active:scale-[0.98] flex justify-center items-center gap-2 shadow-xl shadow-green-500/30 ${loading || isFormLocked || isSubmitting ? 'opacity-80 grayscale cursor-not-allowed' : 'hover:shadow-green-500/50'} btn-tactile min-h-[56px]`, "aria-busy": loading }, 
                         loading ? e("span", {className: "flex items-center gap-2"}, e("div", { className: "spinner-mobile" }), "Processando...") : e("span", {className: "flex items-center gap-2"}, "FINALIZAR COM DESCONTO", e("svg", { className: "w-5 h-5", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3" }, e("polyline", {points: "9 18 15 12 9 6"})))
                     )
+                ),
+                e("footer", { className: "w-full mt-14 mb-8 px-4" },
+                    e("div", { className: "text-center text-[12px] text-slate-400 mb-6 flex justify-center items-center gap-1.5" },
+                        e(Icons.Lock, { className: "w-3.5 h-3.5" }),
+                        "Ambiente criptografado e 100% seguro."
+                    ),
+                    e("div", { className: "flex justify-center items-center gap-8 mb-6" },
+                        e("div", { className: "flex items-center gap-2 text-[12px] text-slate-400" },
+                            e("svg", { className: "w-5 h-5 text-slate-400", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.8" },
+                                e("rect", { x: "3", y: "11", width: "18", height: "11", rx: "2", ry: "2" }),
+                                e("path", { d: "M7 11V7a5 5 0 0 1 10 0v4" })
+                            ),
+                            "Compra segura"
+                        ),
+                        e("div", { className: "flex items-center gap-2 text-[12px] text-slate-400" },
+                            e("svg", { className: "w-5 h-5 text-slate-400", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.8" },
+                                e("path", { d: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" })
+                            ),
+                            "Dados protegidos"
+                        )
+                    ),
+                    e("div", { className: "text-center text-[11px] text-slate-300 leading-relaxed" },
+                        "Compra processada por Izzat © 2026 - Todos os direitos reservados"
+                    )
                 )
             );
         }
