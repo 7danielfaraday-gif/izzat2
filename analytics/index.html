@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkout Analytics · Dashboard</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --g:#16a34a;--g-l:#f0fdf4;--g-d:#15803d;
+  --r:#ef4444;--r-l:#fef2f2;
+  --y:#f59e0b;--y-l:#fffbeb;
+  --b:#3b82f6;--b-l:#eff6ff;
+  --s50:#f8fafc;--s100:#f1f5f9;--s200:#e2e8f0;--s300:#cbd5e1;
+  --s400:#94a3b8;--s500:#64748b;--s600:#475569;--s700:#334155;--s800:#1e293b;--s900:#0f172a;
+  --card:#fff;--border:var(--s200);--radius:12px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--s50);color:var(--s800);min-height:100vh;-webkit-font-smoothing:antialiased}
+a{color:var(--g);text-decoration:none}
+
+/* TOP NAV */
+.nav{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.nav-brand{font-size:15px;font-weight:800;color:var(--s900);display:flex;align-items:center;gap:8px}
+.nav-brand svg{width:20px;height:20px;color:var(--g)}
+.nav-right{display:flex;align-items:center;gap:10px}
+
+/* TOOLBAR */
+.toolbar{background:#fff;border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.tb-label{font-size:12px;font-weight:600;color:var(--s500);white-space:nowrap}
+select,button{font-size:13px;font-family:inherit}
+select{height:34px;padding:0 10px;border:1.5px solid var(--border);border-radius:8px;background:#fff;color:var(--s700);cursor:pointer;outline:none}
+select:focus{border-color:var(--g)}
+.btn{height:34px;padding:0 14px;border:none;border-radius:8px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:opacity .15s;white-space:nowrap}
+.btn svg{width:14px;height:14px}
+.btn-primary{background:var(--g);color:#fff}
+.btn-primary:hover{opacity:.9}
+.btn-outline{background:#fff;color:var(--s700);border:1.5px solid var(--border)}
+.btn-outline:hover{background:var(--s50)}
+.btn-ai{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff}
+.btn-ai:hover{opacity:.9}
+.btn-copy{background:var(--s800);color:#fff}
+.sep{width:1px;height:24px;background:var(--border)}
+
+/* LOADING / ERROR */
+#loading-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--g),#4ade80);z-index:999;width:0;transition:width .4s ease}
+.status-msg{text-align:center;padding:60px 20px;color:var(--s400);font-size:14px}
+.status-msg svg{width:40px;height:40px;margin:0 auto 12px;display:block}
+
+/* MAIN GRID */
+.main{padding:20px 24px 40px;max-width:1400px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+
+/* SECTION TITLES */
+.section-title{font-size:11px;font-weight:700;color:var(--s400);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px}
+
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:4px}
+.kpi-label{font-size:11px;font-weight:600;color:var(--s500);text-transform:uppercase;letter-spacing:.3px}
+.kpi-val{font-size:26px;font-weight:800;color:var(--s900);line-height:1.1}
+.kpi-sub{font-size:11px;color:var(--s400)}
+.kpi.green .kpi-val{color:var(--g)}
+.kpi.red   .kpi-val{color:var(--r)}
+.kpi.yellow .kpi-val{color:var(--y)}
+.kpi.blue .kpi-val{color:var(--b)}
+
+/* FUNNEL */
+.funnel-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;overflow:hidden}
+.funnel-step{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+.funnel-step:last-child{margin-bottom:0}
+.f-label{width:200px;flex-shrink:0;font-size:12px;font-weight:600;color:var(--s700)}
+.f-bar-wrap{flex:1;background:var(--s100);border-radius:99px;height:28px;position:relative;overflow:hidden}
+.f-bar{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--g),#4ade80);transition:width 1s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;justify-content:flex-end;padding-right:8px;min-width:2%}
+.f-bar.warn{background:linear-gradient(90deg,var(--y),#fcd34d)}
+.f-bar.danger{background:linear-gradient(90deg,var(--r),#fca5a5)}
+.f-count{width:80px;text-align:right;font-size:12px;font-weight:700;color:var(--s600);flex-shrink:0}
+.f-pct{font-size:10px;font-weight:700;color:#fff;white-space:nowrap}
+.f-drop{font-size:10px;color:var(--r);font-weight:600;white-space:nowrap;width:70px;flex-shrink:0}
+
+/* 2 COLUMN GRID */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:800px){.two-col{grid-template-columns:1fr}}
+
+/* GENERIC CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.card-title{font-size:13px;font-weight:700;color:var(--s800);margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.card-title svg{width:15px;height:15px;color:var(--s400)}
+
+/* FIELD ERROR TABLE */
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:6px 8px;background:var(--s50);color:var(--s500);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--border)}
+td{padding:7px 8px;border-bottom:1px solid var(--s100);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+.err-bar{height:6px;background:var(--r-l);border-radius:99px;overflow:hidden}
+.err-bar-fill{height:100%;background:var(--r);border-radius:99px;transition:width .8s ease}
+.badge{display:inline-block;padding:2px 7px;border-radius:99px;font-size:10px;font-weight:700}
+.badge-r{background:var(--r-l);color:var(--r)}
+.badge-y{background:var(--y-l);color:#92400e}
+.badge-g{background:var(--g-l);color:var(--g-d)}
+.badge-b{background:var(--b-l);color:#1e40af}
+
+/* DEVICE DONUT AREA */
+.device-list{display:flex;flex-direction:column;gap:8px}
+.device-row{display:flex;align-items:center;gap:10px}
+.device-label{width:80px;font-size:12px;font-weight:600;color:var(--s700)}
+.device-bar-wrap{flex:1;background:var(--s100);border-radius:99px;height:10px;overflow:hidden}
+.device-bar{height:100%;border-radius:99px;transition:width .8s ease}
+.device-bar.mobile{background:#3b82f6}
+.device-bar.desktop{background:#8b5cf6}
+.device-bar.tablet{background:#f59e0b}
+.device-bar.tiktok{background:#ee2a2a}
+.device-pct{font-size:11px;font-weight:700;color:var(--s600);width:36px;text-align:right}
+
+/* DAILY CHART */
+.chart-area{display:flex;align-items:flex-end;gap:6px;height:120px;padding-top:10px}
+.chart-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.chart-bar-wrap{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center;gap:2px}
+.chart-bar{width:40%;border-radius:4px 4px 0 0;min-height:3px;transition:height .8s ease}
+.chart-bar.sessions{background:var(--b-l);border:1px solid #bfdbfe}
+.chart-bar.pix{background:var(--g-l);border:1px solid #bbf7d0}
+.chart-date{font-size:9px;color:var(--s400);white-space:nowrap}
+
+/* AI EXPORT MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center;padding:20px}
+.modal-bg.show{display:flex}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:700px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden}
+.modal-head{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-head h2{font-size:15px;font-weight:800;color:var(--s900)}
+.modal-close{border:none;background:none;font-size:20px;color:var(--s400);cursor:pointer;line-height:1;padding:2px 6px}
+.modal-body{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px}
+.modal-hint{font-size:12px;color:var(--s500);background:var(--s50);border-radius:8px;padding:10px 14px;line-height:1.5}
+.modal-hint strong{color:var(--s800)}
+#ai-output{font-family:monospace;font-size:11px;color:var(--s700);background:var(--s50);border:1px solid var(--border);border-radius:8px;padding:12px;white-space:pre-wrap;max-height:300px;overflow-y:auto;line-height:1.6}
+.modal-foot{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
+.spinner{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-dots::after{content:'';animation:dots 1.2s steps(4,end) infinite}
+@keyframes dots{0%,100%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
+
+/* FRICTION ALERTS */
+.alerts{display:flex;flex-direction:column;gap:8px}
+.alert{border-radius:8px;padding:10px 14px;font-size:12px;font-weight:600;display:flex;align-items:flex-start;gap:8px}
+.alert svg{width:14px;height:14px;flex-shrink:0;margin-top:1px}
+.alert-r{background:var(--r-l);color:#991b1b}
+.alert-y{background:var(--y-l);color:#92400e}
+.alert-g{background:var(--g-l);color:var(--g-d)}
+</style>
+</head>
+<body>
+
+<div id="loading-bar"></div>
+
+<nav class="nav">
+  <div class="nav-brand">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+      <path d="M18 20V10M12 20V4M6 20v-6"/>
+    </svg>
+    Checkout Analytics
+  </div>
+  <div class="nav-right">
+    <span id="last-updated" style="font-size:11px;color:var(--s400)"></span>
+  </div>
+</nav>
+
+<div class="toolbar">
+  <span class="tb-label">Período:</span>
+  <select id="sel-days">
+    <option value="1">Hoje</option>
+    <option value="7" selected>7 dias</option>
+    <option value="14">14 dias</option>
+    <option value="30">30 dias</option>
+  </select>
+  <button class="btn btn-primary" id="btn-refresh">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 12a9 9 0 11-1.7-5.3"/><path d="M21 3v4h-4"/></svg>
+    Atualizar
+  </button>
+  <div class="sep"></div>
+  <button class="btn btn-ai" id="btn-ai-export">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+    Exportar para IA
+  </button>
+</div>
+
+<main class="main" id="main">
+  <div class="status-msg" id="status-msg">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="color:var(--s300)">
+      <path d="M18 20V10M12 20V4M6 20v-6"/>
+    </svg>
+    <span class="loading-dots">Carregando dados</span>
+  </div>
+</main>
+
+<!-- AI EXPORT MODAL -->
+<div class="modal-bg" id="modal-ai">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>🤖 Exportar Relatório para IA</h2>
+      <button class="modal-close" id="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-hint">
+        <strong>Como usar:</strong> Copie o relatório abaixo e cole diretamente no ChatGPT, Claude ou qualquer IA com a instrução:
+        <em>"Analise este relatório de comportamento do meu checkout e indique os principais pontos de abandono, erros mais frequentes e sugira melhorias concretas para aumentar a conversão."</em>
+      </div>
+      <div id="ai-output">Gerando relatório<span class="loading-dots"></span></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" id="modal-close2">Fechar</button>
+      <button class="btn btn-copy" id="btn-copy-ai">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        Copiar Tudo
+        <div class="spinner" id="copy-spin"></div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ── UTILS ── */
+const $  = id => document.getElementById(id);
+const pct = (a,b) => b > 0 ? ((a/b)*100).toFixed(1)+'%' : '–';
+const num = n => (n||0).toLocaleString('pt-BR');
+const ms2m = ms => { const m=Math.floor(ms/60000),s=Math.floor((ms%60000)/1000); return `${m}m${s < 10?'0':''}${s}s`; };
+const ms2s = ms => (ms/1000).toFixed(1)+'s';
+
+/* ── AUTH ── */
+const creds = { user: '', pass: '' };
+function getAuth() {
+  creds.user = prompt('Usuário:') || '';
+  creds.pass = prompt('Senha:') || '';
+}
+
+async function apiFetch(path) {
+  if (!creds.user) getAuth();
+  const b64 = btoa(creds.user + ':' + creds.pass);
+  const r = await fetch(path, { headers: { 'authorization': 'Basic ' + b64 } });
+  if (r.status === 401) { creds.user = ''; getAuth(); throw new Error('auth'); }
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+
+/* ── LOADING BAR ── */
+let lbW = 0, lbTimer;
+function lbStart() {
+  lbW = 10;
+  setLb(lbW);
+  lbTimer = setInterval(() => { lbW = Math.min(lbW + 8, 90); setLb(lbW); }, 200);
+}
+function lbDone() {
+  clearInterval(lbTimer);
+  setLb(100);
+  setTimeout(() => setLb(0), 400);
+}
+function setLb(w) { $('loading-bar').style.width = w + '%'; }
+
+/* ── RENDER ── */
+function renderDashboard(data) {
+  const days = data || [];
+
+  // Aggregate totals
+  const T = {
+    sessions:0, step1:0, step2:0, submits:0, pix:0, copied:0, ordered:0,
+    rage:0, hesit:0, back:0,
+    mobile:0, desktop:0, tablet:0, tiktok:0,
+    dSum:0, dCount:0, s1Sum:0, s1Count:0, s2Sum:0, s2Count:0,
+    fieldErrors:{},
+  };
+
+  for (const d of days) {
+    T.sessions  += d.sessions_total || 0;
+    T.step1     += d.funnel_step1_starts || 0;
+    T.step2     += d.funnel_step2_starts || 0;
+    T.submits   += d.funnel_submit_clicks || 0;
+    T.pix       += d.funnel_pix_shown || 0;
+    T.copied    += d.funnel_pix_copied || 0;
+    T.ordered   += d.sessions_ordered || 0;
+    T.rage      += d.sessions_with_rage || 0;
+    T.hesit     += d.sessions_with_hesitation || 0;
+    T.back      += d.sessions_back_nav || 0;
+    T.mobile    += d.device_mobile || 0;
+    T.desktop   += d.device_desktop || 0;
+    T.tablet    += d.device_tablet || 0;
+    T.tiktok    += d.device_tiktok_wv || 0;
+    T.dSum      += d.duration_sum_ms || 0;
+    T.dCount    += d.duration_count || 0;
+    T.s1Sum     += d.step1_time_sum_ms || 0;
+    T.s1Count   += d.step1_time_count || 0;
+    T.s2Sum     += d.step2_time_sum_ms || 0;
+    T.s2Count   += d.step2_time_count || 0;
+    for (const [f,n] of Object.entries(d.field_errors || {})) {
+      T.fieldErrors[f] = (T.fieldErrors[f]||0) + n;
+    }
+  }
+
+  const convRate = pct(T.copied, T.sessions);
+  const avgDur   = T.dCount > 0 ? ms2m(T.dSum / T.dCount) : '–';
+  const avgS1    = T.s1Count > 0 ? ms2s(T.s1Sum / T.s1Count) : '–';
+  const avgS2    = T.s2Count > 0 ? ms2s(T.s2Sum / T.s2Count) : '–';
+
+  /* ── Alerts ── */
+  const alerts = [];
+  const rageRate = T.sessions > 0 ? T.rage/T.sessions : 0;
+  const hesRate  = T.sessions > 0 ? T.hesit/T.sessions : 0;
+  const s1Drop   = T.sessions > 0 ? (T.sessions - T.step1)/T.sessions : 0;
+  const s2Drop   = T.step1 > 0 ? (T.step1 - T.step2)/T.step1 : 0;
+
+  if (s1Drop > 0.4) alerts.push({ type:'r', text: `<strong>${(s1Drop*100).toFixed(0)}% dos visitantes</strong> saem sem interagir com nenhum campo. Verifique o tempo de carregamento e o hero da página.` });
+  if (s2Drop > 0.3) alerts.push({ type:'r', text: `<strong>${(s2Drop*100).toFixed(0)}% abandonam</strong> na transição Dados Pessoais → Endereço. Campos como CPF/Telefone podem estar gerando atrito.` });
+  if (rageRate > 0.1) alerts.push({ type:'y', text: `<strong>${(rageRate*100).toFixed(1)}% das sessões</strong> têm rage clicks — usuários clicando repetidamente por frustração.` });
+  if (hesRate > 0.2) alerts.push({ type:'y', text: `<strong>${(hesRate*100).toFixed(1)}% das sessões</strong> têm pausas longas (>20s). Pode indicar confusão no formulário ou campos difíceis.` });
+
+  const topErr = Object.entries(T.fieldErrors).sort((a,b)=>b[1]-a[1])[0];
+  if (topErr) alerts.push({ type:'y', text: `Campo com mais erros: <strong>${topErr[0]}</strong> com ${topErr[1]} erros de validação.` });
+  if (alerts.length === 0) alerts.push({ type:'g', text: 'Nenhum problema crítico detectado no período. Continue monitorando.' });
+
+  /* ── Daily chart data ── */
+  const chartDays = [...days].reverse().slice(-14);
+
+  /* ── BUILD HTML ── */
+  const html = `
+    <div class="section-title">Visão Geral</div>
+    <div class="kpi-grid">
+      <div class="kpi blue"><div class="kpi-label">Sessões</div><div class="kpi-val">${num(T.sessions)}</div><div class="kpi-sub">no período</div></div>
+      <div class="kpi green"><div class="kpi-label">Conversão</div><div class="kpi-val">${convRate}</div><div class="kpi-sub">sessões → cópia PIX</div></div>
+      <div class="kpi"><div class="kpi-label">Duração Média</div><div class="kpi-val" style="font-size:20px">${avgDur}</div><div class="kpi-sub">por sessão</div></div>
+      <div class="kpi"><div class="kpi-label">Tempo Step 1</div><div class="kpi-val" style="font-size:20px">${avgS1}</div><div class="kpi-sub">dados pessoais</div></div>
+      <div class="kpi"><div class="kpi-label">Tempo Step 2</div><div class="kpi-val" style="font-size:20px">${avgS2}</div><div class="kpi-sub">endereço</div></div>
+      <div class="kpi ${T.rage > 0 ? 'yellow' : ''}"><div class="kpi-label">Rage Clicks</div><div class="kpi-val">${num(T.rage)}</div><div class="kpi-sub">${pct(T.rage,T.sessions)} das sessões</div></div>
+      <div class="kpi ${T.hesit > 0 ? 'yellow' : ''}"><div class="kpi-label">Hesitações</div><div class="kpi-val">${num(T.hesit)}</div><div class="kpi-sub">${pct(T.hesit,T.sessions)} das sessões</div></div>
+      <div class="kpi ${T.back > 0 ? 'red' : ''}"><div class="kpi-label">Back Nav</div><div class="kpi-val">${num(T.back)}</div><div class="kpi-sub">${pct(T.back,T.sessions)} das sessões</div></div>
+    </div>
+
+    <div class="section-title">Funil de Conversão</div>
+    <div class="funnel-wrap">
+      ${renderFunnel(T)}
+    </div>
+
+    <div class="two-col">
+      <div>
+        <div class="section-title">Alertas de Atrito</div>
+        <div class="alerts">
+          ${alerts.map(a => `<div class="alert alert-${a.type}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span>${a.text}</span></div>`).join('')}
+        </div>
+      </div>
+
+      <div>
+        <div class="section-title">Erros por Campo</div>
+        <div class="card" style="padding:14px">
+          ${renderFieldErrors(T.fieldErrors)}
+        </div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <div class="section-title">Dispositivos</div>
+        <div class="card">
+          <div class="device-list">
+            ${renderDevice('Mobile', T.mobile, T.sessions, 'mobile')}
+            ${renderDevice('Desktop', T.desktop, T.sessions, 'desktop')}
+            ${renderDevice('Tablet', T.tablet, T.sessions, 'tablet')}
+            ${renderDevice('TikTok WebView', T.tiktok, T.sessions, 'tiktok')}
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-title">Sessões por Dia</div>
+        <div class="card">
+          ${renderChart(chartDays)}
+          <div style="font-size:10px;color:var(--s400);margin-top:8px;display:flex;gap:14px">
+            <span><span style="display:inline-block;width:10px;height:10px;background:#bfdbfe;border-radius:2px;margin-right:4px"></span>Sessões</span>
+            <span><span style="display:inline-block;width:10px;height:10px;background:#bbf7d0;border-radius:2px;margin-right:4px"></span>PIX mostrado</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">Detalhe Diário</div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table>
+        <thead><tr>
+          <th>Data</th><th>Sessões</th><th>Step 1</th><th>Step 2</th>
+          <th>Submits</th><th>PIX</th><th>Copiou</th><th>Conv.</th>
+          <th>Rage</th><th>Hesit.</th>
+        </tr></thead>
+        <tbody>
+          ${[...days].reverse().map(d => `
+          <tr>
+            <td><strong>${d.date}</strong></td>
+            <td>${num(d.sessions_total||0)}</td>
+            <td>${num(d.funnel_step1_starts||0)}</td>
+            <td>${num(d.funnel_step2_starts||0)}</td>
+            <td>${num(d.funnel_submit_clicks||0)}</td>
+            <td>${num(d.funnel_pix_shown||0)}</td>
+            <td>${num(d.funnel_pix_copied||0)}</td>
+            <td><span class="badge badge-${(d.funnel_pix_copied||0)/(d.sessions_total||1) > 0.3 ? 'g' : 'r'}">${pct(d.funnel_pix_copied||0, d.sessions_total||0)}</span></td>
+            <td>${num(d.sessions_with_rage||0)}</td>
+            <td>${num(d.sessions_with_hesitation||0)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  $('main').innerHTML = html;
+}
+
+function renderFunnel(T) {
+  const steps = [
+    { label:'Página carregada',      val:T.sessions, base:T.sessions, barClass:'' },
+    { label:'Iniciou Step 1',        val:T.step1,    base:T.sessions, barClass:'' },
+    { label:'Chegou ao Step 2',      val:T.step2,    base:T.sessions, barClass:'' },
+    { label:'Clicou em Finalizar',   val:T.submits,  base:T.sessions, barClass:T.submits/T.sessions < 0.4 ? 'warn' : '' },
+    { label:'Tela PIX mostrada',     val:T.pix,      base:T.sessions, barClass:T.pix/T.sessions < 0.3 ? 'warn' : '' },
+    { label:'Copiou código PIX',     val:T.copied,   base:T.sessions, barClass:T.copied/T.sessions < 0.2 ? 'danger' : '' },
+  ];
+  return steps.map((s, i) => {
+    const w = T.sessions > 0 ? Math.max(2, (s.val/T.sessions)*100) : 0;
+    const prev = i > 0 ? steps[i-1].val : s.val;
+    const drop = prev > 0 && i > 0 ? `-${((prev-s.val)/prev*100).toFixed(0)}%` : '';
+    return `<div class="funnel-step">
+      <div class="f-label">${s.label}</div>
+      <div class="f-bar-wrap">
+        <div class="f-bar ${s.barClass}" style="width:${w}%">
+          <span class="f-pct">${pct(s.val,T.sessions)}</span>
+        </div>
+      </div>
+      <div class="f-count">${num(s.val)}</div>
+      <div class="f-drop">${drop ? '<span style="color:var(--r)">▼ '+drop+'</span>' : ''}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderFieldErrors(errors) {
+  const sorted = Object.entries(errors).sort((a,b)=>b[1]-a[1]);
+  if (sorted.length === 0) return '<p style="font-size:12px;color:var(--s400);text-align:center;padding:20px">Nenhum erro registrado ainda.</p>';
+  const max = sorted[0][1];
+  const labels = {
+    'inp-nome':'Nome Completo','inp-email':'E-mail','inp-tel':'Telefone',
+    'inp-cpf':'CPF','inp-cep':'CEP','inp-rua':'Rua','inp-bairro':'Bairro',
+    'inp-num':'Número','inp-cidade':'Cidade','inp-estado':'Estado'
+  };
+  return `<table>
+    <thead><tr><th>Campo</th><th>Erros</th><th style="width:100px">Impacto</th></tr></thead>
+    <tbody>${sorted.map(([f,n]) => `
+      <tr>
+        <td><strong>${labels[f]||f}</strong></td>
+        <td><span class="badge badge-r">${n}</span></td>
+        <td><div class="err-bar"><div class="err-bar-fill" style="width:${Math.round(n/max*100)}%"></div></div></td>
+      </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
+function renderDevice(label, count, total, cls) {
+  const w = total > 0 ? Math.max(1,(count/total*100)) : 0;
+  return `<div class="device-row">
+    <div class="device-label">${label}</div>
+    <div class="device-bar-wrap"><div class="device-bar ${cls}" style="width:${w}%"></div></div>
+    <div class="device-pct">${pct(count,total)}</div>
+  </div>`;
+}
+
+function renderChart(days) {
+  if (!days.length) return '<p style="font-size:12px;color:var(--s400);text-align:center;padding:20px">Sem dados</p>';
+  const maxSess = Math.max(...days.map(d=>d.sessions_total||0), 1);
+  return `<div class="chart-area">
+    ${days.map(d => {
+      const sh = Math.max(4, ((d.sessions_total||0)/maxSess*100));
+      const ph = Math.max(0, ((d.funnel_pix_shown||0)/maxSess*100));
+      const label = d.date ? d.date.slice(5) : '';
+      return `<div class="chart-col">
+        <div class="chart-bar-wrap">
+          <div class="chart-bar sessions" style="height:${sh}%" title="${d.sessions_total||0} sessões"></div>
+          <div class="chart-bar pix" style="height:${ph}%" title="${d.funnel_pix_shown||0} PIX"></div>
+        </div>
+        <div class="chart-date">${label}</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+/* ── LOAD DATA ── */
+async function loadData() {
+  lbStart();
+  $('status-msg') && ($('main').innerHTML = '<div class="status-msg" id="status-msg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="color:var(--s300)"><path d="M18 20V10M12 20V4M6 20v-6"/></svg><span class="loading-dots">Carregando dados</span></div>');
+  const days = +$('sel-days').value;
+  try {
+    const r = await apiFetch(`/api/metrics/behavior-report?mode=daily&days=${days}`);
+    lbDone();
+    if (!r.ok) throw new Error(r.error);
+    $('last-updated').textContent = 'Atualizado: ' + new Date().toLocaleTimeString('pt-BR');
+    renderDashboard(r.data || []);
+  } catch(e) {
+    lbDone();
+    if (e.message === 'auth') return loadData();
+    $('main').innerHTML = `<div class="status-msg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="color:var(--r)"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Erro ao carregar: ${e.message}</div>`;
+  }
+}
+
+/* ── AI EXPORT ── */
+async function loadAiReport() {
+  $('ai-output').innerHTML = 'Gerando relatório<span class="loading-dots"></span>';
+  const days = +$('sel-days').value;
+  try {
+    const r = await apiFetch(`/api/metrics/behavior-report?mode=ai&days=${days}`);
+    if (!r.ok) throw new Error(r.error);
+    $('ai-output').textContent = r.ai_text_report || 'Relatório vazio.';
+  } catch(e) {
+    $('ai-output').textContent = 'Erro ao gerar relatório: ' + e.message;
+  }
+}
+
+/* ── EVENTS ── */
+$('btn-refresh').addEventListener('click', loadData);
+$('sel-days').addEventListener('change', loadData);
+
+$('btn-ai-export').addEventListener('click', function() {
+  $('modal-ai').classList.add('show');
+  loadAiReport();
+});
+
+$('modal-close').addEventListener('click', () => $('modal-ai').classList.remove('show'));
+$('modal-close2').addEventListener('click', () => $('modal-ai').classList.remove('show'));
+$('modal-ai').addEventListener('click', e => { if (e.target === $('modal-ai')) $('modal-ai').classList.remove('show'); });
+
+$('btn-copy-ai').addEventListener('click', function() {
+  const text = $('ai-output').textContent;
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    $('btn-copy-ai').innerHTML = '✓ Copiado!';
+    setTimeout(() => { $('btn-copy-ai').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copiar Tudo'; }, 2000);
+  }).catch(() => {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    $('btn-copy-ai').innerHTML = '✓ Copiado!';
+    setTimeout(() => { $('btn-copy-ai').innerHTML = 'Copiar Tudo'; }, 2000);
+  });
+});
+
+/* ── INIT ── */
+loadData();
+
+})();
+</script>
+</body>
+</html>
