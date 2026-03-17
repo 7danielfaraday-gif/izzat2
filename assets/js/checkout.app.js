@@ -434,7 +434,7 @@ document.addEventListener('DOMContentLoaded', function(){
                                 e("button", { ref: submitButtonRef, disabled: loading || isFormLocked || isSubmitting, type: "submit", className: `w-full mt-6 bg-gradient-to-r from-green-600 to-green-700 text-white font-bold py-4 rounded-xl text-lg transition-all active:scale-[0.98] flex justify-center items-center gap-2 shadow-xl shadow-green-500/30 ${loading || isFormLocked || isSubmitting ? 'opacity-80 grayscale cursor-not-allowed' : 'hover:shadow-green-500/50 hover:-translate-y-0.5'} btn-tactile min-h-[56px]`, "aria-busy": loading }, 
                                     loading ? e("span", {className: "flex items-center gap-2"}, e("div", { className: "spinner-mobile" }), "Processando...") : e("span", {className: "flex items-center gap-2"}, "FINALIZAR COM DESCONTO", e("svg", { className: "w-5 h-5", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3" }, e("polyline", {points: "9 18 15 12 9 6"})))
                                 ),
-                                e("div", {className: "text-center mt-3"}, e("span", { className: "text-[10px] text-gray-400 flex justify-center items-center gap-1" }, e(Icons.Lock, {className: "w-3 h-3"}), "Seus dados estão protegidos por criptografia 256-bit"))
+                                e("div", {className: "text-center mt-3"}, e("span", { className: "text-[10px] text-gray-400 flex justify-center items-center gap-1" }, e("svg", { width: "11", height: "11", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" }, e("rect", { x: "3", y: "11", width: "18", height: "11", rx: "2", ry: "2" }), e("path", { d: "M7 11V7a5 5 0 0 1 10 0v4" })), "Seus dados estão protegidos por criptografia 256-bit"))
                             )
                         )
                     ),
@@ -447,32 +447,31 @@ document.addEventListener('DOMContentLoaded', function(){
                         form: "checkout-form",
                         className: `w-full bg-gradient-to-r from-green-600 to-green-700 text-white font-bold py-4 rounded-xl text-lg transition-all active:scale-[0.98] flex justify-center items-center gap-2 shadow-xl shadow-green-500/30 ${loading || isFormLocked || isSubmitting ? 'opacity-80 grayscale cursor-not-allowed' : 'hover:shadow-green-500/50'} btn-tactile min-h-[56px]`, "aria-busy": loading }, 
                         loading ? e("span", {className: "flex items-center gap-2"}, e("div", { className: "spinner-mobile" }), "Processando...") : e("span", {className: "flex items-center gap-2"}, "FINALIZAR COM DESCONTO", e("svg", { className: "w-5 h-5", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3" }, e("polyline", {points: "9 18 15 12 9 6"})))
-                    )
-                ),
-                e("footer", { className: "w-full mt-14 mb-8 px-4" },
-                    e("div", { className: "text-center text-[12px] text-slate-400 mb-6 flex justify-center items-center gap-1.5" },
-                        e(Icons.Lock, { className: "w-3.5 h-3.5" }),
-                        "Ambiente criptografado e 100% seguro."
                     ),
-                    e("div", { className: "flex justify-center items-center gap-8 mb-6" },
+                    e("div", {className: "text-center mt-2.5"}, e("span", { className: "text-[10px] text-gray-400 flex justify-center items-center gap-1" }, e("svg", { width: "11", height: "11", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" }, e("rect", { x: "3", y: "11", width: "18", height: "11", rx: "2", ry: "2" }), e("path", { d: "M7 11V7a5 5 0 0 1 10 0v4" })), "Seus dados estão protegidos por criptografia 256-bit"))
+                ),
+                e("footer", { className: "w-full px-4 pt-8 pb-8" },
+                    e("div", { className: "flex justify-center items-center gap-8 mb-4" },
                         e("div", { className: "flex items-center gap-2 text-[12px] text-slate-400" },
-                            e("svg", { className: "w-5 h-5 text-slate-400", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.8" },
+                            e("svg", { width: "15", height: "15", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.8" },
                                 e("rect", { x: "3", y: "11", width: "18", height: "11", rx: "2", ry: "2" }),
                                 e("path", { d: "M7 11V7a5 5 0 0 1 10 0v4" })
                             ),
                             "Compra segura"
                         ),
                         e("div", { className: "flex items-center gap-2 text-[12px] text-slate-400" },
-                            e("svg", { className: "w-5 h-5 text-slate-400", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.8" },
+                            e("svg", { width: "15", height: "15", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.8" },
                                 e("path", { d: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" })
                             ),
                             "Dados protegidos"
                         )
                     ),
-                    e("div", { className: "text-center text-[11px] text-slate-300 leading-relaxed" },
+                    e("p", { className: "text-center text-[11px] text-slate-300 leading-relaxed" },
                         "Compra processada por Izzat © 2026 - Todos os direitos reservados"
                     )
                 )
+                ),
+
             );
         }
 
@@ -562,7 +561,7 @@ document.addEventListener('DOMContentLoaded', function(){
                                 e("h1", { className: "text-2xl font-black text-slate-800 leading-tight mb-2 tracking-tight" }, "Quase lá, " + firstName + "!"),
                                 e("p", {className: "text-sm text-slate-500"}, "Finalize o pagamento para garantir a oferta.")
                             ),
-                            e("div", { className: "bg-green-50/80 border border-green-100 text-green-700 font-bold text-xs py-3 rounded-lg text-center mb-6 uppercase tracking-wide shadow-sm flex items-center justify-center gap-2" }, e(Icons.Lock, {className: "w-3 h-3"}), "Pedido Reservado com Sucesso")
+                            e("div", { className: "bg-green-50/80 border border-green-100 text-green-700 font-bold text-xs py-3 rounded-lg text-center mb-6 uppercase tracking-wide shadow-sm flex items-center justify-center gap-2" }, e("svg", { width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" }, e("rect", { x: "3", y: "11", width: "18", height: "11", rx: "2", ry: "2" }), e("path", { d: "M7 11V7a5 5 0 0 1 10 0v4" })), "Pedido Reservado com Sucesso")
                         ),
                         e("div", {className: "lg:col-span-6 lg:col-start-7 lg:row-start-1 lg:row-span-2"},
                             effectiveQrUrl && e("div", {className: "hidden lg:flex justify-center mb-6"}, e("div", {className: "bg-white p-2 border-2 border-slate-100 rounded-xl shadow-sm"}, e("img", { src: effectiveQrUrl, className: "w-48 h-48 object-contain rounded-lg", alt: "QR Code PIX", loading: "eager", onError: (e) => e.target.style.display = 'none' }))),
