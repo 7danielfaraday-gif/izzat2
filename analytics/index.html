@@ -648,7 +648,7 @@ function buildTimeline(s){
 
   // Load
   if(lh.status==='ok') rows.push(tlRow('green','bolt','Checkout carregado com sucesso',`Skeleton removido em ${lh.ready_ms!=null?ms2s(lh.ready_ms):'?'}`,lh.ready_ms));
-  else if(lh.status==='timeout') rows.push(tlRow('red','warn','⚠️ Checkout NÃO carregou (timeout)','Skeleton ainda visível após 8s — usuário pode ter visto tela em branco',0));
+  else if(lh.status==='timeout') rows.push(tlRow('red','warn','⚠️ Checkout NÃO carregou (timeout)','Skeleton ainda visível após 25s — usuário pode ter visto tela em branco',0));
   else if(lh.status==='error') rows.push(tlRow('red','warn',`⚠️ Erro JS durante carregamento`,lh.error||'erro desconhecido',0));
   else rows.push(tlRow('gray','bolt','Checkout aberto','Status de carregamento não confirmado',0));
 

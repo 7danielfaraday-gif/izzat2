@@ -128,15 +128,17 @@
   };
 
   /* ─── LOAD HEALTH WATCHDOG ───────────────────────────────── */
-  // Se checkoutReady() não for chamado em 20s → timeout (aumentado de 8s para cobrir React + CDN fallback no TikTok)
+  // Se checkoutReady() não for chamado em 25s → timeout
+  // 25s cobre o pior caso: Android TikTok + rede 3G + React via CDN de emergência (unpkg.com)
+  // Manter em sincronia com o timeout de watchSkeletonHide abaixo.
   var loadWatchdog = setTimeout(function() {
     if (state.load_health.status === 'loading') {
       state.load_health.status = 'timeout';
-      state.load_health.error  = 'skeleton_not_hidden_after_8s';
+      state.load_health.error  = 'skeleton_not_hidden_after_25s';
       logTime('load_timeout', { ms: now() });
       flush(false);
     }
-  }, 20000);
+  }, 25000);
 
   // Also catch JS errors that happen during checkout init
   window.addEventListener('error', function(e) {
@@ -214,15 +216,19 @@
       obs.observe(skeleton, { attributes: true, attributeFilter: ['class','style'] });
     }
 
-    // Fallback timeout: if not loaded in 8s → failure (aumentado de 6s para 8s para redes lentas)
+    // Fallback timeout: if not loaded in 25s → failure
+    // Aumentado de 8s para 25s: Android TikTok WebView pode levar 12-18s
+    // para carregar React via CDN de emergência (unpkg.com) em rede ruim.
+    // O painel lê este evento para exibir "Falha carregamento" — disparar cedo
+    // demais marca sessões válidas como falha, distorcendo a métrica.
     setTimeout(function() {
       if (!loadDetected) {
         state.checkout_loaded = false;
         state.checkout_load_ms = null;
-        logTime('checkout_load_failed', { timeout_ms: 8000 });
+        logTime('checkout_load_failed', { timeout_ms: 25000 });
         flush(false);
       }
-    }, 8000);
+    }, 25000);
   }
 
   // Run immediately (skeleton may already be hidden if tracker loads late)
