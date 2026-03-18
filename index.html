@@ -413,94 +413,39 @@ Simplesmente estou apaixonada, excelente mesmo.</div>
 </div>
 </div>
 <script>
-// ─────────────────────────────────────────────────────────────
-//  PIXEL EVENTS: AddToCart + ViewContent
-//  Corrige: AddToCart < InitiateCheckout
-//
-//  PROBLEMA ANTERIOR:
-//    O botão "Comprar Agora" era um <a href="/checkout/"> puro.
-//    O browser navegava ANTES do TikTok Pixel conseguir enviar
-//    o AddToCart → evento se perdia → contador menor que InitiateCheckout.
-//
-//  SOLUÇÃO:
-//    1. Interceptar o clique, disparar AddToCart via ttq.track()
-//    2. Aguardar ~350ms (tempo suficiente para o beacon sair)
-//    3. Só então navegar para o checkout
-//    4. Também dispara ViewContent no carregamento da página
-// ─────────────────────────────────────────────────────────────
-(function() {
-  // Dados do produto — ajuste se mudar o produto
+(function(){
+  // Dados do produto — atualize se mudar o produto/preço
   var PRODUCT = {
     content_id:   'airfryer-oven-12l',
     content_name: 'Air Fryer Oven 12L Mondial',
     content_type: 'product',
     currency:     'BRL',
     value:        197.00,
-    quantity:     1,
+    quantity:     1
   };
 
-  // Garante que o ttq está disponível (já foi carregado no <head>)
-  function getTTQ() {
-    return (window.ttq && typeof window.ttq.track === 'function') ? window.ttq : null;
-  }
+  function getTTQ(){ return (window.ttq && typeof window.ttq.track === 'function') ? window.ttq : null; }
+  function evtId(n){ return n + '_' + Date.now() + '_' + Math.random().toString(36).slice(2,8); }
 
-  // Gera um event_id único para deduplicação browser+CAPI
-  function eventId(name) {
-    return name + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
-  }
-
-  // ── 1. ViewContent ao carregar a página ──
-  window.addEventListener('DOMContentLoaded', function() {
+  // ViewContent ao carregar a página
+  window.addEventListener('DOMContentLoaded', function(){
     var ttq = getTTQ();
-    if (!ttq) return;
-    try {
-      ttq.track('ViewContent', {
-        content_id:   PRODUCT.content_id,
-        content_name: PRODUCT.content_name,
-        content_type: PRODUCT.content_type,
-        currency:     PRODUCT.currency,
-        value:        PRODUCT.value,
-        quantity:     PRODUCT.quantity,
-      }, { event_id: eventId('ViewContent') });
-    } catch(e) {}
+    if(!ttq) return;
+    try { ttq.track('ViewContent', PRODUCT, { event_id: evtId('ViewContent') }); } catch(e){}
   });
 
-  // ── 2. AddToCart no clique de "Comprar Agora" ──
-  document.addEventListener('DOMContentLoaded', function() {
+  // AddToCart no clique — segura a navegação 350ms para o beacon sair
+  document.addEventListener('DOMContentLoaded', function(){
     var btn = document.getElementById('buy-now');
-    if (!btn) return;
-
-    btn.addEventListener('click', function(e) {
-      e.preventDefault(); // segura a navegação
+    if(!btn) return;
+    btn.addEventListener('click', function(e){
+      e.preventDefault();
       var dest = btn.getAttribute('href') || '/checkout/';
-
-      var ttq = getTTQ();
-      if (!ttq) {
-        // TikTok não carregou (ex: bloqueador de anúncio) → navega direto
-        window.location.href = dest;
-        return;
-      }
-
-      var eid = eventId('AddToCart');
-
-      try {
-        ttq.track('AddToCart', {
-          content_id:   PRODUCT.content_id,
-          content_name: PRODUCT.content_name,
-          content_type: PRODUCT.content_type,
-          currency:     PRODUCT.currency,
-          value:        PRODUCT.value,
-          quantity:     PRODUCT.quantity,
-        }, { event_id: eid });
-      } catch(err) {
-        // Falha silenciosa — garante navegação mesmo assim
-      }
-
-      // Aguarda 350ms para o beacon/pixel ser enviado antes de navegar
-      // Esse valor é seguro até em conexões 3G lentas
-      setTimeout(function() {
-        window.location.href = dest;
-      }, 350);
+      var ttq  = getTTQ();
+      if(!ttq){ window.location.href = dest; return; }
+      try { ttq.track('AddToCart', PRODUCT, { event_id: evtId('AddToCart') }); } catch(err){}
+      // 350ms: suficiente para o beacon sair mesmo em 3G. Imperceptível para o usuário.
+      setTimeout(function(){ window.location.href = dest; }, 350);
     });
   });
 })();
