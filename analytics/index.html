@@ -599,6 +599,7 @@ function buildSessionCard(s, idx){
   if((s.hesitations||[]).length>0) chips.push(`<span class="chip chip-hesit">⏳ Hesitou</span>`);
   const lh=s.load_health||{};
   if(lh.status==='ok'&&lh.ready_ms!=null) chips.push(`<span class="chip chip-load-ok">⚡ ${ms2s(lh.ready_ms)}</span>`);
+  else if(lh.status==='ok') chips.push(`<span class="chip chip-load-ok">⚡ Carregado</span>`);
   else if(lh.status==='timeout'||lh.status==='error') chips.push(`<span class="chip chip-load-bad">⚠️ Falha carregamento</span>`);
 
   // Build timeline
@@ -647,10 +648,11 @@ function buildTimeline(s){
   const lh=s.load_health||{};
 
   // Load
-  if(lh.status==='ok') rows.push(tlRow('green','bolt','Checkout carregado com sucesso',`Skeleton removido em ${lh.ready_ms!=null?ms2s(lh.ready_ms):'?'}`,lh.ready_ms));
-  else if(lh.status==='timeout') rows.push(tlRow('red','warn','⚠️ Checkout NÃO carregou (timeout)','Skeleton ainda visível após 25s — usuário pode ter visto tela em branco',0));
-  else if(lh.status==='error') rows.push(tlRow('red','warn',`⚠️ Erro JS durante carregamento`,lh.error||'erro desconhecido',0));
-  else rows.push(tlRow('gray','bolt','Checkout aberto','Status de carregamento não confirmado',0));
+  if(lh.status==='ok') rows.push(tlRow('green','bolt','Checkout carregado com sucesso',`Carregado em ${lh.ready_ms!=null?ms2s(lh.ready_ms):'?'}`,lh.ready_ms));
+  else if(lh.status==='timeout') rows.push(tlRow('red','warn','⚠️ Checkout NÃO carregou (timeout)',lh.error||'Nenhuma confirmação após o tempo limite — usuário pode ter visto tela em branco',0));
+  else if(lh.status==='error') rows.push(tlRow('red','warn','⚠️ Erro JS durante carregamento',lh.error||'erro desconhecido',0));
+  else if(lh.status==='loading') rows.push(tlRow('gray','bolt','Checkout aberto','Aguardando confirmação de carregamento…',0));
+  else rows.push(tlRow('gray','bolt','Checkout aberto','Status de carregamento não registrado (sessão antiga)',0));
 
   // First interact
   if(f.first_interact!=null) rows.push(tlRow('blue','user','Primeira interação com o formulário','',f.first_interact));

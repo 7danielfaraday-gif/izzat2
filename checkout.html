@@ -4,6 +4,66 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content" name="viewport"/>
+<!-- ╔══════════════════════════════════════════════════════════╗
+     ║  CHECKOUT LOAD HEALTH TRACKER                           ║
+     ║  Registra o tempo real de carregamento do checkout e    ║
+     ║  expõe window.__checkoutLoadHealth para o analytics.js  ║
+     ╚══════════════════════════════════════════════════════════╝ -->
+<script>
+(function() {
+  // Marca o instante de início o mais cedo possível
+  var t0 = performance.now();
+
+  // Estado inicial — "loading" até confirmarmos
+  window.__checkoutLoadHealth = { status: 'loading', ready_ms: null, error: null };
+
+  // Timeout de segurança: se em 12 s o load não disparou → timeout
+  var _loadTimer = setTimeout(function() {
+    if (window.__checkoutLoadHealth.status === 'loading') {
+      window.__checkoutLoadHealth = { status: 'timeout', ready_ms: null, error: 'load_timeout_12s' };
+      document.dispatchEvent(new CustomEvent('checkout:load_health', {
+        detail: window.__checkoutLoadHealth
+      }));
+    }
+  }, 12000);
+
+  function confirmLoaded() {
+    if (window.__checkoutLoadHealth.status !== 'loading') return; // já confirmado
+    clearTimeout(_loadTimer);
+
+    var ready_ms = Math.round(performance.now() - t0);
+    window.__checkoutLoadHealth = { status: 'ok', ready_ms: ready_ms, error: null };
+
+    // Evento para o checkout-analytics.js escutar e incluir no próximo flush
+    document.dispatchEvent(new CustomEvent('checkout:load_health', {
+      detail: window.__checkoutLoadHealth
+    }));
+  }
+
+  // Captura erros JS globais durante o carregamento
+  window.addEventListener('error', function(e) {
+    if (window.__checkoutLoadHealth.status === 'loading') {
+      clearTimeout(_loadTimer);
+      var msg = (e.message || 'js_error').replace(/[^a-zA-Z0-9_ \-]/g, '').slice(0, 100);
+      window.__checkoutLoadHealth = { status: 'error', ready_ms: null, error: msg };
+      document.dispatchEvent(new CustomEvent('checkout:load_health', {
+        detail: window.__checkoutLoadHealth
+      }));
+    }
+  }, { once: false });
+
+  // Confirma quando todos os recursos (scripts defer incluídos) terminarem
+  if (document.readyState === 'complete') {
+    // Já carregado (raro, mas possível em cache hit)
+    confirmLoaded();
+  } else {
+    window.addEventListener('load', function() {
+      // Aguarda um tick para scripts defer finalizarem inicialização
+      setTimeout(confirmLoaded, 0);
+    });
+  }
+})();
+</script>
 <link crossorigin="" href="https://analytics.tiktok.com" rel="preconnect"/>
 <link href="//analytics.tiktok.com" rel="dns-prefetch"/>
 <title>Checkout - Fritadeira Elétrica Forno Oven 12L</title>

@@ -187,9 +187,54 @@
     loadDetected = true;
     state.checkout_loaded = true;
     state.checkout_load_ms = now();
+    // Atualiza load_health se o evento checkout:load_health ainda não chegou
+    if (state.load_health.status === 'loading') {
+      state.load_health.status   = 'ok';
+      state.load_health.ready_ms = state.checkout_load_ms;
+      clearTimeout(loadWatchdog);
+    }
     logTime('checkout_loaded', { load_ms: state.checkout_load_ms });
     flush(false);
   }
+
+  // ── Evento disparado pelo script inline do <head> de checkout.html ────────
+  // Tem prioridade: usa performance.now() medido desde o parser, mais preciso
+  // que T0 (que é quando este script defer executa).
+  document.addEventListener('checkout:load_health', function(e) {
+    var lh = (e && e.detail) ? e.detail : {};
+    if (state.load_health.status !== 'loading') return; // já resolvido
+    if (lh.status === 'ok') {
+      state.load_health.status   = 'ok';
+      state.load_health.ready_ms = lh.ready_ms != null ? lh.ready_ms : now();
+      clearTimeout(loadWatchdog);
+      loadDetected = true;
+      logTime('checkout_ready', { ms: state.load_health.ready_ms, src: 'load_event' });
+      flush(false);
+    } else if (lh.status === 'error') {
+      state.load_health.status = 'error';
+      state.load_health.error  = lh.error || 'unknown';
+      clearTimeout(loadWatchdog);
+      logTime('load_error', { src: 'load_event' });
+      flush(false);
+    } else if (lh.status === 'timeout') {
+      state.load_health.status = 'timeout';
+      state.load_health.error  = lh.error || 'load_timeout';
+      clearTimeout(loadWatchdog);
+      logTime('load_timeout', { src: 'load_event' });
+      flush(false);
+    }
+  }, { once: true, passive: true });
+
+  // Consome se o evento disparou ANTES deste script defer rodar
+  (function() {
+    var lh = window.__checkoutLoadHealth;
+    if (!lh || lh.status === 'loading' || state.load_health.status !== 'loading') return;
+    state.load_health.status   = lh.status;
+    state.load_health.ready_ms = lh.ready_ms != null ? lh.ready_ms : null;
+    state.load_health.error    = lh.error || null;
+    if (lh.status === 'ok') { clearTimeout(loadWatchdog); loadDetected = true; }
+    logTime('checkout_ready', { ms: state.load_health.ready_ms, src: 'early_global' });
+  })();
 
   function watchSkeletonHide() {
     // Suporta dois IDs: 'skeleton' (projeto zero) e 'skeleton-loader' (projeto bom)
