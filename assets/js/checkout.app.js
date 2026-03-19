@@ -594,6 +594,9 @@
             useEffect(() => {
                 const skeleton = document.getElementById('skeleton-loader');
                 if (skeleton) {
+                    // Libera cliques IMEDIATAMENTE — formulário já está montado pelo React
+                    skeleton.style.pointerEvents = 'none';
+                    // Fade visual é só estético, acontece depois sem bloquear ninguém
                     setTimeout(() => {
                         skeleton.style.transition = 'opacity 0.3s ease-out';
                         skeleton.style.opacity = '0';
