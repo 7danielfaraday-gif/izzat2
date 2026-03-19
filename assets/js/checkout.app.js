@@ -63,9 +63,9 @@
             const [formData, setFormData] = useState(() => { 
                 try { 
                     const saved = localStorage.getItem('checkout_safe_data'); 
-                    return saved ? JSON.parse(saved) : { name: '', email: '', phone: '', cpf: '', cep: '', address: '', number: '', city: '' }; 
+                    return saved ? JSON.parse(saved) : { name: '', email: '', phone: '', cep: '', address: '', number: '', city: '' }; 
                 } catch(e) { 
-                    return { name: '', email: '', phone: '', cpf: '', cep: '', address: '', number: '', city: '' }; 
+                    return { name: '', email: '', phone: '', cep: '', address: '', number: '', city: '' }; 
                 } 
             });
             
@@ -85,7 +85,6 @@
             const initialHRef = useRef(window.innerHeight); // Izzat Universal v2.0 — referencial fixo da altura inicial
             
             const { mask: phoneMask, inputRef: phoneInputRef } = useInputMask('phone');
-            const { mask: cpfMask, inputRef: cpfInputRef } = useInputMask('cpf');
             const { mask: cepMask, inputRef: cepInputRef } = useInputMask('cep');
             const fetchingCepRef = useRef(false);
 
@@ -123,7 +122,7 @@
 
             useEffect(() => { 
                 const totalFields = 5; 
-                const filledFields = Object.keys(formData).filter(key => ['name', 'email', 'phone', 'cpf', 'address', 'number'].includes(key) && formData[key]).length;
+                const filledFields = Object.keys(formData).filter(key => ['name', 'email', 'phone', 'address', 'number'].includes(key) && formData[key]).length;
                 const progress = Math.min((filledFields / totalFields) * 100, 100);
                 if (progressRef.current) progressRef.current.style.width = `${progress}%`; 
             }, [formData]);
@@ -226,13 +225,6 @@
                 cursorRef.current = { ref: phoneInputRef, pos: result.cursorPosition };
             };
             
-            const handleCpfChange = (e) => {
-                if (isFormLocked || isSubmitting) return;
-                const { name, value, selectionStart } = e.target;
-                const result = cpfMask.format(value, selectionStart);
-                setFormData(prev => ({...prev, [name]: result.formatted}));
-                cursorRef.current = { ref: cpfInputRef, pos: result.cursorPosition };
-            };
             
             const handleCepChange = (e) => {
                 if (isFormLocked || isSubmitting) return;
@@ -379,22 +371,7 @@
                                         e("input", { ref: phoneInputRef, type: "tel", name: "phone", value: formData.phone, onChange: handlePhoneChange, onBlur: () => handleBlur('phone'), className: `w-full py-3.5 pl-11 pr-4 bg-white border ${validationErrors.phone ? 'border-red-500 bg-red-50/30' : formData.phone && formData.phone.replace(/\D/g, '').length >= 10 ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "(00) 00000-0000", required: true, inputMode: "tel", disabled: isFormLocked || isSubmitting, autoComplete: "tel", maxLength: 20, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false", "aria-invalid": validationErrors.phone ? "true" : "false", "aria-describedby": validationErrors.phone ? "phone-error" : undefined })
                                     ),
                                     validationErrors.phone && e("p", { id: "phone-error", className: "text-red-500 text-xs mt-1 pl-1" }, validationErrors.phone)
-                                ),
-                                e("div", {className: "mb-4"},
-                                    e("label", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wide pl-1 mb-1.5 flex justify-between items-center" }, 
-                                        "CPF",
-                                        e("span", {className: "text-[9px] text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100 normal-case"}, "Necessário para Nota Fiscal")
-                                    ),
-                                    e("div", {className: "relative"},
-                                        e("div", { className: "absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400" }, e(Icons.Shield, {className: "w-5 h-5"})),
-                                        e("input", { ref: cpfInputRef, type: "text", name: "cpf", value: formData.cpf, onChange: handleCpfChange, className: `w-full py-3.5 pl-11 pr-4 bg-white border ${formData.cpf && formData.cpf.replace(/\D/g, '').length === 11 ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-700 text-base shadow-sm placeholder:text-slate-300 outline-none transition-all duration-200`, placeholder: "000.000.000-00", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "off", maxLength: 14, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false" })
-                                    ),
-                                    formData.cpf && e("div", {className: "flex items-center gap-2 mt-1.5 px-1"},
-                                        e("div", {className: "flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden"}, e("div", { className: `h-full rounded-full transition-all duration-500 ${formData.cpf.replace(/\D/g, '').length >= 11 ? 'bg-green-500 w-full' : 'bg-gray-300 w-2/3'}` })),
-                                        e("span", { className: `text-[10px] font-semibold transition-colors ${formData.cpf.replace(/\D/g, '').length >= 11 ? 'text-green-600' : 'text-gray-400'}` }, formData.cpf.replace(/\D/g, '').length >= 11 ? 'CPF Válido' : 'Digitando...')
-                                    )
                                 )
-                            )
                         ),
                         e("div", { className: "bg-white rounded-2xl shadow-[0_2px_15px_rgb(0,0,0,0.03)] border border-slate-100 overflow-hidden" },
                             e("div", { className: "bg-slate-50/50 px-5 py-3 border-b border-slate-100 flex items-center gap-3" }, e("span", { className: "bg-green-600 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shadow-md shadow-green-600/20" }, "2"), e("h3", { className: "text-sm font-bold text-slate-700 uppercase tracking-wide" }, "Entrega")),
