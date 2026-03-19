@@ -1,10 +1,4 @@
-document.addEventListener('DOMContentLoaded', function(){
-    try {
-        if (typeof setupKeyboardDetection === 'function') setupKeyboardDetection();
-        else if (typeof window.setupKeyboardDetection === 'function') window.setupKeyboardDetection();
-    } catch(e) {}
-});
-    
+
     window.initReactCheckout = function() {
         if (window.checkoutInitialized) return;
         if (typeof React === 'undefined' || typeof ReactDOM === 'undefined') {
@@ -88,6 +82,7 @@ document.addEventListener('DOMContentLoaded', function(){
             const hasTrackedStartRef = useRef(false);
             const submitButtonRef = useRef(null);
             const mobileSubmitButtonRef = useRef(null);
+            const initialHRef = useRef(window.innerHeight); // Izzat Universal v2.0 — referencial fixo da altura inicial
             
             const { mask: phoneMask, inputRef: phoneInputRef } = useInputMask('phone');
             const { mask: cpfMask, inputRef: cpfInputRef } = useInputMask('cpf');
