@@ -530,7 +530,9 @@
         
         thumbImg.src = '/assets/img/' + imgName;
         thumbImg.alt = `Miniatura ${i}`;
-        thumbImg.loading = 'lazy';
+        thumbImg.width = 60;
+        thumbImg.height = 60;
+        thumbImg.loading = i <= 4 ? 'eager' : 'lazy';
         
         thumbWrapper.appendChild(thumbImg);
         thumbWrapper.addEventListener('click', () => {
@@ -632,6 +634,126 @@
       }
     }
     
+    // =============================================
+    // IZZAT MODAL SYSTEM (Zero-Redirect, DOM-only)
+    // =============================================
+
+    // --- Shared: Bottom Sheet open/close ---
+    window.__izzatOpenSheet = function(id) {
+        var sheet = document.getElementById(id);
+        if (!sheet) return;
+        sheet.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    };
+    window.__izzatCloseSheet = function(id) {
+        var sheet = document.getElementById(id);
+        if (!sheet) return;
+        sheet.classList.remove('active');
+        // Only restore scroll if no other sheet is open
+        var anyOpen = document.querySelector('.izzat-bottomsheet.active, .izzat-overlay.active');
+        if (!anyOpen) document.body.style.overflow = '';
+    };
+
+    // --- Task 1: Lightbox for review images ---
+    (function initLightbox() {
+        var overlay = document.getElementById('izzat-lightbox');
+        var lightboxImg = document.getElementById('lightbox-img');
+        var closeBtn = document.getElementById('lightbox-close');
+        if (!overlay || !lightboxImg) return;
+
+        function openLightbox(src) {
+            lightboxImg.src = src;
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeLightbox() {
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+            // Delay src clear to let transition finish
+            setTimeout(function(){ lightboxImg.src = ''; }, 300);
+        }
+
+        // Delegate click on all review images
+        document.querySelectorAll('.review-image img').forEach(function(img) {
+            img.style.cursor = 'zoom-in';
+            img.addEventListener('click', function(e) {
+                e.stopPropagation();
+                openLightbox(this.src);
+            });
+        });
+
+        // Close on backdrop click (anything that's not the image)
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay || e.target === closeBtn || closeBtn.contains(e.target)) {
+                closeLightbox();
+            }
+        });
+        closeBtn.addEventListener('click', closeLightbox);
+    })();
+
+    // --- Task 3: Trust / Social Proof Bottom Sheet ---
+    (function initTrustSheet() {
+        var trigger = document.getElementById('seller-trust-trigger');
+        var sheetId = 'izzat-trust-sheet';
+        var backdrop = document.getElementById('trust-sheet-backdrop');
+        var closeBtn = document.getElementById('trust-sheet-close');
+        if (!trigger) return;
+
+        trigger.addEventListener('click', function() {
+            window.__izzatOpenSheet(sheetId);
+        });
+        if (backdrop) backdrop.addEventListener('click', function() {
+            window.__izzatCloseSheet(sheetId);
+        });
+        if (closeBtn) closeBtn.addEventListener('click', function() {
+            window.__izzatCloseSheet(sheetId);
+        });
+    })();
+
+    // --- Task 4: Options Menu Bottom Sheet ---
+    (function initMenuSheet() {
+        var trigger = document.getElementById('header-menu-trigger');
+        var sheetId = 'izzat-menu-sheet';
+        var backdrop = document.getElementById('menu-sheet-backdrop');
+        var closeBtn = document.getElementById('menu-sheet-close');
+        if (!trigger) return;
+
+        trigger.addEventListener('click', function() {
+            window.__izzatOpenSheet(sheetId);
+        });
+        if (backdrop) backdrop.addEventListener('click', function() {
+            window.__izzatCloseSheet(sheetId);
+        });
+        if (closeBtn) closeBtn.addEventListener('click', function() {
+            window.__izzatCloseSheet(sheetId);
+        });
+    })();
+
+    // Menu navigation handler (opens in-page or new tab for legal pages)
+    window.__izzatMenuNav = function(href) {
+        window.__izzatCloseSheet('izzat-menu-sheet');
+        // Small delay to let sheet close animation finish
+        setTimeout(function() {
+            window.location.href = href;
+        }, 200);
+    };
+
+    // --- Universal: Close all modals on Escape key ---
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            var lightbox = document.getElementById('izzat-lightbox');
+            if (lightbox && lightbox.classList.contains('active')) {
+                lightbox.classList.remove('active');
+                document.body.style.overflow = '';
+                return;
+            }
+            document.querySelectorAll('.izzat-bottomsheet.active').forEach(function(sheet) {
+                sheet.classList.remove('active');
+            });
+            document.body.style.overflow = '';
+        }
+    });
+
     // Pop-up de Vendas
     const buyers = [
         { name: "Fernanda Maia", city: "Rio de Janeiro, RJ", img: "/assets/img/foto1.webp" },
@@ -659,6 +781,14 @@
         const actionEl = document.getElementById('popup-action');
 
         if (!popup) return;
+
+        // Desktop: position popup relative to container's actual screen position
+        var container = document.querySelector('.container');
+        if (container && window.innerWidth > 480) {
+            var rect = container.getBoundingClientRect();
+            popup.style.left = (rect.left + 10) + 'px';
+            popup.style.maxWidth = Math.min(rect.width - 20, 460) + 'px';
+        }
 
         const randomBuyer = buyers[Math.floor(Math.random() * buyers.length)];
         const randomAction = actions[Math.floor(Math.random() * actions.length)];
