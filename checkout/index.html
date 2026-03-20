@@ -233,7 +233,76 @@
     }
     window.generateEventId = generateEventId;
 
-    window.trackPixel = function() {};
+    // ── TikTok Pixel helpers ────────────────────────────────────────────────
+    function _ck_getCookie(name) {
+        var m = document.cookie.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]*)'));
+        return m ? m[1] : null;
+    }
+    function _ck_setCookie(name, value, days) {
+        var exp = '';
+        if (days) { var d = new Date(); d.setTime(d.getTime() + days*86400000); exp = '; expires=' + d.toUTCString(); }
+        document.cookie = name + '=' + (value || '') + exp + '; path=/; SameSite=Lax';
+    }
+    function _ck_getExternalId() {
+        var eid = localStorage.getItem('user_external_id') || _ck_getCookie('user_external_id');
+        if (!eid) { eid = 'user_' + Math.random().toString(36).substr(2,9) + '_' + Date.now(); localStorage.setItem('user_external_id', eid); _ck_setCookie('user_external_id', eid, 365); }
+        return eid;
+    }
+    function _ck_getTTCLID() {
+        var p = new URLSearchParams(window.location.search); var c = p.get('ttclid');
+        if (c) { _ck_setCookie('ttclid', c, 90); localStorage.setItem('ttclid', c); }
+        else { c = localStorage.getItem('ttclid') || _ck_getCookie('ttclid'); }
+        return c;
+    }
+    function _ck_getTTP() { var m = document.cookie.match(/(?:^|;\s*)_ttp=([^;]*)/); return m ? m[1] : undefined; }
+    function _ck_getStoredUTMs() {
+        var keys = ['utm_source','utm_medium','utm_campaign','utm_term','utm_content'], out = {};
+        keys.forEach(function(k){ var v = _ck_getCookie(k); if(v) out[k]=v; });
+        return out;
+    }
+    function _ck_sendServerEvent(event, payload) {
+        try {
+            var eventId = (payload && payload.event_id) || generateEventId();
+            var body = JSON.stringify({
+                event: event,
+                event_id: eventId,
+                properties: payload || {},
+                user: {
+                    email:       payload && payload.email       ? payload.email       : undefined,
+                    phone_number:payload && payload.phone       ? payload.phone       : undefined,
+                    external_id: payload && payload.external_id ? payload.external_id : _ck_getExternalId(),
+                    ttclid:      payload && payload.ttclid      ? payload.ttclid      : _ck_getTTCLID(),
+                    ttp:         _ck_getTTP()
+                }
+            });
+            if (navigator.sendBeacon) { navigator.sendBeacon('/api/tiktok-events', new Blob([body], {type:'application/json'})); }
+            else { fetch('/api/tiktok-events', {method:'POST', headers:{'content-type':'application/json'}, body:body, keepalive:true}).catch(function(){}); }
+        } catch(_) {}
+    }
+
+    window.trackPixel = function(event, data) {
+        try {
+            data = data || {};
+            var savedEmail = localStorage.getItem('user_hashed_email');
+            var savedPhone = localStorage.getItem('user_hashed_phone');
+            var eventId = data.event_id || generateEventId();
+            var payload = Object.assign({}, data, _ck_getStoredUTMs(), {
+                event_id:         eventId,
+                external_id:      _ck_getExternalId(),
+                ttclid:           _ck_getTTCLID(),
+                event_time:       Math.floor(Date.now() / 1000),
+                event_source_url: (function(){ try { var u=new URL(window.location.href); u.protocol='https:'; u.host='lojaizzat.shop'; return u.toString(); } catch(_){ return 'https://lojaizzat.shop/checkout/'; } })()
+            });
+            if (savedEmail && !payload.email) payload.email = savedEmail;
+            if (savedPhone && !payload.phone) payload.phone = savedPhone;
+            // Browser pixel
+            if (window.ttq && typeof window.ttq.track === 'function') {
+                try { var bp = Object.assign({}, payload); delete bp.event_id; window.ttq.track(event, bp, {event_id: eventId}); } catch(_) {}
+            }
+            // Server-side CAPI
+            _ck_sendServerEvent(event, payload);
+        } catch(err) { console.error('[trackPixel]', err); }
+    };
     window.loadAnalytics = function() {};
 
     const PRODUCT_CONTENT = { 
