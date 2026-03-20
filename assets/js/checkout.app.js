@@ -110,14 +110,28 @@
                     window.scrollTo(0, 0); 
                     trackEvent('ViewContent', { ...window.PRODUCT_CONTENT, event_id: window.generateEventId(), content_name: PRODUCT_INFO.name }); 
                 } catch(e) {} 
-                
-                const icId = window.generateEventId ? window.generateEventId() : 'evt_'+Date.now(); 
-                trackEvent('InitiateCheckout', { ...window.PRODUCT_CONTENT, content_name: PRODUCT_INFO.name, event_id: icId }); 
-                
-                const analyticsTimer = setTimeout(() => { if (window.loadAnalytics) window.loadAnalytics(); }, 3500);
+
+                const fireInitiateCheckoutOnFirstScroll = () => {
+                    if (hasTrackedStartRef.current) return;
+                    hasTrackedStartRef.current = true;
+                    const icId = window.generateEventId ? window.generateEventId() : 'evt_' + Date.now();
+                    trackEvent('InitiateCheckout', { ...window.PRODUCT_CONTENT, content_name: PRODUCT_INFO.name, event_id: icId });
+                };
+
+                const onFirstScroll = () => {
+                    fireInitiateCheckoutOnFirstScroll();
+                    window.removeEventListener('scroll', onFirstScroll);
+                };
+
+                if (window.scrollY > 0) fireInitiateCheckoutOnFirstScroll();
+                else window.addEventListener('scroll', onFirstScroll, { passive: true });
+
                 const timerInterval = setInterval(() => { setTimeLeft(prev => prev > 0 ? prev - 1 : 0); }, 1000);
 
-                return () => { clearTimeout(analyticsTimer); clearInterval(timerInterval); }
+                return () => { 
+                    window.removeEventListener('scroll', onFirstScroll);
+                    clearInterval(timerInterval); 
+                }
             }, []);
 
             useEffect(() => { 
@@ -324,7 +338,7 @@
                     }, className: `flex items-center text-slate-400 hover:text-slate-600 transition-colors p-3 -ml-3 btn-tactile ${isFormLocked ? 'opacity-50 cursor-not-allowed' : ''}`, "aria-label": "Voltar", disabled: isFormLocked || isSubmitting }, 
                         e("svg", { className: "w-6 h-6", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, e("polyline", {points: "15 18 9 12 15 6"}))
                     ),
-                    e("img", { src: "assets/img/logo.webp", alt: "Logo", className: "h-8 w-auto object-contain", onError: (ev) => { try { const img = ev.target; if(!img.dataset.fallback){ img.dataset.fallback='1'; img.src = "/assets/img/logo.webp"; } } catch(e) {} } }),
+                    e("img", { src: "/assets/img/logo.webp", alt: "Logo", className: "h-8 w-auto object-contain", onError: (ev) => { try { const img = ev.target; if(!img.dataset.fallback){ img.dataset.fallback='1'; img.src = "/assets/img/logo.webp"; } } catch(e) {} } }),
                     e("div", {className: "w-12"})
                 ),
                 e("div", { className: "max-w-[500px] lg:max-w-5xl mx-auto p-4 lg:px-8 pt-6 space-y-4 lg:space-y-0 lg:grid lg:grid-cols-12 lg:gap-10 lg:items-start" },
