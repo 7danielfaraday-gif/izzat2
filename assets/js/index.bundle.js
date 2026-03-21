@@ -1,5 +1,5 @@
 // ==================================================
-    // 1. TRACKING ZARAZ + TIKTOK TURBO (BEACON + FINGERPRINT)
+    // 1. TRACKING TIKTOK TURBO (BEACON + FINGERPRINT)
     // ==================================================
     
     // Dados do Produto
@@ -185,8 +185,8 @@
         }
     }
 
-    // --- FUNÇÃO DE DISPARO HÍBRIDA (ZARAZ + MANUAL + BEACON) ---
-    function trackViaZaraz(event, data = {}, useBeacon = false) {
+    // --- FUNÇÃO DE DISPARO (BROWSER-SIDE + CAPI) ---
+    function trackEvent(event, data = {}, useBeacon = false) {
         try {
             // Tenta recuperar dados de usuário salvos (Sessão anterior persistente)
             const savedEmail = localStorage.getItem('user_hashed_email');
@@ -219,18 +219,6 @@
                 }
             }
 
-            // 2. DISPARO ZARAZ (Server-Side)
-            window.__zarazQueue = window.__zarazQueue || [];
-            if (window.zaraz && window.zaraz.track) {
-                window.zaraz.track(event, payload);
-            } else {
-                window.__zarazQueue.push({ event: event, payload: payload });
-            }
-            
-            // 3. BEACON FALLBACK (A Prova de Falhas para Mobile)
-            // Se o Zaraz falhar ou a página fechar, enviamos um sinal direto se tiver endpoint configurado
-            // (Nota: Isso é uma implementação avançada, mantida simples aqui para não quebrar sem backend próprio)
-            
         } catch (error) {
             console.error('Tracking Error:', error);
         }
@@ -238,22 +226,6 @@
 
 
 
-    // Garante envio server-side assim que o Zaraz estiver disponível (muito comum no TikTok In-App)
-    (function zarazQueueFlusher(){
-        var tries = 0;
-        var timer = setInterval(function(){
-            tries++;
-            if (window.zaraz && window.zaraz.track && window.__zarazQueue && window.__zarazQueue.length) {
-                var q = window.__zarazQueue.splice(0, window.__zarazQueue.length);
-                for (var i = 0; i < q.length; i++) {
-                    try { window.zaraz.track(q[i].event, q[i].payload); } catch(e) {}
-                }
-            }
-            if (tries > 60 || ((window.zaraz && window.zaraz.track) && (!window.__zarazQueue || window.__zarazQueue.length === 0))) {
-                clearInterval(timer);
-            }
-        }, 500);
-    })();
 
     // --- TRIGGERS ---
 
@@ -352,7 +324,7 @@
         // Tracking sem bloquear a navegação
         btn.addEventListener('click', () => {
             try {
-                trackViaZaraz('AddToCart', {
+                trackEvent('AddToCart', {
                     ...PRODUCT_CONTENT,
                     event_id: generateEventId()
                 }, true);
@@ -370,7 +342,7 @@
         const scrollPercentage = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight * 100;
         if (scrollPercentage >= 50) {
             scroll50Fired = true;
-            trackViaZaraz('ScrollDepth', {
+            trackEvent('ScrollDepth', {
                 event_id: generateEventId(),
                 depth: '50%'
             });
@@ -489,8 +461,8 @@
       viewReviewsBtn.addEventListener('click', (e) => {
         
         // Dispara evento de interesse
-        if(window.trackViaZaraz) {
-            window.trackViaZaraz('Check_Reviews', { event_id: window.generateEventId() });
+        if(window.trackEvent) {
+            window.trackEvent('Check_Reviews', { event_id: window.generateEventId() });
         }
 
         // Envolve em requestAnimationFrame para não bloquear o clique inicial
@@ -627,9 +599,9 @@
         else window.changeImage(-1); // Swipe Direita -> Anterior
         
         // ⭐️ NOVO: Rastreia interação com galeria (Micro-Conversão)
-        if (!galleryEventFired && window.trackViaZaraz) {
+        if (!galleryEventFired && window.trackEvent) {
             galleryEventFired = true;
-            window.trackViaZaraz('Interact_Gallery', { event_id: window.generateEventId() });
+            window.trackEvent('Interact_Gallery', { event_id: window.generateEventId() });
         }
       }
     }
