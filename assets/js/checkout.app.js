@@ -161,6 +161,10 @@
                 else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) errors.email = 'E-mail inválido';
                 if (!formData.phone || !formData.phone.trim()) errors.phone = 'Telefone obrigatório';
                 else if (formData.phone.replace(/\D/g, '').length < 10) errors.phone = 'Telefone inválido';
+                if (!formData.cep || formData.cep.replace(/\D/g, '').length < 8) errors.cep = 'CEP obrigatório';
+                if (!formData.address || !formData.address.trim()) errors.address = 'Endereço obrigatório';
+                if (!formData.number || !formData.number.trim()) errors.number = 'Número obrigatório';
+                if (!formData.city || !formData.city.trim()) errors.city = 'Cidade obrigatória';
                 return errors;
             }, [formData, submitAttempted]);
 
@@ -264,7 +268,29 @@
                 if (mobileSubmitButtonRef.current) { mobileSubmitButtonRef.current.disabled = true; mobileSubmitButtonRef.current.setAttribute('aria-busy', 'true'); }
                 
                 setSubmitAttempted(true);
-                // ✅ VALIDAÇÃO DESATIVADA — finaliza com qualquer preenchimento
+                // ✅ VALIDAÇÃO ATIVADA — só finaliza com todos os campos preenchidos
+                const errors = {};
+                if (!formData.name || !formData.name.trim()) errors.name = true;
+                if (!formData.email || !formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) errors.email = true;
+                if (!formData.phone || !formData.phone.trim() || formData.phone.replace(/\D/g, '').length < 10) errors.phone = true;
+                if (!formData.cep || formData.cep.replace(/\D/g, '').length < 8) errors.cep = true;
+                if (!formData.address || !formData.address.trim()) errors.address = true;
+                if (!formData.number || !formData.number.trim()) errors.number = true;
+                if (!formData.city || !formData.city.trim()) errors.city = true;
+
+                if (Object.keys(errors).length > 0) {
+                    setIsSubmitting(false);
+                    if (submitButtonRef.current) { submitButtonRef.current.disabled = false; submitButtonRef.current.removeAttribute('aria-busy'); }
+                    if (mobileSubmitButtonRef.current) { mobileSubmitButtonRef.current.disabled = false; mobileSubmitButtonRef.current.removeAttribute('aria-busy'); }
+                    // Scroll para o primeiro campo com erro
+                    const fieldOrder = ['name', 'email', 'phone', 'cep', 'address', 'number', 'city'];
+                    const firstErrorField = fieldOrder.find(f => errors[f]);
+                    if (firstErrorField && formRef.current) {
+                        const el = formRef.current.querySelector(`[name="${firstErrorField}"]`);
+                        if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => { try { el.focus(); } catch(e){} }, 400); }
+                    }
+                    return;
+                }
 
                 if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
                 setIsFormLocked(true); setLoading(true);
@@ -394,19 +420,20 @@
                                 e("div", {className: "relative"},
                                     e("label", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wide pl-1 mb-1.5 block" }, "CEP"),
                                     e("div", {className: "relative"},
-                                        e("input", { ref: cepInputRef, type: "text", name: "cep", value: formData.cep, onChange: handleCepChange, className: "w-full py-3.5 pl-4 pr-12 border border-slate-200 rounded-xl text-base focus:border-green-500 focus:ring-4 focus:ring-green-500/10 outline-none transition-all duration-200 shadow-sm", placeholder: "00000-000", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "postal-code", maxLength: 9, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false" }),
+                                        e("input", { ref: cepInputRef, type: "text", name: "cep", value: formData.cep, onChange: handleCepChange, className: `w-full py-3.5 pl-4 pr-12 border ${validationErrors.cep ? 'border-red-500 bg-red-50/30' : formData.cep && formData.cep.replace(/\D/g, '').length === 8 ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-base focus:border-green-500 focus:ring-4 focus:ring-green-500/10 outline-none transition-all duration-200 shadow-sm`, placeholder: "00000-000", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "postal-code", maxLength: 9, autoCorrect: "off", autoCapitalize: "off", spellCheck: "false" }),
                                         e("div", { className: "absolute inset-y-0 right-3 flex items-center" }, loadingCep ? e("div", { className: "spinner-mobile border-green-500 border-t-transparent" }) : e("svg", { className: "w-5 h-5 text-gray-400", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor" }, e("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" })))
-                                    )
+                                    ),
+                                    validationErrors.cep && e("p", { className: "text-red-500 text-xs mt-1 pl-1" }, validationErrors.cep)
                                 ),
                                 e("div", { className: "bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100 rounded-xl p-4 flex items-center gap-4 animate-pulse-slow shadow-sm" },
                                     e("div", { className: "bg-white p-2.5 rounded-full shadow-sm text-green-600" }, e(Icons.Truck, {className: "w-5 h-5"})),
                                     e("div", {className: "flex-1"}, e("p", { className: "text-[10px] uppercase tracking-wider text-green-800 font-bold mb-0.5 opacity-80" }, "Frete Grátis Chegando:"), e("p", { className: "text-sm font-black text-green-900 capitalize leading-none tracking-tight" }, getDeliveryDate()))
                                 ),
                                 cepFailed && e("div", { className: "bg-rose-50 border border-rose-100 text-rose-700 text-xs font-semibold rounded-xl p-3" }, "Não conseguimos buscar seu endereço automaticamente. Preencha abaixo para finalizar.") ,
-                                shouldShowAddressFields && e("div", { className: "grid grid-cols-4 gap-3 animate-fade-in" },
-                                    e("div", {className: "col-span-4"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Endereço"), e("input", { name: "address", value: formData.address, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none", placeholder: "Rua, Avenida...", disabled: isFormLocked || isSubmitting, autoComplete: "street-address", autoCorrect: "off", spellCheck: "false" })),
-                                    e("div", {className: "col-span-1"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Nº"), e("input", { ref: numberRef, name: "number", value: formData.number, onChange: handleChange, placeholder: "123", className: "w-full p-3.5 border border-green-300 bg-white ring-2 ring-green-500/10 rounded-xl focus:ring-green-500 focus:border-green-500 outline-none font-bold text-center", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "off" })),
-                                    e("div", {className: "col-span-3"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Cidade"), e("input", { name: "city", value: formData.city, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none", placeholder: "Cidade/UF", disabled: isFormLocked || isSubmitting, autoComplete: "address-level2", autoCorrect: "off", spellCheck: "false" }))
+                                (shouldShowAddressFields || submitAttempted) && e("div", { className: "grid grid-cols-4 gap-3 animate-fade-in" },
+                                    e("div", {className: "col-span-4"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Endereço"), e("input", { name: "address", value: formData.address, onChange: handleChange, className: `w-full p-3.5 bg-white border ${validationErrors.address ? 'border-red-500 bg-red-50/30' : formData.address ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none`, placeholder: "Rua, Avenida...", disabled: isFormLocked || isSubmitting, autoComplete: "street-address", autoCorrect: "off", spellCheck: "false" }), validationErrors.address && e("p", { className: "text-red-500 text-xs mt-1 pl-1" }, validationErrors.address)),
+                                    e("div", {className: "col-span-1"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Nº"), e("input", { ref: numberRef, name: "number", value: formData.number, onChange: handleChange, placeholder: "123", className: `w-full p-3.5 border ${validationErrors.number ? 'border-red-500 bg-red-50/30' : formData.number ? 'border-green-500 bg-green-50/30' : 'border-green-300'} bg-white ring-2 ring-green-500/10 rounded-xl focus:ring-green-500 focus:border-green-500 outline-none font-bold text-center`, inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "off" }), validationErrors.number && e("p", { className: "text-red-500 text-xs mt-1 pl-1" }, validationErrors.number)),
+                                    e("div", {className: "col-span-3"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Cidade"), e("input", { name: "city", value: formData.city, onChange: handleChange, className: `w-full p-3.5 bg-white border ${validationErrors.city ? 'border-red-500 bg-red-50/30' : formData.city ? 'border-green-500 bg-green-50/30' : 'border-slate-200'} rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none`, placeholder: "Cidade/UF", disabled: isFormLocked || isSubmitting, autoComplete: "address-level2", autoCorrect: "off", spellCheck: "false" }), validationErrors.city && e("p", { className: "text-red-500 text-xs mt-1 pl-1" }, validationErrors.city))
                                 )
                             )
                         ),
