@@ -286,13 +286,13 @@
         });
     });
 
-    // 2. ViewContent Inteligente
+    // 2. ViewContent Inteligente (Browser Pixel + CAPI Server-Side)
     var viewContentFired = false;
     function fireViewContent() {
         if (viewContentFired) return;
         viewContentFired = true;
 
-        trackViaZaraz('ViewContent', {
+        trackPixelAndCAPI('ViewContent', {
             ...PRODUCT_CONTENT,
             event_id: generateEventId()
         });
