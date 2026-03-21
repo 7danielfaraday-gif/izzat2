@@ -465,7 +465,6 @@
                                 e("button", { ref: submitButtonRef, disabled: loading || isFormLocked || isSubmitting, type: "submit", className: `w-full mt-6 bg-gradient-to-r from-green-600 to-green-700 text-white font-bold py-4 rounded-xl text-lg transition-all active:scale-[0.98] flex justify-center items-center gap-2 shadow-xl shadow-green-500/30 ${loading || isFormLocked || isSubmitting ? 'opacity-80 grayscale cursor-not-allowed' : (!isFormValid ? 'opacity-60 cursor-not-allowed grayscale' : 'hover:shadow-green-500/50 hover:-translate-y-0.5')} btn-tactile min-h-[56px]`, "aria-busy": loading }, 
                                     loading ? e("span", {className: "flex items-center gap-2"}, e("div", { className: "spinner-mobile" }), "Processando...") : e("span", {className: "flex items-center gap-2"}, "FINALIZAR COM DESCONTO", e("svg", { className: "w-5 h-5", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3" }, e("polyline", {points: "9 18 15 12 9 6"})))
                                 ),
-                                e("div", {className: "text-center mt-3.5"}, e("span", { className: "text-[11px] text-slate-400 font-normal flex justify-center items-center gap-1.5" }, "Ambiente criptografado e 100% seguro."))
                             )
                         )
                     ),
@@ -479,7 +478,6 @@
                         className: `w-full bg-gradient-to-r from-green-600 to-green-700 text-white font-bold py-4 rounded-xl text-lg transition-all active:scale-[0.98] flex justify-center items-center gap-2 shadow-xl shadow-green-500/30 ${loading || isFormLocked || isSubmitting ? 'opacity-80 grayscale cursor-not-allowed' : (!isFormValid ? 'opacity-60 cursor-not-allowed grayscale' : 'hover:shadow-green-500/50')} btn-tactile min-h-[56px]`, "aria-busy": loading }, 
                         loading ? e("span", {className: "flex items-center gap-2"}, e("div", { className: "spinner-mobile" }), "Processando...") : e("span", {className: "flex items-center gap-2"}, "FINALIZAR COM DESCONTO", e("svg", { className: "w-5 h-5", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3" }, e("polyline", {points: "9 18 15 12 9 6"})))
                     ),
-                    e("div", {className: "text-center mt-3.5"}, e("span", { className: "text-[11px] text-slate-400 font-normal flex justify-center items-center gap-1.5" }, "Ambiente criptografado e 100% seguro."))
                 ),
                 e("div", { className: "h-24 md:h-16 lg:h-20 flex flex-col items-center justify-center gap-2" },
                     e("div", { className: "flex justify-center items-center gap-6" },
