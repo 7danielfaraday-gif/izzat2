@@ -1077,6 +1077,39 @@ Suas informações de pagamento são processadas com segurança. Não armazenamo
 })();
 </script>
 <style>@keyframes chatDot{0%,80%,100%{opacity:.3;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}</style>
+<script>
+(function(){
+  var chatModal,startX=0,currentX=0,dragging=false;
+  function init(){
+    chatModal=document.getElementById('chat-modal');
+    if(!chatModal)return;
+    chatModal.addEventListener('touchstart',function(e){
+      startX=e.touches[0].clientX;currentX=0;dragging=true;
+    },{passive:true});
+    chatModal.addEventListener('touchmove',function(e){
+      if(!dragging)return;
+      currentX=e.touches[0].clientX-startX;
+      if(currentX<0)currentX=0;
+      chatModal.style.transform='translateX('+currentX+'px)';
+      chatModal.style.transition='none';
+    },{passive:true});
+    chatModal.addEventListener('touchend',function(){
+      if(!dragging)return;
+      dragging=false;
+      if(currentX>100){
+        chatModal.style.transition='transform .25s ease-out';
+        chatModal.style.transform='translateX(100%)';
+        setTimeout(function(){chatModal.classList.remove('active');chatModal.style.transform='';chatModal.style.transition='';},250);
+      }else{
+        chatModal.style.transition='transform .2s ease-out';
+        chatModal.style.transform='translateX(0)';
+      }
+    },{passive:true});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
+  else init();
+})();
+</script>
 
 <footer class="footer">
 ...

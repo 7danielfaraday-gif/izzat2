@@ -444,32 +444,38 @@
         if (!done) { done = true; cityEl.textContent = fallback; }
       }, 3000);
 
-      // Tenta API primária
-      fetch('https://freeipapi.com/api/json', { signal: AbortSignal.timeout ? AbortSignal.timeout(3000) : undefined })
+      function updateCity(city, region) {
+        if (done) return;
+        done = true; clearTimeout(timer);
+        cityEl.textContent = 'Envio para ' + city + ', ' + region;
+        var mc = document.getElementById('shipping-modal-city');
+        if (mc) mc.textContent = city + ', ' + region + ', Brasil';
+      }
+
+      // Tenta múltiplas APIs em paralelo
+      // API 1: freeipapi
+      fetch('https://freeipapi.com/api/json')
         .then(function(r) { return r.json(); })
         .then(function(data) {
-          if (!done && data.cityName && data.regionName) {
-            done = true; clearTimeout(timer);
-            cityEl.textContent = 'Envio para ' + data.cityName + ', ' + data.regionName;
-            var mc = document.getElementById('shipping-modal-city');
-            if (mc) mc.textContent = data.cityName + ', ' + data.regionName + ', Brasil';
-          }
+          if (data.cityName && data.regionName) updateCity(data.cityName, data.regionName);
+        })
+        .catch(function() {});
+
+      // API 2: ipapi.co
+      fetch('https://ipapi.co/json/')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.city && data.region) updateCity(data.city, data.region);
+        })
+        .catch(function() {});
+
+      // API 3: ip-api.com (funciona em HTTP)
+      fetch('https://ipwho.is/')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.city && data.region) updateCity(data.city, data.region);
         })
         .catch(function() {
-          // Tenta API secundária
-          fetch('https://ipapi.co/json/')
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-              if (!done && data.city && data.region) {
-                done = true; clearTimeout(timer);
-                cityEl.textContent = 'Envio para ' + data.city + ', ' + data.region;
-                var mc2 = document.getElementById('shipping-modal-city');
-                if (mc2) mc2.textContent = data.city + ', ' + data.region + ', Brasil';
-              }
-            })
-            .catch(function() {
-              if (!done) { done = true; clearTimeout(timer); cityEl.textContent = fallback; }
-            });
         });
     }
     updateShippingLocation();
