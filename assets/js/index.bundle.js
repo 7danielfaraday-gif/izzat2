@@ -383,12 +383,12 @@
       const countdownEl = document.getElementById('countdown-timer');
       if (!countdownEl) return;
       
-      // Tenta recuperar o tempo do localStorage ou usa 300 (5 min)
+      // Tenta recuperar o tempo do localStorage ou usa 900 (15 min)
       let savedTime = localStorage.getItem('offer_timer_v2');
-      let timeLeft = savedTime ? parseInt(savedTime) : 300;
-      
+      let timeLeft = savedTime ? parseInt(savedTime) : 900;
+
       // Se o tempo acabou ou é inválido, reseta
-      if(isNaN(timeLeft) || timeLeft <= 0) timeLeft = 300;
+      if(isNaN(timeLeft) || timeLeft <= 0) timeLeft = 900;
 
       const updateDisplay = () => {
           const minutes = Math.floor(timeLeft / 60);
@@ -401,7 +401,7 @@
       const timerInterval = setInterval(() => {
         if (timeLeft <= 0) {
           // Quando acaba, reinicia discretamente para manter a pressão (loop infinito sutil)
-          timeLeft = 300; 
+          timeLeft = 900;
         } else {
           timeLeft--;
         }
