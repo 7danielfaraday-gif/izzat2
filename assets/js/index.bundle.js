@@ -428,6 +428,26 @@
       shippingEl.textContent = `Receba entre ${startDate} e ${endDate}`;
     }
 
+    // Geolocalização do cliente via IP
+    function updateShippingLocation() {
+      const cityEl = document.getElementById('shipping-city');
+      if (!cityEl) return;
+
+      fetch('https://ipapi.co/json/')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.city && data.region) {
+            cityEl.textContent = 'Envio para ' + data.city + ', ' + data.region;
+          } else {
+            cityEl.textContent = 'Envio para todo o Brasil';
+          }
+        })
+        .catch(function() {
+          cityEl.textContent = 'Envio para todo o Brasil';
+        });
+    }
+    updateShippingLocation();
+
     // Galeria de Imagens
     const totalImages = 8;
     const variantStartIndex = {
@@ -645,13 +665,17 @@
             setTimeout(function(){ lightboxImg.src = ''; }, 300);
         }
 
-        // Delegate click on all review images
+        // Delegate click on all review images (including dynamically loaded)
+        document.addEventListener('click', function(e) {
+            var img = e.target.closest('.review-image img');
+            if (img) {
+                e.stopPropagation();
+                openLightbox(img.src);
+            }
+        });
+        // Set cursor on existing images
         document.querySelectorAll('.review-image img').forEach(function(img) {
             img.style.cursor = 'zoom-in';
-            img.addEventListener('click', function(e) {
-                e.stopPropagation();
-                openLightbox(this.src);
-            });
         });
 
         // Close on backdrop click (anything that's not the image)
@@ -777,10 +801,12 @@
         }, 4000);
     }
 
-    setTimeout(() => {
-        showSalesPopup();
-        setInterval(showSalesPopup, 10000); 
-    }, 3000);
+    if (!sessionStorage.getItem('izzat_popup_shown')) {
+        setTimeout(() => {
+            showSalesPopup();
+            sessionStorage.setItem('izzat_popup_shown', '1');
+        }, 3000);
+    }
     
   });
 
