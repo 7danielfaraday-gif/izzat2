@@ -426,6 +426,9 @@
       const startDate = getDeliveryDate(3);
       const endDate = getDeliveryDate(5);
       shippingEl.textContent = `Receba entre ${startDate} e ${endDate}`;
+      var modalDateEl = document.getElementById('shipping-modal-date');
+      if (modalDateEl) modalDateEl.textContent = `Receba até ${startDate} – ${endDate}`;
+
     }
 
     // Geolocalização do cliente via IP (com fallback e timeout)
@@ -448,6 +451,8 @@
           if (!done && data.cityName && data.regionName) {
             done = true; clearTimeout(timer);
             cityEl.textContent = 'Envio para ' + data.cityName + ', ' + data.regionName;
+            var mc = document.getElementById('shipping-modal-city');
+            if (mc) mc.textContent = data.cityName + ', ' + data.regionName + ', Brasil';
           }
         })
         .catch(function() {
@@ -458,6 +463,8 @@
               if (!done && data.city && data.region) {
                 done = true; clearTimeout(timer);
                 cityEl.textContent = 'Envio para ' + data.city + ', ' + data.region;
+                var mc2 = document.getElementById('shipping-modal-city');
+                if (mc2) mc2.textContent = data.city + ', ' + data.region + ', Brasil';
               }
             })
             .catch(function() {

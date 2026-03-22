@@ -64,33 +64,69 @@
 <div class="image-thumbnails" id="image-thumbnails">
 </div>
 </section>
-<section class="price-section">
-<div class="price-row">
-<div class="price-info">
-<div class="price-main">
-<span style="text-decoration: line-through; color: #ffccaa; font-size: 20px; margin-right: 6px;">R$399</span>
- R$197,99
-                    </div>
-<div class="price-savings">Economize até 71%</div>
+<section style="padding:12px 16px;background:linear-gradient(90deg,#ff6b35,#ff8c42);color:white;">
+<div style="display:flex;align-items:center;justify-content:space-between;">
+<div style="display:flex;align-items:baseline;gap:6px;">
+<span style="text-decoration:line-through;font-size:15px;opacity:0.65;">R$399</span>
+<span style="font-size:24px;font-weight:800;font-family:'TikTokDisplayFont','TikTokFont',sans-serif;">R$197,99</span>
 </div>
-<div class="flash-deal-container">
-<div class="flash-deal-text">
-<svg fill="white" height="16" viewbox="0 0 24 24" width="16">
-<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
-</svg>
-<span>Oferta Relâmpago</span>
+<div style="text-align:right;flex-shrink:0;">
+<div style="display:flex;align-items:center;gap:4px;justify-content:flex-end;">
+<svg fill="white" height="12" width="12" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+<span style="font-size:12px;font-weight:700;">Oferta Relâmpago</span>
 </div>
-<div class="countdown" id="countdown-timer">Termina em 00:05:00</div>
+<div style="font-size:12px;font-weight:600;opacity:0.9;margin-top:2px;" id="countdown-timer">Termina em 00:05:00</div>
 </div>
 </div>
 </section>
-<section class="discount-banner">
+<section class="discount-banner" style="cursor:pointer;" onclick="document.getElementById('price-modal').classList.add('active')">
 <div class="discount-content">
-<span class="discount-badge">Desconto de 90%</span>
-<span class="discount-text">Compre R$ 100,00, economize R$ 30,00</span>
+<span class="discount-badge">Desconto de 50%</span>
+<span class="discount-text">Economize R$ 201,01</span>
 </div>
 <span>›</span>
 </section>
+
+<!-- Modal Detalhes do Preço -->
+<div id="price-modal" style="display:none;position:fixed;inset:0;z-index:9999;align-items:flex-end;justify-content:center;">
+<div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);transition:opacity .3s;" onclick="document.getElementById('price-modal').classList.remove('active')"></div>
+<div data-sheet style="position:relative;width:100%;max-width:480px;background:#fff;border-radius:16px 16px 0 0;z-index:1;transform:translateY(100%);transition:transform .3s ease-out;">
+<div class="modal-drag-handle"></div>
+<!-- Header -->
+<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px 16px;border-bottom:1px solid #f0f0f0;">
+<div style="width:32px;"></div>
+<span style="font-size:16px;font-weight:700;color:#111;">Detalhes do preço</span>
+<button onclick="document.getElementById('price-modal').classList.remove('active')" style="background:none;border:none;cursor:pointer;padding:4px;">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+</button>
+</div>
+<!-- Conteúdo -->
+<div style="padding:24px 20px 32px;">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+<span style="font-size:15px;font-weight:700;color:#111;">Preço original</span>
+<span style="font-size:15px;font-weight:600;color:#111;">R$ 399,00</span>
+</div>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+<span style="font-size:15px;font-weight:700;color:#111;">Promoção</span>
+<span style="font-size:15px;font-weight:600;color:#ff2d55;">-R$ 201,01</span>
+</div>
+<div style="height:1px;background:#f0f0f0;margin-bottom:20px;"></div>
+<div style="display:flex;justify-content:flex-end;align-items:baseline;gap:8px;margin-bottom:20px;">
+<span style="font-size:15px;font-weight:700;color:#111;">Preço atual</span>
+<span style="font-size:22px;font-weight:800;color:#ff2d55;">R$ 197,99</span>
+</div>
+<div style="text-align:right;">
+<p style="font-size:12px;color:#999;margin-bottom:2px;">Impostos inclusos</p>
+<p style="font-size:12px;color:#999;">O preço final irá variar com base na disponibilidade de desconto</p>
+</div>
+</div>
+</div>
+</div>
+<style>
+#price-modal{display:none !important;}
+#price-modal.active{display:flex !important;}
+#price-modal.active > div:last-child{transform:translateY(0) !important;}
+</style>
 <section class="product-info" style="padding:16px 16px 12px;">
 <h1 class="product-title" style="font-size:17px;font-weight:400;color:#333;line-height:1.4;margin-bottom:10px;">Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI</h1>
 <div class="rating-section" style="display:flex;align-items:center;gap:6px;margin-bottom:0;">
@@ -103,11 +139,11 @@
 </section>
 <section class="shipping-info" style="padding:0;border-top:1px solid #f0f0f0;background:#fff;">
 <div style="padding:14px 16px;display:flex;flex-direction:column;gap:14px;">
-<!-- Entrega Full -->
-<div style="display:flex;align-items:flex-start;gap:12px;">
+<!-- Entrega Full (clicável) -->
+<div id="shipping-trigger" role="button" tabindex="0" style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;" onclick="document.getElementById('shipping-modal').classList.add('active')">
 <div style="flex:1;">
 <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
-<span style="font-size:14px;font-weight:700;color:#00b4d8;">FULL</span>
+<span style="font-size:14px;font-weight:700;color:#f97316;">FULL</span>
 <span style="font-size:14px;font-weight:600;color:#111;">Entrega Expressa</span>
 </div>
 <div style="font-size:13px;color:#16a34a;font-weight:600;margin-bottom:2px;" id="shipping-date">Receba até...</div>
@@ -120,7 +156,290 @@
 <span id="shipping-city">Calculando localização...</span>
 </div>
 </div>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:6px;"><polyline points="9 6 15 12 9 18"/></svg>
 </div>
+
+<!-- Modal Envio -->
+<div id="shipping-modal" style="display:none;position:fixed;inset:0;z-index:9999;align-items:flex-end;justify-content:center;">
+<div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);transition:opacity .3s;" onclick="document.getElementById('shipping-modal').classList.remove('active')"></div>
+<div data-sheet style="position:relative;width:100%;max-width:480px;background:#fff;border-radius:16px 16px 0 0;padding:0;z-index:1;transform:translateY(100%);transition:transform .3s ease-out;">
+<div class="modal-drag-handle"></div>
+<!-- Header -->
+<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px 16px;border-bottom:1px solid #f0f0f0;">
+<div style="width:32px;"></div>
+<span style="font-size:16px;font-weight:700;color:#111;">Envio</span>
+<button onclick="document.getElementById('shipping-modal').classList.remove('active')" style="background:none;border:none;cursor:pointer;padding:4px;">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+</button>
+</div>
+<!-- Conteúdo -->
+<div style="padding:20px;">
+<!-- De -->
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+<span style="font-size:14px;color:#555;">De <strong style="color:#111;">São Paulo</strong></span>
+</div>
+<!-- Seta -->
+<div style="padding:2px 0 2px 8px;">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+</div>
+<!-- Para (clicável para mudar localização) -->
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;cursor:pointer;" onclick="document.getElementById('location-modal').classList.add('active')" role="button" tabindex="0">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+<span style="font-size:14px;color:#555;" id="shipping-modal-city">São Paulo, São Paulo, Brasil</span>
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:auto;flex-shrink:0;"><polyline points="9 6 15 12 9 18"/></svg>
+</div>
+<!-- Separador -->
+<div style="height:1px;background:#f0f0f0;margin-bottom:16px;"></div>
+<!-- Envio padrão -->
+<div style="display:flex;justify-content:space-between;align-items:flex-start;">
+<div>
+<div style="font-size:15px;font-weight:700;color:#111;margin-bottom:2px;">Envio padrão</div>
+<div style="font-size:13px;color:#888;" id="shipping-modal-date">Receba até...</div>
+</div>
+<div style="font-size:15px;font-weight:700;color:#16a34a;">Grátis</div>
+</div>
+</div>
+</div>
+</div>
+<style>
+#shipping-modal{display:none !important;}
+#shipping-modal.active{display:flex !important;}
+#shipping-modal.active > div:last-child{transform:translateY(0) !important;}
+#location-modal{display:none !important;}
+#location-modal.active{display:flex !important;}
+#location-modal.active > div:last-child{transform:translateY(0) !important;}
+.modal-drag-handle{width:36px;height:4px;background:#ddd;border-radius:4px;margin:8px auto 0;}
+body.modal-open{overflow:hidden !important;touch-action:none;}
+</style>
+<script>
+(function(){
+  function lockBody(){
+    document.body.classList.add('modal-open');
+  }
+  function unlockBody(){
+    document.body.classList.remove('modal-open');
+  }
+  // Watch modals for active class
+  function watchModal(id){
+    var el=document.getElementById(id);
+    if(!el)return;
+    var obs=new MutationObserver(function(){
+      var anyActive=document.querySelector('#shipping-modal.active,#location-modal.active,#price-modal.active');
+      if(anyActive)lockBody();
+      else unlockBody();
+    });
+    obs.observe(el,{attributes:true,attributeFilter:['class']});
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',function(){watchModal('shipping-modal');watchModal('location-modal');watchModal('price-modal');});
+  }else{watchModal('shipping-modal');watchModal('location-modal');watchModal('price-modal');}
+
+  function addSwipeToDismiss(modalId, onClose){
+    var modal=document.getElementById(modalId);
+    if(!modal)return;
+    var sheet=null,startY=0,currentY=0,dragging=false;
+    modal.addEventListener('touchstart',function(e){
+      sheet=modal.querySelector('[data-sheet]');
+      if(!sheet)return;
+      var t=e.touches[0];
+      startY=t.clientY;currentY=0;dragging=true;
+    },{passive:true});
+    modal.addEventListener('touchmove',function(e){
+      if(!dragging||!sheet)return;
+      var t=e.touches[0];
+      currentY=t.clientY-startY;
+      if(currentY<0)currentY=0;
+      sheet.style.transform='translateY('+currentY+'px)';
+      sheet.style.transition='none';
+    },{passive:true});
+    modal.addEventListener('touchend',function(){
+      if(!dragging||!sheet)return;
+      dragging=false;
+      if(currentY>80){
+        sheet.style.transition='transform .25s ease-out';
+        sheet.style.transform='translateY(100%)';
+        setTimeout(function(){
+          modal.classList.remove('active');
+          sheet.style.transform='';sheet.style.transition='';
+          if(onClose)onClose();
+        },250);
+      }else{
+        sheet.style.transition='transform .2s ease-out';
+        sheet.style.transform='translateY(0)';
+      }
+    },{passive:true});
+  }
+  // Espera DOM carregar
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',init);
+  }else{init();}
+  function init(){
+    addSwipeToDismiss('shipping-modal');
+    addSwipeToDismiss('location-modal',function(){window._locReset();});
+    addSwipeToDismiss('price-modal');
+  }
+})();
+</script>
+
+<!-- Modal Selecionar Localização -->
+<div id="location-modal" style="display:none;position:fixed;inset:0;z-index:10000;align-items:flex-end;justify-content:center;">
+<div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);transition:opacity .3s;" onclick="document.getElementById('location-modal').classList.remove('active');window._locReset();"></div>
+<div data-sheet style="position:relative;width:100%;max-width:480px;background:#fff;border-radius:16px 16px 0 0;z-index:1;transform:translateY(100%);transition:transform .3s ease-out;max-height:75vh;display:flex;flex-direction:column;">
+<div class="modal-drag-handle"></div>
+<!-- Header -->
+<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px 16px;border-bottom:1px solid #f0f0f0;flex-shrink:0;">
+<div style="width:32px;"></div>
+<span style="font-size:16px;font-weight:700;color:#111;" id="loc-title">Selecionar localização</span>
+<button onclick="document.getElementById('location-modal').classList.remove('active');window._locReset();" style="background:none;border:none;cursor:pointer;padding:4px;">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+</button>
+</div>
+<!-- Breadcrumb tabs -->
+<div style="display:flex;gap:16px;padding:12px 20px 0;border-bottom:1px solid #f0f0f0;flex-shrink:0;" id="loc-tabs">
+<span class="loc-tab active" data-tab="country" onclick="window._locShowTab('country')" style="font-size:14px;font-weight:600;padding-bottom:10px;cursor:pointer;color:#111;border-bottom:2px solid #111;">Brasil</span>
+</div>
+<!-- Search -->
+<div style="padding:12px 20px;flex-shrink:0;">
+<div style="display:flex;align-items:center;gap:8px;background:#f5f5f5;border-radius:8px;padding:8px 12px;">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+<input type="text" id="loc-search" placeholder="Buscar..." oninput="window._locFilter(this.value)" style="border:none;outline:none;background:transparent;font-size:14px;color:#111;width:100%;"/>
+</div>
+</div>
+<!-- Lista -->
+<div style="overflow-y:auto;flex:1;padding:0 20px 20px;" id="loc-list"></div>
+</div>
+</div>
+
+<script>
+(function(){
+var estados={AC:['Cruzeiro do Sul','Rio Branco','Sena Madureira','Tarauacá'],AL:['Arapiraca','Maceió','Marechal Deodoro','Palmeira dos Índios','Penedo','Rio Largo'],AM:['Itacoatiara','Manacapuru','Manaus','Parintins','Tefé'],AP:['Laranjal do Jari','Macapá','Santana'],BA:['Barreiras','Camaçari','Feira de Santana','Ilhéus','Itabuna','Jequié','Juazeiro','Lauro de Freitas','Porto Seguro','Salvador','Teixeira de Freitas','Vitória da Conquista'],CE:['Caucaia','Crato','Fortaleza','Juazeiro do Norte','Maracanaú','Sobral'],DF:['Brasília','Ceilândia','Taguatinga'],ES:['Cachoeiro de Itapemirim','Cariacica','Colatina','Linhares','Serra','Vila Velha','Vitória'],GO:['Anápolis','Aparecida de Goiânia','Goiânia','Luziânia','Rio Verde','Trindade','Valparaíso de Goiás'],MA:['Açailândia','Bacabal','Caxias','Codó','Imperatriz','São José de Ribamar','São Luís','Timon'],MG:['Belo Horizonte','Betim','Contagem','Divinópolis','Governador Valadares','Ipatinga','Juiz de Fora','Montes Claros','Ribeirão das Neves','Santa Luzia','Sete Lagoas','Uberaba','Uberlândia'],MS:['Campo Grande','Corumbá','Dourados','Ponta Porã','Três Lagoas'],MT:['Cuiabá','Rondonópolis','Sinop','Sorriso','Tangará da Serra','Várzea Grande'],PA:['Ananindeua','Belém','Castanhal','Marabá','Marituba','Parauapebas','Santarém'],PB:['Campina Grande','João Pessoa','Patos','Santa Rita'],PE:['Cabo de Santo Agostinho','Camaragibe','Caruaru','Garanhuns','Jaboatão dos Guararapes','Olinda','Paulista','Petrolina','Recife'],PI:['Parnaíba','Picos','Teresina'],PR:['Cascavel','Colombo','Curitiba','Foz do Iguaçu','Guarapuava','Londrina','Maringá','Ponta Grossa','São José dos Pinhais'],RJ:['Belford Roxo','Campos dos Goytacazes','Duque de Caxias','Macaé','Magé','Niterói','Nova Iguaçu','Petrópolis','Rio de Janeiro','São Gonçalo','São João de Meriti','Volta Redonda'],RN:['Mossoró','Natal','Parnamirim'],RO:['Ji-Paraná','Porto Velho','Vilhena'],RR:['Boa Vista'],RS:['Canoas','Caxias do Sul','Gravataí','Novo Hamburgo','Passo Fundo','Pelotas','Porto Alegre','Santa Maria','São Leopoldo','Viamão'],SC:['Blumenau','Chapecó','Criciúma','Florianópolis','Itajaí','Jaraguá do Sul','Joinville','Lages','Palhoça','São José'],SE:['Aracaju','Itabaiana','Lagarto','Nossa Senhora do Socorro'],SP:['Barueri','Bauru','Campinas','Diadema','Guarulhos','Jundiaí','Mauá','Mogi das Cruzes','Osasco','Piracicaba','Ribeirão Preto','Santo André','Santos','São Bernardo do Campo','São José do Rio Preto','São José dos Campos','São Paulo','Sorocaba','Suzano','Taubaté'],TO:['Araguaína','Gurupi','Palmas']};
+var nomeEstados={AC:'Acre',AL:'Alagoas',AM:'Amazonas',AP:'Amapá',BA:'Bahia',CE:'Ceará',DF:'Distrito Federal',ES:'Espírito Santo',GO:'Goiás',MA:'Maranhão',MG:'Minas Gerais',MS:'Mato Grosso do Sul',MT:'Mato Grosso',PA:'Pará',PB:'Paraíba',PE:'Pernambuco',PI:'Piauí',PR:'Paraná',RJ:'Rio de Janeiro',RN:'Rio Grande do Norte',RO:'Rondônia',RR:'Roraima',RS:'Rio Grande do Sul',SC:'Santa Catarina',SE:'Sergipe',SP:'São Paulo',TO:'Tocantins'};
+var currentView='country';
+var selectedState='';
+
+function renderList(items,type){
+  var list=document.getElementById('loc-list');
+  var html='';
+  // Group by first letter
+  var groups={};
+  items.forEach(function(item){
+    var letter=item.label.charAt(0).toUpperCase();
+    if(!groups[letter])groups[letter]=[];
+    groups[letter].push(item);
+  });
+  var letters=Object.keys(groups).sort();
+  letters.forEach(function(letter){
+    html+='<div style="font-size:13px;font-weight:700;color:#999;padding:12px 0 6px;">'+letter+'</div>';
+    groups[letter].forEach(function(item){
+      html+='<div onclick="'+item.onclick+'" style="padding:12px 0;border-bottom:1px solid #f5f5f5;font-size:14px;color:#333;cursor:pointer;">'+item.label+'</div>';
+    });
+  });
+  list.innerHTML=html;
+}
+
+function showCountry(){
+  currentView='country';
+  selectedState='';
+  updateTabs();
+  document.getElementById('loc-title').textContent='Selecionar localização';
+  document.getElementById('loc-search').value='';
+  var items=[{label:'Brasil',onclick:"window._locShowStates()"}];
+  var list=document.getElementById('loc-list');
+  list.innerHTML='<div onclick="window._locShowStates()" style="padding:14px 0;font-size:15px;color:#16a34a;font-weight:600;cursor:pointer;">Brasil</div>';
+}
+
+function showStates(){
+  currentView='states';
+  selectedState='';
+  updateTabs();
+  document.getElementById('loc-title').textContent='Selecionar localização';
+  document.getElementById('loc-search').value='';
+  var items=[];
+  Object.keys(nomeEstados).sort(function(a,b){return nomeEstados[a].localeCompare(nomeEstados[b]);}).forEach(function(uf){
+    items.push({label:nomeEstados[uf],onclick:"window._locShowCities('"+uf+"')"});
+  });
+  renderList(items,'state');
+}
+
+function showCities(uf){
+  currentView='cities';
+  selectedState=uf;
+  updateTabs();
+  document.getElementById('loc-title').textContent='Selecionar Cidade';
+  document.getElementById('loc-search').value='';
+  var cidades=estados[uf]||[];
+  var items=[];
+  cidades.forEach(function(c){
+    items.push({label:c,onclick:"window._locSelectCity('"+c+"','"+uf+"')"});
+  });
+  renderList(items,'city');
+}
+
+function updateTabs(){
+  var tabs=document.getElementById('loc-tabs');
+  var html='<span onclick="window._locShowTab(\'country\')" style="font-size:14px;font-weight:600;padding-bottom:10px;cursor:pointer;'+(currentView==='country'?'color:#111;border-bottom:2px solid #111;':'color:#999;border-bottom:2px solid transparent;')+'">Brasil</span>';
+  if(currentView==='states'||currentView==='cities'){
+    html+='<span onclick="window._locShowStates()" style="font-size:14px;font-weight:600;padding-bottom:10px;cursor:pointer;'+(currentView==='states'?'color:#111;border-bottom:2px solid #111;':'color:#999;border-bottom:2px solid transparent;')+'">Estado/UF</span>';
+  }
+  if(currentView==='cities'&&selectedState){
+    html+='<span style="font-size:14px;font-weight:600;padding-bottom:10px;color:#111;border-bottom:2px solid #111;cursor:default;">Cidade</span>';
+  }
+  tabs.innerHTML=html;
+}
+
+function selectCity(city,uf){
+  var fullName=city+', '+nomeEstados[uf]+', Brasil';
+  // Update shipping modal city
+  var mc=document.getElementById('shipping-modal-city');
+  if(mc)mc.textContent=fullName;
+  // Update main shipping section
+  var sc=document.getElementById('shipping-city');
+  if(sc)sc.textContent='Envio para '+city+', '+nomeEstados[uf];
+  // Close location modal
+  document.getElementById('location-modal').classList.remove('active');
+  // Reset
+  showCountry();
+}
+
+function filterList(query){
+  if(!query){
+    if(currentView==='country')showCountry();
+    else if(currentView==='states')showStates();
+    else if(currentView==='cities')showCities(selectedState);
+    return;
+  }
+  query=query.toLowerCase();
+  var items=[];
+  if(currentView==='states'){
+    Object.keys(nomeEstados).forEach(function(uf){
+      if(nomeEstados[uf].toLowerCase().indexOf(query)!==-1){
+        items.push({label:nomeEstados[uf],onclick:"window._locShowCities('"+uf+"')"});
+      }
+    });
+  }else if(currentView==='cities'){
+    (estados[selectedState]||[]).forEach(function(c){
+      if(c.toLowerCase().indexOf(query)!==-1){
+        items.push({label:c,onclick:"window._locSelectCity('"+c+"','"+selectedState+"')"});
+      }
+    });
+  }
+  if(items.length)renderList(items);
+  else document.getElementById('loc-list').innerHTML='<div style="padding:20px;text-align:center;color:#999;font-size:14px;">Nenhum resultado encontrado</div>';
+}
+
+// Expose
+window._locShowTab=function(tab){if(tab==='country')showCountry();};
+window._locShowStates=showStates;
+window._locShowCities=showCities;
+window._locSelectCity=selectCity;
+window._locFilter=filterList;
+window._locReset=showCountry;
+
+// Init
+showCountry();
+})();
+</script>
 <!-- Separador -->
 <div style="height:1px;background:#f2f2f2;margin:0 -16px;width:calc(100% + 32px);"></div>
 <!-- Loja verificada estilo Shopee -->
@@ -629,7 +948,7 @@ Suas informações de pagamento são processadas com segurança. Não armazenamo
 </svg>
 <span>Loja</span>
 </a>
-<a class="nav-item" href="#top">
+<a class="nav-item" href="javascript:void(0)" onclick="document.getElementById('chat-modal').classList.add('active')">
 <svg class="nav-icon" fill="none" height="20" viewbox="0 0 24 24" width="20">
 <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
 </svg>
@@ -638,6 +957,127 @@ Suas informações de pagamento são processadas com segurança. Não armazenamo
 <button class="add-cart-btn">Ver Avaliações</button>
 <a class="buy-btn pulsing-buy-btn" href="/checkout/" id="buy-now" style="display: flex; align-items: center; justify-content: center; text-decoration: none; color: white;">Comprar Agora</a>
 </nav>
+<!-- Modal Chat -->
+<div id="chat-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:#fff;flex-direction:column;">
+<!-- Header -->
+<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #f0f0f0;background:#fff;">
+<button onclick="document.getElementById('chat-modal').classList.remove('active')" style="background:none;border:none;cursor:pointer;padding:4px;">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+</button>
+<img src="/assets/img/seller-avatarr.webp" alt="Izzat" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #00d4aa;"/>
+<div style="flex:1;">
+<div style="font-size:15px;font-weight:700;color:#111;">Izzat</div>
+<div style="font-size:12px;color:#16a34a;">Online agora</div>
+</div>
+</div>
+<!-- Badges -->
+<div style="display:flex;gap:8px;padding:10px 16px;border-bottom:1px solid #f0f0f0;overflow-x:auto;">
+<span style="font-size:11px;font-weight:600;color:#16a34a;background:#f0fdf4;padding:4px 10px;border-radius:20px;border:1px solid #dcfce7;white-space:nowrap;">🚚 Frete grátis Sem mínimo</span>
+<span style="font-size:11px;font-weight:600;color:#f59e0b;background:#fffbeb;padding:4px 10px;border-radius:20px;border:1px solid #fef3c7;white-space:nowrap;">⚡ Até 50% OFF</span>
+</div>
+<!-- Chat area -->
+<div id="chat-messages" style="flex:1;overflow-y:auto;padding:16px;background:#f8f9fa;">
+<!-- Mensagem de boas-vindas -->
+<div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:16px;">
+<img src="/assets/img/seller-avatarr.webp" alt="Izzat" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;"/>
+<div>
+<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px 12px 12px 0;padding:12px 14px;font-size:14px;color:#333;line-height:1.5;max-width:260px;">Olá! Bem-vindo a Loja Izzat. Como posso ajudar você hoje?</div>
+<div style="font-size:10px;color:#999;margin-top:4px;" id="chat-time-welcome"></div>
+</div>
+</div>
+<!-- Perguntas frequentes -->
+<div style="margin-top:8px;">
+<p style="font-size:13px;font-weight:600;color:#666;margin-bottom:10px;">Perguntas frequentes:</p>
+<div style="display:flex;flex-direction:column;gap:8px;" id="chat-questions">
+<button onclick="window._chatAnswer(0)" style="text-align:left;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px 14px;font-size:14px;color:#333;cursor:pointer;transition:background .2s;">Como faço meu pedido?</button>
+<button onclick="window._chatAnswer(1)" style="text-align:left;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px 14px;font-size:14px;color:#333;cursor:pointer;transition:background .2s;">Qual o prazo de entrega?</button>
+<button onclick="window._chatAnswer(2)" style="text-align:left;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px 14px;font-size:14px;color:#333;cursor:pointer;transition:background .2s;">Como funciona a troca/devolução?</button>
+<button onclick="window._chatAnswer(3)" style="text-align:left;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px 14px;font-size:14px;color:#333;cursor:pointer;transition:background .2s;">Quais formas de pagamento?</button>
+</div>
+</div>
+</div>
+<!-- Input (desabilitado) -->
+<div style="display:flex;align-items:center;gap:8px;padding:10px 16px;border-top:1px solid #f0f0f0;background:#fff;">
+<input type="text" placeholder="Digite uma mensagem..." disabled style="flex:1;border:1px solid #e5e7eb;border-radius:24px;padding:10px 16px;font-size:14px;color:#999;background:#f9fafb;outline:none;opacity:0.6;cursor:not-allowed;"/>
+<button disabled style="width:36px;height:36px;border-radius:50%;background:#e5e7eb;border:none;display:flex;align-items:center;justify-content:center;cursor:not-allowed;opacity:0.5;">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+</button>
+</div>
+</div>
+
+<style>
+#chat-modal{display:none !important;}
+#chat-modal.active{display:flex !important;}
+</style>
+
+<script>
+(function(){
+  var questions = [
+    {q: 'Como faço meu pedido?', a: 'Para fazer seu pedido: 1) Clique em "Comprar agora" 2) Preencha nome completo e endereço 3) Realize o pagamento via PIX'},
+    {q: 'Qual o prazo de entrega?', a: ''},
+    {q: 'Como funciona a troca/devolução?', a: 'Você tem até 7 dias após receber o produto para solicitar troca ou devolução. Entre em contato conosco com o número do pedido.'},
+    {q: 'Quais formas de pagamento?', a: 'Nossos descontos especiais são exclusivos para pagamento via PIX! Aprovação instantânea e sem taxas.'}
+  ];
+
+  function getTime(){
+    var d=new Date();
+    return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  }
+
+  function getDeliveryText(){
+    var d1=new Date(); d1.setDate(d1.getDate()+3);
+    var d2=new Date(); d2.setDate(d2.getDate()+5);
+    var fmt=function(d){return d.getDate()+' de '+d.toLocaleString('pt-BR',{month:'short'}).replace('.','');};
+    return 'O prazo estimado de entrega é entre '+fmt(d1)+' e '+fmt(d2)+'. Enviamos para todo o Brasil com frete grátis!';
+  }
+
+  // Set welcome time
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',function(){
+      var el=document.getElementById('chat-time-welcome');
+      if(el)el.textContent=getTime();
+    });
+  }else{
+    var el=document.getElementById('chat-time-welcome');
+    if(el)el.textContent=getTime();
+  }
+
+  window._chatAnswer=function(idx){
+    var item=questions[idx];
+    if(!item)return;
+    var answer=idx===1?getDeliveryText():item.a;
+    var time=getTime();
+    var msgs=document.getElementById('chat-messages');
+
+    // User message (right)
+    var userDiv=document.createElement('div');
+    userDiv.style.cssText='display:flex;justify-content:flex-end;margin-bottom:16px;margin-top:16px;';
+    userDiv.innerHTML='<div><div style="background:#16a34a;color:white;border-radius:12px 12px 0 12px;padding:12px 14px;font-size:14px;line-height:1.5;max-width:260px;">'+item.q+'</div><div style="font-size:10px;color:#999;margin-top:4px;text-align:right;">'+time+'</div></div>';
+    msgs.appendChild(userDiv);
+
+    // Typing indicator
+    var typingDiv=document.createElement('div');
+    typingDiv.style.cssText='display:flex;align-items:flex-end;gap:8px;margin-bottom:16px;';
+    typingDiv.innerHTML='<img src="/assets/img/seller-avatarr.webp" alt="Izzat" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;"/><div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px 12px 12px 0;padding:12px 14px;"><div style="display:flex;gap:4px;"><span style="width:6px;height:6px;background:#999;border-radius:50%;animation:chatDot 1.4s infinite;"></span><span style="width:6px;height:6px;background:#999;border-radius:50%;animation:chatDot 1.4s 0.2s infinite;"></span><span style="width:6px;height:6px;background:#999;border-radius:50%;animation:chatDot 1.4s 0.4s infinite;"></span></div></div>';
+    msgs.appendChild(typingDiv);
+    msgs.scrollTop=msgs.scrollHeight;
+
+    // Bot reply after delay
+    setTimeout(function(){
+      msgs.removeChild(typingDiv);
+      var botDiv=document.createElement('div');
+      botDiv.style.cssText='display:flex;align-items:flex-end;gap:8px;margin-bottom:16px;';
+      botDiv.innerHTML='<img src="/assets/img/seller-avatarr.webp" alt="Izzat" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;"/><div><div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px 12px 12px 0;padding:12px 14px;font-size:14px;color:#333;line-height:1.5;max-width:260px;">'+answer+'</div><div style="font-size:10px;color:#999;margin-top:4px;">'+time+'</div></div>';
+      msgs.appendChild(botDiv);
+      msgs.scrollTop=msgs.scrollHeight;
+    },1200);
+
+    msgs.scrollTop=msgs.scrollHeight;
+  };
+})();
+</script>
+<style>@keyframes chatDot{0%,80%,100%{opacity:.3;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}</style>
+
 <footer class="footer">
 ...
 </footer>
