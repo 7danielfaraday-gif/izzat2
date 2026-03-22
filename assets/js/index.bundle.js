@@ -428,22 +428,41 @@
       shippingEl.textContent = `Receba entre ${startDate} e ${endDate}`;
     }
 
-    // Geolocalização do cliente via IP
+    // Geolocalização do cliente via IP (com fallback e timeout)
     function updateShippingLocation() {
-      const cityEl = document.getElementById('shipping-city');
+      var cityEl = document.getElementById('shipping-city');
       if (!cityEl) return;
 
-      fetch('https://ipapi.co/json/')
+      var fallback = 'Envio para todo o Brasil';
+      var done = false;
+
+      // Timeout de 3s - se não responder, mostra fallback
+      var timer = setTimeout(function() {
+        if (!done) { done = true; cityEl.textContent = fallback; }
+      }, 3000);
+
+      // Tenta API primária
+      fetch('https://freeipapi.com/api/json', { signal: AbortSignal.timeout ? AbortSignal.timeout(3000) : undefined })
         .then(function(r) { return r.json(); })
         .then(function(data) {
-          if (data.city && data.region) {
-            cityEl.textContent = 'Envio para ' + data.city + ', ' + data.region;
-          } else {
-            cityEl.textContent = 'Envio para todo o Brasil';
+          if (!done && data.cityName && data.regionName) {
+            done = true; clearTimeout(timer);
+            cityEl.textContent = 'Envio para ' + data.cityName + ', ' + data.regionName;
           }
         })
         .catch(function() {
-          cityEl.textContent = 'Envio para todo o Brasil';
+          // Tenta API secundária
+          fetch('https://ipapi.co/json/')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+              if (!done && data.city && data.region) {
+                done = true; clearTimeout(timer);
+                cityEl.textContent = 'Envio para ' + data.city + ', ' + data.region;
+              }
+            })
+            .catch(function() {
+              if (!done) { done = true; clearTimeout(timer); cityEl.textContent = fallback; }
+            });
         });
     }
     updateShippingLocation();
@@ -685,6 +704,38 @@
             }
         });
         closeBtn.addEventListener('click', closeLightbox);
+
+        // Swipe up/down to close lightbox
+        var lbStartY = 0;
+        var lbCurrentY = 0;
+        var lbDragging = false;
+
+        overlay.addEventListener('touchstart', function(e) {
+            lbStartY = e.touches[0].clientY;
+            lbCurrentY = lbStartY;
+            lbDragging = true;
+            lightboxImg.style.transition = 'none';
+        }, { passive: true });
+
+        overlay.addEventListener('touchmove', function(e) {
+            if (!lbDragging) return;
+            lbCurrentY = e.touches[0].clientY;
+            var diff = lbCurrentY - lbStartY;
+            lightboxImg.style.transform = 'scale(1) translateY(' + diff + 'px)';
+            overlay.style.opacity = Math.max(0.3, 1 - Math.abs(diff) / 400);
+        }, { passive: true });
+
+        overlay.addEventListener('touchend', function() {
+            if (!lbDragging) return;
+            lbDragging = false;
+            var diff = Math.abs(lbCurrentY - lbStartY);
+            lightboxImg.style.transition = '';
+            lightboxImg.style.transform = '';
+            overlay.style.opacity = '';
+            if (diff > 80) {
+                closeLightbox();
+            }
+        });
     })();
 
     // --- Task 3: Trust / Social Proof Bottom Sheet ---
@@ -801,12 +852,62 @@
         }, 4000);
     }
 
-    if (!sessionStorage.getItem('izzat_popup_shown')) {
-        setTimeout(() => {
+    // Show popup only once per browser session (use both storage types for reliability)
+    var popupKey = 'izzat_popup_shown';
+    var alreadyShown = false;
+    try {
+        alreadyShown = sessionStorage.getItem(popupKey) === '1' || window.__izzatPopupFired;
+    } catch(e) {}
+
+    if (!alreadyShown) {
+        window.__izzatPopupFired = true;
+        setTimeout(function() {
             showSalesPopup();
-            sessionStorage.setItem('izzat_popup_shown', '1');
+            try { sessionStorage.setItem(popupKey, '1'); } catch(e) {}
         }, 3000);
     }
-    
+
+    // --- Swipe-down to close bottom sheets ---
+    (function initSwipeClose() {
+        document.querySelectorAll('.izzat-bottomsheet').forEach(function(sheet) {
+            var content = sheet.querySelector('.izzat-bottomsheet__content');
+            if (!content) return;
+
+            var startY = 0;
+            var currentY = 0;
+            var dragging = false;
+
+            content.addEventListener('touchstart', function(e) {
+                // Only enable swipe if scrolled to top
+                if (content.scrollTop > 5) return;
+                startY = e.touches[0].clientY;
+                currentY = startY;
+                dragging = true;
+                content.style.transition = 'none';
+            }, { passive: true });
+
+            content.addEventListener('touchmove', function(e) {
+                if (!dragging) return;
+                currentY = e.touches[0].clientY;
+                var diff = currentY - startY;
+                if (diff > 0) {
+                    content.style.transform = 'translateY(' + diff + 'px)';
+                }
+            }, { passive: true });
+
+            content.addEventListener('touchend', function() {
+                if (!dragging) return;
+                dragging = false;
+                var diff = currentY - startY;
+                content.style.transition = '';
+                if (diff > 80) {
+                    // Close the sheet
+                    window.__izzatCloseSheet(sheet.id);
+                }
+                content.style.transform = '';
+            });
+        });
+    })();
+
   });
 
