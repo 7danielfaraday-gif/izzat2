@@ -133,6 +133,7 @@
     }
 
     function trackViaZaraz(event, data = {}) {
+        if (window.__TEST_MODE) { console.log('[TEST_MODE] Evento bloqueado:', event, data); return; }
         try {
             const savedEmail = localStorage.getItem('user_hashed_email');
             const savedPhone = localStorage.getItem('user_hashed_phone');
