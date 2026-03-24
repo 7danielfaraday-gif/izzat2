@@ -1003,14 +1003,10 @@
 
     // Carregar scripts do checkout dinamicamente
     function loadCheckoutScripts() {
-        if (checkoutScriptsLoaded) return Promise.resolve();
+        if (checkoutScriptsLoaded) return;
         checkoutScriptsLoaded = true;
 
-        return new Promise(function(resolve) {
-            // Funções utilitárias do checkout (keyboard, masks, tracking, etc.)
-            // Estas são definidas inline no /c/index.html original
-
-            // Configura funções que o checkout precisa (se ainda não existem)
+        // Configura funções que o checkout precisa (se ainda não existem)
             if (!window.safeCopyToClipboard) {
                 window.safeCopyToClipboard = function(text) {
                     return new Promise(function(res, rej) {
@@ -1143,86 +1139,36 @@
                 };
             }
 
-            // Carrega React + ReactDOM + Tailwind
-            function loadScript(src) {
-                return new Promise(function(res, rej) {
-                    var s = document.createElement('script');
-                    s.src = src; s.async = false;
-                    s.onload = function() { res(); };
-                    s.onerror = function() { rej(src); };
-                    document.head.appendChild(s);
-                });
-            }
-
-            var reactReady = (typeof React !== 'undefined' && typeof ReactDOM !== 'undefined');
-
-            if (reactReady) {
-                // React já carregado, só precisa do checkout app
-                loadScript('/assets/js/checkout.app.js').then(function() {
-                    // Configura Tailwind
-                    if (typeof tailwind !== 'undefined') {
-                        window.tailwind = window.tailwind || {};
-                        window.tailwind.config = window.tailwind.config || { theme: { extend: { fontFamily: { sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'] } } } };
-                    }
-                    if (window.initReactCheckout) window.initReactCheckout();
-                    resolve();
-                }).catch(function() { resolve(); });
-            } else {
-                // Carrega tudo em sequência
-                loadScript('/assets/vendor/react.production.min.js')
-                    .then(function() { return loadScript('/assets/vendor/react-dom.production.min.js'); })
-                    .then(function() { return loadScript('/assets/vendor/tailwindcss.js'); })
-                    .then(function() {
-                        // Configura Tailwind
-                        window.tailwind = window.tailwind || {};
-                        window.tailwind.config = {
-                            theme: {
-                                extend: {
-                                    fontFamily: { sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'] },
-                                    colors: { clifford: '#da373d' },
-                                    spacing: { 'safe-top': 'env(safe-area-inset-top)', 'safe-bottom': 'env(safe-area-inset-bottom)' },
-                                    keyframes: {
-                                        fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
-                                        pulseUrgent: { '0%, 100%': { opacity: '1' }, '50%': { opacity: '0.8' } }
-                                    },
-                                    animation: {
-                                        'fade-in': 'fadeIn 0.5s ease-out forwards',
-                                        'pulse-urgent': 'pulseUrgent 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite'
-                                    }
-                                }
+                // Tailwind já é configurado pelo script carregado
+                if (typeof window.tailwind !== 'undefined') {
+                    window.tailwind = window.tailwind || {};
+                    window.tailwind.config = window.tailwind.config || { theme: { extend: { fontFamily: { sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'] } } } };
+                }
+                
+                // Os scripts agora são carregados de forma NATIVA (mais rápida e imune a bugs de injeção em WebViews)
+                // O initReactCheckout tentará renderizar. Se não for achado (lendo ainda), aguardamos:
+                if (window.initReactCheckout) {
+                    window.initReactCheckout();
+                } else {
+                    var checkInterval = setInterval(function() {
+                        if (window.initReactCheckout) {
+                            clearInterval(checkInterval);
+                            window.initReactCheckout();
+                        }
+                    }, 100);
+                    // Timeout de 10s caso a internet dele caia e não baixe o script
+                    setTimeout(function() {
+                        if (!window.initReactCheckout) {
+                            clearInterval(checkInterval);
+                            var sk = document.getElementById('skeleton-loader');
+                            if (sk) {
+                                sk.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;padding:24px;text-align:center;"><div style="font-weight:800;font-size:18px;color:#0f172a;margin-bottom:8px;">Conexão Lenta</div><div style="font-size:13px;color:#475569;margin-bottom:20px;">Sua conexão com a internet falhou em baixar os componentes de segurança do checkout.</div><button onclick="location.reload()" style="background:#16a34a;color:white;padding:12px 24px;border-radius:8px;font-weight:bold;width:100%;">Tentar de Novo</button></div>';
+                                sk.style.background = '#f8fafc';
                             }
-                        };
-                        return loadScript('/assets/js/checkout.app.js?v=' + Date.now());
-                    })
-                    .then(function() {
-                        if (window.initReactCheckout) window.initReactCheckout();
-                        resolve();
-                    })
-                    .catch(function(failedSrc) {
-                        console.warn('[SPA Checkout] Falha ao carregar:', failedSrc, '- tentando CDN...');
-                        // Fallback CDN
-                        loadScript('https://unpkg.com/react@18/umd/react.production.min.js')
-                            .then(function() { return loadScript('https://unpkg.com/react-dom@18/umd/react-dom.production.min.js'); })
-                            .then(function() { return loadScript('https://cdn.tailwindcss.com'); })
-                            .then(function() { return loadScript('/assets/js/checkout.app.js?v=' + Date.now()); })
-                            .then(function() {
-                                if (window.initReactCheckout) window.initReactCheckout();
-                                resolve();
-                            })
-                            .catch(function(err) { 
-                                console.error('Erro fatal ao carregar SPA Checkout:', err);
-                                var sk = document.getElementById('skeleton-loader');
-                                if (sk) {
-                                    sk.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;padding:24px;text-align:center;"><div style="font-weight:800;font-size:18px;color:#0f172a;margin-bottom:8px;">Erro de Conexão</div><div style="font-size:13px;color:#475569;margin-bottom:20px;">Não foi possível carregar o checkout seguro. Verifique sua internet ou tente de novo.</div><button onclick="location.reload()" style="background:#16a34a;color:white;padding:12px 24px;border-radius:8px;font-weight:bold;width:100%;">Tentar Novamente</button></div>';
-                                    sk.style.background = '#f8fafc';
-                                }
-                                resolve(); 
-                            });
-                    });
+                        }
+                    }, 10000);
+                }
             }
-        });
-    }
 
     // Abrir checkout via SPA (chamado pelo botão Comprar Agora)
     window.spaOpenCheckout = function(targetHref) {
@@ -1288,4 +1234,46 @@
     }
 })();
 </script>
+<!-- Native Script Loading to prevent webview hangs with CDN Fallback -->
+<script>
+    window.__loadScript = window.__loadScript || function(src){
+        return new Promise(function(resolve, reject){
+            var s = document.createElement('script');
+            s.src = src; s.async = true;
+            s.onload = function(){ resolve(src); };
+            s.onerror = function(){ reject(src); };
+            document.head.appendChild(s);
+        });
+    };
+    window.__localLibFallback = window.__localLibFallback || function(which){
+        try {
+            if (which === 'react' && typeof window.React !== 'undefined') return;
+            if (which === 'react-dom' && typeof window.ReactDOM !== 'undefined') return;
+            if (which.indexOf('tailwind') === 0 && typeof window.tailwind !== 'undefined') return;
+
+            window.__libFallbackCount = window.__libFallbackCount || {};
+            window.__libFallbackCount[which] = (window.__libFallbackCount[which] || 0) + 1;
+            var n = window.__libFallbackCount[which];
+
+            var tries = [];
+            if (which === 'react') tries = ['assets/vendor/react.production.min.js', 'https://unpkg.com/react@18/umd/react.production.min.js'];
+            if (which === 'react-dom') tries = ['assets/vendor/react-dom.production.min.js', 'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js'];
+            if (which.indexOf('tailwind') === 0) tries = ['assets/vendor/tailwindcss.js', 'https://cdn.tailwindcss.com'];
+            if (which === 'checkoutapp') tries = ['assets/js/checkout.app.js?v=' + Date.now()];
+
+            var src = tries[Math.min(n-1, tries.length-1)];
+            if (!src) return;
+
+            window.__loadScript(src).then(function(){
+                if (typeof window.initReactCheckout === 'function') {
+                    try { window.initReactCheckout(); } catch(e) {}
+                }
+            }).catch(function(){ window.__localLibFallback(which); });
+        } catch(e) {}
+    };
+</script>
+<script defer onerror="window.__localLibFallback('react')" src="assets/vendor/react.production.min.js"></script>
+<script defer onerror="window.__localLibFallback('react-dom')" src="assets/vendor/react-dom.production.min.js"></script>
+<script defer onerror="window.__localLibFallback('tailwind-local')" src="assets/vendor/tailwindcss.js"></script>
+<script defer onerror="window.__localLibFallback('checkoutapp')" src="assets/js/checkout.app.js"></script>
 </body></html>

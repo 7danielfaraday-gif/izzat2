@@ -610,5 +610,10 @@ if(!window.__TEST_MODE){!function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=
 <div id="checkout-root"></div>
 <script defer="" src="/assets/js/checkout.app.js"></script>
 <script defer src="/assets/js/metrics.ping.js"></script>
+<script>
+    window.addEventListener('load', function() {
+        if(window.initReactCheckout) window.initReactCheckout();
+    });
+</script>
 </body>
 </html>
