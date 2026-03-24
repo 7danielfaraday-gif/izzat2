@@ -600,7 +600,7 @@ e("div", {style: {height: '60vh'}})
  // Pix Copia e Cola card
  e("div", {className: "bg-white rounded-xl border border-slate-100 p-4 mb-3"},
  e("div", {className: "flex items-center gap-2.5 mb-3"},
- e("img", {src: "https://upload.wikimedia.org/wikipedia/commons/a/a2/Pix_logo.svg", alt: "PIX", className: "w-7 h-7 flex-shrink-0"}),
+ e("img", {src: "/assets/img/pix.svg", alt: "PIX", className: "w-7 h-7 flex-shrink-0", style: {objectFit: 'contain'}}),
  e("div", null,
  e("p", {className: "font-bold text-slate-800 text-sm leading-tight"}, "Pix Copia e Cola"),
  e("p", {className: "text-[11px] text-slate-400"}, "Copie o codigo abaixo")
