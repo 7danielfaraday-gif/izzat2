@@ -1193,7 +1193,7 @@
                                 }
                             }
                         };
-                        return loadScript('/assets/js/checkout.app.js');
+                        return loadScript('/assets/js/checkout.app.js?v=' + Date.now());
                     })
                     .then(function() {
                         if (window.initReactCheckout) window.initReactCheckout();
@@ -1205,12 +1205,20 @@
                         loadScript('https://unpkg.com/react@18/umd/react.production.min.js')
                             .then(function() { return loadScript('https://unpkg.com/react-dom@18/umd/react-dom.production.min.js'); })
                             .then(function() { return loadScript('https://cdn.tailwindcss.com'); })
-                            .then(function() { return loadScript('/assets/js/checkout.app.js'); })
+                            .then(function() { return loadScript('/assets/js/checkout.app.js?v=' + Date.now()); })
                             .then(function() {
                                 if (window.initReactCheckout) window.initReactCheckout();
                                 resolve();
                             })
-                            .catch(function() { resolve(); });
+                            .catch(function(err) { 
+                                console.error('Erro fatal ao carregar SPA Checkout:', err);
+                                var sk = document.getElementById('skeleton-loader');
+                                if (sk) {
+                                    sk.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;padding:24px;text-align:center;"><div style="font-weight:800;font-size:18px;color:#0f172a;margin-bottom:8px;">Erro de Conexão</div><div style="font-size:13px;color:#475569;margin-bottom:20px;">Não foi possível carregar o checkout seguro. Verifique sua internet ou tente de novo.</div><button onclick="location.reload()" style="background:#16a34a;color:white;padding:12px 24px;border-radius:8px;font-weight:bold;width:100%;">Tentar Novamente</button></div>';
+                                    sk.style.background = '#f8fafc';
+                                }
+                                resolve(); 
+                            });
                     });
             }
         });

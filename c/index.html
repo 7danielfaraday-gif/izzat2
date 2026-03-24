@@ -59,13 +59,15 @@ if(!window.__TEST_MODE){!function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=
                     if (typeof window.initReactCheckout === 'function') {
                         try { window.initReactCheckout(); } catch(e) {}
                     }
-                }).catch(function(){ /* silencioso */ });
+                }).catch(function(){
+                    window.__localLibFallback(which);
+                });
             } catch(e) {}
         };
     </script>
-<script defer="" onerror="window.__localLibFallback && window.__localLibFallback('react')" src="../assets/vendor/react.production.min.js"></script>
-<script defer="" onerror="window.__localLibFallback && window.__localLibFallback('react-dom')" src="../assets/vendor/react-dom.production.min.js"></script>
-<script defer="" onerror="window.__localLibFallback && window.__localLibFallback('tailwind-local')" src="../assets/vendor/tailwindcss.js"></script>
+<script defer="" onerror="window.__localLibFallback && window.__localLibFallback('react')" src="/assets/vendor/react.production.min.js"></script>
+<script defer="" onerror="window.__localLibFallback && window.__localLibFallback('react-dom')" src="/assets/vendor/react-dom.production.min.js"></script>
+<script defer="" onerror="window.__localLibFallback && window.__localLibFallback('tailwind-local')" src="/assets/vendor/tailwindcss.js"></script>
 <script>
         window.tailwind = window.tailwind || {};
         window.tailwind.config = { 
@@ -606,7 +608,7 @@ if(!window.__TEST_MODE){!function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=
 </div>
 </div>
 <div id="checkout-root"></div>
-<script defer="" src="../assets/js/checkout.app.js"></script>
-<script defer src="../assets/js/metrics.ping.js"></script>
+<script defer="" src="/assets/js/checkout.app.js"></script>
+<script defer src="/assets/js/metrics.ping.js"></script>
 </body>
 </html>
