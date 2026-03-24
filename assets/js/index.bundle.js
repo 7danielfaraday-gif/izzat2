@@ -260,15 +260,19 @@
             btn.href = window.buildCheckoutUrl(btn.getAttribute('href') || btn.href);
         } catch (e) {}
 
-        // Tracking sem bloquear a navegação
-        btn.addEventListener('click', () => {
+        // Setup SPA Checkout instead of redirecting
+        btn.addEventListener('click', (e) => {
+            if (typeof window.spaOpenCheckout === 'function') {
+                e.preventDefault();
+                window.spaOpenCheckout(btn.getAttribute('href') || btn.href);
+            }
             try {
                 trackViaZaraz('AddToCart', {
                     ...PRODUCT_CONTENT,
                     event_id: generateEventId()
                 }, true);
-            } catch (e) {}
-        }, { passive: true });
+            } catch (err) {}
+        });
     })();
     // ==================================================
     // 4. MICRO-CONVERSÕES (NOVO: ALIMENTA O ALGORITMO)
@@ -482,7 +486,8 @@
         const color = swatch.dataset.color;
         
         if (variantLinks[color]) {
-          buyBtn.href = (window.buildCheckoutUrl ? window.buildCheckoutUrl(variantLinks[color]) : variantLinks[color]);
+          buyBtn.href = "javascript:void(0)";
+          buyBtn.onclick = function() { if(window.spaOpenCheckout) window.spaOpenCheckout(); };
         }
         
         currentVariant = color;
@@ -494,7 +499,10 @@
     const defaultSwatch = document.querySelector(`.color-swatch[data-color="${currentVariant}"]`);
     if (defaultSwatch) {
         defaultSwatch.classList.add('selected');
-        if (variantLinks[currentVariant]) buyBtn.href = (window.buildCheckoutUrl ? window.buildCheckoutUrl(variantLinks[currentVariant]) : variantLinks[currentVariant]);
+        if (variantLinks[currentVariant]) {
+            buyBtn.href = "javascript:void(0)";
+            buyBtn.onclick = function() { if(window.spaOpenCheckout) window.spaOpenCheckout(); };
+        }
     }
 
     createImageDots();

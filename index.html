@@ -3,7 +3,7 @@
 <html lang="pt-BR">
 <head>
 <script>window.__TEST_MODE=new URLSearchParams(window.location.search).has('test_mode');</script>
-<script>if(!window.__TEST_MODE){(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,"clarity","script","vyr9otnkc7");}</script>
+<script>if(!window.__TEST_MODE){setTimeout(function(){(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,"clarity","script","vyr9otnkc7");}, 3500);}</script>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -26,7 +26,13 @@
 <noscript></noscript>
 <script>
     if(!window.__TEST_MODE){!function (w, d, t) {
-      w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=i,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};var o=document.createElement("script");o.type="text/javascript",o.async=!0,o.src=i+"?sdkid="+e+"&lib="+t;var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(o,a)};
+      w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=i,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};
+      setTimeout(function() {
+        var o=document.createElement("script");o.type="text/javascript",o.async=!0,o.src=i+"?sdkid="+e+"&lib="+t;
+        var scripts = document.getElementsByTagName("script");
+        var a = scripts.length > 0 ? scripts[0] : null; if(a && a.parentNode) { a.parentNode.insertBefore(o,a); } else { document.head.appendChild(o); }
+      }, 2500);
+      };
 
       ttq.load('D6VVDPJC77UANC7P0IT0');
       ttq.page();
@@ -506,7 +512,7 @@
 <span>Chat</span>
 </a>
 <button class="add-cart-btn">Ver Avaliações</button>
-<a class="buy-btn pulsing-buy-btn" data-spa="true" href="/c/" id="buy-now" style="display: flex; align-items: center; justify-content: center; text-decoration: none; color: white;">Comprar Agora</a>
+<a class="buy-btn pulsing-buy-btn" href="javascript:void(0)" onclick="if(window.spaOpenCheckout) window.spaOpenCheckout();" id="buy-now" style="display: flex; align-items: center; justify-content: center; text-decoration: none; color: white;">Comprar Agora</a>
 </nav>
 <footer class="footer">
 ...
@@ -893,45 +899,96 @@
 <!-- ============================================= -->
 <!-- SPA CHECKOUT (carregado dinamicamente)        -->
 <!-- ============================================= -->
-<div id="spa-checkout-wrapper" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:9999; background:#f8fafc; overflow-y:auto; -webkit-overflow-scrolling:touch;">
+<div id="spa-checkout-wrapper" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:9999; background:#e5e7eb; overflow-y:auto; -webkit-overflow-scrolling:touch; display:none;">
 <style>
-/* Checkout CSS (scoped dentro do wrapper) */
-#spa-checkout-wrapper *{margin:0;padding:0;box-sizing:border-box;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;tap-highlight-color:transparent}
-#spa-checkout-wrapper *:not(input):not(textarea){-webkit-user-select:none;user-select:none}
-#spa-checkout-wrapper .select-all{-webkit-user-select:text !important;user-select:text !important}
-#spa-checkout-wrapper input,#spa-checkout-wrapper select,#spa-checkout-wrapper textarea{font-size:16px !important;-webkit-box-shadow:0 0 0 100px white inset !important;box-shadow:0 0 0 100px white inset !important}
-#spa-checkout-wrapper input,#spa-checkout-wrapper textarea,#spa-checkout-wrapper [contenteditable]{-webkit-user-select:text !important;user-select:text !important;scroll-margin-top:20px;-webkit-appearance:none;appearance:none;border-radius:0}
-#spa-checkout-wrapper button,#spa-checkout-wrapper [role="button"],#spa-checkout-wrapper .btn-tactile{min-height:44px;min-width:44px;touch-action:manipulation;cursor:pointer}
-#spa-checkout-wrapper input[type="text"],#spa-checkout-wrapper input[type="email"],#spa-checkout-wrapper input[type="tel"]{min-height:44px;font-size:16px !important}
-#spa-checkout-wrapper .safe-area-padding{padding-bottom:env(safe-area-inset-bottom,20px)}
-#spa-checkout-wrapper .progress-bar{height:3px;background:linear-gradient(90deg,#22c55e 0%,#4ade80 100%);position:absolute;top:0;left:0;z-index:10000;transition:width 0.4s cubic-bezier(0.4,0,0.2,1);width:25%}
-#spa-checkout-wrapper .static-nav{background:rgba(255,255,255,0.98);padding:16px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:30;min-height:56px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);max-width:480px;margin:0 auto}
-#spa-checkout-wrapper .static-container{display:flex;flex-direction:column;padding:20px;max-width:480px;margin:0 auto;gap:20px}
-#spa-checkout-wrapper .static-card{background:white;border-radius:16px;padding:20px;display:flex;gap:16px;border:1px solid #e2e8f0;position:relative}
-#spa-checkout-wrapper .static-badge{position:absolute;top:0;left:0;background:#16a34a;color:white;font-size:10px;font-weight:bold;padding:4px 12px;border-bottom-right-radius:8px}
-#spa-checkout-wrapper .static-title{font-size:14px;font-weight:700;color:#1e293b;margin-bottom:4px;line-height:1.4}
-#spa-checkout-wrapper .static-old-price{font-size:12px;color:#94a3b8;text-decoration:line-through;display:block}
-#spa-checkout-wrapper .static-new-price{font-size:24px;color:#16a34a;font-weight:800;display:block}
-#spa-checkout-wrapper .sk-form-block{background:white;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden}
-#spa-checkout-wrapper .sk-form-header{background:#f8fafc;padding:12px 20px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:12px}
-#spa-checkout-wrapper .sk-circle{width:24px;height:24px;background:#16a34a;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold}
-#spa-checkout-wrapper .sk-title{font-size:14px;font-weight:700;color:#334155;text-transform:uppercase}
-#spa-checkout-wrapper .sk-body{padding:20px}
-#spa-checkout-wrapper .sk-input{height:48px;background:#f1f5f9;border-radius:12px;margin-bottom:16px}
-#spa-checkout-wrapper .checkout-fixed-footer{display:none}
-#spa-checkout-wrapper #checkout-root{max-width:480px;margin:0 auto}
-#spa-checkout-wrapper #checkout-root>div{max-width:480px;margin:0 auto}
-#spa-checkout-wrapper .form-container{padding-bottom:calc(100px + env(safe-area-inset-bottom))}
-#spa-checkout-wrapper .spinner-mobile{width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-radius:50%;border-top-color:white;animation:spa-spin 0.8s linear infinite}
-@keyframes spa-spin{to{transform:rotate(360deg)}}
-@keyframes spa-fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-#spa-checkout-wrapper .fade-in{animation:spa-fadeIn 0.4s ease-out forwards}
-#spa-checkout-wrapper .scrollbar-hidden{-ms-overflow-style:none;scrollbar-width:none}
-#spa-checkout-wrapper .scrollbar-hidden::-webkit-scrollbar{display:none}
+    /* 
+       --- BULLETPROOF TAILWIND FALLBACKS ---
+       Garantem que o Checkout renderize profissional mesmo que o JIT falhe 
+    */
+    #checkout-root input, #checkout-root select, #checkout-root textarea {
+        -webkit-appearance: none;
+        appearance: none;
+        border-style: solid;
+        border-width: 1px;
+    }
+    
+    .rounded-2xl { border-radius: 1rem !important; }
+    .rounded-xl { border-radius: 0.75rem !important; }
+    .rounded-lg { border-radius: 0.5rem !important; }
+    .rounded-full { border-radius: 9999px !important; }
+    
+    .border { border-width: 1px !important; border-style: solid !important; }
+    .border-slate-100 { border-color: #f1f5f9 !important; }
+    .border-slate-200 { border-color: #e2e8f0 !important; }
+    .border-gray-200 { border-color: #e5e7eb !important; }
+    .border-green-500 { border-color: #22c55e !important; }
+    .border-red-500 { border-color: #ef4444 !important; }
+    
+    .bg-white { background-color: #ffffff !important; }
+    .bg-slate-50 { background-color: #f8fafc !important; }
+    .bg-slate-100 { background-color: #f1f5f9 !important; }
+    .bg-green-600 { background-color: #16a34a !important; }
+    .bg-green-50 { background-color: #f0fdf4 !important; }
+    .bg-red-50 { background-color: #fef2f2 !important; }
+    .bg-indigo-50 { background-color: #eef2ff !important; }
+    .bg-amber-50 { background-color: #fffbeb !important; }
+    
+    .shadow-sm { box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important; }
+    .shadow-md { box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important; }
+    .shadow-inner { box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.05) !important; }
+    
+    .text-slate-800 { color: #1e293b !important; }
+    .text-slate-700 { color: #334155 !important; }
+    .text-slate-500 { color: #64748b !important; }
+    .text-slate-400 { color: #94a3b8 !important; }
+    .text-green-600 { color: #16a34a !important; }
+    .text-amber-900 { color: #78350f !important; }
+    .text-amber-800 { color: #92400e !important; }
+    
+    .font-bold { font-weight: 700 !important; }
+    .font-extrabold { font-weight: 800 !important; }
+    .font-semibold { font-weight: 600 !important; }
+    
+    .text-xs { font-size: 0.75rem !important; }
+    .text-sm { font-size: 0.875rem !important; }
+    .text-base { font-size: 1rem !important; }
+    .text-2xl { font-size: 1.5rem !important; }
+    
+    .flex { display: flex !important; }
+    .flex-col { flex-direction: column !important; }
+    .items-center { align-items: center !important; }
+    .justify-between { justify-content: space-between !important; }
+    .gap-2 { gap: 0.5rem !important; }
+    .gap-3 { gap: 0.75rem !important; }
+    .gap-4 { gap: 1rem !important; }
+    
+    .p-4 { padding: 1rem !important; }
+    .p-5 { padding: 1.25rem !important; }
+    .px-4 { padding-left: 1rem !important; padding-right: 1rem !important; }
+    .py-3 { padding-top: 0.75rem !important; padding-bottom: 0.75rem !important; }
+    .py-3\.5 { padding-top: 0.875rem !important; padding-bottom: 0.875rem !important; }
+    .pl-11 { padding-left: 2.75rem !important; }
+    .pr-4 { padding-right: 1rem !important; }
+    .pt-6 { padding-top: 1.5rem !important; }
+    
+    .w-full { width: 100% !important; }
+    .h-full { height: 100% !important; }
+    .w-6 { width: 1.5rem !important; }
+    .w-24 { width: 6rem !important; }
+    .h-24 { height: 6rem !important; }
+    .mx-auto { margin-left: auto !important; margin-right: auto !important; }
+
+    /* Skeleton Loading Animado */
+    .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+    .sk-input { background: #f1f5f9; border-radius: 12px; height: 48px; margin-bottom: 16px; }
+
+    #checkout-root{max-width:480px;margin:0 auto}
+    #checkout-root>div{max-width:480px;margin:0 auto}
 </style>
 
 <!-- Skeleton do Checkout -->
-<div id="spa-skeleton-loader" style="min-height: 100dvh; background: #f8fafc;">
+<div id="skeleton-loader" style="min-height: 100dvh; background: #f8fafc;">
 <div class="progress-bar" style="width: 25%;"></div>
 <div class="static-nav">
 <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="window.spaGoBack()">
@@ -970,11 +1027,136 @@
 
 <script>
 // ============================================
-// SPA CHECKOUT NAVIGATION
+// SPA CHECKOUT - COMPLETE REWRITE
 // ============================================
 (function() {
-    var checkoutLoaded = false;
-    var checkoutScriptsLoaded = false;
+    // ---- UTILITY FUNCTIONS (always available) ----
+    if (!window.safeCopyToClipboard) {
+        window.safeCopyToClipboard = function(text) {
+            return new Promise(function(res, rej) {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(res).catch(function() {
+                        _fallbackCopy(text) ? res() : rej();
+                    });
+                } else {
+                    _fallbackCopy(text) ? res() : rej();
+                }
+            });
+        };
+        function _fallbackCopy(text) {
+            try {
+                var ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0';
+                ta.setAttribute('readonly', '');
+                document.body.appendChild(ta);
+                if (/ipad|iphone/i.test(navigator.userAgent)) {
+                    var range = document.createRange();
+                    range.selectNodeContents(ta);
+                    var sel = window.getSelection();
+                    sel.removeAllRanges(); sel.addRange(range);
+                    ta.setSelectionRange(0, 999999);
+                } else { ta.select(); }
+                var ok = document.execCommand('copy');
+                document.body.removeChild(ta);
+                return ok;
+            } catch(e) { return false; }
+        }
+    }
+
+    if (!window.createInputMask) {
+        window.createInputMask = function(type) {
+            return {
+                format: function(value, selectionStart) {
+                    if (!value) return { formatted: "", cursorPosition: 0 };
+                    var raw = value.replace(/\D/g, '');
+                    var hasCC = false;
+                    if (type === 'phone') {
+                        if (raw.length > 11 && raw.substring(0,2) === '55') { hasCC = true; raw = raw.substring(2); }
+                        if (raw.length > 11) raw = raw.substring(0, 11);
+                    }
+                    if (type === 'cpf' && raw.length > 11) raw = raw.substring(0, 11);
+                    if (type === 'cep' && raw.length > 8) raw = raw.substring(0, 8);
+                    var f = "";
+                    switch(type) {
+                        case 'phone':
+                            if (raw.length <= 2) f = raw.replace(/^(\d{0,2})/, '($1');
+                            else if (raw.length <= 7) f = raw.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
+                            else f = raw.replace(/^(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+                            if (hasCC) f = '+55 ' + f;
+                            break;
+                        case 'cpf':
+                            f = raw.replace(/^(\d{0,3})(\d{0,3})(\d{0,3})(\d{0,2})/, function(m,g1,g2,g3,g4) {
+                                var r = ''; if(g1)r+=g1; if(g2)r+='.'+g2; if(g3)r+='.'+g3; if(g4)r+='-'+g4; return r;
+                            });
+                            break;
+                        case 'cep':
+                            f = raw.replace(/^(\d{0,5})(\d{0,3})/, function(m,g1,g2) {
+                                var r = ''; if(g1)r+=g1; if(g2)r+='-'+g2; return r;
+                            });
+                            break;
+                    }
+                    var dbc = 0;
+                    if (selectionStart !== undefined && selectionStart !== null) {
+                        for (var i = 0; i < Math.min(selectionStart, value.length); i++) {
+                            if (value[i] >= '0' && value[i] <= '9') dbc++;
+                        }
+                    }
+                    var np = 0, dc = 0;
+                    for (var j = 0; j < f.length; j++) {
+                        if (f[j] >= '0' && f[j] <= '9') dc++;
+                        if (dc >= dbc) { np = j + 1; break; }
+                    }
+                    if (dbc === 0) np = 0;
+                    if (f.length < value.length && selectionStart === value.length) np = f.length;
+                    return { formatted: f, cursorPosition: np };
+                }
+            };
+        };
+    }
+
+    if (!window.setupKeyboardDetection) {
+        var INITIAL_H = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        window.setupKeyboardDetection = function() {
+            if (typeof window.visualViewport !== 'undefined') {
+                var vv = window.visualViewport;
+                vv.addEventListener('resize', function() {
+                    var ch = vv.height;
+                    if (ch > INITIAL_H) INITIAL_H = ch;
+                    var d = INITIAL_H - ch;
+                    if (d > 150) {
+                        document.documentElement.style.setProperty('--keyboard-height', d + 'px');
+                        document.body.classList.add('keyboard-open');
+                    } else {
+                        document.body.classList.remove('keyboard-open');
+                        document.documentElement.style.setProperty('--keyboard-height', '0px');
+                    }
+                });
+            }
+        };
+        try { window.setupKeyboardDetection(); } catch(e) {}
+    }
+
+    if (!window.trackPixel) {
+        window.trackPixel = function(event, data) {
+            if (window.__TEST_MODE) { console.log('[TEST_MODE] Evento bloqueado:', event, data); return; }
+            if (window.trackViaZaraz) { try { window.trackViaZaraz(event, data); } catch(e) {} }
+        };
+    }
+
+    if (!window.PRODUCT_CONTENT) {
+        window.PRODUCT_CONTENT = {
+            content_type: 'product',
+            contents: [{ content_id: 'AFON-12L-BI', id: 'AFON-12L-BI', quantity: 1, price: 197.99, item_price: 197.99 }],
+            content_id: 'AFON-12L-BI',
+            content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI',
+            content_ids: ['AFON-12L-BI'],
+            value: 197.99,
+            currency: 'BRL'
+        };
+    }
+
+    // ---- SPA NAVIGATION ----
 
     // Voltar para a LP
     window.spaGoBack = function() {
@@ -988,230 +1170,24 @@
         document.body.style.overflow = '';
         document.body.style.background = '';
 
-        // Restaura URL sem reload
-        history.pushState({ page: 'lp' }, '', '/');
+        // Restaura skeleton para próxima abertura
+        var sk = document.getElementById('skeleton-loader');
+        if (sk) { sk.style.display = ''; sk.style.opacity = '1'; sk.style.transition = ''; }
 
-        // Restaura o title
+        // CRITICAL: Cria um checkout-root FRESCO para evitar conflito React 18 createRoot
+        var oldRoot = document.getElementById('checkout-root');
+        if (oldRoot) {
+            var newRoot = document.createElement('div');
+            newRoot.id = 'checkout-root';
+            oldRoot.parentNode.replaceChild(newRoot, oldRoot);
+        }
+
+        history.pushState({ page: 'lp' }, '', '/');
         document.title = 'Izzat - Fritadeira Elétrica Forno Oven 12L Mondial';
     };
 
-    // Carregar scripts do checkout dinamicamente
-    function loadCheckoutScripts() {
-        if (checkoutScriptsLoaded) return Promise.resolve();
-        checkoutScriptsLoaded = true;
-
-        return new Promise(function(resolve) {
-            // Funções utilitárias do checkout (keyboard, masks, tracking, etc.)
-            // Estas são definidas inline no /c/index.html original
-
-            // Configura funções que o checkout precisa (se ainda não existem)
-            if (!window.safeCopyToClipboard) {
-                window.safeCopyToClipboard = function(text) {
-                    return new Promise(function(res, rej) {
-                        if (navigator.clipboard && navigator.clipboard.writeText) {
-                            navigator.clipboard.writeText(text).then(res).catch(function() {
-                                fallbackCopySPA(text) ? res() : rej();
-                            });
-                        } else {
-                            fallbackCopySPA(text) ? res() : rej();
-                        }
-                    });
-                };
-                function fallbackCopySPA(text) {
-                    try {
-                        var ta = document.createElement('textarea');
-                        ta.value = text;
-                        ta.style.cssText = 'position:fixed;left:-999999px;top:-999999px;opacity:0';
-                        ta.setAttribute('readonly', '');
-                        document.body.appendChild(ta);
-                        if (/ipad|iphone/i.test(navigator.userAgent)) {
-                            var range = document.createRange();
-                            range.selectNodeContents(ta);
-                            var sel = window.getSelection();
-                            sel.removeAllRanges(); sel.addRange(range);
-                            ta.setSelectionRange(0, 999999);
-                        } else { ta.select(); }
-                        var ok = document.execCommand('copy');
-                        document.body.removeChild(ta);
-                        return ok;
-                    } catch(e) { return false; }
-                }
-            }
-
-            if (!window.createInputMask) {
-                window.createInputMask = function(type) {
-                    return {
-                        format: function(value, selectionStart) {
-                            if (!value) return { formatted: "", cursorPosition: 0 };
-                            var raw = value.replace(/\D/g, '');
-                            var hasCC = false;
-                            if (type === 'phone') {
-                                if (raw.length > 11 && raw.substring(0,2) === '55') { hasCC = true; raw = raw.substring(2); }
-                                if (raw.length > 11) raw = raw.substring(0, 11);
-                            }
-                            if (type === 'cpf' && raw.length > 11) raw = raw.substring(0, 11);
-                            if (type === 'cep' && raw.length > 8) raw = raw.substring(0, 8);
-                            var f = "";
-                            switch(type) {
-                                case 'phone':
-                                    if (raw.length <= 2) f = raw.replace(/^(\d{0,2})/, '($1');
-                                    else if (raw.length <= 7) f = raw.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
-                                    else f = raw.replace(/^(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
-                                    if (hasCC) f = '+55 ' + f;
-                                    break;
-                                case 'cpf':
-                                    f = raw.replace(/^(\d{0,3})(\d{0,3})(\d{0,3})(\d{0,2})/, function(m,g1,g2,g3,g4) {
-                                        var r = ''; if(g1)r+=g1; if(g2)r+='.'+g2; if(g3)r+='.'+g3; if(g4)r+='-'+g4; return r;
-                                    });
-                                    break;
-                                case 'cep':
-                                    f = raw.replace(/^(\d{0,5})(\d{0,3})/, function(m,g1,g2) {
-                                        var r = ''; if(g1)r+=g1; if(g2)r+='-'+g2; return r;
-                                    });
-                                    break;
-                            }
-                            var dbc = 0;
-                            if (selectionStart !== undefined && selectionStart !== null) {
-                                for (var i = 0; i < Math.min(selectionStart, value.length); i++) {
-                                    if (value[i] >= '0' && value[i] <= '9') dbc++;
-                                }
-                            }
-                            var np = 0, dc = 0;
-                            for (var j = 0; j < f.length; j++) {
-                                if (f[j] >= '0' && f[j] <= '9') dc++;
-                                if (dc >= dbc) { np = j + 1; break; }
-                            }
-                            if (dbc === 0) np = 0;
-                            if (f.length < value.length && selectionStart === value.length) np = f.length;
-                            return { formatted: f, cursorPosition: np };
-                        }
-                    };
-                };
-            }
-
-            // Keyboard detection
-            if (!window.setupKeyboardDetection) {
-                var INITIAL_H = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-                window.setupKeyboardDetection = function() {
-                    var vvs = typeof window.visualViewport !== 'undefined';
-                    if (vvs) {
-                        var vv = window.visualViewport;
-                        vv.addEventListener('resize', function() {
-                            var ch = vv.height;
-                            if (ch > INITIAL_H) INITIAL_H = ch;
-                            var d = INITIAL_H - ch;
-                            if (d > 150) {
-                                document.documentElement.style.setProperty('--keyboard-height', d + 'px');
-                                document.body.classList.add('keyboard-open');
-                            } else {
-                                document.body.classList.remove('keyboard-open');
-                                document.documentElement.style.setProperty('--keyboard-height', '0px');
-                            }
-                        });
-                    }
-                };
-                try { window.setupKeyboardDetection(); } catch(e) {}
-            }
-
-            // trackPixel para o checkout (usa o mesmo do /c/)
-            if (!window.trackPixel) {
-                window.trackPixel = function(event, data) {
-                    if (window.__TEST_MODE) { console.log('[TEST_MODE] Evento bloqueado:', event, data); return; }
-                    // Usa trackViaZaraz se disponível (da LP)
-                    if (window.trackViaZaraz) {
-                        try { window.trackViaZaraz(event, data); } catch(e) {}
-                    }
-                };
-            }
-
-            // PRODUCT_CONTENT para o checkout
-            if (!window.PRODUCT_CONTENT) {
-                window.PRODUCT_CONTENT = {
-                    content_type: 'product',
-                    contents: [{ content_id: 'AFON-12L-BI', id: 'AFON-12L-BI', quantity: 1, price: 197.99, item_price: 197.99 }],
-                    content_id: 'AFON-12L-BI',
-                    content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI',
-                    content_ids: ['AFON-12L-BI'],
-                    value: 197.99,
-                    currency: 'BRL'
-                };
-            }
-
-            // Carrega React + ReactDOM + Tailwind
-            function loadScript(src) {
-                return new Promise(function(res, rej) {
-                    var s = document.createElement('script');
-                    s.src = src; s.async = false;
-                    s.onload = function() { res(); };
-                    s.onerror = function() { rej(src); };
-                    document.head.appendChild(s);
-                });
-            }
-
-            var reactReady = (typeof React !== 'undefined' && typeof ReactDOM !== 'undefined');
-
-            if (reactReady) {
-                // React já carregado, só precisa do checkout app
-                loadScript('/assets/js/checkout.app.js').then(function() {
-                    // Configura Tailwind
-                    if (typeof tailwind !== 'undefined') {
-                        window.tailwind = window.tailwind || {};
-                        window.tailwind.config = window.tailwind.config || { theme: { extend: { fontFamily: { sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'] } } } };
-                    }
-                    if (window.initReactCheckout) window.initReactCheckout();
-                    resolve();
-                }).catch(function() { resolve(); });
-            } else {
-                // Carrega tudo em sequência
-                loadScript('assets/vendor/react.production.min.js')
-                    .then(function() { return loadScript('assets/vendor/react-dom.production.min.js'); })
-                    .then(function() { return loadScript('assets/vendor/tailwindcss.js'); })
-                    .then(function() {
-                        // Configura Tailwind
-                        window.tailwind = window.tailwind || {};
-                        window.tailwind.config = {
-                            theme: {
-                                extend: {
-                                    fontFamily: { sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'] },
-                                    colors: { clifford: '#da373d' },
-                                    spacing: { 'safe-top': 'env(safe-area-inset-top)', 'safe-bottom': 'env(safe-area-inset-bottom)' },
-                                    keyframes: {
-                                        fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
-                                        pulseUrgent: { '0%, 100%': { opacity: '1' }, '50%': { opacity: '0.8' } }
-                                    },
-                                    animation: {
-                                        'fade-in': 'fadeIn 0.5s ease-out forwards',
-                                        'pulse-urgent': 'pulseUrgent 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite'
-                                    }
-                                }
-                            }
-                        };
-                        return loadScript('assets/js/checkout.app.js');
-                    })
-                    .then(function() {
-                        if (window.initReactCheckout) window.initReactCheckout();
-                        resolve();
-                    })
-                    .catch(function(failedSrc) {
-                        console.warn('[SPA Checkout] Falha ao carregar:', failedSrc, '- tentando CDN...');
-                        // Fallback CDN
-                        loadScript('https://unpkg.com/react@18/umd/react.production.min.js')
-                            .then(function() { return loadScript('https://unpkg.com/react-dom@18/umd/react-dom.production.min.js'); })
-                            .then(function() { return loadScript('https://cdn.tailwindcss.com'); })
-                            .then(function() { return loadScript('/assets/js/checkout.app.js'); })
-                            .then(function() {
-                                if (window.initReactCheckout) window.initReactCheckout();
-                                resolve();
-                            })
-                            .catch(function() { resolve(); });
-                    });
-            }
-        });
-    }
-
-    // Abrir checkout via SPA (chamado pelo botão Comprar Agora)
-    window.spaOpenCheckout = function() {
+    // Abrir checkout via SPA
+    window.spaOpenCheckout = function(targetHref) {
         var wrapper = document.getElementById('spa-checkout-wrapper');
         var container = document.querySelector('.container');
         var bottomNav = document.querySelector('.bottom-nav');
@@ -1222,28 +1198,122 @@
         if (bottomNav) bottomNav.style.display = 'none';
         if (salesPopup) salesPopup.style.display = 'none';
 
-        // Mostra o checkout
+        // Mostra o checkout wrapper
         if (wrapper) {
             wrapper.style.display = 'block';
             wrapper.scrollTop = 0;
         }
 
-        // Atualiza URL sem reload (pushState = não dispara navegação real)
-        var checkoutUrl = window.buildCheckoutUrl ? window.buildCheckoutUrl('/c/') : '/c/';
-        // Remove o domínio completo, mantém só o path + params
+        // Atualiza URL sem reload
+        var target = (typeof targetHref === 'string' && targetHref) ? targetHref : '/c/';
+        var checkoutUrl = window.buildCheckoutUrl ? window.buildCheckoutUrl(target) : target;
         try {
             var u = new URL(checkoutUrl, window.location.origin);
             history.pushState({ page: 'checkout' }, '', u.pathname + u.search);
         } catch(e) {
-            history.pushState({ page: 'checkout' }, '', '/c/');
+            history.pushState({ page: 'checkout' }, '', target);
         }
 
         document.title = 'Checkout - Fritadeira Elétrica Forno Oven 12L';
 
-        // Carrega scripts do checkout
-        loadCheckoutScripts();
+        // Configura Tailwind com o MESMO config de c/index.html
+        if (typeof window.tailwind !== 'undefined') {
+            window.tailwind = window.tailwind || {};
+            window.tailwind.config = {
+                theme: {
+                    extend: {
+                        fontFamily: { sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'] },
+                        colors: { clifford: '#da373d' },
+                        spacing: {
+                            'safe-top': 'env(safe-area-inset-top)',
+                            'safe-bottom': 'env(safe-area-inset-bottom)'
+                        },
+                        keyframes: {
+                            fadeIn: {
+                                '0%': { opacity: '0', transform: 'translateY(10px)' },
+                                '100%': { opacity: '1', transform: 'translateY(0)' }
+                            },
+                            pulseUrgent: {
+                                '0%, 100%': { opacity: '1' },
+                                '50%': { opacity: '0.8' }
+                            }
+                        },
+                        animation: {
+                            'fade-in': 'fadeIn 0.5s ease-out forwards',
+                            'pulse-urgent': 'pulseUrgent 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+                        }
+                    }
+                }
+            };
+        }
 
-        // Dispara InitiateCheckout tracking
+        // CRITICAL: Reset React flags para permitir nova montagem
+        window.checkoutInitialized = false;
+        window.checkoutMounted = false;
+
+        // Garante checkout-root fresco (React 18 não aceita createRoot em root já usado)
+        var oldRoot = document.getElementById('checkout-root');
+        if (oldRoot && oldRoot.innerHTML.length > 0) {
+            var newRoot = document.createElement('div');
+            newRoot.id = 'checkout-root';
+            oldRoot.parentNode.replaceChild(newRoot, oldRoot);
+        }
+
+        // Recarrega o Tailwind script para forçar re-scan do DOM inteiro
+        function reloadTailwindAfterReact() {
+            var root = document.getElementById('checkout-root');
+            if (!root || root.innerHTML.length < 50) {
+                setTimeout(reloadTailwindAfterReact, 150);
+                return;
+            }
+            console.log('[SPA] React renderizou. Recarregando Tailwind...');
+            
+            // Remove o style tag gerado pelo Tailwind antigo
+            var oldStyles = document.querySelectorAll('style[data-made-with="tailwindcss"]');
+            oldStyles.forEach(function(s) { s.remove(); });
+            
+            // Remove o script antigo do Tailwind
+            var oldScripts = document.querySelectorAll('script[src*="tailwindcss"]');
+            oldScripts.forEach(function(s) { s.remove(); });
+            
+            // Reseta o estado interno do Tailwind
+            delete window.__tw_loaded;
+            
+            // Configura Tailwind config novamente
+            window.tailwind = window.tailwind || {};
+            window.tailwind.config = {
+                theme: {
+                    extend: {
+                        fontFamily: { sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'] },
+                        colors: { clifford: '#da373d' }
+                    }
+                }
+            };
+            
+            // Carrega uma cópia nova do Tailwind
+            var newScript = document.createElement('script');
+            newScript.src = '/assets/vendor/tailwindcss.js?t=' + Date.now();
+            document.head.appendChild(newScript);
+        }
+
+        // Inicia o React checkout
+        if (window.initReactCheckout) {
+            try {
+                window.initReactCheckout();
+                setTimeout(reloadTailwindAfterReact, 300);
+            } catch(err) { console.error('[SPA] Error:', err); }
+        } else {
+            var poll = setInterval(function() {
+                if (window.initReactCheckout) {
+                    clearInterval(poll);
+                    window.initReactCheckout();
+                    setTimeout(reloadTailwindAfterReact, 300);
+                }
+            }, 100);
+        }
+
+        // Tracking
         try {
             if (window.trackViaZaraz) {
                 window.trackViaZaraz('InitiateCheckout', {
@@ -1262,40 +1332,87 @@
         }
     });
 
-    // Se a página já carregou com /c/ na URL (deep link), abre checkout automaticamente
+    // Deep link: se a URL já é /c/, abre checkout automaticamente
     if (window.location.pathname.indexOf('/c') === 0 && window.location.pathname !== '/') {
-        // Aguarda DOM estar pronto
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', function() { window.spaOpenCheckout(); });
         } else {
             window.spaOpenCheckout();
         }
     }
-
-    // Hook no botão de compra para garantir que chame a função SPA original
-    document.addEventListener('DOMContentLoaded', function() {
-        var btn = document.getElementById('buy-now');
-        if (btn) {
-            btn.onclick = function(e) {
-                e.preventDefault();
-                window.spaOpenCheckout();
-            };
-        }
-    });
-
-    // Otimização: Pre-carrega scripts do checkout em background para transição instantânea
-    // Só dispara se estiver na Home e após 4s para não competir com o load da LP
-    if (window.location.pathname === '/' || window.location.pathname.indexOf('/index.html') !== -1) {
-        setTimeout(function() {
-            if (typeof loadCheckoutScripts === 'function') {
-                if (window.requestIdleCallback) {
-                    requestIdleCallback(function() { loadCheckoutScripts().catch(function(){}); });
-                } else {
-                    loadCheckoutScripts().catch(function(){});
-                }
-            }
-        }, 4000);
-    }
 })();
 </script>
+<!-- Native Script Loading to prevent webview hangs with CDN Fallback -->
+<script>
+    window.__loadScript = window.__loadScript || function(src){
+        return new Promise(function(resolve, reject){
+            var s = document.createElement('script');
+            s.src = src; s.async = true;
+            s.onload = function(){ resolve(src); };
+            s.onerror = function(){ reject(src); };
+            document.head.appendChild(s);
+        });
+    };
+    window.__localLibFallback = window.__localLibFallback || function(which){
+        try {
+            if (which === 'react' && typeof window.React !== 'undefined') return;
+            if (which === 'react-dom' && typeof window.ReactDOM !== 'undefined') return;
+            if (which.indexOf('tailwind') === 0 && typeof window.tailwind !== 'undefined') return;
+
+            window.__libFallbackCount = window.__libFallbackCount || {};
+            window.__libFallbackCount[which] = (window.__libFallbackCount[which] || 0) + 1;
+            var n = window.__libFallbackCount[which];
+
+            var tries = [];
+            if (which === 'react') tries = ['assets/vendor/react.production.min.js', 'https://unpkg.com/react@18/umd/react.production.min.js'];
+            if (which === 'react-dom') tries = ['assets/vendor/react-dom.production.min.js', 'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js'];
+            if (which.indexOf('tailwind') === 0) tries = ['assets/vendor/tailwindcss.js', 'https://cdn.tailwindcss.com'];
+            if (which === 'checkoutapp') tries = ['assets/js/checkout.app.js?v=' + Date.now()];
+
+            var src = tries[Math.min(n-1, tries.length-1)];
+            if (!src) return;
+
+            window.__loadScript(src).then(function(){
+                if (typeof window.initReactCheckout === 'function') {
+                    try { window.initReactCheckout(); } catch(e) {}
+                }
+            }).catch(function(){ window.__localLibFallback(which); });
+        } catch(e) {}
+    };
+</script>
+<script defer onerror="window.__localLibFallback('react')" src="assets/vendor/react.production.min.js"></script>
+<script defer onerror="window.__localLibFallback('react-dom')" src="assets/vendor/react-dom.production.min.js"></script>
+<script>
+    // Tailwind config DEVE ser definido ANTES do tailwindcss.js carregar
+    window.tailwind = window.tailwind || {};
+    window.tailwind.config = { 
+        theme: { 
+            extend: {
+                fontFamily: { sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'] },
+                colors: { clifford: '#da373d' },
+                spacing: {
+                    'safe-top': 'env(safe-area-inset-top)',
+                    'safe-bottom': 'env(safe-area-inset-bottom)',
+                },
+                keyframes: {
+                    fadeIn: {
+                        '0%': { opacity: '0', transform: 'translateY(10px)' },
+                        '100%': { opacity: '1', transform: 'translateY(0)' },
+                    },
+                    pulseUrgent: {
+                        '0%, 100%': { opacity: '1' },
+                        '50%': { opacity: '0.8' },
+                    }
+                },
+                animation: {
+                    'fade-in': 'fadeIn 0.5s ease-out forwards',
+                    'pulse-urgent': 'pulseUrgent 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                }
+            } 
+        }
+    };
+</script>
+<script defer onerror="window.__localLibFallback('tailwind-local')" src="assets/vendor/tailwindcss.js"></script>
+<script defer onerror="window.__localLibFallback('checkoutapp')" src="assets/js/checkout.app.js"></script>
 </body></html>
