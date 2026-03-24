@@ -506,7 +506,7 @@
 <span>Chat</span>
 </a>
 <button class="add-cart-btn">Ver Avaliações</button>
-<a class="buy-btn pulsing-buy-btn" data-spa="true" href="/c/" id="buy-now" style="display: flex; align-items: center; justify-content: center; text-decoration: none; color: white;">Comprar Agora</a>
+<a class="buy-btn pulsing-buy-btn" href="/c/" id="buy-now" style="display: flex; align-items: center; justify-content: center; text-decoration: none; color: white;">Comprar Agora</a>
 </nav>
 <footer class="footer">
 ...
@@ -1163,9 +1163,9 @@
                 }).catch(function() { resolve(); });
             } else {
                 // Carrega tudo em sequência
-                loadScript('assets/vendor/react.production.min.js')
-                    .then(function() { return loadScript('assets/vendor/react-dom.production.min.js'); })
-                    .then(function() { return loadScript('assets/vendor/tailwindcss.js'); })
+                loadScript('/assets/vendor/react.production.min.js')
+                    .then(function() { return loadScript('/assets/vendor/react-dom.production.min.js'); })
+                    .then(function() { return loadScript('/assets/vendor/tailwindcss.js'); })
                     .then(function() {
                         // Configura Tailwind
                         window.tailwind = window.tailwind || {};
@@ -1187,7 +1187,7 @@
                                 }
                             }
                         };
-                        return loadScript('assets/js/checkout.app.js');
+                        return loadScript('/assets/js/checkout.app.js');
                     })
                     .then(function() {
                         if (window.initReactCheckout) window.initReactCheckout();
@@ -1270,31 +1270,6 @@
         } else {
             window.spaOpenCheckout();
         }
-    }
-
-    // Hook no botão de compra para garantir que chame a função SPA original
-    document.addEventListener('DOMContentLoaded', function() {
-        var btn = document.getElementById('buy-now');
-        if (btn) {
-            btn.onclick = function(e) {
-                e.preventDefault();
-                window.spaOpenCheckout();
-            };
-        }
-    });
-
-    // Otimização: Pre-carrega scripts do checkout em background para transição instantânea
-    // Só dispara se estiver na Home e após 4s para não competir com o load da LP
-    if (window.location.pathname === '/' || window.location.pathname.indexOf('/index.html') !== -1) {
-        setTimeout(function() {
-            if (typeof loadCheckoutScripts === 'function') {
-                if (window.requestIdleCallback) {
-                    requestIdleCallback(function() { loadCheckoutScripts().catch(function(){}); });
-                } else {
-                    loadCheckoutScripts().catch(function(){});
-                }
-            }
-        }, 4000);
     }
 })();
 </script>
