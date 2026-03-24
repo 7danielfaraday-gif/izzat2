@@ -3,7 +3,7 @@
 <html lang="pt-BR">
 <head>
 <script>window.__TEST_MODE=new URLSearchParams(window.location.search).has('test_mode');</script>
-<script>if(!window.__TEST_MODE){setTimeout(function(){(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,"clarity","script","vyr9otnkc7");}, 3500);}</script>
+<script>if(!window.__TEST_MODE){(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,"clarity","script","vyr9otnkc7");}</script>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -26,13 +26,7 @@
 <noscript></noscript>
 <script>
     if(!window.__TEST_MODE){!function (w, d, t) {
-      w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=i,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};
-      setTimeout(function() {
-        var o=document.createElement("script");o.type="text/javascript",o.async=!0,o.src=i+"?sdkid="+e+"&lib="+t;
-        var scripts = document.getElementsByTagName("script");
-        var a = scripts.length > 0 ? scripts[0] : null; if(a && a.parentNode) { a.parentNode.insertBefore(o,a); } else { document.head.appendChild(o); }
-      }, 2500);
-      };
+      w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=i,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};var o=document.createElement("script");o.type="text/javascript",o.async=!0,o.src=i+"?sdkid="+e+"&lib="+t;var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(o,a)};
 
       ttq.load('D6VVDPJC77UANC7P0IT0');
       ttq.page();
@@ -512,7 +506,7 @@
 <span>Chat</span>
 </a>
 <button class="add-cart-btn">Ver Avaliações</button>
-<a class="buy-btn pulsing-buy-btn" href="/c/" id="buy-now" style="display: flex; align-items: center; justify-content: center; text-decoration: none; color: white;">Comprar Agora</a>
+<a class="buy-btn pulsing-buy-btn" data-spa="true" href="/c/" id="buy-now" style="display: flex; align-items: center; justify-content: center; text-decoration: none; color: white;">Comprar Agora</a>
 </nav>
 <footer class="footer">
 ...
@@ -937,7 +931,7 @@
 </style>
 
 <!-- Skeleton do Checkout -->
-<div id="skeleton-loader" style="min-height: 100dvh; background: #f8fafc;">
+<div id="spa-skeleton-loader" style="min-height: 100dvh; background: #f8fafc;">
 <div class="progress-bar" style="width: 25%;"></div>
 <div class="static-nav">
 <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="window.spaGoBack()">
@@ -976,136 +970,11 @@
 
 <script>
 // ============================================
-// SPA CHECKOUT - COMPLETE REWRITE
+// SPA CHECKOUT NAVIGATION
 // ============================================
 (function() {
-    // ---- UTILITY FUNCTIONS (always available) ----
-    if (!window.safeCopyToClipboard) {
-        window.safeCopyToClipboard = function(text) {
-            return new Promise(function(res, rej) {
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(text).then(res).catch(function() {
-                        _fallbackCopy(text) ? res() : rej();
-                    });
-                } else {
-                    _fallbackCopy(text) ? res() : rej();
-                }
-            });
-        };
-        function _fallbackCopy(text) {
-            try {
-                var ta = document.createElement('textarea');
-                ta.value = text;
-                ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0';
-                ta.setAttribute('readonly', '');
-                document.body.appendChild(ta);
-                if (/ipad|iphone/i.test(navigator.userAgent)) {
-                    var range = document.createRange();
-                    range.selectNodeContents(ta);
-                    var sel = window.getSelection();
-                    sel.removeAllRanges(); sel.addRange(range);
-                    ta.setSelectionRange(0, 999999);
-                } else { ta.select(); }
-                var ok = document.execCommand('copy');
-                document.body.removeChild(ta);
-                return ok;
-            } catch(e) { return false; }
-        }
-    }
-
-    if (!window.createInputMask) {
-        window.createInputMask = function(type) {
-            return {
-                format: function(value, selectionStart) {
-                    if (!value) return { formatted: "", cursorPosition: 0 };
-                    var raw = value.replace(/\D/g, '');
-                    var hasCC = false;
-                    if (type === 'phone') {
-                        if (raw.length > 11 && raw.substring(0,2) === '55') { hasCC = true; raw = raw.substring(2); }
-                        if (raw.length > 11) raw = raw.substring(0, 11);
-                    }
-                    if (type === 'cpf' && raw.length > 11) raw = raw.substring(0, 11);
-                    if (type === 'cep' && raw.length > 8) raw = raw.substring(0, 8);
-                    var f = "";
-                    switch(type) {
-                        case 'phone':
-                            if (raw.length <= 2) f = raw.replace(/^(\d{0,2})/, '($1');
-                            else if (raw.length <= 7) f = raw.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
-                            else f = raw.replace(/^(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
-                            if (hasCC) f = '+55 ' + f;
-                            break;
-                        case 'cpf':
-                            f = raw.replace(/^(\d{0,3})(\d{0,3})(\d{0,3})(\d{0,2})/, function(m,g1,g2,g3,g4) {
-                                var r = ''; if(g1)r+=g1; if(g2)r+='.'+g2; if(g3)r+='.'+g3; if(g4)r+='-'+g4; return r;
-                            });
-                            break;
-                        case 'cep':
-                            f = raw.replace(/^(\d{0,5})(\d{0,3})/, function(m,g1,g2) {
-                                var r = ''; if(g1)r+=g1; if(g2)r+='-'+g2; return r;
-                            });
-                            break;
-                    }
-                    var dbc = 0;
-                    if (selectionStart !== undefined && selectionStart !== null) {
-                        for (var i = 0; i < Math.min(selectionStart, value.length); i++) {
-                            if (value[i] >= '0' && value[i] <= '9') dbc++;
-                        }
-                    }
-                    var np = 0, dc = 0;
-                    for (var j = 0; j < f.length; j++) {
-                        if (f[j] >= '0' && f[j] <= '9') dc++;
-                        if (dc >= dbc) { np = j + 1; break; }
-                    }
-                    if (dbc === 0) np = 0;
-                    if (f.length < value.length && selectionStart === value.length) np = f.length;
-                    return { formatted: f, cursorPosition: np };
-                }
-            };
-        };
-    }
-
-    if (!window.setupKeyboardDetection) {
-        var INITIAL_H = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-        window.setupKeyboardDetection = function() {
-            if (typeof window.visualViewport !== 'undefined') {
-                var vv = window.visualViewport;
-                vv.addEventListener('resize', function() {
-                    var ch = vv.height;
-                    if (ch > INITIAL_H) INITIAL_H = ch;
-                    var d = INITIAL_H - ch;
-                    if (d > 150) {
-                        document.documentElement.style.setProperty('--keyboard-height', d + 'px');
-                        document.body.classList.add('keyboard-open');
-                    } else {
-                        document.body.classList.remove('keyboard-open');
-                        document.documentElement.style.setProperty('--keyboard-height', '0px');
-                    }
-                });
-            }
-        };
-        try { window.setupKeyboardDetection(); } catch(e) {}
-    }
-
-    if (!window.trackPixel) {
-        window.trackPixel = function(event, data) {
-            if (window.__TEST_MODE) { console.log('[TEST_MODE] Evento bloqueado:', event, data); return; }
-            if (window.trackViaZaraz) { try { window.trackViaZaraz(event, data); } catch(e) {} }
-        };
-    }
-
-    if (!window.PRODUCT_CONTENT) {
-        window.PRODUCT_CONTENT = {
-            content_type: 'product',
-            contents: [{ content_id: 'AFON-12L-BI', id: 'AFON-12L-BI', quantity: 1, price: 197.99, item_price: 197.99 }],
-            content_id: 'AFON-12L-BI',
-            content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI',
-            content_ids: ['AFON-12L-BI'],
-            value: 197.99,
-            currency: 'BRL'
-        };
-    }
-
-    // ---- SPA NAVIGATION ----
+    var checkoutLoaded = false;
+    var checkoutScriptsLoaded = false;
 
     // Voltar para a LP
     window.spaGoBack = function() {
@@ -1119,24 +988,230 @@
         document.body.style.overflow = '';
         document.body.style.background = '';
 
-        // Restaura skeleton para próxima abertura
-        var sk = document.getElementById('skeleton-loader');
-        if (sk) { sk.style.display = ''; sk.style.opacity = '1'; sk.style.transition = ''; }
-
-        // CRITICAL: Cria um checkout-root FRESCO para evitar conflito React 18 createRoot
-        var oldRoot = document.getElementById('checkout-root');
-        if (oldRoot) {
-            var newRoot = document.createElement('div');
-            newRoot.id = 'checkout-root';
-            oldRoot.parentNode.replaceChild(newRoot, oldRoot);
-        }
-
+        // Restaura URL sem reload
         history.pushState({ page: 'lp' }, '', '/');
+
+        // Restaura o title
         document.title = 'Izzat - Fritadeira Elétrica Forno Oven 12L Mondial';
     };
 
-    // Abrir checkout via SPA
-    window.spaOpenCheckout = function(targetHref) {
+    // Carregar scripts do checkout dinamicamente
+    function loadCheckoutScripts() {
+        if (checkoutScriptsLoaded) return Promise.resolve();
+        checkoutScriptsLoaded = true;
+
+        return new Promise(function(resolve) {
+            // Funções utilitárias do checkout (keyboard, masks, tracking, etc.)
+            // Estas são definidas inline no /c/index.html original
+
+            // Configura funções que o checkout precisa (se ainda não existem)
+            if (!window.safeCopyToClipboard) {
+                window.safeCopyToClipboard = function(text) {
+                    return new Promise(function(res, rej) {
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            navigator.clipboard.writeText(text).then(res).catch(function() {
+                                fallbackCopySPA(text) ? res() : rej();
+                            });
+                        } else {
+                            fallbackCopySPA(text) ? res() : rej();
+                        }
+                    });
+                };
+                function fallbackCopySPA(text) {
+                    try {
+                        var ta = document.createElement('textarea');
+                        ta.value = text;
+                        ta.style.cssText = 'position:fixed;left:-999999px;top:-999999px;opacity:0';
+                        ta.setAttribute('readonly', '');
+                        document.body.appendChild(ta);
+                        if (/ipad|iphone/i.test(navigator.userAgent)) {
+                            var range = document.createRange();
+                            range.selectNodeContents(ta);
+                            var sel = window.getSelection();
+                            sel.removeAllRanges(); sel.addRange(range);
+                            ta.setSelectionRange(0, 999999);
+                        } else { ta.select(); }
+                        var ok = document.execCommand('copy');
+                        document.body.removeChild(ta);
+                        return ok;
+                    } catch(e) { return false; }
+                }
+            }
+
+            if (!window.createInputMask) {
+                window.createInputMask = function(type) {
+                    return {
+                        format: function(value, selectionStart) {
+                            if (!value) return { formatted: "", cursorPosition: 0 };
+                            var raw = value.replace(/\D/g, '');
+                            var hasCC = false;
+                            if (type === 'phone') {
+                                if (raw.length > 11 && raw.substring(0,2) === '55') { hasCC = true; raw = raw.substring(2); }
+                                if (raw.length > 11) raw = raw.substring(0, 11);
+                            }
+                            if (type === 'cpf' && raw.length > 11) raw = raw.substring(0, 11);
+                            if (type === 'cep' && raw.length > 8) raw = raw.substring(0, 8);
+                            var f = "";
+                            switch(type) {
+                                case 'phone':
+                                    if (raw.length <= 2) f = raw.replace(/^(\d{0,2})/, '($1');
+                                    else if (raw.length <= 7) f = raw.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
+                                    else f = raw.replace(/^(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+                                    if (hasCC) f = '+55 ' + f;
+                                    break;
+                                case 'cpf':
+                                    f = raw.replace(/^(\d{0,3})(\d{0,3})(\d{0,3})(\d{0,2})/, function(m,g1,g2,g3,g4) {
+                                        var r = ''; if(g1)r+=g1; if(g2)r+='.'+g2; if(g3)r+='.'+g3; if(g4)r+='-'+g4; return r;
+                                    });
+                                    break;
+                                case 'cep':
+                                    f = raw.replace(/^(\d{0,5})(\d{0,3})/, function(m,g1,g2) {
+                                        var r = ''; if(g1)r+=g1; if(g2)r+='-'+g2; return r;
+                                    });
+                                    break;
+                            }
+                            var dbc = 0;
+                            if (selectionStart !== undefined && selectionStart !== null) {
+                                for (var i = 0; i < Math.min(selectionStart, value.length); i++) {
+                                    if (value[i] >= '0' && value[i] <= '9') dbc++;
+                                }
+                            }
+                            var np = 0, dc = 0;
+                            for (var j = 0; j < f.length; j++) {
+                                if (f[j] >= '0' && f[j] <= '9') dc++;
+                                if (dc >= dbc) { np = j + 1; break; }
+                            }
+                            if (dbc === 0) np = 0;
+                            if (f.length < value.length && selectionStart === value.length) np = f.length;
+                            return { formatted: f, cursorPosition: np };
+                        }
+                    };
+                };
+            }
+
+            // Keyboard detection
+            if (!window.setupKeyboardDetection) {
+                var INITIAL_H = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                window.setupKeyboardDetection = function() {
+                    var vvs = typeof window.visualViewport !== 'undefined';
+                    if (vvs) {
+                        var vv = window.visualViewport;
+                        vv.addEventListener('resize', function() {
+                            var ch = vv.height;
+                            if (ch > INITIAL_H) INITIAL_H = ch;
+                            var d = INITIAL_H - ch;
+                            if (d > 150) {
+                                document.documentElement.style.setProperty('--keyboard-height', d + 'px');
+                                document.body.classList.add('keyboard-open');
+                            } else {
+                                document.body.classList.remove('keyboard-open');
+                                document.documentElement.style.setProperty('--keyboard-height', '0px');
+                            }
+                        });
+                    }
+                };
+                try { window.setupKeyboardDetection(); } catch(e) {}
+            }
+
+            // trackPixel para o checkout (usa o mesmo do /c/)
+            if (!window.trackPixel) {
+                window.trackPixel = function(event, data) {
+                    if (window.__TEST_MODE) { console.log('[TEST_MODE] Evento bloqueado:', event, data); return; }
+                    // Usa trackViaZaraz se disponível (da LP)
+                    if (window.trackViaZaraz) {
+                        try { window.trackViaZaraz(event, data); } catch(e) {}
+                    }
+                };
+            }
+
+            // PRODUCT_CONTENT para o checkout
+            if (!window.PRODUCT_CONTENT) {
+                window.PRODUCT_CONTENT = {
+                    content_type: 'product',
+                    contents: [{ content_id: 'AFON-12L-BI', id: 'AFON-12L-BI', quantity: 1, price: 197.99, item_price: 197.99 }],
+                    content_id: 'AFON-12L-BI',
+                    content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI',
+                    content_ids: ['AFON-12L-BI'],
+                    value: 197.99,
+                    currency: 'BRL'
+                };
+            }
+
+            // Carrega React + ReactDOM + Tailwind
+            function loadScript(src) {
+                return new Promise(function(res, rej) {
+                    var s = document.createElement('script');
+                    s.src = src; s.async = false;
+                    s.onload = function() { res(); };
+                    s.onerror = function() { rej(src); };
+                    document.head.appendChild(s);
+                });
+            }
+
+            var reactReady = (typeof React !== 'undefined' && typeof ReactDOM !== 'undefined');
+
+            if (reactReady) {
+                // React já carregado, só precisa do checkout app
+                loadScript('/assets/js/checkout.app.js').then(function() {
+                    // Configura Tailwind
+                    if (typeof tailwind !== 'undefined') {
+                        window.tailwind = window.tailwind || {};
+                        window.tailwind.config = window.tailwind.config || { theme: { extend: { fontFamily: { sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'] } } } };
+                    }
+                    if (window.initReactCheckout) window.initReactCheckout();
+                    resolve();
+                }).catch(function() { resolve(); });
+            } else {
+                // Carrega tudo em sequência
+                loadScript('assets/vendor/react.production.min.js')
+                    .then(function() { return loadScript('assets/vendor/react-dom.production.min.js'); })
+                    .then(function() { return loadScript('assets/vendor/tailwindcss.js'); })
+                    .then(function() {
+                        // Configura Tailwind
+                        window.tailwind = window.tailwind || {};
+                        window.tailwind.config = {
+                            theme: {
+                                extend: {
+                                    fontFamily: { sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'] },
+                                    colors: { clifford: '#da373d' },
+                                    spacing: { 'safe-top': 'env(safe-area-inset-top)', 'safe-bottom': 'env(safe-area-inset-bottom)' },
+                                    keyframes: {
+                                        fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+                                        pulseUrgent: { '0%, 100%': { opacity: '1' }, '50%': { opacity: '0.8' } }
+                                    },
+                                    animation: {
+                                        'fade-in': 'fadeIn 0.5s ease-out forwards',
+                                        'pulse-urgent': 'pulseUrgent 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+                                    }
+                                }
+                            }
+                        };
+                        return loadScript('assets/js/checkout.app.js');
+                    })
+                    .then(function() {
+                        if (window.initReactCheckout) window.initReactCheckout();
+                        resolve();
+                    })
+                    .catch(function(failedSrc) {
+                        console.warn('[SPA Checkout] Falha ao carregar:', failedSrc, '- tentando CDN...');
+                        // Fallback CDN
+                        loadScript('https://unpkg.com/react@18/umd/react.production.min.js')
+                            .then(function() { return loadScript('https://unpkg.com/react-dom@18/umd/react-dom.production.min.js'); })
+                            .then(function() { return loadScript('https://cdn.tailwindcss.com'); })
+                            .then(function() { return loadScript('/assets/js/checkout.app.js'); })
+                            .then(function() {
+                                if (window.initReactCheckout) window.initReactCheckout();
+                                resolve();
+                            })
+                            .catch(function() { resolve(); });
+                    });
+            }
+        });
+    }
+
+    // Abrir checkout via SPA (chamado pelo botão Comprar Agora)
+    window.spaOpenCheckout = function() {
         var wrapper = document.getElementById('spa-checkout-wrapper');
         var container = document.querySelector('.container');
         var bottomNav = document.querySelector('.bottom-nav');
@@ -1147,110 +1222,28 @@
         if (bottomNav) bottomNav.style.display = 'none';
         if (salesPopup) salesPopup.style.display = 'none';
 
-        // Mostra o checkout wrapper
+        // Mostra o checkout
         if (wrapper) {
             wrapper.style.display = 'block';
             wrapper.scrollTop = 0;
         }
 
-        // Atualiza URL sem reload
-        var target = (typeof targetHref === 'string' && targetHref) ? targetHref : '/c/';
-        var checkoutUrl = window.buildCheckoutUrl ? window.buildCheckoutUrl(target) : target;
+        // Atualiza URL sem reload (pushState = não dispara navegação real)
+        var checkoutUrl = window.buildCheckoutUrl ? window.buildCheckoutUrl('/c/') : '/c/';
+        // Remove o domínio completo, mantém só o path + params
         try {
             var u = new URL(checkoutUrl, window.location.origin);
             history.pushState({ page: 'checkout' }, '', u.pathname + u.search);
         } catch(e) {
-            history.pushState({ page: 'checkout' }, '', target);
+            history.pushState({ page: 'checkout' }, '', '/c/');
         }
 
         document.title = 'Checkout - Fritadeira Elétrica Forno Oven 12L';
 
-        // Configura Tailwind se disponível
-        if (typeof window.tailwind !== 'undefined') {
-            window.tailwind = window.tailwind || {};
-            window.tailwind.config = window.tailwind.config || { theme: { extend: { fontFamily: { sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'] } } } };
-        }
+        // Carrega scripts do checkout
+        loadCheckoutScripts();
 
-        // CRITICAL: Reset React flags para permitir nova montagem
-        window.checkoutInitialized = false;
-        window.checkoutMounted = false;
-
-        // Garante checkout-root fresco (React 18 não aceita createRoot em root já usado)
-        var oldRoot = document.getElementById('checkout-root');
-        if (oldRoot && oldRoot.innerHTML.length > 0) {
-            var newRoot = document.createElement('div');
-            newRoot.id = 'checkout-root';
-            oldRoot.parentNode.replaceChild(newRoot, oldRoot);
-        }
-
-        // Diagnóstico (remover depois que funcionar)
-        console.log('[SPA] spaOpenCheckout chamado');
-        console.log('[SPA] initReactCheckout:', typeof window.initReactCheckout);
-        console.log('[SPA] React:', typeof window.React);
-        console.log('[SPA] ReactDOM:', typeof window.ReactDOM);
-        console.log('[SPA] checkout-root:', !!document.getElementById('checkout-root'));
-
-        // Força o Tailwind CDN a reprocessar classes após React montar
-        function forceTailwindReprocess() {
-            var root = document.getElementById('checkout-root');
-            if (!root || root.innerHTML.length < 10) {
-                // React ainda não renderizou, tenta de novo
-                setTimeout(forceTailwindReprocess, 100);
-                return;
-            }
-            console.log('[SPA] Forçando Tailwind reprocess...');
-            // Pega TODOS os elementos com class dentro do checkout
-            var els = root.querySelectorAll('[class]');
-            els.forEach(function(el) {
-                var cls = el.getAttribute('class');
-                el.removeAttribute('class');
-                // Força o browser a processar a remoção
-                void el.offsetHeight;
-                el.setAttribute('class', cls);
-            });
-            // Também força no próprio root
-            if (root.className) {
-                var rootCls = root.className;
-                root.className = '';
-                void root.offsetHeight;
-                root.className = rootCls;
-            }
-            console.log('[SPA] Tailwind reprocess concluído, ' + els.length + ' elementos');
-        }
-
-        // Inicia o React checkout
-        if (window.initReactCheckout) {
-            try {
-                window.initReactCheckout();
-                console.log('[SPA] initReactCheckout() chamado com sucesso');
-                // Aguarda React renderizar e força Tailwind reprocessar
-                setTimeout(forceTailwindReprocess, 300);
-            } catch(err) {
-                console.error('[SPA] ERRO ao chamar initReactCheckout:', err);
-            }
-        } else {
-            // Script ainda não carregou, aguarda
-            var poll = setInterval(function() {
-                if (window.initReactCheckout) {
-                    clearInterval(poll);
-                    window.checkoutInitialized = false;
-                    window.checkoutMounted = false;
-                    window.initReactCheckout();
-                    setTimeout(forceTailwindReprocess, 300);
-                }
-            }, 100);
-            setTimeout(function() {
-                if (!window.checkoutInitialized) {
-                    clearInterval(poll);
-                    var sk = document.getElementById('skeleton-loader');
-                    if (sk) {
-                        sk.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;padding:24px;text-align:center;"><div style="font-weight:800;font-size:18px;color:#0f172a;margin-bottom:8px;">Conexão Lenta</div><div style="font-size:13px;color:#475569;margin-bottom:20px;">Não foi possível carregar o checkout. Verifique sua internet.</div><button onclick="location.reload()" style="background:#16a34a;color:white;padding:12px 24px;border-radius:8px;font-weight:bold;width:100%;">Tentar de Novo</button></div>';
-                    }
-                }
-            }, 10000);
-        }
-
-        // Tracking
+        // Dispara InitiateCheckout tracking
         try {
             if (window.trackViaZaraz) {
                 window.trackViaZaraz('InitiateCheckout', {
@@ -1269,56 +1262,40 @@
         }
     });
 
-    // Deep link: se a URL já é /c/, abre checkout automaticamente
+    // Se a página já carregou com /c/ na URL (deep link), abre checkout automaticamente
     if (window.location.pathname.indexOf('/c') === 0 && window.location.pathname !== '/') {
+        // Aguarda DOM estar pronto
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', function() { window.spaOpenCheckout(); });
         } else {
             window.spaOpenCheckout();
         }
     }
+
+    // Hook no botão de compra para garantir que chame a função SPA original
+    document.addEventListener('DOMContentLoaded', function() {
+        var btn = document.getElementById('buy-now');
+        if (btn) {
+            btn.onclick = function(e) {
+                e.preventDefault();
+                window.spaOpenCheckout();
+            };
+        }
+    });
+
+    // Otimização: Pre-carrega scripts do checkout em background para transição instantânea
+    // Só dispara se estiver na Home e após 4s para não competir com o load da LP
+    if (window.location.pathname === '/' || window.location.pathname.indexOf('/index.html') !== -1) {
+        setTimeout(function() {
+            if (typeof loadCheckoutScripts === 'function') {
+                if (window.requestIdleCallback) {
+                    requestIdleCallback(function() { loadCheckoutScripts().catch(function(){}); });
+                } else {
+                    loadCheckoutScripts().catch(function(){});
+                }
+            }
+        }, 4000);
+    }
 })();
 </script>
-<!-- Native Script Loading to prevent webview hangs with CDN Fallback -->
-<script>
-    window.__loadScript = window.__loadScript || function(src){
-        return new Promise(function(resolve, reject){
-            var s = document.createElement('script');
-            s.src = src; s.async = true;
-            s.onload = function(){ resolve(src); };
-            s.onerror = function(){ reject(src); };
-            document.head.appendChild(s);
-        });
-    };
-    window.__localLibFallback = window.__localLibFallback || function(which){
-        try {
-            if (which === 'react' && typeof window.React !== 'undefined') return;
-            if (which === 'react-dom' && typeof window.ReactDOM !== 'undefined') return;
-            if (which.indexOf('tailwind') === 0 && typeof window.tailwind !== 'undefined') return;
-
-            window.__libFallbackCount = window.__libFallbackCount || {};
-            window.__libFallbackCount[which] = (window.__libFallbackCount[which] || 0) + 1;
-            var n = window.__libFallbackCount[which];
-
-            var tries = [];
-            if (which === 'react') tries = ['assets/vendor/react.production.min.js', 'https://unpkg.com/react@18/umd/react.production.min.js'];
-            if (which === 'react-dom') tries = ['assets/vendor/react-dom.production.min.js', 'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js'];
-            if (which.indexOf('tailwind') === 0) tries = ['assets/vendor/tailwindcss.js', 'https://cdn.tailwindcss.com'];
-            if (which === 'checkoutapp') tries = ['assets/js/checkout.app.js?v=' + Date.now()];
-
-            var src = tries[Math.min(n-1, tries.length-1)];
-            if (!src) return;
-
-            window.__loadScript(src).then(function(){
-                if (typeof window.initReactCheckout === 'function') {
-                    try { window.initReactCheckout(); } catch(e) {}
-                }
-            }).catch(function(){ window.__localLibFallback(which); });
-        } catch(e) {}
-    };
-</script>
-<script defer onerror="window.__localLibFallback('react')" src="assets/vendor/react.production.min.js"></script>
-<script defer onerror="window.__localLibFallback('react-dom')" src="assets/vendor/react-dom.production.min.js"></script>
-<script defer onerror="window.__localLibFallback('tailwind-local')" src="assets/vendor/tailwindcss.js"></script>
-<script defer onerror="window.__localLibFallback('checkoutapp')" src="assets/js/checkout.app.js"></script>
 </body></html>

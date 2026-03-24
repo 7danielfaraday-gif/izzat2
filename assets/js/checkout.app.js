@@ -725,5 +725,6 @@ e("div", {style: {height: '60vh'}})
  }
  };
  
-    // O Checkout não será mais inicializado automaticamente no DOMContentLoaded.
-    // Ele será inicializado sob demanda via window.initReactCheckout() pela página host.
+ document.addEventListener('DOMContentLoaded', function() { 
+ if(window.initReactCheckout) window.initReactCheckout(); 
+ });
