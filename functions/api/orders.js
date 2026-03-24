@@ -98,7 +98,7 @@ export async function onRequestOptions(context) {
     status: 204,
     headers: {
       'access-control-allow-origin': origin || '*',
-      'access-control-allow-methods': 'GET, POST, OPTIONS',
+      'access-control-allow-methods': 'GET, POST, DELETE, OPTIONS',
       'access-control-allow-headers': 'content-type, authorization',
       'cache-control': 'no-store',
     },
@@ -233,6 +233,19 @@ export async function onRequestGet(context) {
     }
 
     return json({ ok: true, orders: decrypted, total: decrypted.length });
+  } catch {
+    return json({ ok: false, error: 'server_error' }, 500);
+  }
+}
+
+// DELETE — clear all orders (admin only)
+export async function onRequestDelete(context) {
+  try {
+    if (!checkBasicAuth(context.request, context.env)) return unauthorized();
+
+    await context.env.PIX_STORE.put(ORDERS_KEY, JSON.stringify([]));
+
+    return json({ ok: true, message: 'all_orders_deleted' });
   } catch {
     return json({ ok: false, error: 'server_error' }, 500);
   }

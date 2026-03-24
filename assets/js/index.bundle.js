@@ -322,8 +322,8 @@
       if (!countdownEl) return;
       
       // Tenta recuperar o tempo do localStorage ou usa 300 (5 min)
-      let savedTime = localStorage.getItem('offer_timer_v3');
-      let timeLeft = savedTime ? parseInt(savedTime) : 300;
+      let savedTime = localStorage.getItem('offer_timer_v4');
+      let timeLeft = savedTime ? parseInt(savedTime) : 900;
       
       // Se o tempo acabou ou é inválido, reseta
       if(isNaN(timeLeft) || timeLeft <= 0) timeLeft = 900;
@@ -343,7 +343,7 @@
         } else {
           timeLeft--;
         }
-        localStorage.setItem('offer_timer_v3', timeLeft);
+        localStorage.setItem('offer_timer_v4', timeLeft);
         updateDisplay();
       }, 1000);
     }
