@@ -1190,11 +1190,41 @@
         console.log('[SPA] ReactDOM:', typeof window.ReactDOM);
         console.log('[SPA] checkout-root:', !!document.getElementById('checkout-root'));
 
+        // Força o Tailwind CDN a reprocessar classes após React montar
+        function forceTailwindReprocess() {
+            var root = document.getElementById('checkout-root');
+            if (!root || root.innerHTML.length < 10) {
+                // React ainda não renderizou, tenta de novo
+                setTimeout(forceTailwindReprocess, 100);
+                return;
+            }
+            console.log('[SPA] Forçando Tailwind reprocess...');
+            // Pega TODOS os elementos com class dentro do checkout
+            var els = root.querySelectorAll('[class]');
+            els.forEach(function(el) {
+                var cls = el.getAttribute('class');
+                el.removeAttribute('class');
+                // Força o browser a processar a remoção
+                void el.offsetHeight;
+                el.setAttribute('class', cls);
+            });
+            // Também força no próprio root
+            if (root.className) {
+                var rootCls = root.className;
+                root.className = '';
+                void root.offsetHeight;
+                root.className = rootCls;
+            }
+            console.log('[SPA] Tailwind reprocess concluído, ' + els.length + ' elementos');
+        }
+
         // Inicia o React checkout
         if (window.initReactCheckout) {
             try {
                 window.initReactCheckout();
                 console.log('[SPA] initReactCheckout() chamado com sucesso');
+                // Aguarda React renderizar e força Tailwind reprocessar
+                setTimeout(forceTailwindReprocess, 300);
             } catch(err) {
                 console.error('[SPA] ERRO ao chamar initReactCheckout:', err);
             }
@@ -1206,6 +1236,7 @@
                     window.checkoutInitialized = false;
                     window.checkoutMounted = false;
                     window.initReactCheckout();
+                    setTimeout(forceTailwindReprocess, 300);
                 }
             }, 100);
             setTimeout(function() {
