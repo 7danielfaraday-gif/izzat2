@@ -260,15 +260,19 @@
             btn.href = window.buildCheckoutUrl(btn.getAttribute('href') || btn.href);
         } catch (e) {}
 
-        // Tracking sem bloquear a navegação
-        btn.addEventListener('click', () => {
+        // Setup SPA Checkout instead of redirecting
+        btn.addEventListener('click', (e) => {
+            if (typeof window.spaOpenCheckout === 'function') {
+                e.preventDefault();
+                window.spaOpenCheckout(btn.getAttribute('href') || btn.href);
+            }
             try {
                 trackViaZaraz('AddToCart', {
                     ...PRODUCT_CONTENT,
                     event_id: generateEventId()
                 }, true);
-            } catch (e) {}
-        }, { passive: true });
+            } catch (err) {}
+        });
     })();
     // ==================================================
     // 4. MICRO-CONVERSÕES (NOVO: ALIMENTA O ALGORITMO)

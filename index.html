@@ -3,7 +3,7 @@
 <html lang="pt-BR">
 <head>
 <script>window.__TEST_MODE=new URLSearchParams(window.location.search).has('test_mode');</script>
-<script>if(!window.__TEST_MODE){(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,"clarity","script","vyr9otnkc7");}</script>
+<script>if(!window.__TEST_MODE){setTimeout(function(){(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,"clarity","script","vyr9otnkc7");}, 3500);}</script>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -26,7 +26,13 @@
 <noscript></noscript>
 <script>
     if(!window.__TEST_MODE){!function (w, d, t) {
-      w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=i,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};var o=document.createElement("script");o.type="text/javascript",o.async=!0,o.src=i+"?sdkid="+e+"&lib="+t;var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(o,a)};
+      w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=i,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};
+      setTimeout(function() {
+        var o=document.createElement("script");o.type="text/javascript",o.async=!0,o.src=i+"?sdkid="+e+"&lib="+t;
+        var scripts = document.getElementsByTagName("script");
+        var a = scripts.length > 0 ? scripts[0] : null; if(a && a.parentNode) { a.parentNode.insertBefore(o,a); } else { document.head.appendChild(o); }
+      }, 2500);
+      };
 
       ttq.load('D6VVDPJC77UANC7P0IT0');
       ttq.page();
@@ -1211,7 +1217,7 @@
     }
 
     // Abrir checkout via SPA (chamado pelo botão Comprar Agora)
-    window.spaOpenCheckout = function() {
+    window.spaOpenCheckout = function(targetHref) {
         var wrapper = document.getElementById('spa-checkout-wrapper');
         var container = document.querySelector('.container');
         var bottomNav = document.querySelector('.bottom-nav');
@@ -1229,13 +1235,14 @@
         }
 
         // Atualiza URL sem reload (pushState = não dispara navegação real)
-        var checkoutUrl = window.buildCheckoutUrl ? window.buildCheckoutUrl('/c/') : '/c/';
+        var target = (typeof targetHref === 'string' && targetHref) ? targetHref : '/c/';
+        var checkoutUrl = window.buildCheckoutUrl ? window.buildCheckoutUrl(target) : target;
         // Remove o domínio completo, mantém só o path + params
         try {
             var u = new URL(checkoutUrl, window.location.origin);
             history.pushState({ page: 'checkout' }, '', u.pathname + u.search);
         } catch(e) {
-            history.pushState({ page: 'checkout' }, '', '/c/');
+            history.pushState({ page: 'checkout' }, '', target);
         }
 
         document.title = 'Checkout - Fritadeira Elétrica Forno Oven 12L';
