@@ -937,7 +937,7 @@
 </style>
 
 <!-- Skeleton do Checkout -->
-<div id="spa-skeleton-loader" style="min-height: 100dvh; background: #f8fafc;">
+<div id="skeleton-loader" style="min-height: 100dvh; background: #f8fafc;">
 <div class="progress-bar" style="width: 25%;"></div>
 <div class="static-nav">
 <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="window.spaGoBack()">
@@ -976,11 +976,136 @@
 
 <script>
 // ============================================
-// SPA CHECKOUT NAVIGATION
+// SPA CHECKOUT - COMPLETE REWRITE
 // ============================================
 (function() {
-    var checkoutLoaded = false;
-    var checkoutScriptsLoaded = false;
+    // ---- UTILITY FUNCTIONS (always available) ----
+    if (!window.safeCopyToClipboard) {
+        window.safeCopyToClipboard = function(text) {
+            return new Promise(function(res, rej) {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(res).catch(function() {
+                        _fallbackCopy(text) ? res() : rej();
+                    });
+                } else {
+                    _fallbackCopy(text) ? res() : rej();
+                }
+            });
+        };
+        function _fallbackCopy(text) {
+            try {
+                var ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0';
+                ta.setAttribute('readonly', '');
+                document.body.appendChild(ta);
+                if (/ipad|iphone/i.test(navigator.userAgent)) {
+                    var range = document.createRange();
+                    range.selectNodeContents(ta);
+                    var sel = window.getSelection();
+                    sel.removeAllRanges(); sel.addRange(range);
+                    ta.setSelectionRange(0, 999999);
+                } else { ta.select(); }
+                var ok = document.execCommand('copy');
+                document.body.removeChild(ta);
+                return ok;
+            } catch(e) { return false; }
+        }
+    }
+
+    if (!window.createInputMask) {
+        window.createInputMask = function(type) {
+            return {
+                format: function(value, selectionStart) {
+                    if (!value) return { formatted: "", cursorPosition: 0 };
+                    var raw = value.replace(/\D/g, '');
+                    var hasCC = false;
+                    if (type === 'phone') {
+                        if (raw.length > 11 && raw.substring(0,2) === '55') { hasCC = true; raw = raw.substring(2); }
+                        if (raw.length > 11) raw = raw.substring(0, 11);
+                    }
+                    if (type === 'cpf' && raw.length > 11) raw = raw.substring(0, 11);
+                    if (type === 'cep' && raw.length > 8) raw = raw.substring(0, 8);
+                    var f = "";
+                    switch(type) {
+                        case 'phone':
+                            if (raw.length <= 2) f = raw.replace(/^(\d{0,2})/, '($1');
+                            else if (raw.length <= 7) f = raw.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
+                            else f = raw.replace(/^(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+                            if (hasCC) f = '+55 ' + f;
+                            break;
+                        case 'cpf':
+                            f = raw.replace(/^(\d{0,3})(\d{0,3})(\d{0,3})(\d{0,2})/, function(m,g1,g2,g3,g4) {
+                                var r = ''; if(g1)r+=g1; if(g2)r+='.'+g2; if(g3)r+='.'+g3; if(g4)r+='-'+g4; return r;
+                            });
+                            break;
+                        case 'cep':
+                            f = raw.replace(/^(\d{0,5})(\d{0,3})/, function(m,g1,g2) {
+                                var r = ''; if(g1)r+=g1; if(g2)r+='-'+g2; return r;
+                            });
+                            break;
+                    }
+                    var dbc = 0;
+                    if (selectionStart !== undefined && selectionStart !== null) {
+                        for (var i = 0; i < Math.min(selectionStart, value.length); i++) {
+                            if (value[i] >= '0' && value[i] <= '9') dbc++;
+                        }
+                    }
+                    var np = 0, dc = 0;
+                    for (var j = 0; j < f.length; j++) {
+                        if (f[j] >= '0' && f[j] <= '9') dc++;
+                        if (dc >= dbc) { np = j + 1; break; }
+                    }
+                    if (dbc === 0) np = 0;
+                    if (f.length < value.length && selectionStart === value.length) np = f.length;
+                    return { formatted: f, cursorPosition: np };
+                }
+            };
+        };
+    }
+
+    if (!window.setupKeyboardDetection) {
+        var INITIAL_H = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        window.setupKeyboardDetection = function() {
+            if (typeof window.visualViewport !== 'undefined') {
+                var vv = window.visualViewport;
+                vv.addEventListener('resize', function() {
+                    var ch = vv.height;
+                    if (ch > INITIAL_H) INITIAL_H = ch;
+                    var d = INITIAL_H - ch;
+                    if (d > 150) {
+                        document.documentElement.style.setProperty('--keyboard-height', d + 'px');
+                        document.body.classList.add('keyboard-open');
+                    } else {
+                        document.body.classList.remove('keyboard-open');
+                        document.documentElement.style.setProperty('--keyboard-height', '0px');
+                    }
+                });
+            }
+        };
+        try { window.setupKeyboardDetection(); } catch(e) {}
+    }
+
+    if (!window.trackPixel) {
+        window.trackPixel = function(event, data) {
+            if (window.__TEST_MODE) { console.log('[TEST_MODE] Evento bloqueado:', event, data); return; }
+            if (window.trackViaZaraz) { try { window.trackViaZaraz(event, data); } catch(e) {} }
+        };
+    }
+
+    if (!window.PRODUCT_CONTENT) {
+        window.PRODUCT_CONTENT = {
+            content_type: 'product',
+            contents: [{ content_id: 'AFON-12L-BI', id: 'AFON-12L-BI', quantity: 1, price: 197.99, item_price: 197.99 }],
+            content_id: 'AFON-12L-BI',
+            content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI',
+            content_ids: ['AFON-12L-BI'],
+            value: 197.99,
+            currency: 'BRL'
+        };
+    }
+
+    // ---- SPA NAVIGATION ----
 
     // Voltar para a LP
     window.spaGoBack = function() {
@@ -994,183 +1119,23 @@
         document.body.style.overflow = '';
         document.body.style.background = '';
 
-        // Restaura URL sem reload
-        history.pushState({ page: 'lp' }, '', '/');
+        // Restaura skeleton para próxima abertura
+        var sk = document.getElementById('skeleton-loader');
+        if (sk) { sk.style.display = ''; sk.style.opacity = '1'; sk.style.transition = ''; }
 
-        // Restaura o title
+        // CRITICAL: Cria um checkout-root FRESCO para evitar conflito React 18 createRoot
+        var oldRoot = document.getElementById('checkout-root');
+        if (oldRoot) {
+            var newRoot = document.createElement('div');
+            newRoot.id = 'checkout-root';
+            oldRoot.parentNode.replaceChild(newRoot, oldRoot);
+        }
+
+        history.pushState({ page: 'lp' }, '', '/');
         document.title = 'Izzat - Fritadeira Elétrica Forno Oven 12L Mondial';
     };
 
-    // Carregar scripts do checkout dinamicamente
-    function loadCheckoutScripts() {
-        if (checkoutScriptsLoaded) return;
-        checkoutScriptsLoaded = true;
-
-        // Configura funções que o checkout precisa (se ainda não existem)
-            if (!window.safeCopyToClipboard) {
-                window.safeCopyToClipboard = function(text) {
-                    return new Promise(function(res, rej) {
-                        if (navigator.clipboard && navigator.clipboard.writeText) {
-                            navigator.clipboard.writeText(text).then(res).catch(function() {
-                                fallbackCopySPA(text) ? res() : rej();
-                            });
-                        } else {
-                            fallbackCopySPA(text) ? res() : rej();
-                        }
-                    });
-                };
-                function fallbackCopySPA(text) {
-                    try {
-                        var ta = document.createElement('textarea');
-                        ta.value = text;
-                        ta.style.cssText = 'position:fixed;left:-999999px;top:-999999px;opacity:0';
-                        ta.setAttribute('readonly', '');
-                        document.body.appendChild(ta);
-                        if (/ipad|iphone/i.test(navigator.userAgent)) {
-                            var range = document.createRange();
-                            range.selectNodeContents(ta);
-                            var sel = window.getSelection();
-                            sel.removeAllRanges(); sel.addRange(range);
-                            ta.setSelectionRange(0, 999999);
-                        } else { ta.select(); }
-                        var ok = document.execCommand('copy');
-                        document.body.removeChild(ta);
-                        return ok;
-                    } catch(e) { return false; }
-                }
-            }
-
-            if (!window.createInputMask) {
-                window.createInputMask = function(type) {
-                    return {
-                        format: function(value, selectionStart) {
-                            if (!value) return { formatted: "", cursorPosition: 0 };
-                            var raw = value.replace(/\D/g, '');
-                            var hasCC = false;
-                            if (type === 'phone') {
-                                if (raw.length > 11 && raw.substring(0,2) === '55') { hasCC = true; raw = raw.substring(2); }
-                                if (raw.length > 11) raw = raw.substring(0, 11);
-                            }
-                            if (type === 'cpf' && raw.length > 11) raw = raw.substring(0, 11);
-                            if (type === 'cep' && raw.length > 8) raw = raw.substring(0, 8);
-                            var f = "";
-                            switch(type) {
-                                case 'phone':
-                                    if (raw.length <= 2) f = raw.replace(/^(\d{0,2})/, '($1');
-                                    else if (raw.length <= 7) f = raw.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
-                                    else f = raw.replace(/^(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
-                                    if (hasCC) f = '+55 ' + f;
-                                    break;
-                                case 'cpf':
-                                    f = raw.replace(/^(\d{0,3})(\d{0,3})(\d{0,3})(\d{0,2})/, function(m,g1,g2,g3,g4) {
-                                        var r = ''; if(g1)r+=g1; if(g2)r+='.'+g2; if(g3)r+='.'+g3; if(g4)r+='-'+g4; return r;
-                                    });
-                                    break;
-                                case 'cep':
-                                    f = raw.replace(/^(\d{0,5})(\d{0,3})/, function(m,g1,g2) {
-                                        var r = ''; if(g1)r+=g1; if(g2)r+='-'+g2; return r;
-                                    });
-                                    break;
-                            }
-                            var dbc = 0;
-                            if (selectionStart !== undefined && selectionStart !== null) {
-                                for (var i = 0; i < Math.min(selectionStart, value.length); i++) {
-                                    if (value[i] >= '0' && value[i] <= '9') dbc++;
-                                }
-                            }
-                            var np = 0, dc = 0;
-                            for (var j = 0; j < f.length; j++) {
-                                if (f[j] >= '0' && f[j] <= '9') dc++;
-                                if (dc >= dbc) { np = j + 1; break; }
-                            }
-                            if (dbc === 0) np = 0;
-                            if (f.length < value.length && selectionStart === value.length) np = f.length;
-                            return { formatted: f, cursorPosition: np };
-                        }
-                    };
-                };
-            }
-
-            // Keyboard detection
-            if (!window.setupKeyboardDetection) {
-                var INITIAL_H = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-                window.setupKeyboardDetection = function() {
-                    var vvs = typeof window.visualViewport !== 'undefined';
-                    if (vvs) {
-                        var vv = window.visualViewport;
-                        vv.addEventListener('resize', function() {
-                            var ch = vv.height;
-                            if (ch > INITIAL_H) INITIAL_H = ch;
-                            var d = INITIAL_H - ch;
-                            if (d > 150) {
-                                document.documentElement.style.setProperty('--keyboard-height', d + 'px');
-                                document.body.classList.add('keyboard-open');
-                            } else {
-                                document.body.classList.remove('keyboard-open');
-                                document.documentElement.style.setProperty('--keyboard-height', '0px');
-                            }
-                        });
-                    }
-                };
-                try { window.setupKeyboardDetection(); } catch(e) {}
-            }
-
-            // trackPixel para o checkout (usa o mesmo do /c/)
-            if (!window.trackPixel) {
-                window.trackPixel = function(event, data) {
-                    if (window.__TEST_MODE) { console.log('[TEST_MODE] Evento bloqueado:', event, data); return; }
-                    // Usa trackViaZaraz se disponível (da LP)
-                    if (window.trackViaZaraz) {
-                        try { window.trackViaZaraz(event, data); } catch(e) {}
-                    }
-                };
-            }
-
-            // PRODUCT_CONTENT para o checkout
-            if (!window.PRODUCT_CONTENT) {
-                window.PRODUCT_CONTENT = {
-                    content_type: 'product',
-                    contents: [{ content_id: 'AFON-12L-BI', id: 'AFON-12L-BI', quantity: 1, price: 197.99, item_price: 197.99 }],
-                    content_id: 'AFON-12L-BI',
-                    content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI',
-                    content_ids: ['AFON-12L-BI'],
-                    value: 197.99,
-                    currency: 'BRL'
-                };
-            }
-
-                // Tailwind já é configurado pelo script carregado
-                if (typeof window.tailwind !== 'undefined') {
-                    window.tailwind = window.tailwind || {};
-                    window.tailwind.config = window.tailwind.config || { theme: { extend: { fontFamily: { sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'] } } } };
-                }
-                
-                // Os scripts agora são carregados de forma NATIVA (mais rápida e imune a bugs de injeção em WebViews)
-                // O initReactCheckout tentará renderizar. Se não for achado (lendo ainda), aguardamos:
-                if (window.initReactCheckout) {
-                    window.initReactCheckout();
-                } else {
-                    var checkInterval = setInterval(function() {
-                        if (window.initReactCheckout) {
-                            clearInterval(checkInterval);
-                            window.initReactCheckout();
-                        }
-                    }, 100);
-                    // Timeout de 10s caso a internet dele caia e não baixe o script
-                    setTimeout(function() {
-                        if (!window.initReactCheckout) {
-                            clearInterval(checkInterval);
-                            var sk = document.getElementById('skeleton-loader');
-                            if (sk) {
-                                sk.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;padding:24px;text-align:center;"><div style="font-weight:800;font-size:18px;color:#0f172a;margin-bottom:8px;">Conexão Lenta</div><div style="font-size:13px;color:#475569;margin-bottom:20px;">Sua conexão com a internet falhou em baixar os componentes de segurança do checkout.</div><button onclick="location.reload()" style="background:#16a34a;color:white;padding:12px 24px;border-radius:8px;font-weight:bold;width:100%;">Tentar de Novo</button></div>';
-                                sk.style.background = '#f8fafc';
-                            }
-                        }
-                    }, 10000);
-                }
-            }
-
-    // Abrir checkout via SPA (chamado pelo botão Comprar Agora)
+    // Abrir checkout via SPA
     window.spaOpenCheckout = function(targetHref) {
         var wrapper = document.getElementById('spa-checkout-wrapper');
         var container = document.querySelector('.container');
@@ -1182,16 +1147,15 @@
         if (bottomNav) bottomNav.style.display = 'none';
         if (salesPopup) salesPopup.style.display = 'none';
 
-        // Mostra o checkout
+        // Mostra o checkout wrapper
         if (wrapper) {
             wrapper.style.display = 'block';
             wrapper.scrollTop = 0;
         }
 
-        // Atualiza URL sem reload (pushState = não dispara navegação real)
+        // Atualiza URL sem reload
         var target = (typeof targetHref === 'string' && targetHref) ? targetHref : '/c/';
         var checkoutUrl = window.buildCheckoutUrl ? window.buildCheckoutUrl(target) : target;
-        // Remove o domínio completo, mantém só o path + params
         try {
             var u = new URL(checkoutUrl, window.location.origin);
             history.pushState({ page: 'checkout' }, '', u.pathname + u.search);
@@ -1201,10 +1165,61 @@
 
         document.title = 'Checkout - Fritadeira Elétrica Forno Oven 12L';
 
-        // Carrega scripts do checkout
-        loadCheckoutScripts();
+        // Configura Tailwind se disponível
+        if (typeof window.tailwind !== 'undefined') {
+            window.tailwind = window.tailwind || {};
+            window.tailwind.config = window.tailwind.config || { theme: { extend: { fontFamily: { sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'] } } } };
+        }
 
-        // Dispara InitiateCheckout tracking
+        // CRITICAL: Reset React flags para permitir nova montagem
+        window.checkoutInitialized = false;
+        window.checkoutMounted = false;
+
+        // Garante checkout-root fresco (React 18 não aceita createRoot em root já usado)
+        var oldRoot = document.getElementById('checkout-root');
+        if (oldRoot && oldRoot.innerHTML.length > 0) {
+            var newRoot = document.createElement('div');
+            newRoot.id = 'checkout-root';
+            oldRoot.parentNode.replaceChild(newRoot, oldRoot);
+        }
+
+        // Diagnóstico (remover depois que funcionar)
+        console.log('[SPA] spaOpenCheckout chamado');
+        console.log('[SPA] initReactCheckout:', typeof window.initReactCheckout);
+        console.log('[SPA] React:', typeof window.React);
+        console.log('[SPA] ReactDOM:', typeof window.ReactDOM);
+        console.log('[SPA] checkout-root:', !!document.getElementById('checkout-root'));
+
+        // Inicia o React checkout
+        if (window.initReactCheckout) {
+            try {
+                window.initReactCheckout();
+                console.log('[SPA] initReactCheckout() chamado com sucesso');
+            } catch(err) {
+                console.error('[SPA] ERRO ao chamar initReactCheckout:', err);
+            }
+        } else {
+            // Script ainda não carregou, aguarda
+            var poll = setInterval(function() {
+                if (window.initReactCheckout) {
+                    clearInterval(poll);
+                    window.checkoutInitialized = false;
+                    window.checkoutMounted = false;
+                    window.initReactCheckout();
+                }
+            }, 100);
+            setTimeout(function() {
+                if (!window.checkoutInitialized) {
+                    clearInterval(poll);
+                    var sk = document.getElementById('skeleton-loader');
+                    if (sk) {
+                        sk.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;padding:24px;text-align:center;"><div style="font-weight:800;font-size:18px;color:#0f172a;margin-bottom:8px;">Conexão Lenta</div><div style="font-size:13px;color:#475569;margin-bottom:20px;">Não foi possível carregar o checkout. Verifique sua internet.</div><button onclick="location.reload()" style="background:#16a34a;color:white;padding:12px 24px;border-radius:8px;font-weight:bold;width:100%;">Tentar de Novo</button></div>';
+                    }
+                }
+            }, 10000);
+        }
+
+        // Tracking
         try {
             if (window.trackViaZaraz) {
                 window.trackViaZaraz('InitiateCheckout', {
@@ -1223,9 +1238,8 @@
         }
     });
 
-    // Se a página já carregou com /c/ na URL (deep link), abre checkout automaticamente
+    // Deep link: se a URL já é /c/, abre checkout automaticamente
     if (window.location.pathname.indexOf('/c') === 0 && window.location.pathname !== '/') {
-        // Aguarda DOM estar pronto
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', function() { window.spaOpenCheckout(); });
         } else {
