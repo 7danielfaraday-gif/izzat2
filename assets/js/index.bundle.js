@@ -308,10 +308,10 @@
   }
 
   const variantLinks = {
-    'preto': '/checkout/',
-    'rosa-pink': '/checkout/',
-    'roxo-claro': '/checkout/',
-    'rosa-claro': '/checkout/'
+    'preto': '/c/',
+    'rosa-pink': '/c/',
+    'roxo-claro': '/c/',
+    'rosa-claro': '/c/'
   };
   const buyBtn = document.querySelector('.buy-btn');
 
