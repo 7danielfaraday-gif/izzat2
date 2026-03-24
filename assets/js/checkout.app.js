@@ -336,10 +336,7 @@ document.addEventListener('DOMContentLoaded', function(){
  // Reseta IDs para que a próxima compra seja considerada um novo evento
  try { sessionStorage.removeItem('last_ic_id'); sessionStorage.removeItem('last_vc_id'); } catch(e) {}
  
- // FIX: Fixa o event_id do AddPaymentInfo ao uniqueOrderId para deduplicacao.
- var apiId = window.generateEventId ? window.generateEventId() : 'evt_' + Date.now();
- try { sessionStorage.setItem('api_id_' + uniqueOrderId, apiId); } catch(e) {}
- trackEvent('AddPaymentInfo', { ...window.PRODUCT_CONTENT, event_id: apiId, order_id: uniqueOrderId });
+ trackEvent('AddPaymentInfo', { ...window.PRODUCT_CONTENT, event_id: window.generateEventId(), order_id: uniqueOrderId });
  
  // Salvar pedido no servidor
  try {
@@ -532,16 +529,7 @@ e("div", {style: {height: '60vh'}})
  requestAnimationFrame(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
  
  if (customerData && customerData.transactionId) {
- // FIX: Garante que CompletePayment use sempre o mesmo event_id por transacao.
- // useEffect pode re-executar (StrictMode, re-render); sessionStorage garante dedup no TikTok.
- var cpKey = 'cp_id_' + customerData.transactionId;
- var cpId;
- try { cpId = sessionStorage.getItem(cpKey); } catch(e) {}
- if (!cpId) {
-   cpId = window.generateEventId ? window.generateEventId() : 'evt_' + Date.now();
-   try { sessionStorage.setItem(cpKey, cpId); } catch(e) {}
- }
- trackEvent('CompletePayment', { ...window.PRODUCT_CONTENT, content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI', value: 197.99, currency: 'BRL', order_id: customerData.transactionId, event_id: cpId, email: customerData.email, phone: customerData.phone });
+ trackEvent('CompletePayment', { ...window.PRODUCT_CONTENT, content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI', value: 197.99, currency: 'BRL', order_id: customerData.transactionId, event_id: window.generateEventId(), email: customerData.email, phone: customerData.phone });
  }
  
  const step1 = setTimeout(() => setLoadingState(1), 500);

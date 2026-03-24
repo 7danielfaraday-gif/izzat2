@@ -201,30 +201,9 @@
         saveUTMs();
     });
 
-    // 2. ViewContent Inteligente
-    // FIX: Usa o mesmo event_id salvo no sessionStorage para que o checkout.app.js
-    // (React) reutilize o mesmo ID — garantindo deduplicação correta no TikTok.
-    var viewContentFired = false;
-    function fireViewContent() {
-        if (viewContentFired) return;
-        viewContentFired = true;
-
-        var vcId;
-        try { vcId = sessionStorage.getItem('last_vc_id'); } catch(e) {}
-        if (!vcId) {
-            vcId = generateEventId();
-            try { sessionStorage.setItem('last_vc_id', vcId); } catch(e) {}
-        }
-
-        trackViaZaraz('ViewContent', {
-            ...PRODUCT_CONTENT,
-            event_id: vcId
-        });
-    }
-
-    setTimeout(fireViewContent, 3500); 
-    window.addEventListener('scroll', fireViewContent, { once: true, passive: true });
-    window.addEventListener('touchmove', fireViewContent, { once: true, passive: true });
+    // 2. ViewContent — disparado exclusivamente pelo checkout.app.js (React)
+    // para evitar duplicidade: LP + checkout.app ambos acionavam ViewContent com event_ids diferentes.
+    // O checkout.app.js já tem deduplicação por sessionStorage (last_vc_id).
 
     // 3. CTA Comprar Agora (WebView-safe: não bloqueia navegação)
     // Monta o link com parâmetros (ttclid/utm/eid) ANTES do clique, evitando redirect com delay.
