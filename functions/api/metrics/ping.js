@@ -19,7 +19,8 @@ export async function onRequestPost(context) {
   try {
     let body = null;
     try {
-      body = await context.request.json();
+      const text = await context.request.text();
+      body = JSON.parse(text);
     } catch {
       body = null;
     }

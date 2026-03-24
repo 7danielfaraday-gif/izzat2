@@ -238,14 +238,17 @@ export async function onRequestGet(context) {
   }
 }
 
-// DELETE — clear all orders (admin only)
+// DELETE — clear all orders + reset pix copy clicks (admin only)
 export async function onRequestDelete(context) {
   try {
     if (!checkBasicAuth(context.request, context.env)) return unauthorized();
 
-    await context.env.PIX_STORE.put(ORDERS_KEY, JSON.stringify([]));
+    await Promise.all([
+      context.env.PIX_STORE.put(ORDERS_KEY, JSON.stringify([])),
+      context.env.PIX_STORE.put('metric_pix_copy_clicks_v1', '0'),
+    ]);
 
-    return json({ ok: true, message: 'all_orders_deleted' });
+    return json({ ok: true, message: 'all_data_cleared' });
   } catch {
     return json({ ok: false, error: 'server_error' }, 500);
   }
