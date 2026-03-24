@@ -44,7 +44,7 @@
         return 'evt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     }
     window.generateEventId = generateEventId;
-    window.trackViaZaraz = null; // será definida abaixo
+    // trackViaZaraz será definida mais abaixo (Browser Pixel + CAPI)
 
     function getExternalId() {
         let eid = localStorage.getItem('user_external_id');
