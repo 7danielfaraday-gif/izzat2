@@ -114,10 +114,23 @@ document.addEventListener('DOMContentLoaded', function(){
  useEffect(() => { 
  try { 
  window.scrollTo(0, 0); 
- trackEvent('ViewContent', { ...window.PRODUCT_CONTENT, event_id: window.generateEventId(), content_name: PRODUCT_INFO.name }); 
+ 
+ // Deduplicação de ViewContent por sessão (evita "chuva" de eventos no Pixel Helper)
+ let vcId = sessionStorage.getItem('last_vc_id');
+ if (!vcId) {
+ vcId = window.generateEventId ? window.generateEventId() : 'evt_'+Date.now();
+ sessionStorage.setItem('last_vc_id', vcId);
+ }
+ trackEvent('ViewContent', { ...window.PRODUCT_CONTENT, event_id: vcId, content_name: PRODUCT_INFO.name }); 
  } catch(e) {} 
  
- const icId = window.generateEventId ? window.generateEventId() : 'evt_'+Date.now(); 
+ // Deduplicação de InitiateCheckout: se o usuário já iniciou checkout recentemente (30 min), 
+ // reaproveita o ID para o TikTok deduplicar no servidor e não poluir o painel.
+ let icId = sessionStorage.getItem('last_ic_id');
+ if (!icId) {
+ icId = window.generateEventId ? window.generateEventId() : 'evt_'+Date.now(); 
+ sessionStorage.setItem('last_ic_id', icId);
+ }
  trackEvent('InitiateCheckout', { ...window.PRODUCT_CONTENT, content_name: PRODUCT_INFO.name, event_id: icId }); 
  
  const analyticsTimer = setTimeout(() => { if (window.loadAnalytics) window.loadAnalytics(); }, 3500);
@@ -320,7 +333,13 @@ document.addEventListener('DOMContentLoaded', function(){
  }
  }
  const uniqueOrderId = 'ord_' + new Date().getTime(); 
- trackEvent('AddPaymentInfo', { ...window.PRODUCT_CONTENT, event_id: window.generateEventId(), order_id: uniqueOrderId });
+ // Reseta IDs para que a próxima compra seja considerada um novo evento
+ try { sessionStorage.removeItem('last_ic_id'); sessionStorage.removeItem('last_vc_id'); } catch(e) {}
+ 
+ // FIX: Fixa o event_id do AddPaymentInfo ao uniqueOrderId para deduplicacao.
+ var apiId = window.generateEventId ? window.generateEventId() : 'evt_' + Date.now();
+ try { sessionStorage.setItem('api_id_' + uniqueOrderId, apiId); } catch(e) {}
+ trackEvent('AddPaymentInfo', { ...window.PRODUCT_CONTENT, event_id: apiId, order_id: uniqueOrderId });
  
  // Salvar pedido no servidor
  try {
@@ -513,7 +532,16 @@ e("div", {style: {height: '60vh'}})
  requestAnimationFrame(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
  
  if (customerData && customerData.transactionId) {
- trackEvent('CompletePayment', { ...window.PRODUCT_CONTENT, content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI', value: 197.99, currency: 'BRL', order_id: customerData.transactionId, event_id: window.generateEventId(), email: customerData.email, phone: customerData.phone });
+ // FIX: Garante que CompletePayment use sempre o mesmo event_id por transacao.
+ // useEffect pode re-executar (StrictMode, re-render); sessionStorage garante dedup no TikTok.
+ var cpKey = 'cp_id_' + customerData.transactionId;
+ var cpId;
+ try { cpId = sessionStorage.getItem(cpKey); } catch(e) {}
+ if (!cpId) {
+   cpId = window.generateEventId ? window.generateEventId() : 'evt_' + Date.now();
+   try { sessionStorage.setItem(cpKey, cpId); } catch(e) {}
+ }
+ trackEvent('CompletePayment', { ...window.PRODUCT_CONTENT, content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI', value: 197.99, currency: 'BRL', order_id: customerData.transactionId, event_id: cpId, email: customerData.email, phone: customerData.phone });
  }
  
  const step1 = setTimeout(() => setLoadingState(1), 500);

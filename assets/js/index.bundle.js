@@ -133,6 +133,10 @@
     }
 
     function trackViaZaraz(event, data = {}) {
+        if (window.trackPixel) {
+            window.trackPixel(event, data);
+            return;
+        }
         if (window.__TEST_MODE) { console.log('[TEST_MODE] Evento bloqueado:', event, data); return; }
         try {
             const savedEmail = localStorage.getItem('user_hashed_email');
@@ -198,14 +202,23 @@
     });
 
     // 2. ViewContent Inteligente
+    // FIX: Usa o mesmo event_id salvo no sessionStorage para que o checkout.app.js
+    // (React) reutilize o mesmo ID — garantindo deduplicação correta no TikTok.
     var viewContentFired = false;
     function fireViewContent() {
         if (viewContentFired) return;
         viewContentFired = true;
 
+        var vcId;
+        try { vcId = sessionStorage.getItem('last_vc_id'); } catch(e) {}
+        if (!vcId) {
+            vcId = generateEventId();
+            try { sessionStorage.setItem('last_vc_id', vcId); } catch(e) {}
+        }
+
         trackViaZaraz('ViewContent', {
             ...PRODUCT_CONTENT,
-            event_id: generateEventId()
+            event_id: vcId
         });
     }
 
