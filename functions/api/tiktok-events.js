@@ -2,7 +2,7 @@
 // Purpose: TikTok Events API (CAPI) — envia eventos server-side espelhando o browser pixel
 //
 // Variáveis de ambiente necessárias (Cloudflare Pages → Settings → Environment Variables):
-//   TIKTOK_PIXEL_ID      — ID do pixel TikTok (ex: "CXXXXXXXXXXXXXXXX")
+//   TIKTOK_PIXEL_ID      — ID do pixel TikTok (ex: "D5KFBTRC77U4919NK6GG")
 //   TIKTOK_ACCESS_TOKEN  — Token gerado no Events Manager → seu pixel → Set Up Web Events → Events API
 //   TIKTOK_TEST_CODE     — (opcional) código de teste para validar sem afetar dados reais
 //
@@ -11,17 +11,14 @@
 
 const TIKTOK_EVENTS_API = 'https://business-api.tiktok.com/open_api/v1.3/event/track/';
 
-// ✅ FIX 1: campo correto da API v1.3 é "phone" (não "phone_number")
-// O browser pode enviar como phone_number (compatibilidade) — mapeamos para "phone" aqui.
+// Campo correto da API v1.3 é "phone" (não "phone_number")
 const USER_FIELDS = ['email', 'phone_number', 'phone', 'external_id', 'ttclid', 'ttp'];
 
-// Campos aceitos no payload de properties
 const PROPS_FIELDS = [
   'currency', 'value', 'contents', 'content_id', 'content_ids', 'content_type',
   'content_name', 'content_category', 'quantity', 'order_id',
   'event_source_url', 'description'
 ];
-
 
 function normalizeEventSourceUrl(value) {
   try {
@@ -44,8 +41,8 @@ function buildSafeUser(user) {
 
   if (isSha256Hex(raw.email)) safe.email = raw.email.trim().toLowerCase();
 
-  // ✅ FIX 2: aceita tanto "phone" quanto "phone_number" do browser,
-  //           mas envia sempre como "phone" (campo correto da API v1.3)
+  // Aceita tanto "phone" quanto "phone_number" do browser,
+  // mas envia sempre como "phone" (campo correto da API v1.3)
   const rawPhone = raw.phone || raw.phone_number;
   if (isSha256Hex(rawPhone)) safe.phone = rawPhone.trim().toLowerCase();
 
@@ -56,7 +53,6 @@ function buildSafeUser(user) {
   return safe;
 }
 
-// json agora recebe opcionalmente o request para adicionar CORS
 function json(data, status = 200, request = null) {
   const headers = {
     'content-type': 'application/json; charset=utf-8',
@@ -108,20 +104,17 @@ export async function onRequestPost(context) {
   try {
     const env = context.env;
 
-    // ── Validação de credenciais ──────────────────────────────────────────────
     const pixelId     = env.TIKTOK_PIXEL_ID;
     const accessToken = env.TIKTOK_ACCESS_TOKEN;
     const testCode    = env.TIKTOK_TEST_CODE || undefined;
 
     if (!pixelId || pixelId.indexOf('REPLACE') !== -1) {
-      // Pixel ainda não configurado — ignora silenciosamente para não quebrar o checkout
       return json({ ok: true, skipped: 'pixel_not_configured' }, 200, context.request);
     }
     if (!accessToken) {
       return json({ ok: false, error: 'access_token_not_configured' }, 500, context.request);
     }
 
-    // ── Parse do body enviado pelo browser ───────────────────────────────────
     let body = null;
     try { body = await context.request.json(); } catch { body = {}; }
 
@@ -129,29 +122,22 @@ export async function onRequestPost(context) {
     const event_id   = typeof body.event_id === 'string' ? body.event_id : null;
     const properties = body.properties || {};
     const user       = body.user       || {};
-    const context_b  = body.context    || {};
 
     if (!event) return json({ ok: false, error: 'missing_event' }, 400, context.request);
 
-    // ── Metadados server-side (mais confiáveis que o browser) ─────────────────
+    // Metadados server-side (mais confiáveis que o browser)
     const ip        = context.request.headers.get('cf-connecting-ip')
                    || context.request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
                    || undefined;
     const userAgent = context.request.headers.get('user-agent') || undefined;
 
-    // ── Monta payload para a Events API ──────────────────────────────────────
-    // ✅ FIX 3: pixel_code e test_event_code NÃO vão dentro de data[].
-    //           Na API v1.3, eles vão no nível raiz como event_source_id e test_event_code.
     const eventPayload = {
-      // ❌ REMOVIDO: pixel_code (vai no top-level como event_source_id)
       event:             event,
       event_time:        Math.floor(Date.now() / 1000),
       ...(event_id && { event_id }),
-      // ❌ REMOVIDO: test_event_code (vai no top-level)
 
       properties: {
         ...pick(properties, PROPS_FIELDS),
-        // Garante content_id sempre presente: extrai do contents[] se não vier no top-level
         ...(
           !properties.content_id &&
           Array.isArray(properties.contents) &&
@@ -159,7 +145,6 @@ export async function onRequestPost(context) {
             ? { content_id: properties.contents[0].content_id }
             : {}
         ),
-        // URL confiável: prefere o header Origin/Referer server-side
         event_source_url: normalizeEventSourceUrl(
           context.request.headers.get('referer') ||
           properties.event_source_url ||
@@ -172,11 +157,9 @@ export async function onRequestPost(context) {
         ...(ip        && { ip }),
         ...(userAgent && { user_agent: userAgent }),
       },
-
-      ...(context_b.page && { page: context_b.page }),
     };
 
-    // Remove chaves vazias em properties e user
+    // Remove chaves vazias
     for (const section of ['properties', 'user']) {
       for (const k of Object.keys(eventPayload[section])) {
         if (
@@ -189,12 +172,7 @@ export async function onRequestPost(context) {
       }
     }
 
-    // ── Disparo para a Events API ─────────────────────────────────────────────
-    // ✅ FIX 4: Estrutura correta da API v1.3
-    //   - event_source: "web" (obrigatório — identifica a origem do evento)
-    //   - event_source_id: pixelId (obrigatório — substitui o antigo pixel_code)
-    //   - test_event_code: no nível raiz (não dentro de data[])
-    //   - data: array de eventos (sem pixel_code nem test_event_code dentro)
+    // Estrutura correta da API v1.3
     const apiBody = JSON.stringify({
       event_source:    'web',
       event_source_id: pixelId,
@@ -214,7 +192,6 @@ export async function onRequestPost(context) {
     let apiJson = null;
     try { apiJson = await apiRes.json(); } catch { apiJson = null; }
 
-    // ✅ Log detalhado para debug (visível no Cloudflare Workers Logs → Real-time)
     console.log('[tiktok-events]', JSON.stringify({
       event,
       event_id: event_id || null,
@@ -223,7 +200,6 @@ export async function onRequestPost(context) {
     }));
 
     if (!apiRes.ok) {
-      // Loga no Cloudflare Workers Logs mas não quebra o checkout
       console.error('[tiktok-events] API error', apiRes.status, JSON.stringify(apiJson));
       return json({ ok: false, error: 'api_error', status: apiRes.status, detail: apiJson }, 200, context.request);
     }

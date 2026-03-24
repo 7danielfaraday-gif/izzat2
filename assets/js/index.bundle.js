@@ -1,5 +1,5 @@
 // ==================================================
-    // 1. TRACKING TIKTOK TURBO (BEACON + FINGERPRINT)
+    // 1. TRACKING ZARAZ + TIKTOK TURBO (BEACON + FINGERPRINT)
     // ==================================================
     
     // Dados do Produto
@@ -43,17 +43,8 @@
     function generateEventId() {
         return 'evt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     }
-
-    function getTikTokEventSourceUrl() {
-        try {
-            var u = new URL(window.location.href);
-            u.protocol = 'https:';
-            u.host = 'lojaizzat.shop';
-            return u.toString();
-        } catch (_) {
-            return 'https://lojaizzat.shop/';
-        }
-    }
+    window.generateEventId = generateEventId;
+    window.trackViaZaraz = null; // será definida abaixo
 
     function getExternalId() {
         let eid = localStorage.getItem('user_external_id');
@@ -116,50 +107,39 @@
         };
     }
 
+    // --- FUNÇÃO DE DISPARO HÍBRIDA (Browser Pixel + CAPI) ---
+    // Leitura do cookie _ttp (TikTok Pixel cookie)
     function getTTP() {
-        var match = document.cookie.match(/(?:^|;\s*)_ttp=([^;]*)/);
-        return match ? match[1] : undefined;
+        return (document.cookie.match(/(?:^|;\s*)_ttp=([^;]*)/) || [])[1] || undefined;
     }
 
-    function sendTikTokServerEvent(event, payload) {
+    function getTikTokEventSourceUrl() {
         try {
-            var eventId = (payload && payload.event_id) || generateEventId();
-            var body = JSON.stringify({
-                event: event,
-                event_id: eventId,
-                properties: payload || {},
-                user: {
-                    email: payload && payload.email ? payload.email : undefined,
-                    phone_number: payload && payload.phone ? payload.phone : undefined,
-                    external_id: payload && payload.external_id ? payload.external_id : getExternalId(),
-                    ttclid: payload && payload.ttclid ? payload.ttclid : getTTCLID(),
-                    ttp: getTTP()
-                }
-            });
-
-            if (navigator.sendBeacon) {
-                navigator.sendBeacon('/api/tiktok-events', new Blob([body], { type: 'application/json' }));
-            } else {
-                fetch('/api/tiktok-events', {
-                    method: 'POST',
-                    headers: { 'content-type': 'application/json' },
-                    body: body,
-                    keepalive: true
-                }).catch(function(){});
-            }
-        } catch (_) {}
+            var u = new URL(window.location.href);
+            u.protocol = 'https:';
+            u.host = 'lojaizzat.shop';
+            return u.toString();
+        } catch(_) { return 'https://lojaizzat.shop/'; }
     }
 
-    function trackPixelAndCAPI(event, data = {}) {
+    async function sendCAPI(event, eventId, properties, user) {
+        try {
+            await fetch('/api/tiktok-events', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ event: event, event_id: eventId, properties: properties, user: user })
+            });
+        } catch(e) {}
+    }
+
+    function trackViaZaraz(event, data = {}) {
         try {
             const savedEmail = localStorage.getItem('user_hashed_email');
             const savedPhone = localStorage.getItem('user_hashed_phone');
-            const eventId = data.event_id || generateEventId();
 
             let payload = {
                 ...data,
                 ...getContext(),
-                event_id: eventId,
                 external_id: getExternalId(),
                 ttclid: getTTCLID(),
                 ...getStoredUTMs()
@@ -171,61 +151,38 @@
             if (savedEmail && !payload.email) payload.email = savedEmail;
             if (savedPhone && !payload.phone) payload.phone = savedPhone;
 
-            if (window.ttq && typeof window.ttq.track === 'function') {
-                try {
-                    var browserPayload = { ...payload };
-                    delete browserPayload.event_id;
-                    window.ttq.track(event, browserPayload, { event_id: eventId });
-                } catch (e) {}
-            }
+            var eventId = payload.event_id || window.generateEventId();
 
-            sendTikTokServerEvent(event, payload);
-        } catch (error) {
-            console.error('Tracking Error:', error);
-        }
-    }
-
-    // --- FUNÇÃO DE DISPARO (BROWSER-SIDE + CAPI) ---
-    function trackEvent(event, data = {}, useBeacon = false) {
-        try {
-            // Tenta recuperar dados de usuário salvos (Sessão anterior persistente)
-            const savedEmail = localStorage.getItem('user_hashed_email');
-            const savedPhone = localStorage.getItem('user_hashed_phone');
-            const eventId = data.event_id || generateEventId();
-
-            let payload = { 
-                ...data, 
-                event_id: eventId,
-                ...getContext(),
-                external_id: getExternalId(),
-                ttclid: getTTCLID(),
-                ...getStoredUTMs()
-            };
-
-            // Campos compatíveis com Events API (ajuda em matching/atribuição)
-            payload.event_time = payload.timestamp || Math.floor(Date.now() / 1000);
-            payload.event_source_url = getTikTokEventSourceUrl();
-
-            // Injeta identificadores recuperados se existirem
-            if (savedEmail && !payload.email) payload.email = savedEmail;
-            if (savedPhone && !payload.phone) payload.phone = savedPhone;
-
-            // 1. DISPARO MANUAL (Browser-Side)
+            // 1. Browser Pixel (com event_id para deduplicação)
             if (window.ttq && typeof window.ttq.track === 'function') {
                 if (event !== 'PageView') {
-                    var browserPayload = { ...payload };
-                    delete browserPayload.event_id;
-                    window.ttq.track(event, browserPayload, { event_id: eventId });
+                    try {
+                        var bp = Object.assign({}, payload);
+                        delete bp.event_id;
+                        window.ttq.track(event, bp, { event_id: eventId });
+                    } catch(e) {}
                 }
             }
 
+            // 2. CAPI server-side (dupla camada — mesmo event_id para deduplicação)
+            sendCAPI(
+                event,
+                eventId,
+                { event_source_url: getTikTokEventSourceUrl() },
+                {
+                    email:       payload.email || undefined,
+                    phone_number: payload.phone || undefined,
+                    external_id: getExternalId(),
+                    ttclid:      getTTCLID(),
+                    ttp:         getTTP()
+                }
+            );
+
         } catch (error) {
             console.error('Tracking Error:', error);
         }
     }
-
-
-
+    window.trackViaZaraz = trackViaZaraz;
 
     // --- TRIGGERS ---
 
@@ -237,34 +194,15 @@
 
     window.addEventListener('load', function() {
         saveUTMs();
-
-        if (window.__izzatLandingSignalsFired) return;
-        window.__izzatLandingSignalsFired = true;
-
-        const landingPayload = {
-            ...PRODUCT_CONTENT,
-            content_name: PRODUCT_CONTENT.content_name,
-            description: PRODUCT_CONTENT.description
-        };
-
-        trackPixelAndCAPI('Pageview', {
-            ...landingPayload,
-            event_id: generateEventId()
-        });
-
-        trackPixelAndCAPI('LandingPageView', {
-            ...landingPayload,
-            event_id: generateEventId()
-        });
     });
 
-    // 2. ViewContent Inteligente (Browser Pixel + CAPI Server-Side)
+    // 2. ViewContent Inteligente
     var viewContentFired = false;
     function fireViewContent() {
         if (viewContentFired) return;
         viewContentFired = true;
 
-        trackPixelAndCAPI('ViewContent', {
+        trackViaZaraz('ViewContent', {
             ...PRODUCT_CONTENT,
             event_id: generateEventId()
         });
@@ -324,7 +262,7 @@
         // Tracking sem bloquear a navegação
         btn.addEventListener('click', () => {
             try {
-                trackEvent('AddToCart', {
+                trackViaZaraz('AddToCart', {
                     ...PRODUCT_CONTENT,
                     event_id: generateEventId()
                 }, true);
@@ -342,7 +280,7 @@
         const scrollPercentage = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight * 100;
         if (scrollPercentage >= 50) {
             scroll50Fired = true;
-            trackEvent('ScrollDepth', {
+            trackViaZaraz('ScrollDepth', {
                 event_id: generateEventId(),
                 depth: '50%'
             });
@@ -383,10 +321,10 @@
       const countdownEl = document.getElementById('countdown-timer');
       if (!countdownEl) return;
       
-      // Tenta recuperar o tempo do localStorage ou usa 900 (15 min)
-      let savedTime = localStorage.getItem('offer_timer_v2');
-      let timeLeft = savedTime ? parseInt(savedTime) : 900;
-
+      // Tenta recuperar o tempo do localStorage ou usa 300 (5 min)
+      let savedTime = localStorage.getItem('offer_timer_v3');
+      let timeLeft = savedTime ? parseInt(savedTime) : 300;
+      
       // Se o tempo acabou ou é inválido, reseta
       if(isNaN(timeLeft) || timeLeft <= 0) timeLeft = 900;
 
@@ -401,11 +339,11 @@
       const timerInterval = setInterval(() => {
         if (timeLeft <= 0) {
           // Quando acaba, reinicia discretamente para manter a pressão (loop infinito sutil)
-          timeLeft = 900;
+          timeLeft = 900; 
         } else {
           timeLeft--;
         }
-        localStorage.setItem('offer_timer_v2', timeLeft);
+        localStorage.setItem('offer_timer_v3', timeLeft);
         updateDisplay();
       }, 1000);
     }
@@ -426,59 +364,7 @@
       const startDate = getDeliveryDate(3);
       const endDate = getDeliveryDate(5);
       shippingEl.textContent = `Receba entre ${startDate} e ${endDate}`;
-      var modalDateEl = document.getElementById('shipping-modal-date');
-      if (modalDateEl) modalDateEl.textContent = `Receba até ${startDate} – ${endDate}`;
-
     }
-
-    // Geolocalização do cliente via IP (com fallback e timeout)
-    function updateShippingLocation() {
-      var cityEl = document.getElementById('shipping-city');
-      if (!cityEl) return;
-
-      var fallback = 'Envio para todo o Brasil';
-      var done = false;
-
-      // Timeout de 3s - se não responder, mostra fallback
-      var timer = setTimeout(function() {
-        if (!done) { done = true; cityEl.textContent = fallback; }
-      }, 3000);
-
-      function updateCity(city, region) {
-        if (done) return;
-        done = true; clearTimeout(timer);
-        cityEl.textContent = 'Envio para ' + city + ', ' + region;
-        var mc = document.getElementById('shipping-modal-city');
-        if (mc) mc.textContent = city + ', ' + region + ', Brasil';
-      }
-
-      // Tenta múltiplas APIs em paralelo
-      // API 1: freeipapi
-      fetch('https://freeipapi.com/api/json')
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-          if (data.cityName && data.regionName) updateCity(data.cityName, data.regionName);
-        })
-        .catch(function() {});
-
-      // API 2: ipapi.co
-      fetch('https://ipapi.co/json/')
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-          if (data.city && data.region) updateCity(data.city, data.region);
-        })
-        .catch(function() {});
-
-      // API 3: ip-api.com (funciona em HTTP)
-      fetch('https://ipwho.is/')
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-          if (data.city && data.region) updateCity(data.city, data.region);
-        })
-        .catch(function() {
-        });
-    }
-    updateShippingLocation();
 
     // Galeria de Imagens
     const totalImages = 8;
@@ -513,8 +399,8 @@
       viewReviewsBtn.addEventListener('click', (e) => {
         
         // Dispara evento de interesse
-        if(window.trackEvent) {
-            window.trackEvent('Check_Reviews', { event_id: window.generateEventId() });
+        if(window.trackViaZaraz) {
+            window.trackViaZaraz('Check_Reviews', { event_id: window.generateEventId() });
         }
 
         // Envolve em requestAnimationFrame para não bloquear o clique inicial
@@ -552,11 +438,9 @@
         const thumbImg = document.createElement('img');
         const imgName = 'thumb_' + padZero(i) + '.webp'; 
         
-        thumbImg.src = '/assets/img/' + imgName;
+        thumbImg.src = 'assets/img/' + imgName;
         thumbImg.alt = `Miniatura ${i}`;
-        thumbImg.width = 60;
-        thumbImg.height = 60;
-        thumbImg.loading = i <= 4 ? 'eager' : 'lazy';
+        thumbImg.loading = 'lazy';
         
         thumbWrapper.appendChild(thumbImg);
         thumbWrapper.addEventListener('click', () => {
@@ -571,7 +455,7 @@
         // FIX INP: Manipulação de DOM pesada movida para requestAnimationFrame
         requestAnimationFrame(() => {
           const imgName = padZero(currentImageIndex) + '.webp';
-          mainImage.src = '/assets/img/' + imgName;
+          mainImage.src = 'assets/img/' + imgName;
           imageCounter.textContent = `${currentImageIndex}/${totalImages}`;
 
           imageDots.querySelectorAll('.dot').forEach((d, i) =>
@@ -651,178 +535,22 @@
         else window.changeImage(-1); // Swipe Direita -> Anterior
         
         // ⭐️ NOVO: Rastreia interação com galeria (Micro-Conversão)
-        if (!galleryEventFired && window.trackEvent) {
+        if (!galleryEventFired && window.trackViaZaraz) {
             galleryEventFired = true;
-            window.trackEvent('Interact_Gallery', { event_id: window.generateEventId() });
+            window.trackViaZaraz('Interact_Gallery', { event_id: window.generateEventId() });
         }
       }
     }
     
-    // =============================================
-    // IZZAT MODAL SYSTEM (Zero-Redirect, DOM-only)
-    // =============================================
-
-    // --- Shared: Bottom Sheet open/close ---
-    window.__izzatOpenSheet = function(id) {
-        var sheet = document.getElementById(id);
-        if (!sheet) return;
-        sheet.classList.add('active');
-        document.body.style.overflow = 'hidden';
-    };
-    window.__izzatCloseSheet = function(id) {
-        var sheet = document.getElementById(id);
-        if (!sheet) return;
-        sheet.classList.remove('active');
-        // Only restore scroll if no other sheet is open
-        var anyOpen = document.querySelector('.izzat-bottomsheet.active, .izzat-overlay.active');
-        if (!anyOpen) document.body.style.overflow = '';
-    };
-
-    // --- Task 1: Lightbox for review images ---
-    (function initLightbox() {
-        var overlay = document.getElementById('izzat-lightbox');
-        var lightboxImg = document.getElementById('lightbox-img');
-        var closeBtn = document.getElementById('lightbox-close');
-        if (!overlay || !lightboxImg) return;
-
-        function openLightbox(src) {
-            lightboxImg.src = src;
-            overlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-        function closeLightbox() {
-            overlay.classList.remove('active');
-            document.body.style.overflow = '';
-            // Delay src clear to let transition finish
-            setTimeout(function(){ lightboxImg.src = ''; }, 300);
-        }
-
-        // Delegate click on all review images (including dynamically loaded)
-        document.addEventListener('click', function(e) {
-            var img = e.target.closest('.review-image img');
-            if (img) {
-                e.stopPropagation();
-                openLightbox(img.src);
-            }
-        });
-        // Set cursor on existing images
-        document.querySelectorAll('.review-image img').forEach(function(img) {
-            img.style.cursor = 'zoom-in';
-        });
-
-        // Close on backdrop click (anything that's not the image)
-        overlay.addEventListener('click', function(e) {
-            if (e.target === overlay || e.target === closeBtn || closeBtn.contains(e.target)) {
-                closeLightbox();
-            }
-        });
-        closeBtn.addEventListener('click', closeLightbox);
-
-        // Swipe up/down to close lightbox
-        var lbStartY = 0;
-        var lbCurrentY = 0;
-        var lbDragging = false;
-
-        overlay.addEventListener('touchstart', function(e) {
-            lbStartY = e.touches[0].clientY;
-            lbCurrentY = lbStartY;
-            lbDragging = true;
-            lightboxImg.style.transition = 'none';
-        }, { passive: true });
-
-        overlay.addEventListener('touchmove', function(e) {
-            if (!lbDragging) return;
-            lbCurrentY = e.touches[0].clientY;
-            var diff = lbCurrentY - lbStartY;
-            lightboxImg.style.transform = 'scale(1) translateY(' + diff + 'px)';
-            overlay.style.opacity = Math.max(0.3, 1 - Math.abs(diff) / 400);
-        }, { passive: true });
-
-        overlay.addEventListener('touchend', function() {
-            if (!lbDragging) return;
-            lbDragging = false;
-            var diff = Math.abs(lbCurrentY - lbStartY);
-            lightboxImg.style.transition = '';
-            lightboxImg.style.transform = '';
-            overlay.style.opacity = '';
-            if (diff > 80) {
-                closeLightbox();
-            }
-        });
-    })();
-
-    // --- Task 3: Trust / Social Proof Bottom Sheet ---
-    (function initTrustSheet() {
-        var trigger = document.getElementById('seller-trust-trigger');
-        var sheetId = 'izzat-trust-sheet';
-        var backdrop = document.getElementById('trust-sheet-backdrop');
-        var closeBtn = document.getElementById('trust-sheet-close');
-        if (!trigger) return;
-
-        trigger.addEventListener('click', function() {
-            window.__izzatOpenSheet(sheetId);
-        });
-        if (backdrop) backdrop.addEventListener('click', function() {
-            window.__izzatCloseSheet(sheetId);
-        });
-        if (closeBtn) closeBtn.addEventListener('click', function() {
-            window.__izzatCloseSheet(sheetId);
-        });
-    })();
-
-    // --- Task 4: Options Menu Bottom Sheet ---
-    (function initMenuSheet() {
-        var trigger = document.getElementById('header-menu-trigger');
-        var sheetId = 'izzat-menu-sheet';
-        var backdrop = document.getElementById('menu-sheet-backdrop');
-        var closeBtn = document.getElementById('menu-sheet-close');
-        if (!trigger) return;
-
-        trigger.addEventListener('click', function() {
-            window.__izzatOpenSheet(sheetId);
-        });
-        if (backdrop) backdrop.addEventListener('click', function() {
-            window.__izzatCloseSheet(sheetId);
-        });
-        if (closeBtn) closeBtn.addEventListener('click', function() {
-            window.__izzatCloseSheet(sheetId);
-        });
-    })();
-
-    // Menu navigation handler (opens in-page or new tab for legal pages)
-    window.__izzatMenuNav = function(href) {
-        window.__izzatCloseSheet('izzat-menu-sheet');
-        // Small delay to let sheet close animation finish
-        setTimeout(function() {
-            window.location.href = href;
-        }, 200);
-    };
-
-    // --- Universal: Close all modals on Escape key ---
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            var lightbox = document.getElementById('izzat-lightbox');
-            if (lightbox && lightbox.classList.contains('active')) {
-                lightbox.classList.remove('active');
-                document.body.style.overflow = '';
-                return;
-            }
-            document.querySelectorAll('.izzat-bottomsheet.active').forEach(function(sheet) {
-                sheet.classList.remove('active');
-            });
-            document.body.style.overflow = '';
-        }
-    });
-
     // Pop-up de Vendas
     const buyers = [
-        { name: "Fernanda Maia", city: "Rio de Janeiro, RJ", img: "/assets/img/foto1.webp" },
-        { name: "Bruna Lima", city: "São Paulo, SP", img: "/assets/img/foto2.webp" },
-        { name: "Marilia Lima", city: "Belo Horizonte, MG", img: "/assets/img/foto3.webp" },
-        { name: "Karina Andrade", city: "Curitiba, PR", img: "/assets/img/foto4.webp" },
-        { name: "Bruna Silva", city: "Salvador, BA", img: "/assets/img/foto5.webp" },
-        { name: "Kailane Cristina", city: "Fortaleza, CE", img: "/assets/img/foto6.webp" },
-        { name: "Mariana Lemos", city: "Porto Alegre, RS", img: "/assets/img/foto7.webp" }
+        { name: "Fernanda Maia", city: "Rio de Janeiro, RJ", img: "assets/img/foto1.webp" },
+        { name: "Bruna Lima", city: "São Paulo, SP", img: "assets/img/foto2.webp" },
+        { name: "Marilia Lima", city: "Belo Horizonte, MG", img: "assets/img/foto3.webp" },
+        { name: "Karina Andrade", city: "Curitiba, PR", img: "assets/img/foto4.webp" },
+        { name: "Bruna Silva", city: "Salvador, BA", img: "assets/img/foto5.webp" },
+        { name: "Kailane Cristina", city: "Fortaleza, CE", img: "assets/img/foto6.webp" },
+        { name: "Mariana Lemos", city: "Porto Alegre, RS", img: "assets/img/foto7.webp" }
     ];
 
     const actions = [
@@ -842,14 +570,6 @@
 
         if (!popup) return;
 
-        // Desktop: position popup relative to container's actual screen position
-        var container = document.querySelector('.container');
-        if (container && window.innerWidth > 480) {
-            var rect = container.getBoundingClientRect();
-            popup.style.left = (rect.left + 10) + 'px';
-            popup.style.maxWidth = Math.min(rect.width - 20, 460) + 'px';
-        }
-
         const randomBuyer = buyers[Math.floor(Math.random() * buyers.length)];
         const randomAction = actions[Math.floor(Math.random() * actions.length)];
 
@@ -865,62 +585,13 @@
         }, 4000);
     }
 
-    // Show popup only once per browser session (use both storage types for reliability)
-    var popupKey = 'izzat_popup_shown';
-    var alreadyShown = false;
-    try {
-        alreadyShown = sessionStorage.getItem(popupKey) === '1' || window.__izzatPopupFired;
-    } catch(e) {}
-
-    if (!alreadyShown) {
-        window.__izzatPopupFired = true;
-        setTimeout(function() {
+    // Show popup only once per session, after 15 seconds
+    if (!sessionStorage.getItem('popup_shown')) {
+        setTimeout(() => {
             showSalesPopup();
-            try { sessionStorage.setItem(popupKey, '1'); } catch(e) {}
-        }, 3000);
+            sessionStorage.setItem('popup_shown', '1');
+        }, 15000);
     }
-
-    // --- Swipe-down to close bottom sheets ---
-    (function initSwipeClose() {
-        document.querySelectorAll('.izzat-bottomsheet').forEach(function(sheet) {
-            var content = sheet.querySelector('.izzat-bottomsheet__content');
-            if (!content) return;
-
-            var startY = 0;
-            var currentY = 0;
-            var dragging = false;
-
-            content.addEventListener('touchstart', function(e) {
-                // Only enable swipe if scrolled to top
-                if (content.scrollTop > 5) return;
-                startY = e.touches[0].clientY;
-                currentY = startY;
-                dragging = true;
-                content.style.transition = 'none';
-            }, { passive: true });
-
-            content.addEventListener('touchmove', function(e) {
-                if (!dragging) return;
-                currentY = e.touches[0].clientY;
-                var diff = currentY - startY;
-                if (diff > 0) {
-                    content.style.transform = 'translateY(' + diff + 'px)';
-                }
-            }, { passive: true });
-
-            content.addEventListener('touchend', function() {
-                if (!dragging) return;
-                dragging = false;
-                var diff = currentY - startY;
-                content.style.transition = '';
-                if (diff > 80) {
-                    // Close the sheet
-                    window.__izzatCloseSheet(sheet.id);
-                }
-                content.style.transform = '';
-            });
-        });
-    })();
-
+    
   });
 
