@@ -719,33 +719,33 @@ e("span", {className: "text-lg font-extrabold text-slate-800"}, "R$ " + PRODUCT_
 ),
 
 // Meu pedido
-e("div", {className: "bg-[#f3f4f6] rounded-2xl border border-slate-200 p-3 mb-3"},
-e("div", {className: "flex items-center gap-2 mb-3"},
-e("div", {className: "w-5 h-5 text-slate-600"}, e(Icons.Package, {className: "w-5 h-5 text-slate-600"})),
-e("h3", {className: "text-base font-bold text-slate-800 leading-none"}, "Meu pedido")
+e("div", {className: "bg-white rounded-xl border border-slate-200 p-3 mb-3"},
+e("div", {className: "flex items-center gap-1.5 mb-2.5"},
+e("div", {className: "w-4.5 h-4.5 text-slate-500"}, e(Icons.Package, {className: "w-4 h-4 text-slate-500"})),
+e("h3", {className: "text-sm font-semibold text-slate-800 leading-none"}, "Meu pedido")
 ),
-e("div", {className: "bg-white rounded-xl border border-slate-200 p-3.5"},
-e("div", {className: "flex items-center gap-3"},
-e("div", {className: "w-14 h-14 bg-white rounded-lg border border-slate-200 p-1.5 flex-shrink-0"},
+e("div", {className: "bg-slate-50/60 rounded-lg border border-slate-200 p-3"},
+e("div", {className: "flex items-center gap-2.5"},
+e("div", {className: "w-12 h-12 bg-white rounded-md border border-slate-200 p-1.5 flex-shrink-0"},
 e("img", { src: PRODUCT_INFO.image, alt: PRODUCT_INFO.name, className: "w-full h-full object-contain", loading: "lazy", decoding: "async", onError: (ev) => { try { const img = ev.target; if(!img.dataset.fallback){ img.dataset.fallback='1'; img.src = "/" + String(PRODUCT_INFO.image || '').replace(/^\/+/, ''); } } catch(e) {} } })
 ),
 e("div", {className: "flex-1 min-w-0"},
-e("p", {className: "text-sm font-medium text-slate-800 leading-snug line-clamp-2"}, PRODUCT_INFO.name),
-e("div", {className: "flex items-center gap-2 mt-1"},
-e("span", {className: "text-sm text-slate-500"}, "Qtd: 1"),
-e("span", {className: "text-sm font-bold text-rose-500"}, "R$ " + PRODUCT_INFO.price.toFixed(2).replace('.',','))
+e("p", {className: "text-[15px] font-medium text-slate-800 leading-snug line-clamp-2"}, PRODUCT_INFO.name),
+e("div", {className: "flex items-center gap-2 mt-1.5"},
+e("span", {className: "text-[13px] text-slate-500"}, "Qtd: 1"),
+e("span", {className: "text-[13px] font-semibold text-slate-800"}, "R$ " + PRODUCT_INFO.price.toFixed(2).replace('.',','))
 )
 )
 ),
-e("div", {className: "mt-3 pt-3 border-t border-slate-100 flex items-center justify-between gap-2"},
+e("div", {className: "mt-2.5 pt-2.5 border-t border-slate-200/70 flex items-center justify-between gap-2"},
 e("div", {className: "flex items-start gap-2"},
-e("div", {className: "text-slate-500 mt-0.5"}, e(Icons.Truck, {className: "w-4 h-4 text-slate-500"})),
+e("div", {className: "text-slate-400 mt-0.5"}, e(Icons.Truck, {className: "w-4 h-4 text-slate-400"})),
 e("div", null,
 e("p", {className: "text-[11px] text-slate-500 leading-tight"}, "Prazo de entrega estimado"),
-e("p", {className: "text-base font-extrabold text-slate-900 leading-tight"}, "Entrega de " + shippingRange.min + " a " + shippingRange.max + " dias")
+e("p", {className: "text-sm font-semibold text-slate-800 leading-tight"}, "Entrega de " + shippingRange.min + " a " + shippingRange.max + " dias")
 )
 ),
-e("span", {className: "text-xs font-bold text-slate-600 bg-slate-100 border border-slate-200 rounded-md px-2.5 py-1 whitespace-nowrap"}, "GRATIS")
+e("span", {className: "text-[11px] font-semibold text-slate-500 bg-white border border-slate-200 rounded-md px-2.5 py-1 whitespace-nowrap"}, "GRATIS")
 )
 )
 ),
