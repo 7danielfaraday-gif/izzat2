@@ -170,10 +170,26 @@
             }
 
             // 2. CAPI server-side (dupla camada — mesmo event_id para deduplicação)
+            var requiresCatalogContent = (event === 'ViewContent' || event === 'AddToCart');
+            var capiProperties = Object.assign(
+                {},
+                requiresCatalogContent ? PRODUCT_CONTENT : {},
+                data || {},
+                { event_source_url: getTikTokEventSourceUrl() }
+            );
+
+            if (!capiProperties.content_id) {
+                if (Array.isArray(capiProperties.contents) && capiProperties.contents[0] && capiProperties.contents[0].content_id) {
+                    capiProperties.content_id = capiProperties.contents[0].content_id;
+                } else if (Array.isArray(capiProperties.content_ids) && capiProperties.content_ids[0]) {
+                    capiProperties.content_id = capiProperties.content_ids[0];
+                }
+            }
+
             sendCAPI(
                 event,
                 eventId,
-                { event_source_url: getTikTokEventSourceUrl() },
+                capiProperties,
                 {
                     email:       payload.email || undefined,
                     phone_number: payload.phone || undefined,

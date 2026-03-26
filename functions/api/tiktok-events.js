@@ -35,6 +35,32 @@ function isSha256Hex(value) {
   return typeof value === 'string' && /^[a-f0-9]{64}$/i.test(value.trim());
 }
 
+function hasText(value) {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function getFallbackContentId(properties) {
+  if (!properties || typeof properties !== 'object') return null;
+
+  if (hasText(properties.content_id)) return properties.content_id.trim();
+
+  if (Array.isArray(properties.contents)) {
+    for (const item of properties.contents) {
+      if (!item || typeof item !== 'object') continue;
+      if (hasText(item.content_id)) return item.content_id.trim();
+      if (hasText(item.id)) return item.id.trim();
+    }
+  }
+
+  if (Array.isArray(properties.content_ids)) {
+    for (const id of properties.content_ids) {
+      if (hasText(id)) return id.trim();
+    }
+  }
+
+  return null;
+}
+
 function buildSafeUser(user) {
   const raw = pick(user, USER_FIELDS);
   const safe = {};
@@ -131,6 +157,8 @@ export async function onRequestPost(context) {
                    || undefined;
     const userAgent = context.request.headers.get('user-agent') || undefined;
 
+    const fallbackContentId = getFallbackContentId(properties);
+
     const eventPayload = {
       event:             event,
       event_time:        Math.floor(Date.now() / 1000),
@@ -138,13 +166,7 @@ export async function onRequestPost(context) {
 
       properties: {
         ...pick(properties, PROPS_FIELDS),
-        ...(
-          !properties.content_id &&
-          Array.isArray(properties.contents) &&
-          properties.contents[0]?.content_id
-            ? { content_id: properties.contents[0].content_id }
-            : {}
-        ),
+        ...(!hasText(properties.content_id) && fallbackContentId ? { content_id: fallbackContentId } : {}),
         event_source_url: normalizeEventSourceUrl(
           context.request.headers.get('referer') ||
           properties.event_source_url ||
