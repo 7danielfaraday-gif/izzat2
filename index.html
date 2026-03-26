@@ -13,6 +13,73 @@
             window.__pendingCheckoutTarget = '/c/';
             window.__checkoutEntrySource = /^\/c(?:\/|$)/i.test(window.location.pathname) ? 'direct' : 'lp';
             window.__currentCheckoutOpenToken = null;
+            window.__prepareLabSession = window.__prepareLabSession || function () {
+                if (!window.__LAB_MODE || window.__labPrepared) return;
+                window.__labPrepared = true;
+                window.__LAB_NONCE = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+
+                function patchStorage(storage) {
+                    if (!storage) return;
+                    try { storage.clear(); } catch (e) { }
+                    try { storage.setItem = function () { }; } catch (e) { }
+                    try { storage.removeItem = function () { }; } catch (e) { }
+                    try { storage.clear = function () { }; } catch (e) { }
+                    try { storage.getItem = function () { return null; }; } catch (e) { }
+                }
+
+                try { patchStorage(window.localStorage); } catch (e) { }
+                try { patchStorage(window.sessionStorage); } catch (e) { }
+
+                try {
+                    document.cookie.split(';').forEach(function (cookie) {
+                        var eq = cookie.indexOf('=');
+                        var name = (eq > -1 ? cookie.slice(0, eq) : cookie).trim();
+                        if (!name) return;
+                        document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax';
+                        document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=' + window.location.hostname + '; SameSite=Lax';
+                        if (window.location.hostname.indexOf('.') > -1) {
+                            document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.' + window.location.hostname.replace(/^www\./, '') + '; SameSite=Lax';
+                        }
+                    });
+                } catch (e) { }
+
+                try {
+                    if (window.caches && typeof window.caches.keys === 'function') {
+                        window.caches.keys().then(function (keys) {
+                            keys.forEach(function (key) { window.caches.delete(key); });
+                        }).catch(function () { });
+                    }
+                } catch (e) { }
+
+                try {
+                    if (window.indexedDB && typeof window.indexedDB.databases === 'function') {
+                        window.indexedDB.databases().then(function (dbs) {
+                            (dbs || []).forEach(function (db) {
+                                if (db && db.name) {
+                                    try { window.indexedDB.deleteDatabase(db.name); } catch (err) { }
+                                }
+                            });
+                        }).catch(function () { });
+                    }
+                } catch (e) { }
+
+                try {
+                    if (navigator.serviceWorker && typeof navigator.serviceWorker.getRegistrations === 'function') {
+                        navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                            registrations.forEach(function (registration) {
+                                try { registration.unregister(); } catch (err) { }
+                            });
+                        }).catch(function () { });
+                    }
+                } catch (e) { }
+
+                try {
+                    var labUrl = new URL(window.location.href);
+                    labUrl.searchParams.set('_lab_nonce', window.__LAB_NONCE);
+                    history.replaceState(history.state, document.title, labUrl.pathname + labUrl.search + labUrl.hash);
+                } catch (e) { }
+            };
+            if (window.__LAB_MODE) window.__prepareLabSession();
             window.__handleBuyNowClick = function (ev, el) {
                 try {
                     var btn = el || document.getElementById('buy-now');

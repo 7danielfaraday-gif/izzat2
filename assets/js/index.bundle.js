@@ -22,6 +22,7 @@
     // --- HELPER FUNCTIONS ---
 
     function setCookie(name, value, days) {
+        if (window.__LAB_MODE) return;
         var expires = "";
         if (days) {
             var date = new Date();
@@ -32,6 +33,7 @@
     }
     
     function getCookie(name) {
+        if (window.__LAB_MODE) return null;
         var nameEQ = name + "=";
         var ca = document.cookie.split(';');
         for(var i=0;i < ca.length;i++) {
