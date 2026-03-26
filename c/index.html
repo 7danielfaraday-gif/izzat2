@@ -2,7 +2,7 @@
 
 <html lang="pt-BR">
 <head>
-<script>(function(){var p=new URLSearchParams(window.location.search);window.__TEST_MODE=p.has('test_mode');window.__LAB_MODE=p.has('lab')||p.get('mode')==='lab'||/^\/lab(?:\/|$)/i.test(window.location.pathname);})();</script>
+<script>(function(){var p=new URLSearchParams(window.location.search);window.__TEST_MODE=p.has('test_mode');window.__LAB_MODE=p.has('lab')||p.get('mode')==='lab'||/^\/lab(?:\/|$)/i.test(window.location.pathname);window.__checkoutEntrySource='direct';window.__currentCheckoutOpenToken='checkout_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);})();</script>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content" name="viewport"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -362,6 +362,25 @@
         }
     }
 
+    function shouldSkipDuplicateTikTokEvent(event, eventId, ttlMs) {
+        try {
+            if (!event || !eventId) return false;
+            var now = Date.now();
+            var ttl = typeof ttlMs === 'number' ? ttlMs : 10 * 60 * 1000;
+            var cache = window.__ttEventDispatchCache = window.__ttEventDispatchCache || {};
+            var cacheKeys = Object.keys(cache);
+            for (var i = 0; i < cacheKeys.length; i++) {
+                var key = cacheKeys[i];
+                if (now - cache[key] > (ttl * 2)) delete cache[key];
+            }
+            var dedupKey = event + '::' + eventId;
+            if (cache[dedupKey] && (now - cache[dedupKey]) < ttl) return true;
+            cache[dedupKey] = now;
+        } catch(e) {}
+        return false;
+    }
+    window.shouldSkipDuplicateTikTokEvent = window.shouldSkipDuplicateTikTokEvent || shouldSkipDuplicateTikTokEvent;
+
     function trackPixel(event, data) {
         if (window.__TEST_MODE || window.__LAB_MODE) { console.log('[TEST_MODE/LAB_MODE] Evento bloqueado:', event, data); return; }
         data = data || {};
@@ -377,6 +396,7 @@
                 finalData = await hashIdentifiers(finalData);
 
                 var eventId = finalData.event_id || generateEventId();
+                if (window.shouldSkipDuplicateTikTokEvent && window.shouldSkipDuplicateTikTokEvent(event, eventId)) return;
 
                 var payload = Object.assign({}, finalData, window.getStoredUTMs(), {
                     external_id: window.getExternalId(),

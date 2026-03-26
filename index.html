@@ -11,6 +11,8 @@
             window.__buyNowJsReady = false;
             window.__pendingCheckoutClick = false;
             window.__pendingCheckoutTarget = '/c/';
+            window.__checkoutEntrySource = /^\/c(?:\/|$)/i.test(window.location.pathname) ? 'direct' : 'lp';
+            window.__currentCheckoutOpenToken = null;
             window.__handleBuyNowClick = function (ev, el) {
                 try {
                     var btn = el || document.getElementById('buy-now');
@@ -2806,6 +2808,25 @@
                 } catch (e) { }
             }
 
+            function shouldSkipDuplicateTikTokEvent(event, eventId, ttlMs) {
+                try {
+                    if (!event || !eventId) return false;
+                    var now = Date.now();
+                    var ttl = typeof ttlMs === 'number' ? ttlMs : 10 * 60 * 1000;
+                    var cache = window.__ttEventDispatchCache = window.__ttEventDispatchCache || {};
+                    var cacheKeys = Object.keys(cache);
+                    for (var i = 0; i < cacheKeys.length; i++) {
+                        var key = cacheKeys[i];
+                        if (now - cache[key] > (ttl * 2)) delete cache[key];
+                    }
+                    var dedupKey = event + '::' + eventId;
+                    if (cache[dedupKey] && (now - cache[dedupKey]) < ttl) return true;
+                    cache[dedupKey] = now;
+                } catch (e) { }
+                return false;
+            }
+            window.shouldSkipDuplicateTikTokEvent = window.shouldSkipDuplicateTikTokEvent || shouldSkipDuplicateTikTokEvent;
+
             function trackPixel(event, data) {
                 if (window.__TEST_MODE || window.__LAB_MODE) { console.log('[TEST_MODE/LAB_MODE] Evento bloqueado:', event, data); return; }
                 data = data || {};
@@ -2816,6 +2837,7 @@
                         if (finalData.email) finalData.email = normalizeEmail(finalData.email);
                         finalData = await hashIdentifiers(finalData);
                         var eventId = finalData.event_id || generateEventId();
+                        if (window.shouldSkipDuplicateTikTokEvent && window.shouldSkipDuplicateTikTokEvent(event, eventId)) return;
                         var payload = Object.assign({}, finalData, getStoredUTMs(), {
                             external_id: getExternalId(),
                             ttclid: getTTCLID(),
@@ -2970,6 +2992,10 @@
                 var bottomNav = document.querySelector('.bottom-nav');
                 var salesPopup = document.getElementById('sales-popup');
                 var buyNow = document.getElementById('buy-now');
+                var isDirectEntry = /^\/c(?:\/|$)/i.test(window.location.pathname) && window.location.pathname !== '/';
+
+                window.__checkoutEntrySource = isDirectEntry ? 'direct' : 'lp';
+                window.__currentCheckoutOpenToken = 'checkout_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
 
                 setCheckoutOpeningState();
                 if (buyNow && buyNow.classList) buyNow.classList.remove('is-opening');

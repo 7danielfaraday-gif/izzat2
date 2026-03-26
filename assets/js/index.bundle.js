@@ -1,4 +1,4 @@
-// ==================================================
+﻿// ==================================================
     // 1. TRACKING ZARAZ + TIKTOK TURBO (BEACON + FINGERPRINT)
     // ==================================================
     
@@ -7,15 +7,17 @@
         contents: [{ content_id: 'AFON-12L-BI', id: 'AFON-12L-BI', quantity: 1, price: 197.99, item_price: 197.99 }],
         content_id: 'AFON-12L-BI',
         content_ids: ['AFON-12L-BI'],
-        content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial',
-        description: 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI',
+        content_name: 'Fritadeira ElÃ©trica Forno Oven 12L Mondial',
+        description: 'Fritadeira ElÃ©trica Forno Oven 12L Mondial AFON-12L-BI',
         content_type: 'product',
-        category: 'Eletroportáteis',
+        category: 'EletroportÃ¡teis',
         quantity: 1,
         price: 197.99,
         value: 197.99,
         currency: 'BRL'
     };
+    window.PRODUCT_CONTENT = window.PRODUCT_CONTENT || PRODUCT_CONTENT;
+    const LP_VIEW_CONTENT_KEY = '__tt_lp_viewcontent';
 
     // --- HELPER FUNCTIONS ---
 
@@ -44,7 +46,7 @@
         return 'evt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     }
     window.generateEventId = generateEventId;
-    // trackViaZaraz será definida mais abaixo (Browser Pixel + CAPI)
+    // trackViaZaraz serÃ¡ definida mais abaixo (Browser Pixel + CAPI)
 
     function getExternalId() {
         let eid = localStorage.getItem('user_external_id');
@@ -89,7 +91,7 @@
         return utms;
     }
 
-    // Contexto Avançado (Fingerprinting Lite)
+    // Contexto AvanÃ§ado (Fingerprinting Lite)
     function getContext() {
         let connection = 'unknown';
         if (navigator.connection) {
@@ -107,7 +109,7 @@
         };
     }
 
-    // --- FUNÇÃO DE DISPARO HÍBRIDA (Browser Pixel + CAPI) ---
+    // --- FUNÃ‡ÃƒO DE DISPARO HÃBRIDA (Browser Pixel + CAPI) ---
     // Leitura do cookie _ttp (TikTok Pixel cookie)
     function getTTP() {
         return (document.cookie.match(/(?:^|;\s*)_ttp=([^;]*)/) || [])[1] || undefined;
@@ -157,8 +159,9 @@
             if (savedPhone && !payload.phone) payload.phone = savedPhone;
 
             var eventId = payload.event_id || window.generateEventId();
+            if (window.shouldSkipDuplicateTikTokEvent && window.shouldSkipDuplicateTikTokEvent(event, eventId)) return;
 
-            // 1. Browser Pixel (com event_id para deduplicação)
+            // 1. Browser Pixel (com event_id para deduplicaÃ§Ã£o)
             if (window.ttq && typeof window.ttq.track === 'function') {
                 if (event !== 'PageView') {
                     try {
@@ -169,7 +172,7 @@
                 }
             }
 
-            // 2. CAPI server-side (dupla camada — mesmo event_id para deduplicação)
+            // 2. CAPI server-side (dupla camada â€” mesmo event_id para deduplicaÃ§Ã£o)
             var requiresCatalogContent = (event === 'ViewContent' || event === 'AddToCart');
             var capiProperties = Object.assign(
                 {},
@@ -217,17 +220,36 @@
         saveUTMs();
     });
 
-    // 2. ViewContent — disparado exclusivamente pelo checkout.app.js (React)
-    // para evitar duplicidade: LP + checkout.app ambos acionavam ViewContent com event_ids diferentes.
-    // O checkout.app.js já tem deduplicação por sessionStorage (last_vc_id).
+    // 2. ViewContent da LP (melhor prática para TikTok)
+    // O checkout só dispara ViewContent como fallback em entrada direta.
+    (function triggerLandingViewContent() {
+        if (/^\/c(?:\/|$)/i.test(window.location.pathname)) return;
+        try {
+            var now = Date.now();
+            var existing = null;
+            try { existing = JSON.parse(sessionStorage.getItem(LP_VIEW_CONTENT_KEY) || 'null'); } catch (e) {}
+            if (existing && existing.at && (now - existing.at) < (30 * 60 * 1000)) return;
 
-    // 3. CTA Comprar Agora (WebView-safe: não bloqueia navegação)
-    // Monta o link com parâmetros (ttclid/utm/eid) ANTES do clique, evitando redirect com delay.
+            var eventId = generateEventId();
+            try {
+                sessionStorage.setItem(LP_VIEW_CONTENT_KEY, JSON.stringify({ event_id: eventId, at: now, source: 'lp' }));
+            } catch (e) {}
+
+            trackViaZaraz('ViewContent', {
+                ...PRODUCT_CONTENT,
+                event_id: eventId,
+                content_name: PRODUCT_CONTENT.content_name
+            });
+        } catch (e) {}
+    })();
+
+    // 3. CTA Comprar Agora (WebView-safe: nÃ£o bloqueia navegaÃ§Ã£o)
+    // Monta o link com parÃ¢metros (ttclid/utm/eid) ANTES do clique, evitando redirect com delay.
     window.buildCheckoutUrl = function(baseHref) {
         try {
             const urlObj = new URL(baseHref, window.location.origin);
 
-            // 1) Mantém parâmetros atuais da URL (UTMs, ttclid etc.)
+            // 1) MantÃ©m parÃ¢metros atuais da URL (UTMs, ttclid etc.)
             const currentParams = new URLSearchParams(window.location.search);
             currentParams.forEach((value, key) => {
                 urlObj.searchParams.set(key, value);
@@ -268,7 +290,7 @@
         // Modo 100% SPA: nunca redireciona por href.
         btn.href = 'javascript:void(0)';
 
-        // Mantém a URL de checkout com parâmetros em data-attribute.
+        // MantÃ©m a URL de checkout com parÃ¢metros em data-attribute.
         try {
             btn.dataset.checkoutTarget = window.buildCheckoutUrl(baseCheckoutPath);
         } catch (e) {}
@@ -289,7 +311,7 @@
                 } catch (err) {}
             };
 
-            // Evita custo extra no frame do clique (sensação de "botão travado")
+            // Evita custo extra no frame do clique (sensaÃ§Ã£o de "botÃ£o travado")
             if ('requestIdleCallback' in window) {
                 requestIdleCallback(trackAddToCart, { timeout: 1200 });
             } else {
@@ -298,7 +320,7 @@
         });
     })();
     // ==================================================
-    // 4. MICRO-CONVERSÕES (NOVO: ALIMENTA O ALGORITMO)
+    // 4. MICRO-CONVERSÃ•ES (NOVO: ALIMENTA O ALGORITMO)
     // ==================================================
 
     // A) Scroll Profundo (Leitura)
@@ -316,7 +338,7 @@
     }, { passive: true });
 
 // ==================================================
-  // 2. FUNÇÕES VISUAIS DA LOJA (UI/UX)
+  // 2. FUNÃ‡Ã•ES VISUAIS DA LOJA (UI/UX)
   // ==================================================
   
   function showTab(tabName) {
@@ -344,7 +366,7 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     
-    // Cronômetro Persistente (Anti-Fake)
+    // CronÃ´metro Persistente (Anti-Fake)
     function startCountdown() {
       const countdownEl = document.getElementById('countdown-timer');
       if (!countdownEl) return;
@@ -353,7 +375,7 @@
       let savedTime = localStorage.getItem('offer_timer_v4');
       let timeLeft = savedTime ? parseInt(savedTime) : 900;
       
-      // Se o tempo acabou ou é inválido, reseta
+      // Se o tempo acabou ou Ã© invÃ¡lido, reseta
       if(isNaN(timeLeft) || timeLeft <= 0) timeLeft = 900;
 
       const updateDisplay = () => {
@@ -366,7 +388,7 @@
 
       const timerInterval = setInterval(() => {
         if (timeLeft <= 0) {
-          // Quando acaba, reinicia discretamente para manter a pressão (loop infinito sutil)
+          // Quando acaba, reinicia discretamente para manter a pressÃ£o (loop infinito sutil)
           timeLeft = 900; 
         } else {
           timeLeft--;
@@ -413,7 +435,7 @@
     const viewReviewsBtn = document.querySelector('.add-cart-btn');
     const reviewsSection = document.querySelector('.reviews-section');
     
-    // CORREÇÃO: Remover loader ao carregar imagem
+    // CORREÃ‡ÃƒO: Remover loader ao carregar imagem
     if (mainImage) {
         mainImage.onload = function() {
             const loader = document.getElementById('image-loading');
@@ -421,8 +443,8 @@
         }
     }
 
-    // FIX INP: Otimização do botão "Ver Avaliações"
-    // ⭐️ NOVO: Rastreamento de Micro-Conversão (Click em Avaliações)
+    // FIX INP: OtimizaÃ§Ã£o do botÃ£o "Ver AvaliaÃ§Ãµes"
+    // â­ï¸ NOVO: Rastreamento de Micro-ConversÃ£o (Click em AvaliaÃ§Ãµes)
     if (viewReviewsBtn && reviewsSection) {
       viewReviewsBtn.addEventListener('click', (e) => {
         
@@ -431,7 +453,7 @@
             window.trackViaZaraz('Check_Reviews', { event_id: window.generateEventId() });
         }
 
-        // Envolve em requestAnimationFrame para não bloquear o clique inicial
+        // Envolve em requestAnimationFrame para nÃ£o bloquear o clique inicial
         requestAnimationFrame(() => {
             // FIX: Alterado de 'smooth' para 'auto' para garantir scroll em mobile (TikTok Browser)
             reviewsSection.scrollIntoView({ behavior: 'auto', block: 'start' });
@@ -480,7 +502,7 @@
     }
 
     function updateImageDisplay() {
-        // FIX INP: Manipulação de DOM pesada movida para requestAnimationFrame
+        // FIX INP: ManipulaÃ§Ã£o de DOM pesada movida para requestAnimationFrame
         requestAnimationFrame(() => {
           const imgName = padZero(currentImageIndex) + '.webp';
           mainImage.src = '/assets/img/' + imgName;
@@ -494,7 +516,7 @@
       });
     }
 
-    // ⭐️ CORREÇÃO 1: Tornando a função GLOBAL para o HTML encontrar ⭐️
+    // â­ï¸ CORREÃ‡ÃƒO 1: Tornando a funÃ§Ã£o GLOBAL para o HTML encontrar â­ï¸
     window.changeImage = function(dir) {
       currentImageIndex += dir;
       if (currentImageIndex > totalImages) currentImageIndex = 1;
@@ -536,14 +558,14 @@
     startCountdown();     
     updateShippingDate(); 
     
-    // ⭐️ CORREÇÃO 2: SWIPE com verificação de eixo Y (Scroll) ⭐️
+    // â­ï¸ CORREÃ‡ÃƒO 2: SWIPE com verificaÃ§Ã£o de eixo Y (Scroll) â­ï¸
     const imgContainer = document.querySelector('.image-container');
     let touchStartX = 0;
     let touchStartY = 0;
     let touchEndX = 0;
     let touchEndY = 0;
     
-    // Controle de disparo único para evento de Galeria
+    // Controle de disparo Ãºnico para evento de Galeria
     let galleryEventFired = false;
 
     if (imgContainer) {
@@ -563,12 +585,12 @@
       const xDiff = touchEndX - touchStartX;
       const yDiff = touchEndY - touchStartY;
       
-      // Só muda imagem se movimento horizontal for maior que vertical (para não atrapalhar o scroll)
+      // SÃ³ muda imagem se movimento horizontal for maior que vertical (para nÃ£o atrapalhar o scroll)
       if (Math.abs(xDiff) > 50 && Math.abs(xDiff) > Math.abs(yDiff)) {
-        if (xDiff < 0) window.changeImage(1); // Swipe Esquerda -> Próxima
+        if (xDiff < 0) window.changeImage(1); // Swipe Esquerda -> PrÃ³xima
         else window.changeImage(-1); // Swipe Direita -> Anterior
         
-        // ⭐️ NOVO: Rastreia interação com galeria (Micro-Conversão)
+        // â­ï¸ NOVO: Rastreia interaÃ§Ã£o com galeria (Micro-ConversÃ£o)
         if (!galleryEventFired && window.trackViaZaraz) {
             galleryEventFired = true;
             window.trackViaZaraz('Interact_Gallery', { event_id: window.generateEventId() });
@@ -579,7 +601,7 @@
     // Pop-up de Vendas
     const buyers = [
         { name: "Fernanda Maia", city: "Rio de Janeiro, RJ", img: "/assets/img/foto1.webp" },
-        { name: "Bruna Lima", city: "São Paulo, SP", img: "/assets/img/foto2.webp" },
+        { name: "Bruna Lima", city: "SÃ£o Paulo, SP", img: "/assets/img/foto2.webp" },
         { name: "Marilia Lima", city: "Belo Horizonte, MG", img: "/assets/img/foto3.webp" },
         { name: "Karina Andrade", city: "Curitiba, PR", img: "/assets/img/foto4.webp" },
         { name: "Bruna Silva", city: "Salvador, BA", img: "/assets/img/foto5.webp" },
@@ -590,7 +612,7 @@
     const actions = [
         "Comprou agora mesmo",
         "Acabou de comprar",
-        "Comprou há 2 minutos",
+        "Comprou hÃ¡ 2 minutos",
         "Garantiu a oferta",
         "Comprou 2 unidades"
     ];

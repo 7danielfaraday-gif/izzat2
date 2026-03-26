@@ -33,6 +33,53 @@ if (isLabMode()) return;
 if (window.trackPixel) window.trackPixel(event, data); 
 };
 
+const LP_VIEW_CONTENT_KEY = '__tt_lp_viewcontent';
+const CHECKOUT_OPEN_EVENT_PREFIX = '__tt_checkout_open_event__';
+
+const readSessionJson = (key) => {
+try {
+const raw = sessionStorage.getItem(key);
+return raw ? JSON.parse(raw) : null;
+} catch(e) {
+return null;
+}
+};
+
+const writeSessionJson = (key, value) => {
+try {
+sessionStorage.setItem(key, JSON.stringify(value));
+} catch(e) {}
+};
+
+const getCheckoutOpenToken = () => {
+try {
+if (window.__currentCheckoutOpenToken) return String(window.__currentCheckoutOpenToken);
+const fallback = 'checkout_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+window.__currentCheckoutOpenToken = fallback;
+return fallback;
+} catch(e) {
+return 'checkout_' + Date.now();
+}
+};
+
+const claimCheckoutOpenEvent = (eventName) => {
+const openToken = getCheckoutOpenToken();
+const memoryKey = eventName + '::' + openToken;
+window.__checkoutTrackedOpenEvents = window.__checkoutTrackedOpenEvents || {};
+if (window.__checkoutTrackedOpenEvents[memoryKey]) return null;
+window.__checkoutTrackedOpenEvents[memoryKey] = true;
+
+const eventId = window.generateEventId ? window.generateEventId() : 'evt_' + Date.now();
+writeSessionJson(CHECKOUT_OPEN_EVENT_PREFIX + memoryKey, { event_id: eventId, at: Date.now() });
+return eventId;
+};
+
+const hasRecentLandingViewContent = () => {
+const existing = readSessionJson(LP_VIEW_CONTENT_KEY);
+if (!existing || !existing.at) return false;
+return (Date.now() - existing.at) < (30 * 60 * 1000);
+};
+
 const getFreightRangeByUf = (uf) => {
 const normalizedUf = String(uf || '').toUpperCase();
 const north = ['AC', 'AP', 'AM', 'PA', 'RO', 'RR', 'TO'];
@@ -134,22 +181,17 @@ return { min: 4, max: 7 };
  window.scrollTo(0, 0); 
  
  // Deduplicação de ViewContent por sessão (evita "chuva" de eventos no Pixel Helper)
- let vcId = sessionStorage.getItem('last_vc_id');
- if (!vcId) {
- vcId = window.generateEventId ? window.generateEventId() : 'evt_'+Date.now();
- sessionStorage.setItem('last_vc_id', vcId);
+ const checkoutSource = window.__checkoutEntrySource === 'lp' ? 'lp' : 'direct';
+ if (!(checkoutSource === 'lp' && hasRecentLandingViewContent())) {
+ const vcId = claimCheckoutOpenEvent('ViewContent');
+ if (vcId) trackEvent('ViewContent', { ...window.PRODUCT_CONTENT, event_id: vcId, content_name: PRODUCT_INFO.name });
  }
- trackEvent('ViewContent', { ...window.PRODUCT_CONTENT, event_id: vcId, content_name: PRODUCT_INFO.name }); 
  } catch(e) {} 
  
  // Deduplicação de InitiateCheckout: se o usuário já iniciou checkout recentemente (30 min), 
  // reaproveita o ID para o TikTok deduplicar no servidor e não poluir o painel.
- let icId = sessionStorage.getItem('last_ic_id');
- if (!icId) {
- icId = window.generateEventId ? window.generateEventId() : 'evt_'+Date.now(); 
- sessionStorage.setItem('last_ic_id', icId);
- }
- trackEvent('InitiateCheckout', { ...window.PRODUCT_CONTENT, content_name: PRODUCT_INFO.name, event_id: icId }); 
+ const icId = claimCheckoutOpenEvent('InitiateCheckout');
+ if (icId) trackEvent('InitiateCheckout', { ...window.PRODUCT_CONTENT, content_name: PRODUCT_INFO.name, event_id: icId }); 
  
 const analyticsTimer = setTimeout(() => { if (!isLabMode() && window.loadAnalytics) window.loadAnalytics(); }, 3500);
  const timerInterval = setInterval(() => { setTimeLeft(prev => prev > 0 ? prev - 1 : 0); }, 1000);
@@ -352,8 +394,6 @@ const progress = Math.min((filledFields / totalFields) * 100, 100);
  }
  const uniqueOrderId = 'ord_' + new Date().getTime(); 
  // Reseta IDs para que a próxima compra seja considerada um novo evento
- try { sessionStorage.removeItem('last_ic_id'); sessionStorage.removeItem('last_vc_id'); } catch(e) {}
- 
  trackEvent('AddPaymentInfo', { ...window.PRODUCT_CONTENT, event_id: window.generateEventId(), order_id: uniqueOrderId });
  
 // Salvar pedido no servidor
