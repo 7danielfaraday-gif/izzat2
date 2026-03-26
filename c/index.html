@@ -2,7 +2,7 @@
 
 <html lang="pt-BR">
 <head>
-<script>window.__TEST_MODE=new URLSearchParams(window.location.search).has('test_mode');</script>
+<script>(function(){var p=new URLSearchParams(window.location.search);window.__TEST_MODE=p.has('test_mode');window.__LAB_MODE=p.has('lab')||p.get('mode')==='lab'||/^\/lab(?:\/|$)/i.test(window.location.pathname);})();</script>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content" name="viewport"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -22,7 +22,7 @@
      Ter ttq.load() + ttq.page() aqui causava LandingPageView/Pageview duplicados
      pois o SDK da LP continuava ativo durante a navegação SPA para /c/.
 -->
-<script>if(!window.__TEST_MODE){setTimeout(function(){(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];if(y&&y.parentNode)y.parentNode.insertBefore(t,y);else document.head.appendChild(t);})(window,document,"clarity","script","vyr9otnkc7")}, 3500);}</script>
+<script>if(!window.__TEST_MODE&&!window.__LAB_MODE){setTimeout(function(){(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];if(y&&y.parentNode)y.parentNode.insertBefore(t,y);else document.head.appendChild(t);})(window,document,"clarity","script","vyr9otnkc7")}, 3500);}</script>
 <script>
         // Fallback robusto para libs locais (muito comum quebrar em rotas tipo /checkout/ no in-app do TikTok)
         window.__loadScript = window.__loadScript || function(src){
@@ -363,7 +363,7 @@
     }
 
     function trackPixel(event, data) {
-        if (window.__TEST_MODE) { console.log('[TEST_MODE] Evento bloqueado:', event, data); return; }
+        if (window.__TEST_MODE || window.__LAB_MODE) { console.log('[TEST_MODE/LAB_MODE] Evento bloqueado:', event, data); return; }
         data = data || {};
         requestAnimationFrame(function() {
             Promise.resolve().then(async function() {
@@ -439,7 +439,7 @@
     window.PRODUCT_CONTENT = PRODUCT_CONTENT;
 
     function loadAnalytics() {
-        if(window.__TEST_MODE || window.analyticsLoaded) return;
+        if(window.__TEST_MODE || window.__LAB_MODE || window.analyticsLoaded) return;
         window.analyticsLoaded = true;
         var s = document.createElement('script'); 
         s.async = true; 

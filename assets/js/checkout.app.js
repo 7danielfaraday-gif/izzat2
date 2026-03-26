@@ -26,7 +26,10 @@ document.addEventListener('DOMContentLoaded', function(){
  id: "AFON-12L-BI" 
  };
 
+const isLabMode = () => !!window.__LAB_MODE;
+
 const trackEvent = (event, data = {}) => { 
+if (isLabMode()) return;
 if (window.trackPixel) window.trackPixel(event, data); 
 };
 
@@ -148,7 +151,7 @@ return { min: 4, max: 7 };
  }
  trackEvent('InitiateCheckout', { ...window.PRODUCT_CONTENT, content_name: PRODUCT_INFO.name, event_id: icId }); 
  
- const analyticsTimer = setTimeout(() => { if (window.loadAnalytics) window.loadAnalytics(); }, 3500);
+const analyticsTimer = setTimeout(() => { if (!isLabMode() && window.loadAnalytics) window.loadAnalytics(); }, 3500);
  const timerInterval = setInterval(() => { setTimeLeft(prev => prev > 0 ? prev - 1 : 0); }, 1000);
 
  return () => { clearTimeout(analyticsTimer); clearInterval(timerInterval); }
@@ -353,14 +356,16 @@ const progress = Math.min((filledFields / totalFields) * 100, 100);
  
  trackEvent('AddPaymentInfo', { ...window.PRODUCT_CONTENT, event_id: window.generateEventId(), order_id: uniqueOrderId });
  
- // Salvar pedido no servidor
- try {
- fetch('/api/orders', {
- method: 'POST',
- headers: { 'Content-Type': 'application/json' },
- body: JSON.stringify({ id: uniqueOrderId, name: formData.name, email: finalEmail, phone: finalPhone, cpf: formData.cpf || '', cep: formData.cep || '', address: formData.address || '', number: formData.number || '', city: formData.city || '', value: 197.99 })
- }).catch(() => {});
- } catch(e) {}
+// Salvar pedido no servidor
+if (!isLabMode()) {
+try {
+fetch('/api/orders', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ id: uniqueOrderId, name: formData.name, email: finalEmail, phone: finalPhone, cpf: formData.cpf || '', cep: formData.cep || '', address: formData.address || '', number: formData.number || '', city: formData.city || '', value: 197.99 })
+}).catch(() => {});
+} catch(e) {}
+}
 
  setTimeout(() => {
  onSuccess({ ...formData, email: finalEmail, phone: finalPhone, firstName, lastName, city, state, transactionId: uniqueOrderId });
@@ -615,11 +620,13 @@ try { window.prompt('Copie o código PIX abaixo:', effectivePixCode); } catch(_)
 }
 }
 trackEvent('Pix_Copy_Click', { event_id: window.generateEventId(), order_id: transactionId });
+if (!isLabMode()) {
 try {
 const payload = JSON.stringify({ ts: Date.now(), order_id: transactionId });
 if (navigator.sendBeacon) { navigator.sendBeacon('/api/metrics/pix-copy', payload); }
 else { fetch('/api/metrics/pix-copy', { method: 'POST', headers: { 'content-type': 'application/json' }, body: payload, keepalive: true }).catch(() => {}); }
 } catch (e) {}
+}
 };
 
 const copyPixText = async () => {

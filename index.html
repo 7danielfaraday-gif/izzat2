@@ -3,8 +3,14 @@
 <html lang="pt-BR">
 
 <head>
-    <script>window.__TEST_MODE = new URLSearchParams(window.location.search).has('test_mode');</script>
-    <script>if (!window.__TEST_MODE) { setTimeout(function () { (function (c, l, a, r, i, t, y) { c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments) }; t = l.createElement(r); t.async = 1; t.src = "https://www.clarity.ms/tag/" + i; y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y) })(window, document, "clarity", "script", "vyr9otnkc7"); }, 3500); }</script>
+    <script>
+        (function () {
+            var params = new URLSearchParams(window.location.search);
+            window.__TEST_MODE = params.has('test_mode');
+            window.__LAB_MODE = params.has('lab') || params.get('mode') === 'lab' || /^\/lab(?:\/|$)/i.test(window.location.pathname);
+        })();
+    </script>
+    <script>if (!window.__TEST_MODE && !window.__LAB_MODE) { setTimeout(function () { (function (c, l, a, r, i, t, y) { c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments) }; t = l.createElement(r); t.async = 1; t.src = "https://www.clarity.ms/tag/" + i; y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y) })(window, document, "clarity", "script", "vyr9otnkc7"); }, 3500); }</script>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
         name="viewport" />
@@ -31,7 +37,7 @@
     <link as="image" href="/assets/img/01.webp" rel="preload" />
     <noscript></noscript>
     <script>
-        if (!window.__TEST_MODE) {
+        if (!window.__TEST_MODE && !window.__LAB_MODE) {
             !function (w, d, t) {
                 w.TiktokAnalyticsObject = t; var ttq = w[t] = w[t] || []; ttq.methods = ["page", "track", "identify", "instances", "debug", "on", "off", "once", "ready", "alias", "group", "enableCookie", "disableCookie"], ttq.setAndDefer = function (t, e) { t[e] = function () { t.push([e].concat(Array.prototype.slice.call(arguments, 0))) } }; for (var i = 0; i < ttq.methods.length; i++)ttq.setAndDefer(ttq, ttq.methods[i]); ttq.instance = function (t) { for (var e = ttq._i[t] || [], n = 0; n < ttq.methods.length; n++)ttq.setAndDefer(e, ttq.methods[n]); return e }, ttq.load = function (e, n) {
                     var i = "https://analytics.tiktok.com/i18n/pixel/events.js"; ttq._i = ttq._i || {}, ttq._i[e] = [], ttq._i[e]._u = i, ttq._t = ttq._t || {}, ttq._t[e] = +new Date, ttq._o = ttq._o || {}, ttq._o[e] = n || {};
@@ -1100,7 +1106,7 @@
             display: inline-block
         }
     </style>
-    <script>if (!window.__TEST_MODE) { !function () { function g() { if (window.__gaLoaded) return; window.__gaLoaded = !0; var s = document.createElement('script'); s.async = !0; s.src = 'https://www.googletagmanager.com/gtag/js?id=G-E373VKT4H4'; document.head.appendChild(s); window.dataLayer = window.dataLayer || []; window.gtag = function () { dataLayer.push(arguments) }; gtag('js', new Date()); gtag('config', 'G-E373VKT4H4', { send_page_view: !1 }); gtag('event', 'page_view') } if ('requestIdleCallback' in window) requestIdleCallback(g, { timeout: 2500 }); else setTimeout(g, 2000) }(); }</script>
+    <script>if (!window.__TEST_MODE && !window.__LAB_MODE) { !function () { function g() { if (window.__gaLoaded) return; window.__gaLoaded = !0; var s = document.createElement('script'); s.async = !0; s.src = 'https://www.googletagmanager.com/gtag/js?id=G-E373VKT4H4'; document.head.appendChild(s); window.dataLayer = window.dataLayer || []; window.gtag = function () { dataLayer.push(arguments) }; gtag('js', new Date()); gtag('config', 'G-E373VKT4H4', { send_page_view: !1 }); gtag('event', 'page_view') } if ('requestIdleCallback' in window) requestIdleCallback(g, { timeout: 2500 }); else setTimeout(g, 2000) }(); }</script>
 </head>
 
 <body id="top">
@@ -2723,7 +2729,7 @@
             }
 
             function trackPixel(event, data) {
-                if (window.__TEST_MODE) { console.log('[TEST_MODE] Evento bloqueado:', event, data); return; }
+                if (window.__TEST_MODE || window.__LAB_MODE) { console.log('[TEST_MODE/LAB_MODE] Evento bloqueado:', event, data); return; }
                 data = data || {};
                 requestAnimationFrame(function () {
                     Promise.resolve().then(async function () {
