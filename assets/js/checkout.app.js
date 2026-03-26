@@ -733,7 +733,7 @@ e("div", {className: "flex-1 min-w-0"},
 e("p", {className: "text-[15px] font-medium text-slate-800 leading-snug line-clamp-2"}, PRODUCT_INFO.name),
 e("div", {className: "flex items-center gap-2 mt-1.5"},
 e("span", {className: "text-[13px] text-slate-500"}, "Qtd: 1"),
-e("span", {className: "text-[13px] font-semibold text-slate-800"}, "R$ " + PRODUCT_INFO.price.toFixed(2).replace('.',','))
+e("span", {className: "text-[13px] font-semibold text-rose-500"}, "R$ " + PRODUCT_INFO.price.toFixed(2).replace('.',','))
 )
 )
 ),
