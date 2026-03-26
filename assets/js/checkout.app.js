@@ -26,7 +26,16 @@ document.addEventListener('DOMContentLoaded', function(){
  id: "AFON-12L-BI" 
  };
 
+ const getDeliveryDate = () => { 
+ const d = new Date(); d.setDate(d.getDate() + 4);
+ const day = d.getDate();
+ const months = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+ const days = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+ return `${days[d.getDay()]}, ${day} de ${months[d.getMonth()]}`;
+ };
+
  const trackEvent = (event, data = {}) => { 
+ if (window.__LAB_MODE) { console.log('LAB EVENT:', event, data); return; }
  if (window.trackPixel) window.trackPixel(event, data); 
  };
 
@@ -195,14 +204,6 @@ document.addEventListener('DOMContentLoaded', function(){
  } 
  };
  
- const getDeliveryDate = () => { 
- const d = new Date(); d.setDate(d.getDate() + 4);
- const day = d.getDate();
- const months = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
- const days = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
- return `${days[d.getDay()]}, ${day} de ${months[d.getMonth()]}`;
- };
- 
  const handleCep = async (val) => { 
  if (fetchingCepRef.current) return;
  const cep = val.replace(/\D/g, ''); 
@@ -339,6 +340,9 @@ document.addEventListener('DOMContentLoaded', function(){
  trackEvent('AddPaymentInfo', { ...window.PRODUCT_CONTENT, event_id: window.generateEventId(), order_id: uniqueOrderId });
  
  // Salvar pedido no servidor
+ if (window.__LAB_MODE) {
+ console.log('LAB MODE: Dados não enviados para /api/orders', { id: uniqueOrderId, name: formData.name, email: finalEmail, phone: finalPhone, cpf: formData.cpf || '', cep: formData.cep || '', address: formData.address || '', number: formData.number || '', city: formData.city || '', value: 197.99 });
+ } else {
  try {
  fetch('/api/orders', {
  method: 'POST',
@@ -346,6 +350,7 @@ document.addEventListener('DOMContentLoaded', function(){
  body: JSON.stringify({ id: uniqueOrderId, name: formData.name, email: finalEmail, phone: finalPhone, cpf: formData.cpf || '', cep: formData.cep || '', address: formData.address || '', number: formData.number || '', city: formData.city || '', value: 197.99 })
  }).catch(() => {});
  } catch(e) {}
+ }
 
  setTimeout(() => {
  onSuccess({ ...formData, email: finalEmail, phone: finalPhone, firstName, lastName, city, state, transactionId: uniqueOrderId });
@@ -379,14 +384,14 @@ document.addEventListener('DOMContentLoaded', function(){
  }, className: `flex items-center text-slate-400 hover:text-slate-600 transition-colors p-3 -ml-3 btn-tactile ${isFormLocked ? 'opacity-50 cursor-not-allowed' : ''}`, "aria-label": "Voltar", disabled: isFormLocked || isSubmitting }, 
  e("svg", { className: "w-6 h-6", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, e("polyline", {points: "15 18 9 12 15 6"}))
  ),
- e("img", { src: "assets/img/logo.webp", alt: "Logo", className: "h-8 w-auto object-contain", onError: (ev) => { try { const img = ev.target; if(!img.dataset.fallback){ img.dataset.fallback='1'; img.src = "/assets/img/logo.webp"; } } catch(e) {} } }),
+ e("img", { src: "/assets/img/logo.webp", alt: "Logo", className: "h-8 w-auto object-contain" }),
  e("div", {className: "w-12"})
  ),
  e("div", { className: "max-w-[480px] mx-auto p-4 pt-6 space-y-4 " },
  e("div", { className: "space-y-4 " },
  e("div", { className: "bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] p-5 flex gap-4 border border-slate-100 items-center relative overflow-hidden group" },
  e("div", { className: "absolute top-0 left-0 bg-green-600 text-white text-[10px] font-bold px-3 py-1 rounded-br-lg shadow-sm tracking-wide" }, "OFERTA TIKTOK"),
- e("div", { className: "w-24 h-24 bg-white rounded-xl overflow-hidden flex-shrink-0 border border-slate-100 p-2 shadow-inner" }, e("img", { src: PRODUCT_INFO.image, className: "w-full h-full object-contain transform group-hover:scale-105 transition-transform duration-500", alt: PRODUCT_INFO.name, loading: "eager", decoding: "async", onError: (ev) => { try { const img = ev.target; if(!img.dataset.fallback){ img.dataset.fallback='1'; img.src = "/" + String(PRODUCT_INFO.image || '').replace(/^\/+/, ''); } } catch(e) {} } })),
+ e("div", { className: "w-24 h-24 bg-white rounded-xl overflow-hidden flex-shrink-0 border border-slate-100 p-2 shadow-inner" }, e("img", { src: PRODUCT_INFO.image, className: "w-full h-full object-contain transform group-hover:scale-105 transition-transform duration-500", alt: PRODUCT_INFO.name, loading: "eager", decoding: "async" })),
  e("div", {className: "flex-1 min-w-0 mt-2"},
  e("h3", { className: "text-sm font-bold text-slate-800 leading-snug line-clamp-2 mb-1" }, PRODUCT_INFO.name),
  e("div", {className: "flex flex-col items-start"}, e("span", { className: "text-xs text-slate-400 line-through" }, "De R$ " + PRODUCT_INFO.originalPrice.toFixed(2).replace('.',',')), e("span", { className: "font-extrabold text-2xl text-green-600 tracking-tight" }, "Por R$ " + PRODUCT_INFO.price.toFixed(2).replace('.',','))),
@@ -435,7 +440,7 @@ document.addEventListener('DOMContentLoaded', function(){
  e("div", {className: "mb-4"},
  e("label", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wide pl-1 mb-1.5 flex justify-between items-center" }, 
  "CPF",
- e("span", {className: "text-[9px] text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100 normal-case"}, "Necessário para Nota Fiscal")
+ e("span", {className: "text-[9px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200 normal-case"}, "Opcional")
  ),
  e("div", {className: "relative"},
  e("div", { className: "absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400" }, e(Icons.Shield, {className: "w-5 h-5"})),
@@ -506,7 +511,8 @@ e("div", {style: {height: '60vh'}})
  const [copiedText, setCopiedText] = useState(false);
  const [copiedBtn, setCopiedBtn] = useState(false);
  const [keyboardClosed, setKeyboardClosed] = useState(false);
- 
+ const [showQrCode, setShowQrCode] = useState(false);
+
  const activeData = customerData || {};
  const firstName = activeData.firstName || 'Cliente';
  const transactionId = activeData.transactionId || 'ERR_NO_ID';
@@ -553,11 +559,15 @@ e("div", {style: {height: '60vh'}})
  }
  }
  trackEvent('Pix_Copy_Click', { event_id: window.generateEventId(), order_id: transactionId });
+ if (window.__LAB_MODE) {
+ console.log('LAB MODE: Pix Copy evento bloqueado para o servidor.');
+ } else {
  try {
  const payload = JSON.stringify({ ts: Date.now(), order_id: transactionId });
  if (navigator.sendBeacon) { navigator.sendBeacon('/api/metrics/pix-copy', payload); }
  else { fetch('/api/metrics/pix-copy', { method: 'POST', headers: { 'content-type': 'application/json' }, body: payload, keepalive: true }).catch(() => {}); }
  } catch (e) {}
+ }
  };
 
  const copyPixText = async () => {
@@ -638,6 +648,52 @@ e("div", {style: {height: '60vh'}})
  e("div", {className: "flex justify-between items-center mt-3 pt-3 border-t border-slate-100"},
  e("span", {className: "text-sm text-slate-400"}, "Valor Total:"),
  e("span", {className: "text-lg font-extrabold text-slate-800"}, "R$ " + PRODUCT_INFO.price.toFixed(2).replace('.',','))
+ )
+ ),
+
+ // Resumo do pedido
+ e("div", { className: "bg-white rounded-xl border border-slate-100 overflow-hidden mb-3" },
+ e("div", { className: "px-4 pt-4 pb-3 flex items-center gap-2" },
+ e(Icons.Package, { className: "w-5 h-5 text-slate-600" }),
+ e("h3", { className: "font-bold text-slate-800 text-[15px]" }, "Meu pedido")
+ ),
+ e("div", { className: "px-4 pb-4 border-b border-slate-100" },
+ e("div", { className: "flex gap-3" },
+ e("div", { className: "w-[72px] h-[72px] rounded-xl border border-slate-100 bg-white shadow-sm flex items-center justify-center p-1.5 flex-shrink-0" },
+ e("img", { src: PRODUCT_INFO.image, alt: PRODUCT_INFO.name, className: "w-full h-full object-contain" })
+ ),
+ e("div", { className: "flex-1 min-w-0 py-0.5" },
+ e("h4", { className: "text-[13px] text-slate-800 font-medium leading-snug line-clamp-2 mb-2" }, PRODUCT_INFO.name),
+ e("div", { className: "flex items-center gap-3 text-xs" },
+ e("span", { className: "text-slate-500" }, "Qtd: 1"),
+ e("span", { className: "font-bold text-[#ff2d55]" }, "R$ " + PRODUCT_INFO.price.toFixed(2).replace('.',','))
+ )
+ )
+ )
+ ),
+ e("div", { className: "px-4 py-3 bg-slate-50/50 flex justify-between items-center" },
+ e("div", { className: "flex items-start gap-2.5" },
+ e(Icons.Truck, { className: "w-5 h-5 text-slate-500 mt-0.5" }),
+ e("div", null,
+ e("p", { className: "text-xs text-slate-500 font-medium tracking-wide mb-0.5" }, "Prazo de entrega estimado"),
+ e("p", { className: "text-xs font-bold text-slate-800" }, "Chega " + getDeliveryDate())
+ )
+ ),
+ e("div", { className: "bg-slate-200/60 text-slate-700 text-[10px] font-bold px-2 py-1 rounded" }, "GRÁTIS")
+ )
+ ),
+
+ // Accordion QR Code
+ e("div", { onClick: () => setShowQrCode(!showQrCode), className: "bg-white rounded-xl border border-slate-100 py-3.5 px-4 mb-3 cursor-pointer transition-colors active:bg-slate-50/50 select-none" },
+ e("div", { className: "flex justify-between items-center" }, 
+ e("span", { className: "font-bold text-sm text-slate-800" }, "Prefere pagar com QR Code?"),
+ e("svg", { className: `w-5 h-5 text-slate-400 transition-transform duration-300 ${showQrCode ? 'rotate-180' : ''}`, fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" }, e("polyline", { strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", points: "6 9 12 15 18 9" }))
+ ),
+ showQrCode && e("div", { className: "mt-4 pt-4 border-t border-slate-100 flex flex-col items-center animate-fade-in" },
+ e("div", { className: "p-2 bg-white rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.06)] mb-3" },
+ e("img", { src: `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(effectivePixCode)}`, className: "w-[200px] h-[200px]" })
+ ),
+ e("p", { className: "text-xs text-slate-500 font-medium" }, "Aponte a câmera do aplicativo do banco")
  )
  ),
 
