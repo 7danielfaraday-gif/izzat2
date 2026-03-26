@@ -2413,10 +2413,56 @@
                 max-width: 480px;
                 margin: 0 auto
             }
+
+            /* Abertura profissional: evita flash de layout cru antes do React/Tailwind estabilizar */
+            #spa-checkout-wrapper[data-state="opening"] #checkout-root {
+                visibility: hidden;
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            #spa-checkout-wrapper[data-state="ready"] #checkout-root {
+                visibility: visible;
+                opacity: 1;
+                pointer-events: auto;
+                transition: opacity .18s ease;
+            }
+
+            #checkout-opening-overlay {
+                position: absolute;
+                inset: 0;
+                z-index: 10002;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+            }
+
+            #spa-checkout-wrapper[data-state="opening"] #checkout-opening-overlay {
+                display: flex;
+            }
+
+            #skeleton-loader {
+                position: relative;
+                z-index: 10000;
+            }
+
+            #checkout-root {
+                position: relative;
+                z-index: 10001;
+                transition: opacity .18s ease;
+            }
         </style>
 
+        <div id="checkout-opening-overlay" aria-hidden="true">
+            <div style="text-align:center;">
+                <div style="width:26px;height:26px;border:3px solid #dbeafe;border-top-color:#22c55e;border-radius:9999px;animation:spin .8s linear infinite;margin:0 auto 10px;"></div>
+                <div style="font-size:12px;color:#64748b;font-weight:600;letter-spacing:.01em;">Abrindo checkout seguro...</div>
+            </div>
+        </div>
+
         <!-- Skeleton do Checkout -->
-        <div id="skeleton-loader" style="min-height: 100dvh; background: #f8fafc;">
+        <div id="skeleton-loader" style="display:none; min-height: 100dvh; background: #f8fafc;">
             <div class="progress-bar" style="width: 25%;"></div>
             <div class="static-nav">
                 <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="window.spaGoBack()">
@@ -2782,14 +2828,84 @@
             }
 
             // ---- SPA NAVIGATION ----
+            var checkoutFallbackTimer = null;
+            var checkoutForceReadyTimer = null;
+
+            function clearCheckoutOpenTimers() {
+                if (checkoutFallbackTimer) { clearTimeout(checkoutFallbackTimer); checkoutFallbackTimer = null; }
+                if (checkoutForceReadyTimer) { clearTimeout(checkoutForceReadyTimer); checkoutForceReadyTimer = null; }
+            }
+
+            function setCheckoutOpeningState() {
+                var wrapper = document.getElementById('spa-checkout-wrapper');
+                var sk = document.getElementById('skeleton-loader');
+                var root = document.getElementById('checkout-root');
+                if (!wrapper) return;
+
+                clearCheckoutOpenTimers();
+                wrapper.setAttribute('data-state', 'opening');
+                if (sk) { sk.style.display = 'none'; sk.style.opacity = '1'; sk.style.transition = ''; }
+                if (root) { root.style.visibility = 'hidden'; root.style.opacity = '0'; root.style.pointerEvents = 'none'; }
+
+                // Fallback: só mostra skeleton se demorar de fato.
+                checkoutFallbackTimer = setTimeout(function () {
+                    var w = document.getElementById('spa-checkout-wrapper');
+                    var s = document.getElementById('skeleton-loader');
+                    if (w && w.getAttribute('data-state') === 'opening' && s) s.style.display = '';
+                }, 420);
+
+                // Segurança: evita travar em "opening" caso algo falhe.
+                checkoutForceReadyTimer = setTimeout(function () {
+                    setCheckoutReadyState();
+                }, 7000);
+            }
+
+            function setCheckoutReadyState() {
+                var wrapper = document.getElementById('spa-checkout-wrapper');
+                var sk = document.getElementById('skeleton-loader');
+                var root = document.getElementById('checkout-root');
+                if (!wrapper) return;
+
+                clearCheckoutOpenTimers();
+                wrapper.setAttribute('data-state', 'ready');
+                if (sk) sk.style.display = 'none';
+                if (root) { root.style.visibility = 'visible'; root.style.opacity = '1'; root.style.pointerEvents = 'auto'; }
+            }
+
+            function watchCheckoutRender(timeoutMs) {
+                var start = Date.now();
+                (function check() {
+                    var wrapper = document.getElementById('spa-checkout-wrapper');
+                    if (!wrapper || wrapper.getAttribute('data-state') !== 'opening') return;
+                    var root = document.getElementById('checkout-root');
+                    var rendered = !!(root && root.children && root.children.length > 0 && root.textContent && root.textContent.trim().length > 20);
+
+                    if (rendered) {
+                        requestAnimationFrame(function () {
+                            requestAnimationFrame(function () { setCheckoutReadyState(); });
+                        });
+                        return;
+                    }
+                    if (Date.now() - start > timeoutMs) {
+                        setCheckoutReadyState();
+                        return;
+                    }
+                    setTimeout(check, 80);
+                })();
+            }
 
             // Voltar para a LP
             window.spaGoBack = function () {
                 var wrapper = document.getElementById('spa-checkout-wrapper');
                 var container = document.querySelector('.container');
                 var bottomNav = document.querySelector('.bottom-nav');
+                var root = document.getElementById('checkout-root');
 
-                if (wrapper) wrapper.style.display = 'none';
+                clearCheckoutOpenTimers();
+                if (wrapper) {
+                    wrapper.style.display = 'none';
+                    wrapper.setAttribute('data-state', 'idle');
+                }
                 if (container) container.style.display = '';
                 if (bottomNav) bottomNav.style.display = '';
                 document.body.style.overflow = '';
@@ -2797,7 +2913,8 @@
 
                 // Restaura skeleton para próxima abertura
                 var sk = document.getElementById('skeleton-loader');
-                if (sk) { sk.style.display = ''; sk.style.opacity = '1'; sk.style.transition = ''; }
+                if (sk) { sk.style.display = 'none'; sk.style.opacity = '1'; sk.style.transition = ''; }
+                if (root) { root.style.visibility = 'visible'; root.style.opacity = '1'; root.style.pointerEvents = 'auto'; }
 
                 // CRITICAL: Cria um checkout-root FRESCO para evitar conflito React 18 createRoot
                 var oldRoot = document.getElementById('checkout-root');
@@ -2817,6 +2934,8 @@
                 var container = document.querySelector('.container');
                 var bottomNav = document.querySelector('.bottom-nav');
                 var salesPopup = document.getElementById('sales-popup');
+
+                setCheckoutOpeningState();
 
                 // Esconde a LP
                 if (container) container.style.display = 'none';
@@ -2919,6 +3038,15 @@
                     // Carrega uma cópia nova do Tailwind
                     var newScript = document.createElement('script');
                     newScript.src = '/assets/vendor/tailwindcss.js?t=' + Date.now();
+                    var revealDone = false;
+                    var reveal = function () {
+                        if (revealDone) return;
+                        revealDone = true;
+                        setTimeout(setCheckoutReadyState, 60);
+                    };
+                    newScript.onload = reveal;
+                    newScript.onerror = reveal;
+                    setTimeout(reveal, 1200);
                     document.head.appendChild(newScript);
                 }
 
@@ -2937,6 +3065,8 @@
                         }
                     }, 100);
                 }
+
+                watchCheckoutRender(6500);
 
                 // Tracking: O InitiateCheckout agora é disparado exclusivamente pelo checkout.app.js (React)
                 // para evitar duplicidade no modo SPA.
