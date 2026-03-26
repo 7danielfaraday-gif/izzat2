@@ -208,10 +208,6 @@
     // 3. CTA Comprar Agora (WebView-safe: não bloqueia navegação)
     // Monta o link com parâmetros (ttclid/utm/eid) ANTES do clique, evitando redirect com delay.
     window.buildCheckoutUrl = function(baseHref) {
-        // Bloqueia javascript:void(0) ou rotas inválidas vindas do navegador/pontes de apps
-        if (!baseHref || typeof baseHref !== 'string' || baseHref.indexOf('javascript') !== -1) {
-            baseHref = '/c';
-        }
         try {
             const urlObj = new URL(baseHref, window.location.origin);
 
@@ -439,7 +435,7 @@
         const thumbImg = document.createElement('img');
         const imgName = 'thumb_' + padZero(i) + '.webp'; 
         
-        thumbImg.src = '/assets/img/' + imgName;
+        thumbImg.src = 'assets/img/' + imgName;
         thumbImg.alt = `Miniatura ${i}`;
         thumbImg.loading = 'lazy';
         
@@ -456,7 +452,7 @@
         // FIX INP: Manipulação de DOM pesada movida para requestAnimationFrame
         requestAnimationFrame(() => {
           const imgName = padZero(currentImageIndex) + '.webp';
-          mainImage.src = '/assets/img/' + imgName;
+          mainImage.src = 'assets/img/' + imgName;
           imageCounter.textContent = `${currentImageIndex}/${totalImages}`;
 
           imageDots.querySelectorAll('.dot').forEach((d, i) =>
