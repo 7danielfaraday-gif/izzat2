@@ -246,18 +246,21 @@
     (function setupBuyNowButton() {
         const btn = document.getElementById('buy-now') || document.querySelector('.buy-btn');
         if (!btn) return;
+        const baseCheckoutPath = '/c/';
 
-        // Atualiza href uma vez (e sempre que possível, deixa o browser fazer a navegação nativa)
+        // Modo 100% SPA: nunca redireciona por href.
+        btn.href = 'javascript:void(0)';
+
+        // Mantém a URL de checkout com parâmetros em data-attribute.
         try {
-            btn.href = window.buildCheckoutUrl(btn.getAttribute('href') || btn.href);
+            btn.dataset.checkoutTarget = window.buildCheckoutUrl(baseCheckoutPath);
         } catch (e) {}
 
         // Setup SPA Checkout instead of redirecting
         btn.addEventListener('click', (e) => {
-            if (typeof window.spaOpenCheckout === 'function') {
-                e.preventDefault();
-                window.spaOpenCheckout(btn.getAttribute('href') || btn.href);
-            }
+            e.preventDefault();
+            const target = btn.dataset.checkoutTarget || baseCheckoutPath;
+            if (typeof window.spaOpenCheckout === 'function') window.spaOpenCheckout(target);
             try {
                 trackViaZaraz('AddToCart', {
                     ...PRODUCT_CONTENT,
@@ -478,7 +481,8 @@
         const color = swatch.dataset.color;
         
         if (variantLinks[color]) {
-          buyBtn.href = window.buildCheckoutUrl ? window.buildCheckoutUrl(variantLinks[color]) : variantLinks[color];
+          buyBtn.href = "javascript:void(0)";
+          buyBtn.dataset.checkoutTarget = window.buildCheckoutUrl ? window.buildCheckoutUrl(variantLinks[color]) : variantLinks[color];
           buyBtn.removeAttribute('onclick');
         }
         
@@ -492,7 +496,8 @@
     if (defaultSwatch) {
         defaultSwatch.classList.add('selected');
         if (variantLinks[currentVariant]) {
-            buyBtn.href = window.buildCheckoutUrl ? window.buildCheckoutUrl(variantLinks[currentVariant]) : variantLinks[currentVariant];
+            buyBtn.href = "javascript:void(0)";
+            buyBtn.dataset.checkoutTarget = window.buildCheckoutUrl ? window.buildCheckoutUrl(variantLinks[currentVariant]) : variantLinks[currentVariant];
             buyBtn.removeAttribute('onclick');
         }
     }
