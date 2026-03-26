@@ -26,9 +26,24 @@ document.addEventListener('DOMContentLoaded', function(){
  id: "AFON-12L-BI" 
  };
 
- const trackEvent = (event, data = {}) => { 
- if (window.trackPixel) window.trackPixel(event, data); 
- };
+const trackEvent = (event, data = {}) => { 
+if (window.trackPixel) window.trackPixel(event, data); 
+};
+
+const getFreightRangeByUf = (uf) => {
+const normalizedUf = String(uf || '').toUpperCase();
+const north = ['AC', 'AP', 'AM', 'PA', 'RO', 'RR', 'TO'];
+const northeast = ['AL', 'BA', 'CE', 'MA', 'PB', 'PE', 'PI', 'RN', 'SE'];
+const midwest = ['DF', 'GO', 'MS', 'MT'];
+const southSoutheast = ['ES', 'MG', 'RJ', 'SP', 'PR', 'RS', 'SC'];
+
+if (north.includes(normalizedUf)) return { min: 6, max: 10 };
+if (northeast.includes(normalizedUf)) return { min: 5, max: 8 };
+if (midwest.includes(normalizedUf)) return { min: 4, max: 7 };
+if (southSoutheast.includes(normalizedUf)) return { min: 3, max: 6 };
+
+return { min: 4, max: 7 };
+};
 
  const useInputMask = (type) => {
  const mask = useMemo(() => {
@@ -140,9 +155,9 @@ document.addEventListener('DOMContentLoaded', function(){
  }, []);
 
  useEffect(() => { 
- const totalFields = 5; 
- const filledFields = Object.keys(formData).filter(key => ['name', 'email', 'phone', 'cpf', 'address', 'number'].includes(key) && formData[key]).length;
- const progress = Math.min((filledFields / totalFields) * 100, 100);
+const totalFields = 5; 
+const filledFields = Object.keys(formData).filter(key => ['name', 'email', 'phone', 'address', 'number'].includes(key) && formData[key]).length;
+const progress = Math.min((filledFields / totalFields) * 100, 100);
  if (progressRef.current) progressRef.current.style.width = `${progress}%`; 
  }, [formData]);
 
@@ -379,7 +394,7 @@ document.addEventListener('DOMContentLoaded', function(){
  }, className: `flex items-center text-slate-400 hover:text-slate-600 transition-colors p-3 -ml-3 btn-tactile ${isFormLocked ? 'opacity-50 cursor-not-allowed' : ''}`, "aria-label": "Voltar", disabled: isFormLocked || isSubmitting }, 
  e("svg", { className: "w-6 h-6", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, e("polyline", {points: "15 18 9 12 15 6"}))
  ),
- e("img", { src: "assets/img/logo.webp", alt: "Logo", className: "h-8 w-auto object-contain", onError: (ev) => { try { const img = ev.target; if(!img.dataset.fallback){ img.dataset.fallback='1'; img.src = "/assets/img/logo.webp"; } } catch(e) {} } }),
+e("img", { src: "/assets/img/logo.webp", alt: "Logo", className: "h-8 w-auto object-contain", onError: (ev) => { try { const img = ev.target; if(!img.dataset.fallback){ img.dataset.fallback='1'; img.src = "/assets/img/logo.webp"; } } catch(e) {} } }),
  e("div", {className: "w-12"})
  ),
  e("div", { className: "max-w-[480px] mx-auto p-4 pt-6 space-y-4 " },
@@ -435,7 +450,7 @@ document.addEventListener('DOMContentLoaded', function(){
  e("div", {className: "mb-4"},
  e("label", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wide pl-1 mb-1.5 flex justify-between items-center" }, 
  "CPF",
- e("span", {className: "text-[9px] text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100 normal-case"}, "Necessário para Nota Fiscal")
+e("span", {className: "text-[9px] text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200 normal-case"}, "Opcional")
  ),
  e("div", {className: "relative"},
  e("div", { className: "absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400" }, e(Icons.Shield, {className: "w-5 h-5"})),
@@ -501,168 +516,269 @@ e("div", {style: {height: '60vh'}})
  );
  }
 
- function PixScreen({ customerData, pixCode, qrCodeUrl }) {
- const [loadingState, setLoadingState] = useState(0); 
- const [copiedText, setCopiedText] = useState(false);
- const [copiedBtn, setCopiedBtn] = useState(false);
- const [keyboardClosed, setKeyboardClosed] = useState(false);
+function PixScreen({ customerData, pixCode, qrCodeUrl }) {
+const [loadingState, setLoadingState] = useState(0); 
+const [copiedText, setCopiedText] = useState(false);
+const [copiedBtn, setCopiedBtn] = useState(false);
+const [keyboardClosed, setKeyboardClosed] = useState(false);
+const [showQrCode, setShowQrCode] = useState(false);
+const [shippingRange, setShippingRange] = useState({ min: 4, max: 7 });
+
+const activeData = customerData || {};
+const firstName = activeData.firstName || 'Cliente';
+const transactionId = activeData.transactionId || 'ERR_NO_ID';
+
+const effectivePixCode = (pixCode && String(pixCode).trim()) ? String(pixCode).trim() : DEFAULT_CODIGO_PIX_COPIA_COLA;
+let effectiveQrUrl = (typeof qrCodeUrl === 'string' && qrCodeUrl.trim()) ? qrCodeUrl.trim() : DEFAULT_URL_IMAGEM_QRCODE;
+
+// Normaliza URLs relativas (ex: 'assets/img/qrcode.webp') para não quebrar em /checkout/
+try {
+if (effectiveQrUrl && typeof effectiveQrUrl === 'string') {
+const isHttp = /^https?:\/\//i.test(effectiveQrUrl);
+if (!isHttp && !effectiveQrUrl.startsWith('/')) {
+effectiveQrUrl = '/' + String(effectiveQrUrl).replace(/^\/+/, '');
+}
+}
+} catch(e) {}
+
+const generatedQrUrl = useMemo(() => {
+return 'https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=0&data=' + encodeURIComponent(effectivePixCode);
+}, [effectivePixCode]);
+
+const [qrImageSrc, setQrImageSrc] = useState(generatedQrUrl);
+
+useEffect(() => {
+setQrImageSrc(generatedQrUrl);
+}, [generatedQrUrl]);
+
+useEffect(() => {
+let cancelled = false;
+const fallback = { min: 4, max: 7 };
+const cep = String(activeData.cep || '').replace(/\D/g, '');
+
+if (cep.length !== 8) {
+setShippingRange(fallback);
+return () => {};
+}
+
+const controller = new AbortController();
+const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+(async () => {
+try {
+const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`, { cache: 'no-store', signal: controller.signal });
+if (!res || !res.ok) throw new Error('via_cep_http_' + (res && res.status));
+const data = await res.json();
+if (!data || data.erro) throw new Error('via_cep_invalid');
+const range = getFreightRangeByUf(data.uf || '');
+if (!cancelled) setShippingRange(range);
+} catch(e) {
+if (!cancelled) setShippingRange(fallback);
+} finally {
+clearTimeout(timeoutId);
+}
+})();
+
+return () => {
+cancelled = true;
+clearTimeout(timeoutId);
+try { controller.abort(); } catch(e) {}
+};
+}, [activeData.cep]);
+
+useEffect(() => {
+if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+requestAnimationFrame(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
  
- const activeData = customerData || {};
- const firstName = activeData.firstName || 'Cliente';
- const transactionId = activeData.transactionId || 'ERR_NO_ID';
-
- const effectivePixCode = (pixCode && String(pixCode).trim()) ? String(pixCode).trim() : DEFAULT_CODIGO_PIX_COPIA_COLA;
- let effectiveQrUrl = (typeof qrCodeUrl === 'string' && qrCodeUrl.trim()) ? qrCodeUrl.trim() : DEFAULT_URL_IMAGEM_QRCODE;
-
- // Normaliza URLs relativas (ex: 'assets/img/qrcode.webp') para não quebrar em /checkout/
- try {
- if (effectiveQrUrl && typeof effectiveQrUrl === 'string') {
- const isHttp = /^https?:\/\//i.test(effectiveQrUrl);
- if (!isHttp && !effectiveQrUrl.startsWith('/')) {
- effectiveQrUrl = '/' + String(effectiveQrUrl).replace(/^\/+/, '');
- }
- }
- } catch(e) {}
-
- useEffect(() => {
- if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
- requestAnimationFrame(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+if (customerData && customerData.transactionId) {
+trackEvent('CompletePayment', { ...window.PRODUCT_CONTENT, content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI', value: 197.99, currency: 'BRL', order_id: customerData.transactionId, event_id: window.generateEventId(), email: customerData.email, phone: customerData.phone });
+}
  
- if (customerData && customerData.transactionId) {
- trackEvent('CompletePayment', { ...window.PRODUCT_CONTENT, content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI', value: 197.99, currency: 'BRL', order_id: customerData.transactionId, event_id: window.generateEventId(), email: customerData.email, phone: customerData.phone });
- }
+const step1 = setTimeout(() => setLoadingState(1), 500);
+const step2 = setTimeout(() => setLoadingState(2), 1200); 
+const step3 = setTimeout(() => { setLoadingState(3); setKeyboardClosed(true); }, 2000); 
  
- const step1 = setTimeout(() => setLoadingState(1), 500);
- const step2 = setTimeout(() => setLoadingState(2), 1200); 
- const step3 = setTimeout(() => { setLoadingState(3); setKeyboardClosed(true); }, 2000); 
- 
- return () => { clearTimeout(step1); clearTimeout(step2); clearTimeout(step3); };
- }, [transactionId]);
+return () => { clearTimeout(step1); clearTimeout(step2); clearTimeout(step3); };
+}, [transactionId]);
 
- const doCopy = async () => {
- try {
- await window.safeCopyToClipboard(effectivePixCode);
- } catch (err) {
- let ok = false;
- try {
- if (typeof window.fallbackCopy === 'function') ok = window.fallbackCopy(effectivePixCode);
- else if (typeof fallbackCopy === 'function') ok = fallbackCopy(effectivePixCode);
- } catch(_) {}
- if (!ok) {
- try { window.prompt('Copie o código PIX abaixo:', effectivePixCode); } catch(_) {}
- }
- }
- trackEvent('Pix_Copy_Click', { event_id: window.generateEventId(), order_id: transactionId });
- try {
- const payload = JSON.stringify({ ts: Date.now(), order_id: transactionId });
- if (navigator.sendBeacon) { navigator.sendBeacon('/api/metrics/pix-copy', payload); }
- else { fetch('/api/metrics/pix-copy', { method: 'POST', headers: { 'content-type': 'application/json' }, body: payload, keepalive: true }).catch(() => {}); }
- } catch (e) {}
- };
+const doCopy = async () => {
+try {
+await window.safeCopyToClipboard(effectivePixCode);
+} catch (err) {
+let ok = false;
+try {
+if (typeof window.fallbackCopy === 'function') ok = window.fallbackCopy(effectivePixCode);
+else if (typeof fallbackCopy === 'function') ok = fallbackCopy(effectivePixCode);
+} catch(_) {}
+if (!ok) {
+try { window.prompt('Copie o código PIX abaixo:', effectivePixCode); } catch(_) {}
+}
+}
+trackEvent('Pix_Copy_Click', { event_id: window.generateEventId(), order_id: transactionId });
+try {
+const payload = JSON.stringify({ ts: Date.now(), order_id: transactionId });
+if (navigator.sendBeacon) { navigator.sendBeacon('/api/metrics/pix-copy', payload); }
+else { fetch('/api/metrics/pix-copy', { method: 'POST', headers: { 'content-type': 'application/json' }, body: payload, keepalive: true }).catch(() => {}); }
+} catch (e) {}
+};
 
- const copyPixText = async () => {
- await doCopy();
- setCopiedText(true);
- setTimeout(() => setCopiedText(false), 2000);
- };
+const copyPixText = async () => {
+await doCopy();
+setCopiedText(true);
+setTimeout(() => setCopiedText(false), 2000);
+};
 
- const copyPixBtn = async () => {
- await doCopy();
- setCopiedBtn(true);
- trackEvent('ClickButton', { button_name: 'copy_pix_code', content_name: 'Cópia PIX' });
- setTimeout(() => setCopiedBtn(false), 2000);
- };
+const copyPixBtn = async () => {
+await doCopy();
+setCopiedBtn(true);
+trackEvent('ClickButton', { button_name: 'copy_pix_code', content_name: 'Cópia PIX' });
+setTimeout(() => setCopiedBtn(false), 2000);
+};
 
- // Timer de expiração (15 min)
- const [timeLeft, setTimeLeft] = useState(15 * 60);
- useEffect(() => {
- const timer = setInterval(() => setTimeLeft(prev => prev > 0 ? prev - 1 : 0), 1000);
- return () => clearInterval(timer);
- }, []);
- const minutes = String(Math.floor(timeLeft / 60)).padStart(2, '0');
- const seconds = String(timeLeft % 60).padStart(2, '0');
+const toggleQrCode = () => {
+setShowQrCode(prev => {
+const next = !prev;
+if (next) trackEvent('ClickButton', { button_name: 'show_qr_code', content_name: 'Abrir QR Code' });
+return next;
+});
+};
 
- if (loadingState < 3) return e("div", { className: "min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center font-sans safe-area-padding" },
- e("div", { className: "w-20 h-20 border-[6px] border-slate-200 border-t-green-500 rounded-full animate-spin mb-8 shadow-2xl shadow-green-500/20" }),
- e("h2", { className: "text-2xl font-bold text-slate-800 animate-pulse tracking-tight" }, loadingState === 0 && "Iniciando transação segura...", loadingState === 1 && "Reservando estoque...", loadingState === 2 && "Aplicando cupom de oferta..."),
- e("p", { className: "text-sm text-slate-500 mt-4 font-medium" }, "Por favor, não feche esta página.")
- );
+// Timer de expiração (15 min)
+const [timeLeft, setTimeLeft] = useState(15 * 60);
+useEffect(() => {
+const timer = setInterval(() => setTimeLeft(prev => prev > 0 ? prev - 1 : 0), 1000);
+return () => clearInterval(timer);
+}, []);
+const minutes = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+const seconds = String(timeLeft % 60).padStart(2, '0');
 
- return e("div", { className: `min-h-screen bg-[#f8fafc] font-sans pb-10 safe-area-padding transition-all duration-500 ${keyboardClosed ? 'opacity-100' : 'opacity-0'}` },
+if (loadingState < 3) return e("div", { className: "min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center font-sans safe-area-padding" },
+e("div", { className: "w-20 h-20 border-[6px] border-slate-200 border-t-green-500 rounded-full animate-spin mb-8 shadow-2xl shadow-green-500/20" }),
+e("h2", { className: "text-2xl font-bold text-slate-800 animate-pulse tracking-tight" }, loadingState === 0 && "Iniciando transação segura...", loadingState === 1 && "Reservando estoque...", loadingState === 2 && "Aplicando cupom de oferta..."),
+e("p", { className: "text-sm text-slate-500 mt-4 font-medium" }, "Por favor, não feche esta página.")
+);
 
- // Timer + progress bar
- e("div", {className: "bg-white border-b border-slate-100"},
- e("div", {className: "w-full h-[3px] bg-slate-100"},
- e("div", {className: "h-full bg-green-500 transition-all duration-1000 ease-linear rounded-r", style: {width: ((timeLeft / (15 * 60)) * 100) + '%'}})
- ),
- e("div", {className: "px-4 py-2.5 flex items-center gap-2"},
- e("svg", {className: "w-5 h-5 text-slate-500", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"}, e("circle", {cx: "12", cy: "12", r: "10"}), e("polyline", {points: "12 6 12 12 16 14"})),
- e("div", null,
- e("p", {className: "text-[10px] text-slate-400 leading-none"}, "Expira em"),
- e("p", {className: "text-base font-bold text-slate-700 tracking-tight leading-tight"}, minutes + ":" + seconds)
- )
- )
- ),
+return e("div", { className: `min-h-screen bg-[#f8fafc] font-sans pb-10 safe-area-padding transition-all duration-500 ${keyboardClosed ? 'opacity-100' : 'opacity-0'}` },
 
- // Content
- e("div", {className: "max-w-[480px] mx-auto px-4 pt-5"},
+// Timer + progress bar
+e("div", {className: "bg-white border-b border-slate-100"},
+e("div", {className: "w-full h-[3px] bg-slate-100"},
+e("div", {className: "h-full bg-green-500 transition-all duration-1000 ease-linear rounded-r", style: {width: ((timeLeft / (15 * 60)) * 100) + '%'}})
+),
+e("div", {className: "px-4 py-2.5 flex items-center gap-2"},
+e("svg", {className: "w-5 h-5 text-slate-500", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"}, e("circle", {cx: "12", cy: "12", r: "10"}), e("polyline", {points: "12 6 12 12 16 14"})),
+e("div", null,
+e("p", {className: "text-[10px] text-slate-400 leading-none"}, "Expira em"),
+e("p", {className: "text-base font-bold text-slate-700 tracking-tight leading-tight"}, minutes + ":" + seconds)
+)
+)
+),
 
- // Title
- e("div", {className: "text-center mb-5"},
- e("h1", {className: "text-lg font-extrabold text-slate-800 mb-0.5"}, "Quase lá, " + firstName + "!"),
- e("p", {className: "text-xs text-slate-400"}, "Finalize o pagamento para garantir a oferta.")
- ),
+// Content
+e("div", {className: "max-w-[480px] mx-auto px-4 pt-5"},
 
- // Pix Copia e Cola card
- e("div", {className: "bg-white rounded-xl border border-slate-100 p-4 mb-3"},
- e("div", {className: "flex items-center gap-2.5 mb-3"},
- e("div", {className: "w-7 h-7 flex-shrink-0 flex items-center justify-center", dangerouslySetInnerHTML: {__html: '<svg viewBox="0 0 32 32" width="28" height="28"><g transform="translate(16,16) rotate(45)"><rect x="-11" y="-11" width="10" height="10" rx="2" fill="#32BCAD"/><rect x="1" y="-11" width="10" height="10" rx="2" fill="#32BCAD"/><rect x="-11" y="1" width="10" height="10" rx="2" fill="#32BCAD"/><rect x="1" y="1" width="10" height="10" rx="2" fill="#2D9F93"/></g></svg>'}}),
- e("div", null,
- e("p", {className: "font-bold text-slate-800 text-sm leading-tight"}, "Pix Copia e Cola"),
- e("p", {className: "text-[11px] text-slate-400"}, "Copie o codigo abaixo")
- )
- ),
+// Title
+e("div", {className: "text-center mb-5"},
+e("h1", {className: "text-lg font-extrabold text-slate-800 mb-0.5"}, "Quase lá, " + firstName + "!"),
+e("p", {className: "text-xs text-slate-400"}, "Finalize o pagamento para garantir a oferta.")
+),
 
- // Code box (clicável para copiar)
- e("div", {onClick: copyPixText, className: "bg-slate-50 border border-slate-100 rounded-lg p-3 mb-3 cursor-pointer active:bg-slate-100 transition-colors relative"},
- e("p", {className: "text-[11px] text-slate-500 font-mono break-all leading-relaxed select-all"}, effectivePixCode),
- copiedText && e("div", {className: "absolute inset-0 bg-slate-800/90 rounded-lg flex items-center justify-center gap-1.5 text-white text-xs font-bold"}, e(Icons.Check, {className: "w-3.5 h-3.5"}), "Código copiado!")
- ),
+// Pix Copia e Cola card
+e("div", {className: "bg-white rounded-xl border border-slate-100 p-4 mb-3"},
+e("div", {className: "flex items-center gap-2.5 mb-3"},
+e("div", {className: "w-7 h-7 flex-shrink-0 flex items-center justify-center", dangerouslySetInnerHTML: {__html: '<svg viewBox="0 0 32 32" width="28" height="28"><g transform="translate(16,16) rotate(45)"><rect x="-11" y="-11" width="10" height="10" rx="2" fill="#32BCAD"/><rect x="1" y="-11" width="10" height="10" rx="2" fill="#32BCAD"/><rect x="-11" y="1" width="10" height="10" rx="2" fill="#32BCAD"/><rect x="1" y="1" width="10" height="10" rx="2" fill="#2D9F93"/></g></svg>'}}),
+e("div", null,
+e("p", {className: "font-bold text-slate-800 text-sm leading-tight"}, "Pix Copia e Cola"),
+e("p", {className: "text-[11px] text-slate-400"}, "Copie o codigo abaixo")
+)
+),
 
- // Copy button
- e("button", {onClick: copyPixBtn, className: `w-full py-3.5 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] min-h-[48px] ${copiedBtn ? 'bg-slate-700' : 'bg-green-500 hover:bg-green-600'} btn-tactile`},
- copiedBtn ? e(React.Fragment, null, e(Icons.Check, {className: "w-4 h-4"}), "Codigo copiado!") : e(React.Fragment, null, e(Icons.Copy, {className: "w-4 h-4"}), "Copiar codigo PIX")
- ),
+// Code box (clicável para copiar)
+e("div", {onClick: copyPixText, className: "bg-slate-50 border border-slate-100 rounded-lg p-3 mb-3 cursor-pointer active:bg-slate-100 transition-colors relative"},
+e("p", {className: "text-[11px] text-slate-500 font-mono break-all leading-relaxed select-all"}, effectivePixCode),
+copiedText && e("div", {className: "absolute inset-0 bg-slate-800/90 rounded-lg flex items-center justify-center gap-1.5 text-white text-xs font-bold"}, e(Icons.Check, {className: "w-3.5 h-3.5"}), "Código copiado!")
+),
 
- // Value
- e("div", {className: "flex justify-between items-center mt-3 pt-3 border-t border-slate-100"},
- e("span", {className: "text-sm text-slate-400"}, "Valor Total:"),
- e("span", {className: "text-lg font-extrabold text-slate-800"}, "R$ " + PRODUCT_INFO.price.toFixed(2).replace('.',','))
- )
- ),
+// Copy button
+e("button", {onClick: copyPixBtn, className: `w-full py-3.5 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] min-h-[48px] ${copiedBtn ? 'bg-slate-700' : 'bg-green-500 hover:bg-green-600'} btn-tactile`},
+copiedBtn ? e(React.Fragment, null, e(Icons.Check, {className: "w-4 h-4"}), "Codigo copiado!") : e(React.Fragment, null, e(Icons.Copy, {className: "w-4 h-4"}), "Copiar codigo PIX")
+),
 
- // Como pagar
- e("div", {className: "bg-white rounded-xl border border-slate-100 p-4 mb-3"},
- e("h3", {className: "font-bold text-slate-800 text-sm mb-4"}, "Como pagar"),
- [
- {title: "Copie o codigo", desc: "Clique no botao acima para copiar o codigo PIX."},
- {title: "Abra o app do banco", desc: "Acesse o aplicativo do seu banco ou fintech."},
- {title: "Pix Copia e Cola", desc: "Escolha a opcao PIX e cole o codigo copiado."},
- {title: "Confirme o pagamento", desc: "Revise os dados e confirme. A aprovacao e automatica."}
- ].map((step, idx) => e("div", {key: idx, className: "flex gap-3 mb-4 last:mb-0"},
- e("div", {className: "w-7 h-7 rounded-full bg-green-500 text-white flex items-center justify-center flex-shrink-0 font-bold text-xs"}, idx + 1),
- e("div", null,
- e("p", {className: "font-bold text-slate-800 text-sm leading-tight"}, step.title),
- e("p", {className: "text-[11px] text-slate-400 mt-0.5"}, step.desc)
- )
- ))
- ),
+// Value
+e("div", {className: "flex justify-between items-center mt-3 pt-3 border-t border-slate-100"},
+e("span", {className: "text-sm text-slate-400"}, "Valor Total:"),
+e("span", {className: "text-lg font-extrabold text-slate-800"}, "R$ " + PRODUCT_INFO.price.toFixed(2).replace('.',','))
+)
+),
 
- // ID
- e("p", {className: "text-center text-[11px] text-slate-300 font-mono mt-3"}, "ID: " + transactionId)
- )
- );
- }
+// Meu pedido
+e("div", {className: "bg-[#f3f4f6] rounded-2xl border border-slate-200 p-3 mb-3"},
+e("div", {className: "flex items-center gap-2 mb-3"},
+e("div", {className: "w-5 h-5 text-slate-600"}, e(Icons.Package, {className: "w-5 h-5 text-slate-600"})),
+e("h3", {className: "text-base font-bold text-slate-800 leading-none"}, "Meu pedido")
+),
+e("div", {className: "bg-white rounded-xl border border-slate-200 p-3.5"},
+e("div", {className: "flex items-center gap-3"},
+e("div", {className: "w-14 h-14 bg-white rounded-lg border border-slate-200 p-1.5 flex-shrink-0"},
+e("img", { src: PRODUCT_INFO.image, alt: PRODUCT_INFO.name, className: "w-full h-full object-contain", loading: "lazy", decoding: "async", onError: (ev) => { try { const img = ev.target; if(!img.dataset.fallback){ img.dataset.fallback='1'; img.src = "/" + String(PRODUCT_INFO.image || '').replace(/^\/+/, ''); } } catch(e) {} } })
+),
+e("div", {className: "flex-1 min-w-0"},
+e("p", {className: "text-sm font-medium text-slate-800 leading-snug line-clamp-2"}, PRODUCT_INFO.name),
+e("div", {className: "flex items-center gap-2 mt-1"},
+e("span", {className: "text-sm text-slate-500"}, "Qtd: 1"),
+e("span", {className: "text-sm font-bold text-rose-500"}, "R$ " + PRODUCT_INFO.price.toFixed(2).replace('.',','))
+)
+)
+),
+e("div", {className: "mt-3 pt-3 border-t border-slate-100 flex items-center justify-between gap-2"},
+e("div", {className: "flex items-start gap-2"},
+e("div", {className: "text-slate-500 mt-0.5"}, e(Icons.Truck, {className: "w-4 h-4 text-slate-500"})),
+e("div", null,
+e("p", {className: "text-[11px] text-slate-500 leading-tight"}, "Prazo de entrega estimado"),
+e("p", {className: "text-base font-extrabold text-slate-900 leading-tight"}, "Entrega de " + shippingRange.min + " a " + shippingRange.max + " dias")
+)
+),
+e("span", {className: "text-xs font-bold text-slate-600 bg-slate-100 border border-slate-200 rounded-md px-2.5 py-1 whitespace-nowrap"}, "GRATIS")
+)
+)
+),
+
+// QR Code expansivel
+e("div", {className: "bg-white rounded-xl border border-slate-100 p-4 mb-3"},
+e("button", { type: "button", onClick: toggleQrCode, className: "w-full flex items-center justify-between text-left" },
+e("span", {className: "font-bold text-slate-800 text-sm"}, "Prefere pagar com QR Code?"),
+e("svg", {className: `w-5 h-5 text-slate-500 transition-transform ${showQrCode ? 'rotate-180' : ''}`, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"}, e("polyline", {points: "6 9 12 15 18 9"}))
+),
+showQrCode && e("div", {className: "mt-4 pt-4 border-t border-slate-100"},
+e("div", {className: "mx-auto w-[190px] bg-white rounded-2xl border border-slate-200 p-2.5 shadow-sm"},
+e("img", { src: qrImageSrc, alt: "QR Code PIX", className: "w-full h-full object-contain", loading: "lazy", decoding: "async", onError: (ev) => { try { const img = ev.target; if (img.dataset.fallback === '1') return; img.dataset.fallback = '1'; if (effectiveQrUrl) img.src = effectiveQrUrl; } catch(e) {} } })
+),
+e("p", {className: "text-center text-[12px] text-slate-500 mt-3"}, "Aponte a camera do app do banco")
+)
+),
+
+// Como pagar
+e("div", {className: "bg-white rounded-xl border border-slate-100 p-4 mb-3"},
+e("h3", {className: "font-bold text-slate-800 text-sm mb-4"}, "Como pagar"),
+[
+{title: "Copie o codigo", desc: "Clique no botao acima para copiar o codigo PIX."},
+{title: "Abra o app do banco", desc: "Acesse o aplicativo do seu banco ou fintech."},
+{title: "Pix Copia e Cola", desc: "Escolha a opcao PIX e cole o codigo copiado."},
+{title: "Confirme o pagamento", desc: "Revise os dados e confirme. A aprovacao e automatica."}
+].map((step, idx) => e("div", {key: idx, className: "flex gap-3 mb-4 last:mb-0"},
+e("div", {className: "w-7 h-7 rounded-full bg-green-500 text-white flex items-center justify-center flex-shrink-0 font-bold text-xs"}, idx + 1),
+e("div", null,
+e("p", {className: "font-bold text-slate-800 text-sm leading-tight"}, step.title),
+e("p", {className: "text-[11px] text-slate-400 mt-0.5"}, step.desc)
+)
+))
+),
+
+// ID
+e("p", {className: "text-center text-[11px] text-slate-300 font-mono mt-3"}, "ID: " + transactionId)
+)
+);
+}
 
  function App() {
  const [screen, setScreen] = useState('checkout');

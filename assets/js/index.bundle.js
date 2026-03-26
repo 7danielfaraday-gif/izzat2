@@ -435,7 +435,7 @@
         const thumbImg = document.createElement('img');
         const imgName = 'thumb_' + padZero(i) + '.webp'; 
         
-        thumbImg.src = 'assets/img/' + imgName;
+        thumbImg.src = '/assets/img/' + imgName;
         thumbImg.alt = `Miniatura ${i}`;
         thumbImg.loading = 'lazy';
         
@@ -452,7 +452,7 @@
         // FIX INP: Manipulação de DOM pesada movida para requestAnimationFrame
         requestAnimationFrame(() => {
           const imgName = padZero(currentImageIndex) + '.webp';
-          mainImage.src = 'assets/img/' + imgName;
+          mainImage.src = '/assets/img/' + imgName;
           imageCounter.textContent = `${currentImageIndex}/${totalImages}`;
 
           imageDots.querySelectorAll('.dot').forEach((d, i) =>
@@ -478,8 +478,8 @@
         const color = swatch.dataset.color;
         
         if (variantLinks[color]) {
-          buyBtn.href = "javascript:void(0)";
-          buyBtn.onclick = function() { if(window.spaOpenCheckout) window.spaOpenCheckout(); };
+          buyBtn.href = window.buildCheckoutUrl ? window.buildCheckoutUrl(variantLinks[color]) : variantLinks[color];
+          buyBtn.removeAttribute('onclick');
         }
         
         currentVariant = color;
@@ -492,8 +492,8 @@
     if (defaultSwatch) {
         defaultSwatch.classList.add('selected');
         if (variantLinks[currentVariant]) {
-            buyBtn.href = "javascript:void(0)";
-            buyBtn.onclick = function() { if(window.spaOpenCheckout) window.spaOpenCheckout(); };
+            buyBtn.href = window.buildCheckoutUrl ? window.buildCheckoutUrl(variantLinks[currentVariant]) : variantLinks[currentVariant];
+            buyBtn.removeAttribute('onclick');
         }
     }
 
@@ -545,13 +545,13 @@
     
     // Pop-up de Vendas
     const buyers = [
-        { name: "Fernanda Maia", city: "Rio de Janeiro, RJ", img: "assets/img/foto1.webp" },
-        { name: "Bruna Lima", city: "São Paulo, SP", img: "assets/img/foto2.webp" },
-        { name: "Marilia Lima", city: "Belo Horizonte, MG", img: "assets/img/foto3.webp" },
-        { name: "Karina Andrade", city: "Curitiba, PR", img: "assets/img/foto4.webp" },
-        { name: "Bruna Silva", city: "Salvador, BA", img: "assets/img/foto5.webp" },
-        { name: "Kailane Cristina", city: "Fortaleza, CE", img: "assets/img/foto6.webp" },
-        { name: "Mariana Lemos", city: "Porto Alegre, RS", img: "assets/img/foto7.webp" }
+        { name: "Fernanda Maia", city: "Rio de Janeiro, RJ", img: "/assets/img/foto1.webp" },
+        { name: "Bruna Lima", city: "São Paulo, SP", img: "/assets/img/foto2.webp" },
+        { name: "Marilia Lima", city: "Belo Horizonte, MG", img: "/assets/img/foto3.webp" },
+        { name: "Karina Andrade", city: "Curitiba, PR", img: "/assets/img/foto4.webp" },
+        { name: "Bruna Silva", city: "Salvador, BA", img: "/assets/img/foto5.webp" },
+        { name: "Kailane Cristina", city: "Fortaleza, CE", img: "/assets/img/foto6.webp" },
+        { name: "Mariana Lemos", city: "Porto Alegre, RS", img: "/assets/img/foto7.webp" }
     ];
 
     const actions = [
@@ -595,4 +595,3 @@
     }
     
   });
-
