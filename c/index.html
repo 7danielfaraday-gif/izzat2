@@ -395,10 +395,11 @@
                 }
 
                 // CAPI server-side (dupla camada — mesmo event_id para deduplicação)
+                var capiPayload = Object.assign({}, window.PRODUCT_CONTENT || {}, payload);
                 sendCAPI(
                     event,
                     eventId,
-                    Object.assign({}, window.PRODUCT_CONTENT || {}, { event_source_url: getTikTokEventSourceUrl() }),
+                    capiPayload,
                     {
                         email:       finalData.email || undefined,
                         phone_number: finalData.phone || undefined,

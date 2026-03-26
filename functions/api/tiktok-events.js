@@ -35,6 +35,14 @@ function isSha256Hex(value) {
   return typeof value === 'string' && /^[a-f0-9]{64}$/i.test(value.trim());
 }
 
+async function sha256Hex(value) {
+  const data = new TextEncoder().encode(value);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash))
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
+}
+
 function hasText(value) {
   return typeof value === 'string' && value.trim().length > 0;
 }
@@ -61,7 +69,7 @@ function getFallbackContentId(properties) {
   return null;
 }
 
-function buildSafeUser(user) {
+async function buildSafeUser(user) {
   const raw = pick(user, USER_FIELDS);
   const safe = {};
 
@@ -72,7 +80,12 @@ function buildSafeUser(user) {
   const rawPhone = raw.phone || raw.phone_number;
   if (isSha256Hex(rawPhone)) safe.phone = rawPhone.trim().toLowerCase();
 
-  if (isSha256Hex(raw.external_id)) safe.external_id = raw.external_id.trim().toLowerCase();
+  if (hasText(raw.external_id)) {
+    const normalizedExternalId = raw.external_id.trim().toLowerCase();
+    safe.external_id = isSha256Hex(normalizedExternalId)
+      ? normalizedExternalId
+      : await sha256Hex(normalizedExternalId);
+  }
   if (raw.ttclid) safe.ttclid = raw.ttclid;
   if (raw.ttp) safe.ttp = raw.ttp;
 
@@ -159,6 +172,8 @@ export async function onRequestPost(context) {
 
     const fallbackContentId = getFallbackContentId(properties);
 
+    const safeUser = await buildSafeUser(user);
+
     const eventPayload = {
       event:             event,
       event_time:        Math.floor(Date.now() / 1000),
@@ -175,7 +190,7 @@ export async function onRequestPost(context) {
       },
 
       user: {
-        ...buildSafeUser(user),
+        ...safeUser,
         ...(ip        && { ip }),
         ...(userAgent && { user_agent: userAgent }),
       },
