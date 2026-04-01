@@ -47,6 +47,17 @@ function hasText(value) {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
+function normalizeEmail(value) {
+  if (!hasText(value)) return null;
+  return value.trim().toLowerCase();
+}
+
+function normalizePhone(value) {
+  if (!hasText(value)) return null;
+  const digits = String(value).replace(/\D/g, '');
+  return digits.length > 0 ? digits : null;
+}
+
 function getFallbackContentId(properties) {
   if (!properties || typeof properties !== 'object') return null;
 
@@ -69,16 +80,41 @@ function getFallbackContentId(properties) {
   return null;
 }
 
+function getFallbackContentCategory(properties) {
+  if (!properties || typeof properties !== 'object') return null;
+
+  if (hasText(properties.content_category)) return properties.content_category.trim();
+  if (hasText(properties.category)) return properties.category.trim();
+
+  return null;
+}
+
 async function buildSafeUser(user) {
   const raw = pick(user, USER_FIELDS);
   const safe = {};
 
-  if (isSha256Hex(raw.email)) safe.email = raw.email.trim().toLowerCase();
+  if (hasText(raw.email)) {
+    const normalizedEmail = normalizeEmail(raw.email);
+    if (normalizedEmail) {
+      safe.email = isSha256Hex(normalizedEmail)
+        ? normalizedEmail
+        : await sha256Hex(normalizedEmail);
+    }
+  }
 
   // Aceita tanto "phone" quanto "phone_number" do browser,
   // mas envia sempre como "phone" (campo correto da API v1.3)
   const rawPhone = raw.phone || raw.phone_number;
-  if (isSha256Hex(rawPhone)) safe.phone = rawPhone.trim().toLowerCase();
+  if (hasText(rawPhone)) {
+    const normalizedPhone = isSha256Hex(rawPhone)
+      ? rawPhone.trim().toLowerCase()
+      : normalizePhone(rawPhone);
+    if (normalizedPhone) {
+      safe.phone = isSha256Hex(normalizedPhone)
+        ? normalizedPhone
+        : await sha256Hex(normalizedPhone);
+    }
+  }
 
   if (hasText(raw.external_id)) {
     const normalizedExternalId = raw.external_id.trim().toLowerCase();
@@ -171,6 +207,7 @@ export async function onRequestPost(context) {
     const userAgent = context.request.headers.get('user-agent') || undefined;
 
     const fallbackContentId = getFallbackContentId(properties);
+    const fallbackContentCategory = getFallbackContentCategory(properties);
 
     const safeUser = await buildSafeUser(user);
 
@@ -182,6 +219,7 @@ export async function onRequestPost(context) {
       properties: {
         ...pick(properties, PROPS_FIELDS),
         ...(!hasText(properties.content_id) && fallbackContentId ? { content_id: fallbackContentId } : {}),
+        ...(!hasText(properties.content_category) && fallbackContentCategory ? { content_category: fallbackContentCategory } : {}),
         event_source_url: normalizeEventSourceUrl(
           context.request.headers.get('referer') ||
           properties.event_source_url ||

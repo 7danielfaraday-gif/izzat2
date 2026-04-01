@@ -393,8 +393,15 @@ const progress = Math.min((filledFields / totalFields) * 100, 100);
  }
  }
  const uniqueOrderId = 'ord_' + new Date().getTime(); 
- // Reseta IDs para que a próxima compra seja considerada um novo evento
- trackEvent('AddPaymentInfo', { ...window.PRODUCT_CONTENT, event_id: window.generateEventId(), order_id: uniqueOrderId });
+ // Reforça o matching do evento mesmo quando o usuário não desfoca dos campos antes do submit.
+ trackEvent('AddPaymentInfo', {
+ ...window.PRODUCT_CONTENT,
+ content_name: PRODUCT_INFO.name,
+ event_id: window.generateEventId(),
+ order_id: uniqueOrderId,
+ email: finalEmail,
+ phone: finalPhone
+ });
  
 // Salvar pedido no servidor
 if (!isLabMode()) {
