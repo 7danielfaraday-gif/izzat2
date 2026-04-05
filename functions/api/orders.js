@@ -17,7 +17,7 @@ async function deriveKey(secret) {
     'raw', enc.encode(secret), { name: 'PBKDF2' }, false, ['deriveKey']
   );
   return crypto.subtle.deriveKey(
-    { name: 'PBKDF2', salt: enc.encode('izzat_orders_salt_v1'), iterations: 100000, hash: 'SHA-256' },
+    { name: 'PBKDF2', salt: enc.encode('izzateletro_orders_salt_v1'), iterations: 100000, hash: 'SHA-256' },
     keyMaterial,
     { name: 'AES-GCM', length: 256 },
     false,

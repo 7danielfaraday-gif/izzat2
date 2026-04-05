@@ -6,7 +6,7 @@
   const isLabMode = self.__LAB_MODE === true || params.has('lab') || params.get('mode') === 'lab' || /^\/lab(?:\/|$)/i.test(location.pathname);
   if (isLabMode) return;
 
-  const SID_KEY = 'izzat_sid_v1';
+  const SID_KEY = 'izzateletro_sid_v1';
 
   const getSid = () => {
     try {

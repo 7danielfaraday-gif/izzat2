@@ -121,9 +121,9 @@
         try {
             var u = new URL(window.location.href);
             u.protocol = 'https:';
-            u.host = 'lojaizzat.shop';
+            u.host = 'izzateletro.shop';
             return u.toString();
-        } catch(_) { return 'https://lojaizzat.shop/'; }
+        } catch(_) { return 'https://izzateletro.shop/'; }
     }
 
     async function sendCAPI(event, eventId, properties, user) {

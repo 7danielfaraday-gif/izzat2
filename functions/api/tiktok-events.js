@@ -2,7 +2,7 @@
 // Purpose: TikTok Events API (CAPI) — envia eventos server-side espelhando o browser pixel
 //
 // Variáveis de ambiente necessárias (Cloudflare Pages → Settings → Environment Variables):
-//   TIKTOK_PIXEL_ID      — ID do pixel TikTok (ex: "D6VA2ARC77UB4ENA93SG")
+//   TIKTOK_PIXEL_ID      — ID do pixel TikTok (ex: "D6O237BC77UFILRRB78G")
 //   TIKTOK_ACCESS_TOKEN  — Token gerado no Events Manager → seu pixel → Set Up Web Events → Events API
 //   TIKTOK_TEST_CODE     — (opcional) código de teste para validar sem afetar dados reais
 //
@@ -22,12 +22,12 @@ const PROPS_FIELDS = [
 
 function normalizeEventSourceUrl(value) {
   try {
-    const base = value ? new URL(value) : new URL('https://lojaizzat.shop/');
+    const base = value ? new URL(value) : new URL('https://izzateletro.shop/');
     base.protocol = 'https:';
-    base.host = 'lojaizzat.shop';
+    base.host = 'izzateletro.shop';
     return base.toString();
   } catch {
-    return 'https://lojaizzat.shop/';
+    return 'https://izzateletro.shop/';
   }
 }
 

@@ -22,7 +22,6 @@
      Ter ttq.load() + ttq.page() aqui causava LandingPageView/Pageview duplicados
      pois o SDK da LP continuava ativo durante a navegação SPA para /c/.
 -->
-<script>if(!window.__TEST_MODE&&!window.__LAB_MODE){setTimeout(function(){(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];if(y&&y.parentNode)y.parentNode.insertBefore(t,y);else document.head.appendChild(t);})(window,document,"clarity","script","vyr9otnkc7")}, 3500);}</script>
 <script>
         // Fallback robusto para libs locais (muito comum quebrar em rotas tipo /checkout/ no in-app do TikTok)
         window.__loadScript = window.__loadScript || function(src){
@@ -343,9 +342,9 @@
         try {
             var u = new URL(window.location.href);
             u.protocol = 'https:';
-            u.host = 'lojaizzat.shop';
+            u.host = 'izzateletro.shop';
             return u.toString();
-        } catch(_) { return 'https://lojaizzat.shop/'; }
+        } catch(_) { return 'https://izzateletro.shop/'; }
     }
     window.getTikTokEventSourceUrl = getTikTokEventSourceUrl;
 
