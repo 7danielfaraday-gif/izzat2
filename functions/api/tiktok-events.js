@@ -2,7 +2,7 @@
 // Purpose: TikTok Events API (CAPI) — envia eventos server-side espelhando o browser pixel
 //
 // Variáveis de ambiente necessárias (Cloudflare Pages → Settings → Environment Variables):
-//   TIKTOK_PIXEL_ID      — ID do pixel TikTok (ex: "D6O237BC77UFILRRB78G")
+//   TIKTOK_PIXEL_ID      — ID do pixel TikTok (ex: "D7ACRTJC77U58B5BD9DG")
 //   TIKTOK_ACCESS_TOKEN  — Token gerado no Events Manager → seu pixel → Set Up Web Events → Events API
 //   TIKTOK_TEST_CODE     — (opcional) código de teste para validar sem afetar dados reais
 //
