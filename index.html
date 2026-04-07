@@ -109,8 +109,9 @@
         name="viewport" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
-        rel="stylesheet" />
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" /></noscript>
     <link crossorigin="" href="https://analytics.tiktok.com" rel="preconnect" />
     <link href="//analytics.tiktok.com" rel="dns-prefetch" />
     <meta
@@ -2172,13 +2173,13 @@
                 // User message (the question)
                 var userHtml = '<div style="display:flex;justify-content:flex-end;"><div style="max-width:75%;background:#dcf8c6;border-radius:12px 12px 4px 12px;padding:12px 14px;"><div style="font-size:13px;color:#333;line-height:1.5;">' + faq.q + '</div></div></div>';
                 msgs.insertAdjacentHTML('beforeend', userHtml);
-                setTimeout(function () { msgs.scrollTop = msgs.scrollHeight; }, 0);
+                requestAnimationFrame(function () { msgs.scrollTop = msgs.scrollHeight; });
 
                 // Typing indicator
                 var typingId = 'typing-' + Date.now();
                 var typingHtml = '<div id="' + typingId + '" style="display:flex;align-items:flex-end;gap:8px;"><div style="max-width:75%;background:#f0f0f0;border-radius:12px 12px 12px 4px;padding:12px 14px;"><div style="font-size:13px;color:#999;">digitando<span class="chat-dots">...</span></div></div></div>';
                 msgs.insertAdjacentHTML('beforeend', typingHtml);
-                setTimeout(function () { msgs.scrollTop = msgs.scrollHeight; }, 10);
+                requestAnimationFrame(function () { msgs.scrollTop = msgs.scrollHeight; });
 
                 // Answer after delay
                 setTimeout(function () {
@@ -2188,7 +2189,7 @@
                     var ansHtml = '<div style="display:flex;align-items:flex-end;gap:8px;"><div style="max-width:75%;background:#f0f0f0;border-radius:12px 12px 12px 4px;padding:12px 14px;"><div style="font-size:13px;color:#333;line-height:1.5;">' + answerText + '</div></div></div>';
                     ansHtml += '<div style="display:flex;align-items:center;gap:6px;"><img src="assets/img/seller-avatarr.webp" alt="" style="width:20px;height:20px;border-radius:50%;object-fit:cover;"/><span style="font-size:11px;color:#aaa;">' + time + '</span></div>';
                     msgs.insertAdjacentHTML('beforeend', ansHtml);
-                    setTimeout(function () { msgs.scrollTop = msgs.scrollHeight; }, 10);
+                    requestAnimationFrame(function () { msgs.scrollTop = msgs.scrollHeight; });
                 }, 1200);
             };
 
