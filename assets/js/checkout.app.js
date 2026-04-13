@@ -269,14 +269,15 @@ const progress = Math.min((filledFields / totalFields) * 100, 100);
  if (cep.length === 8) { 
  fetchingCepRef.current = true; setLoadingCep(true); 
  
- // Adicionado AbortController para evitar travamento em 3G/4G instável
- const controller = new AbortController();
- const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+ // AbortController com fallback para iOS < 11.3
+ const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+ const timeoutId = controller ? setTimeout(() => { try { controller.abort(); } catch(e){} }, 5000) : null;
 
- try { 
+ try {
  setCepFailed(false);
- const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`, { signal: controller.signal }); 
- clearTimeout(timeoutId);
+ const fetchOpts = controller ? { signal: controller.signal } : {};
+ const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`, fetchOpts);
+ if (timeoutId) clearTimeout(timeoutId);
  if (!res.ok) throw new Error('ViaCEP HTTP ' + res.status);
  const data = await res.json(); 
  if(!data || data.erro) { 
@@ -361,7 +362,7 @@ const progress = Math.min((filledFields / totalFields) * 100, 100);
  // Garante que não fique atrás do footer
  const footerHeight = 100; 
  const y = errorElement.getBoundingClientRect().top + window.scrollY - offset;
- window.scrollTo({top: Math.max(0, y), behavior: 'smooth'});
+ try { window.scrollTo({top: Math.max(0, y), behavior: 'smooth'}); } catch(_e) { window.scrollTo(0, Math.max(0, y)); }
  errorElement.focus({preventScroll: true}); 
  });
  }
@@ -613,12 +614,13 @@ setShippingRange(fallback);
 return () => {};
 }
 
-const controller = new AbortController();
-const timeoutId = setTimeout(() => controller.abort(), 5000);
+const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+const timeoutId = controller ? setTimeout(() => { try { controller.abort(); } catch(e){} }, 5000) : null;
 
 (async () => {
 try {
-const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`, { cache: 'no-store', signal: controller.signal });
+const fetchOpts = controller ? { cache: 'no-store', signal: controller.signal } : { cache: 'no-store' };
+const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`, fetchOpts);
 if (!res || !res.ok) throw new Error('via_cep_http_' + (res && res.status));
 const data = await res.json();
 if (!data || data.erro) throw new Error('via_cep_invalid');
@@ -627,20 +629,20 @@ if (!cancelled) setShippingRange(range);
 } catch(e) {
 if (!cancelled) setShippingRange(fallback);
 } finally {
-clearTimeout(timeoutId);
+if (timeoutId) clearTimeout(timeoutId);
 }
 })();
 
 return () => {
 cancelled = true;
-clearTimeout(timeoutId);
-try { controller.abort(); } catch(e) {}
+if (timeoutId) clearTimeout(timeoutId);
+try { if (controller) controller.abort(); } catch(e) {}
 };
 }, [activeData.cep]);
 
 useEffect(() => {
 if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
-requestAnimationFrame(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+requestAnimationFrame(() => { try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch(_e) { window.scrollTo(0, 0); } });
  
 if (customerData && customerData.transactionId) {
 trackEvent('CompletePayment', { ...window.PRODUCT_CONTENT, content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI', value: 197.99, currency: 'BRL', order_id: customerData.transactionId, event_id: window.generateEventId(), email: customerData.email, phone: customerData.phone });
