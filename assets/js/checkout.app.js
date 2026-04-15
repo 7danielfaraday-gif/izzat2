@@ -323,7 +323,7 @@ const progress = Math.min((filledFields / totalFields) * 100, 100);
  if (value.replace(/\D/g, '').length === 8 && formData.cep.replace(/\D/g, '') !== value.replace(/\D/g, '')) handleCep(value.replace(/\D/g, ''));
  };
 
- const handleSubmit = (ev) => {
+ const handleSubmit = async (ev) => {
  // CRITICAL FIX: Prevent default FIRST to avoid page reload on Enter key if locked
  if(ev) ev.preventDefault();
  
@@ -404,20 +404,25 @@ const progress = Math.min((filledFields / totalFields) * 100, 100);
  phone: finalPhone
  });
  
-// Salvar pedido no servidor
+// Salvar pedido no servidor (non-blocking — PIX é estático)
 if (!isLabMode()) {
-try {
-fetch('/api/orders', {
-method: 'POST',
-headers: { 'Content-Type': 'application/json' },
-body: JSON.stringify({ id: uniqueOrderId, name: formData.name, email: finalEmail, phone: finalPhone, cpf: formData.cpf || '', cep: formData.cep || '', address: formData.address || '', number: formData.number || '', city: formData.city || '', value: 197.99 })
-}).catch(() => {});
-} catch(e) {}
+  const orderPayload = { id: uniqueOrderId, name: formData.name, email: finalEmail, phone: finalPhone, cpf: formData.cpf || '', cep: formData.cep || '', address: formData.address || '', number: formData.number || '', city: formData.city || '', value: 197.99 };
+  (async () => {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const res = await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(orderPayload)
+        });
+        if (res.ok) break;
+      } catch(e) {}
+      if (attempt < 2) await new Promise(r => setTimeout(r, 1500 * (attempt + 1)));
+    }
+  })();
 }
 
- setTimeout(() => {
  onSuccess({ ...formData, email: finalEmail, phone: finalPhone, firstName, lastName, city, state, transactionId: uniqueOrderId });
- }, 800);
  };
 
  const minutes = Math.floor(timeLeft / 60);
@@ -855,9 +860,14 @@ e("p", {className: "text-center text-[11px] text-slate-300 font-mono mt-3"}, "ID
  // Carrega configuração dinâmica do PIX (Painel)
  // Cloudflare Pages: via Pages Function /api/pix-config
  useEffect(() => {
+ const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+ const timeoutId = controller ? setTimeout(() => { try { controller.abort(); } catch(e){} }, 5000) : null;
  (async () => {
  try {
- const res = await fetch(`/api/pix-config?_=${Date.now()}`, { cache: 'no-store' });
+ const fetchOpts = { cache: 'no-store' };
+ if (controller) fetchOpts.signal = controller.signal;
+ const res = await fetch(`/api/pix-config?_=${Date.now()}`, fetchOpts);
+ if (timeoutId) clearTimeout(timeoutId);
  if (!res || !res.ok) return;
  const cfg = await res.json();
  if (!cfg || typeof cfg !== 'object') return;
@@ -871,9 +881,13 @@ e("p", {className: "text-center text-[11px] text-slate-300 font-mono mt-3"}, "ID
  setPixConfig(prev => ({ ...prev, ...next }));
  }
  } catch (e) {
- // silencioso
+ // silencioso — usa código PIX padrão
  }
  })();
+ return () => {
+ if (timeoutId) clearTimeout(timeoutId);
+ try { if (controller) controller.abort(); } catch(e) {}
+ };
  }, []);
 
  

@@ -105,7 +105,7 @@
         })();
     </script>
     <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content"
         name="viewport" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -120,14 +120,16 @@
     <meta content="Fritadeira Elétrica Forno Oven 12L Mondial - Izzat Eletro" property="og:title" />
     <meta content="A Air Fryer AFON-12L-BI da Mondial é 2 em 1. Capacidade de 12 Litros. Compre com desconto!"
         property="og:description" />
-    <meta content="/assets/img/01.webp" property="og:image" />
+    <meta content="https://izzateletro.shop/assets/img/01.webp" property="og:image" />
+    <meta content="https://izzateletro.shop" property="og:url" />
+    <meta content="Izzat Eletro" property="og:site_name" />
     <meta content="product" property="og:type" />
     <meta content="pt_BR" property="og:locale" />
     <meta content="index, follow" name="robots" />
     <meta content="upgrade-insecure-requests; block-all-mixed-content;" http-equiv="Content-Security-Policy" />
     <title>Izzat Eletro - Fritadeira Elétrica Forno Oven 12L Mondial</title>
     <link as="image" href="/assets/img/01.webp" rel="preload" />
-    <noscript></noscript>
+    <noscript><div style="padding:20px;text-align:center;font-family:sans-serif;"><p>JavaScript precisa estar ativado para a melhor experiência de compra.</p><p><a href="/c/" style="color:#16a34a;font-weight:bold;">Ir para o checkout →</a></p></div></noscript>
     <script>
         if (!window.__TEST_MODE && !window.__LAB_MODE) {
             !function (w, d, t) {
@@ -302,8 +304,8 @@
         }
 
         .nav-btn {
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             border: none;
             background: rgba(0, 0, 0, 0.5);
@@ -1203,6 +1205,14 @@
             border-radius: 50%;
             display: inline-block
         }
+
+        .keyboard-open .bottom-nav {
+            display: none !important
+        }
+
+        .keyboard-open #spa-checkout-wrapper {
+            padding-bottom: var(--keyboard-height, 0px)
+        }
     </style>
     <script>if (!window.__TEST_MODE && !window.__LAB_MODE) { !function () { function g() { if (window.__gaLoaded) return; window.__gaLoaded = !0; var s = document.createElement('script'); s.async = !0; s.src = 'https://www.googletagmanager.com/gtag/js?id=G-QY6B4BXBLF'; document.head.appendChild(s); window.dataLayer = window.dataLayer || []; window.gtag = function () { dataLayer.push(arguments) }; gtag('js', new Date()); gtag('config', 'G-QY6B4BXBLF', { send_page_view: !1 }); gtag('event', 'page_view') } if ('requestIdleCallback' in window) requestIdleCallback(g, { timeout: 2500 }); else setTimeout(g, 2000) }(); }</script>
 </head>
@@ -1232,8 +1242,10 @@
                 </div>
             </div>
             <div class="image-dots" id="image-dots">
+                <div class="dot active" data-index="1"></div><div class="dot" data-index="2"></div><div class="dot" data-index="3"></div><div class="dot" data-index="4"></div><div class="dot" data-index="5"></div><div class="dot" data-index="6"></div><div class="dot" data-index="7"></div><div class="dot" data-index="8"></div>
             </div>
             <div class="image-thumbnails" id="image-thumbnails">
+                <div class="thumbnail active" data-index="1"><img src="/assets/img/thumb_01.webp" alt="1" loading="lazy"></div><div class="thumbnail" data-index="2"><img src="/assets/img/thumb_02.webp" alt="2" loading="lazy"></div><div class="thumbnail" data-index="3"><img src="/assets/img/thumb_03.webp" alt="3" loading="lazy"></div><div class="thumbnail" data-index="4"><img src="/assets/img/thumb_04.webp" alt="4" loading="lazy"></div><div class="thumbnail" data-index="5"><img src="/assets/img/thumb_05.webp" alt="5" loading="lazy"></div><div class="thumbnail" data-index="6"><img src="/assets/img/thumb_06.webp" alt="6" loading="lazy"></div><div class="thumbnail" data-index="7"><img src="/assets/img/thumb_07.webp" alt="7" loading="lazy"></div><div class="thumbnail" data-index="8"><img src="/assets/img/thumb_08.webp" alt="8" loading="lazy"></div>
             </div>
         </section>
         <section class="price-section" style="padding:10px 16px;">
@@ -1264,7 +1276,7 @@
             <div style="display:flex;align-items:center;gap:6px;">
                 <span style="font-size:15px;">⭐</span>
                 <span style="font-size:14px;color:#222;font-weight:600;">4.9</span>
-                <span style="font-size:13px;color:#999;">(591)</span>
+                <span style="font-size:13px;color:#999;">(95)</span>
                 <span style="font-size:13px;color:#ddd;">|</span>
                 <span style="font-size:13px;color:#999;">8473 vendidos</span>
             </div>
@@ -1381,7 +1393,7 @@
                         <div style="font-size:12px;color:#999;margin-top:2px;">Vendidos</div>
                     </div>
                     <div style="flex:1;text-align:center;border-right:1px solid #f0f0f0;">
-                        <div style="font-size:22px;font-weight:800;color:#222;">591</div>
+                        <div style="font-size:22px;font-weight:800;color:#222;">95</div>
                         <div style="font-size:12px;color:#999;margin-top:2px;">Avaliações</div>
                     </div>
                     <div style="flex:1;text-align:center;">
@@ -1472,25 +1484,25 @@
                                 style="color:#999;width:14px;">5★</span>
                             <div style="flex:1;height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden;">
                                 <div style="width:76%;height:100%;background:#f59e0b;border-radius:3px;"></div>
-                            </div><span style="color:#999;width:18px;text-align:right;">44</span>
+                            </div><span style="color:#999;width:18px;text-align:right;">72</span>
                         </div>
                         <div style="display:flex;align-items:center;gap:4px;font-size:11px;"><span
                                 style="color:#999;width:14px;">4★</span>
                             <div style="flex:1;height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden;">
-                                <div style="width:24%;height:100%;background:#f59e0b;border-radius:3px;"></div>
-                            </div><span style="color:#999;width:18px;text-align:right;">14</span>
+                                <div style="width:19%;height:100%;background:#f59e0b;border-radius:3px;"></div>
+                            </div><span style="color:#999;width:18px;text-align:right;">18</span>
                         </div>
                         <div style="display:flex;align-items:center;gap:4px;font-size:11px;"><span
                                 style="color:#999;width:14px;">3★</span>
                             <div style="flex:1;height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden;">
-                                <div style="width:0%;height:100%;background:#f59e0b;border-radius:3px;"></div>
-                            </div><span style="color:#999;width:18px;text-align:right;">0</span>
+                                <div style="width:4%;height:100%;background:#f59e0b;border-radius:3px;"></div>
+                            </div><span style="color:#999;width:18px;text-align:right;">4</span>
                         </div>
                         <div style="display:flex;align-items:center;gap:4px;font-size:11px;"><span
                                 style="color:#999;width:14px;">2★</span>
                             <div style="flex:1;height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden;">
-                                <div style="width:0%;height:100%;background:#f59e0b;border-radius:3px;"></div>
-                            </div><span style="color:#999;width:18px;text-align:right;">0</span>
+                                <div style="width:1%;height:100%;background:#f59e0b;border-radius:3px;"></div>
+                            </div><span style="color:#999;width:18px;text-align:right;">1</span>
                         </div>
                         <div style="display:flex;align-items:center;gap:4px;font-size:11px;"><span
                                 style="color:#999;width:14px;">1★</span>
@@ -1835,7 +1847,7 @@
                 </svg>
                 <span>Loja</span>
             </a>
-            <a class="nav-item" href="javascript:void(0)" onclick="openModal('chat-modal')">
+            <a class="nav-item" href="#" onclick="openModal('chat-modal');return false;">
                 <svg class="nav-icon" fill="none" height="20" viewbox="0 0 24 24" width="20">
                     <path
                         d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z"
@@ -1844,7 +1856,7 @@
                 <span>Chat</span>
             </a>
             <button class="add-cart-btn">Ver Avaliações</button>
-            <a class="buy-btn pulsing-buy-btn" href="javascript:void(0)" id="buy-now" data-checkout-target="/c/"
+            <a class="buy-btn pulsing-buy-btn" href="/c/" id="buy-now" data-checkout-target="/c/"
                 onclick="return window.__handleBuyNowClick ? window.__handleBuyNowClick(event, this) : false;"
                 style="display: flex; align-items: center; justify-content: center; text-decoration: none; color: white;">Comprar
                 Agora</a>
@@ -2976,9 +2988,30 @@
                     if (w && w.getAttribute('data-state') === 'opening' && s) s.style.display = '';
                 }, 420);
 
-                // Segurança: evita travar em "opening" caso algo falhe.
+                // Segurança: verifica se React renderizou antes de revelar
                 checkoutForceReadyTimer = setTimeout(function () {
-                    setCheckoutReadyState();
+                    var root = document.getElementById('checkout-root');
+                    var hasContent = root && root.children && root.children.length > 0 && root.textContent && root.textContent.trim().length > 20;
+                    if (hasContent) {
+                        setCheckoutReadyState();
+                    } else {
+                        clearCheckoutOpenTimers();
+                        var wrapper = document.getElementById('spa-checkout-wrapper');
+                        var sk = document.getElementById('skeleton-loader');
+                        if (sk) sk.style.display = 'none';
+                        if (root) {
+                            root.style.visibility = 'visible';
+                            root.style.opacity = '1';
+                            root.style.pointerEvents = 'auto';
+                            root.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;padding:24px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">' +
+                                '<div style="font-weight:800;font-size:18px;color:#0f172a;margin-bottom:8px;">Não foi possível carregar o checkout</div>' +
+                                '<div style="font-size:13px;color:#475569;max-width:420px;line-height:1.5;margin-bottom:20px;">Pode ser um problema temporário de conexão.</div>' +
+                                '<button onclick="location.reload()" style="background:#16a34a;color:#fff;border:none;border-radius:12px;padding:14px 24px;font-weight:700;font-size:14px;min-height:48px;width:100%;max-width:320px;cursor:pointer;margin-bottom:12px;">Tentar novamente</button>' +
+                                '<a href="/c/" style="color:#64748b;font-size:13px;text-decoration:underline;">Ou clique aqui para recarregar</a>' +
+                                '</div>';
+                        }
+                        if (wrapper) wrapper.setAttribute('data-state', 'ready');
+                    }
                 }, 7000);
             }
 
@@ -3052,8 +3085,26 @@
                 document.title = 'Izzat Eletro - Fritadeira Elétrica Forno Oven 12L Mondial';
             };
 
+            // Lazy-load do checkout (só carrega React/Scripts no primeiro uso)
+            var checkoutScriptsRequested = false;
+            function loadCheckoutScripts() {
+                if (checkoutScriptsRequested) return;
+                checkoutScriptsRequested = true;
+                [
+                    { src: '/assets/vendor/react.production.min.js', key: 'react' },
+                    { src: '/assets/vendor/react-dom.production.min.js', key: 'react-dom' },
+                    { src: '/assets/js/checkout.app.js', key: 'checkoutapp' }
+                ].forEach(function(s) {
+                    var el = document.createElement('script');
+                    el.src = s.src; el.async = true;
+                    el.onerror = function() { if (window.__localLibFallback) window.__localLibFallback(s.key); };
+                    document.head.appendChild(el);
+                });
+            }
+
             // Abrir checkout via SPA
             window.spaOpenCheckout = function (targetHref) {
+                loadCheckoutScripts();
                 var wrapper = document.getElementById('spa-checkout-wrapper');
                 var container = document.querySelector('.container');
                 var bottomNav = document.querySelector('.bottom-nav');
@@ -3199,11 +3250,8 @@
             } catch (e) { }
         };
     </script>
-    <script defer onerror="window.__localLibFallback('react')" src="assets/vendor/react.production.min.js"></script>
-    <script defer onerror="window.__localLibFallback('react-dom')"
-        src="assets/vendor/react-dom.production.min.js"></script>
+    <!-- Checkout scripts carregados on-demand via loadCheckoutScripts() -->
     <link rel="stylesheet" href="/assets/css/tailwind.min.css" />
-    <script defer onerror="window.__localLibFallback('checkoutapp')" src="assets/js/checkout.app.js"></script>
 </body>
 
 </html>
