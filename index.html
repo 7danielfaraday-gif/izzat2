@@ -144,6 +144,7 @@
     <meta content="index, follow" name="robots" />
     <meta content="upgrade-insecure-requests; block-all-mixed-content;" http-equiv="Content-Security-Policy" />
     <title>Izzat Eletro - Fritadeira Elétrica Forno Oven 12L Mondial</title>
+    <link rel="icon" href="data:," />
     <link as="image" href="/assets/img/01.webp" rel="preload" type="image/webp" fetchpriority="high" />
     <link rel="preload" as="script" href="/assets/vendor/react.production.min.js" />
     <link rel="preload" as="script" href="/assets/vendor/react-dom.production.min.js" />
@@ -1902,16 +1903,36 @@
                 if (el) el.textContent = 'Envio para ' + loc;
                 var dest = document.getElementById('modal-destination');
                 if (dest) dest.textContent = loc + ', Brasil';
-                try { localStorage.setItem('user_location', JSON.stringify({ city: city, state: state })); } catch (e) { }
+                try { localStorage.setItem('user_location', JSON.stringify({ city: city, state: state, at: Date.now() })); } catch (e) { }
             }
             try {
                 var saved = localStorage.getItem('user_location');
-                if (saved) { var d = JSON.parse(saved); if (d.city && d.state) updateLocation(d.city, d.state); }
+                var hasFreshLocation = false;
+                if (saved) {
+                    var d = JSON.parse(saved);
+                    if (d.city && d.state) {
+                        updateLocation(d.city, d.state);
+                        hasFreshLocation = !!(d.at && (Date.now() - d.at) < 7 * 24 * 60 * 60 * 1000);
+                    }
+                }
             } catch (e) { }
-            fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(5000) })
-                .then(function (r) { return r.json() })
-                .then(function (data) { if (data && data.city && data.region) updateLocation(data.city, data.region); })
-                .catch(function () { });
+            function fetchLocationInIdle() {
+                var options = {};
+                try {
+                    if (window.AbortSignal && typeof AbortSignal.timeout === 'function') options.signal = AbortSignal.timeout(5000);
+                } catch (e) { }
+                fetch('https://ipapi.co/json/', options)
+                    .then(function (r) { return r.json() })
+                    .then(function (data) { if (data && data.city && data.region) updateLocation(data.city, data.region); })
+                    .catch(function () { });
+            }
+            if (!hasFreshLocation) {
+                if ('requestIdleCallback' in window) {
+                    requestIdleCallback(fetchLocationInIdle, { timeout: 5000 });
+                } else {
+                    window.addEventListener('load', function () { setTimeout(fetchLocationInIdle, 2000); }, { once: true });
+                }
+            }
 
             // --- Modal helpers: scroll lock + swipe down to close ---
             function openModal(id) {
@@ -2733,8 +2754,11 @@
             }
 
             if (!window.setupKeyboardDetection) {
-                var INITIAL_H = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                var keyboardDetectionStarted = false;
                 window.setupKeyboardDetection = function () {
+                    if (keyboardDetectionStarted) return;
+                    keyboardDetectionStarted = true;
+                    var INITIAL_H = window.visualViewport ? window.visualViewport.height : window.innerHeight;
                     if (typeof window.visualViewport !== 'undefined') {
                         var vv = window.visualViewport;
                         vv.addEventListener('resize', function () {
@@ -2751,7 +2775,6 @@
                         });
                     }
                 };
-                try { window.setupKeyboardDetection(); } catch (e) { }
             }
 
             // --- PRODUCTION-GRADE TRACKING SUITE (Sincronizado com c/index.html) ---
@@ -3045,7 +3068,8 @@
             }
 
             // Voltar para a LP
-            window.spaGoBack = function () {
+            window.spaGoBack = function (options) {
+                options = options || {};
                 var wrapper = document.getElementById('spa-checkout-wrapper');
                 var container = document.querySelector('.container');
                 var bottomNav = document.querySelector('.bottom-nav');
@@ -3079,7 +3103,13 @@
                     oldRoot.parentNode.replaceChild(newRoot, oldRoot);
                 }
 
-                history.pushState({ page: 'lp' }, '', '/');
+                try {
+                    if (options.replace) {
+                        history.replaceState({ page: 'lp' }, '', '/');
+                    } else {
+                        history.pushState({ page: 'lp' }, '', '/');
+                    }
+                } catch (e) { }
                 document.title = 'Izzat Eletro - Fritadeira Elétrica Forno Oven 12L Mondial';
             };
 
@@ -3115,11 +3145,24 @@
                 // Atualiza URL sem reload
                 var target = (typeof targetHref === 'string' && targetHref) ? targetHref : '/c/';
                 var checkoutUrl = window.buildCheckoutUrl ? window.buildCheckoutUrl(target) : target;
+                if (!isDirectEntry) {
+                    try {
+                        history.replaceState({ page: 'lp' }, '', window.location.pathname + window.location.search + window.location.hash);
+                    } catch (e) { }
+                }
                 try {
                     var u = new URL(checkoutUrl, window.location.origin);
-                    history.pushState({ page: 'checkout' }, '', u.pathname + u.search);
+                    if (isDirectEntry) {
+                        history.replaceState({ page: 'checkout' }, '', u.pathname + u.search);
+                    } else {
+                        history.pushState({ page: 'checkout' }, '', u.pathname + u.search);
+                    }
                 } catch (e) {
-                    history.pushState({ page: 'checkout' }, '', target);
+                    if (isDirectEntry) {
+                        history.replaceState({ page: 'checkout' }, '', target);
+                    } else {
+                        history.pushState({ page: 'checkout' }, '', target);
+                    }
                 }
 
                 document.title = 'Checkout - Fritadeira Elétrica Forno Oven 12L';
@@ -3240,7 +3283,7 @@
             window.addEventListener('popstate', function (e) {
                 var wrapper = document.getElementById('spa-checkout-wrapper');
                 if (wrapper && wrapper.style.display !== 'none') {
-                    window.spaGoBack();
+                    window.spaGoBack({ replace: true });
                 }
             });
 

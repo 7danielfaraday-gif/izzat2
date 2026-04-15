@@ -1,9 +1,9 @@
-document.addEventListener('DOMContentLoaded', function(){
- try {
- if (typeof setupKeyboardDetection === 'function') setupKeyboardDetection();
- else if (typeof window.setupKeyboardDetection === 'function') window.setupKeyboardDetection();
- } catch(e) {}
-});
+window.activateCheckoutKeyboardDetection = window.activateCheckoutKeyboardDetection || function() {
+try {
+if (typeof setupKeyboardDetection === 'function') setupKeyboardDetection();
+else if (typeof window.setupKeyboardDetection === 'function') window.setupKeyboardDetection();
+} catch(e) {}
+};
  
  window.initReactCheckout = function() {
  if (window.checkoutInitialized) return;
@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', function(){
  setTimeout(window.initReactCheckout, 50); 
  return;
  }
+ if (typeof window.activateCheckoutKeyboardDetection === 'function') window.activateCheckoutKeyboardDetection();
  window.checkoutInitialized = true;
  const { useState, useEffect, useRef, useMemo, useCallback, useLayoutEffect } = React;
  const e = React.createElement; 
@@ -430,20 +431,17 @@ body: JSON.stringify({ id: uniqueOrderId, name: formData.name, email: finalEmail
  return e("div", { className: "fade-in w-full min-h-screen font-sans bg-[#f8fafc] form-container" },
  e("div", { ref: progressRef, className: "progress-bar", style: {width: '10%'} }),
  /* ⭐️ SEGURANÇA: Barra visual removida, lógica mantida internamente no componente */
- e("div", { className: "static-nav bg-white/98 border-b border-gray-200 px-4 flex justify-between items-center z-30 shadow-[0_2px_8px_rgba(0,0,0,0.04)]" },
- e("button", { type: "button", onClick: () => {
- if (isFormLocked || isSubmitting) return;
- try {
- const ref = document.referrer || '';
- const sameOrigin = ref && ref.indexOf(window.location.origin) === 0;
- const external = /tiktok|instagram|facebook|fb\.|l\.facebook\.com|t\.co|twitter/i.test(ref);
- if (window.history.length > 1 && sameOrigin && !external) {
- window.history.back();
- } else {
- window.location.href = '/';
- }
- } catch(e) { window.location.href = '/'; }
- }, className: `flex items-center text-slate-400 hover:text-slate-600 transition-colors p-3 -ml-3 btn-tactile ${isFormLocked ? 'opacity-50 cursor-not-allowed' : ''}`, "aria-label": "Voltar", disabled: isFormLocked || isSubmitting }, 
+e("div", { className: "static-nav bg-white/98 border-b border-gray-200 px-4 flex justify-between items-center z-30 shadow-[0_2px_8px_rgba(0,0,0,0.04)]" },
+e("button", { type: "button", onClick: () => {
+if (isFormLocked || isSubmitting) return;
+try {
+if (typeof window.spaGoBack === 'function') {
+window.spaGoBack({ replace: true });
+} else {
+window.location.replace('/');
+}
+} catch(e) { window.location.replace('/'); }
+}, className: `flex items-center text-slate-400 hover:text-slate-600 transition-colors p-3 -ml-3 btn-tactile ${isFormLocked ? 'opacity-50 cursor-not-allowed' : ''}`, "aria-label": "Voltar", disabled: isFormLocked || isSubmitting }, 
  e("svg", { className: "w-6 h-6", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, e("polyline", {points: "15 18 9 12 15 6"}))
  ),
 e("img", { src: "/assets/img/logo.webp", alt: "Logo", className: "h-8 w-auto object-contain", onError: (ev) => { try { const img = ev.target; if(!img.dataset.fallback){ img.dataset.fallback='1'; img.src = "/assets/img/logo.webp"; } } catch(e) {} } }),

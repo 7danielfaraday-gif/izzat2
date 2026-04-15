@@ -12,6 +12,7 @@
 <link crossorigin="" href="https://analytics.tiktok.com" rel="preconnect"/>
 <link href="//analytics.tiktok.com" rel="dns-prefetch"/>
 <title>Checkout - Fritadeira Elétrica Forno Oven 12L</title>
+<link rel="icon" href="data:,"/>
 <link as="image" fetchpriority="high" href="../assets/img/01.webp" rel="preload"/>
 <link href="https://www.googletagmanager.com" rel="dns-prefetch"/>
 <link href="https://viacep.com.br" rel="dns-prefetch"/>
@@ -483,9 +484,13 @@
         }
     }
     
-    let INITIAL_HEIGHT = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    let INITIAL_HEIGHT = null;
+    let keyboardDetectionStarted = false;
     
     function setupKeyboardDetection() {
+        if (keyboardDetectionStarted) return;
+        keyboardDetectionStarted = true;
+        INITIAL_HEIGHT = window.visualViewport ? window.visualViewport.height : window.innerHeight;
         const isVisualViewportSupported = typeof window.visualViewport !== 'undefined';
         
         if (isVisualViewportSupported) {
