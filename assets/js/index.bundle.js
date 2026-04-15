@@ -121,9 +121,10 @@
         try {
             var u = new URL(window.location.href);
             u.protocol = 'https:';
-            u.host = 'izzateletro.shop';
+            u.hostname = 'oficial.izzateletro.shop';
+            u.port = '';
             return u.toString();
-        } catch(_) { return 'https://izzateletro.shop/'; }
+        } catch(_) { return 'https://oficial.izzateletro.shop/'; }
     }
 
     async function sendCAPI(event, eventId, properties, user) {

@@ -10,6 +10,7 @@
 // O TikTok detecta o par (browser + server) com o mesmo event_id e mantém apenas 1.
 
 const TIKTOK_EVENTS_API = 'https://business-api.tiktok.com/open_api/v1.3/event/track/';
+const TIKTOK_EVENT_SOURCE_HOST = 'oficial.izzateletro.shop';
 
 // Campo correto da API v1.3 é "phone" (não "phone_number")
 const USER_FIELDS = ['email', 'phone_number', 'phone', 'external_id', 'ttclid', 'ttp'];
@@ -22,12 +23,13 @@ const PROPS_FIELDS = [
 
 function normalizeEventSourceUrl(value) {
   try {
-    const base = value ? new URL(value) : new URL('https://izzateletro.shop/');
+    const base = value ? new URL(value) : new URL(`https://${TIKTOK_EVENT_SOURCE_HOST}/`);
     base.protocol = 'https:';
-    base.host = 'izzateletro.shop';
+    base.hostname = TIKTOK_EVENT_SOURCE_HOST;
+    base.port = '';
     return base.toString();
   } catch {
-    return 'https://izzateletro.shop/';
+    return `https://${TIKTOK_EVENT_SOURCE_HOST}/`;
   }
 }
 
