@@ -35,7 +35,7 @@ export async function onRequestPost(context) {
     const payload = {
       ts: Date.now(),
       path: body && typeof body.path === 'string' ? body.path.slice(0, 200) : undefined,
-      ua: context.request.headers.get('user-agent')?.slice(0, 200),
+      ua: (function(h){ return h ? h.slice(0, 200) : undefined; })(context.request.headers.get('user-agent')),
     };
 
     // KV supports TTL (expirationTtl) so the key auto-expires.

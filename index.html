@@ -86,8 +86,11 @@
                     var target = (btn && btn.dataset && btn.dataset.checkoutTarget) ? btn.dataset.checkoutTarget : '/c/';
                     window.__pendingCheckoutTarget = target;
 
-                    // Se o listener principal já foi registrado, deixa o fluxo padrão seguir.
-                    if (window.__buyNowJsReady) return true;
+                    // Se o listener principal já foi registrado, deixa o fluxo seguir mas previne navegação pelo href.
+                    if (window.__buyNowJsReady) {
+                        if (ev && typeof ev.preventDefault === 'function') ev.preventDefault();
+                        return true;
+                    }
 
                     if (ev && typeof ev.preventDefault === 'function') ev.preventDefault();
                     window.__pendingCheckoutClick = true;
@@ -105,13 +108,13 @@
         })();
     </script>
     <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content"
         name="viewport" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
         as="style" onload="this.onload=null;this.rel='stylesheet'" />
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" /></noscript>
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" /></noscript>
     <link crossorigin="" href="https://analytics.tiktok.com" rel="preconnect" />
     <link href="//analytics.tiktok.com" rel="dns-prefetch" />
     <meta
@@ -120,14 +123,16 @@
     <meta content="Fritadeira Elétrica Forno Oven 12L Mondial - Izzat Eletro" property="og:title" />
     <meta content="A Air Fryer AFON-12L-BI da Mondial é 2 em 1. Capacidade de 12 Litros. Compre com desconto!"
         property="og:description" />
-    <meta content="/assets/img/01.webp" property="og:image" />
+    <meta content="https://izzateletro.shop/assets/img/01.webp" property="og:image" />
+    <meta content="https://izzateletro.shop" property="og:url" />
+    <meta content="Izzat Eletro" property="og:site_name" />
     <meta content="product" property="og:type" />
     <meta content="pt_BR" property="og:locale" />
     <meta content="index, follow" name="robots" />
     <meta content="upgrade-insecure-requests; block-all-mixed-content;" http-equiv="Content-Security-Policy" />
     <title>Izzat Eletro - Fritadeira Elétrica Forno Oven 12L Mondial</title>
     <link as="image" href="/assets/img/01.webp" rel="preload" />
-    <noscript></noscript>
+    <noscript><div style="padding:20px;text-align:center;font-family:sans-serif;"><p>JavaScript precisa estar ativado para a melhor experiência de compra.</p><p><a href="/c/" style="color:#16a34a;font-weight:bold;">Ir para o checkout →</a></p></div></noscript>
     <script>
         if (!window.__TEST_MODE && !window.__LAB_MODE) {
             !function (w, d, t) {
@@ -210,6 +215,7 @@
             background: white;
             min-height: 100vh;
             min-height: 100dvh;
+            padding-bottom: calc(90px + constant(safe-area-inset-bottom));
             padding-bottom: calc(90px + env(safe-area-inset-bottom));
             position: relative;
             overflow-x: hidden
@@ -301,8 +307,8 @@
         }
 
         .nav-btn {
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             border: none;
             background: rgba(0, 0, 0, 0.5);
@@ -313,7 +319,8 @@
             cursor: pointer;
             pointer-events: all;
             transition: all 0.2s ease-in-out;
-            backdrop-filter: blur(4px)
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px)
         }
 
         .nav-btn:active {
@@ -786,6 +793,7 @@
             border-top: 1px solid #f0f0f0;
             display: flex;
             padding: 10px 15px;
+            padding-bottom: calc(10px + constant(safe-area-inset-bottom));
             padding-bottom: calc(10px + env(safe-area-inset-bottom));
             gap: 11px;
             z-index: 100
@@ -848,34 +856,28 @@
             cursor: progress;
         }
 
+        @-webkit-keyframes slideUp {
+            from { -webkit-transform: translateY(100%); transform: translateY(100%) }
+            to { -webkit-transform: translateY(0); transform: translateY(0) }
+        }
         @keyframes slideUp {
-            from {
-                transform: translateY(100%)
-            }
-
-            to {
-                transform: translateY(0)
-            }
+            from { transform: translateY(100%) }
+            to { transform: translateY(0) }
         }
 
+        @-webkit-keyframes pulse-red {
+            0% { -webkit-transform: scale(1); transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 45, 85, 0.7) }
+            70% { -webkit-transform: scale(1.05); transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 45, 85, 0) }
+            100% { -webkit-transform: scale(1); transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 45, 85, 0) }
+        }
         @keyframes pulse-red {
-            0% {
-                transform: scale(1);
-                box-shadow: 0 0 0 0 rgba(255, 45, 85, 0.7)
-            }
-
-            70% {
-                transform: scale(1.05);
-                box-shadow: 0 0 0 10px rgba(255, 45, 85, 0)
-            }
-
-            100% {
-                transform: scale(1);
-                box-shadow: 0 0 0 0 rgba(255, 45, 85, 0)
-            }
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 45, 85, 0.7) }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 45, 85, 0) }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 45, 85, 0) }
         }
 
         .pulsing-buy-btn {
+            -webkit-animation: pulse-red 1.5s infinite;
             animation: pulse-red 1.5s infinite
         }
 
@@ -884,6 +886,7 @@
             padding: 24px 16px;
             border-top: 1px solid #f0f0f0;
             margin-top: 40px;
+            padding-bottom: calc(80px + constant(safe-area-inset-bottom));
             padding-bottom: calc(80px + env(safe-area-inset-bottom))
         }
 
@@ -1138,10 +1141,12 @@
 
         .sales-popup {
             position: fixed;
+            bottom: calc(120px + constant(safe-area-inset-bottom));
             bottom: calc(120px + env(safe-area-inset-bottom));
             left: 10px;
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
             padding: 10px 15px;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -1203,6 +1208,14 @@
             border-radius: 50%;
             display: inline-block
         }
+
+        .keyboard-open .bottom-nav {
+            display: none !important
+        }
+
+        .keyboard-open #spa-checkout-wrapper {
+            padding-bottom: var(--keyboard-height, 0px)
+        }
     </style>
     <script>if (!window.__TEST_MODE && !window.__LAB_MODE) { !function () { function g() { if (window.__gaLoaded) return; window.__gaLoaded = !0; var s = document.createElement('script'); s.async = !0; s.src = 'https://www.googletagmanager.com/gtag/js?id=G-QY6B4BXBLF'; document.head.appendChild(s); window.dataLayer = window.dataLayer || []; window.gtag = function () { dataLayer.push(arguments) }; gtag('js', new Date()); gtag('config', 'G-QY6B4BXBLF', { send_page_view: !1 }); gtag('event', 'page_view') } if ('requestIdleCallback' in window) requestIdleCallback(g, { timeout: 2500 }); else setTimeout(g, 2000) }(); }</script>
 </head>
@@ -1232,8 +1245,10 @@
                 </div>
             </div>
             <div class="image-dots" id="image-dots">
+                <div class="dot active" data-index="1"></div><div class="dot" data-index="2"></div><div class="dot" data-index="3"></div><div class="dot" data-index="4"></div><div class="dot" data-index="5"></div><div class="dot" data-index="6"></div><div class="dot" data-index="7"></div><div class="dot" data-index="8"></div>
             </div>
             <div class="image-thumbnails" id="image-thumbnails">
+                <div class="thumbnail active" data-index="1"><img src="/assets/img/thumb_01.webp" alt="1" loading="lazy"></div><div class="thumbnail" data-index="2"><img src="/assets/img/thumb_02.webp" alt="2" loading="lazy"></div><div class="thumbnail" data-index="3"><img src="/assets/img/thumb_03.webp" alt="3" loading="lazy"></div><div class="thumbnail" data-index="4"><img src="/assets/img/thumb_04.webp" alt="4" loading="lazy"></div><div class="thumbnail" data-index="5"><img src="/assets/img/thumb_05.webp" alt="5" loading="lazy"></div><div class="thumbnail" data-index="6"><img src="/assets/img/thumb_06.webp" alt="6" loading="lazy"></div><div class="thumbnail" data-index="7"><img src="/assets/img/thumb_07.webp" alt="7" loading="lazy"></div><div class="thumbnail" data-index="8"><img src="/assets/img/thumb_08.webp" alt="8" loading="lazy"></div>
             </div>
         </section>
         <section class="price-section" style="padding:10px 16px;">
@@ -1264,7 +1279,7 @@
             <div style="display:flex;align-items:center;gap:6px;">
                 <span style="font-size:15px;">⭐</span>
                 <span style="font-size:14px;color:#222;font-weight:600;">4.9</span>
-                <span style="font-size:13px;color:#999;">(591)</span>
+                <span style="font-size:13px;color:#999;">(95)</span>
                 <span style="font-size:13px;color:#ddd;">|</span>
                 <span style="font-size:13px;color:#999;">8473 vendidos</span>
             </div>
@@ -1381,7 +1396,7 @@
                         <div style="font-size:12px;color:#999;margin-top:2px;">Vendidos</div>
                     </div>
                     <div style="flex:1;text-align:center;border-right:1px solid #f0f0f0;">
-                        <div style="font-size:22px;font-weight:800;color:#222;">591</div>
+                        <div style="font-size:22px;font-weight:800;color:#222;">95</div>
                         <div style="font-size:12px;color:#999;margin-top:2px;">Avaliações</div>
                     </div>
                     <div style="flex:1;text-align:center;">
@@ -1440,7 +1455,7 @@
                 <div style="font-size:15px;font-weight:700;color:#222;margin-bottom:12px;">Variante</div>
                 <div
                     style="display:flex;align-items:center;gap:12px;padding:14px;border:2px solid #00d4aa;border-radius:12px;background:#f0fdfa;">
-                    <img src="/assets/img/01.webp" alt="Preto"
+                    <img src="/assets/img/01.webp" alt="Preto" loading="lazy"
                         style="width:48px;height:48px;object-fit:contain;border-radius:8px;background:#fff;" />
                     <div style="flex:1;">
                         <div style="font-size:14px;font-weight:700;color:#222;">Preto — 12 Litros</div>
@@ -1472,25 +1487,25 @@
                                 style="color:#999;width:14px;">5★</span>
                             <div style="flex:1;height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden;">
                                 <div style="width:76%;height:100%;background:#f59e0b;border-radius:3px;"></div>
-                            </div><span style="color:#999;width:18px;text-align:right;">44</span>
+                            </div><span style="color:#999;width:18px;text-align:right;">72</span>
                         </div>
                         <div style="display:flex;align-items:center;gap:4px;font-size:11px;"><span
                                 style="color:#999;width:14px;">4★</span>
                             <div style="flex:1;height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden;">
-                                <div style="width:24%;height:100%;background:#f59e0b;border-radius:3px;"></div>
-                            </div><span style="color:#999;width:18px;text-align:right;">14</span>
+                                <div style="width:19%;height:100%;background:#f59e0b;border-radius:3px;"></div>
+                            </div><span style="color:#999;width:18px;text-align:right;">18</span>
                         </div>
                         <div style="display:flex;align-items:center;gap:4px;font-size:11px;"><span
                                 style="color:#999;width:14px;">3★</span>
                             <div style="flex:1;height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden;">
-                                <div style="width:0%;height:100%;background:#f59e0b;border-radius:3px;"></div>
-                            </div><span style="color:#999;width:18px;text-align:right;">0</span>
+                                <div style="width:4%;height:100%;background:#f59e0b;border-radius:3px;"></div>
+                            </div><span style="color:#999;width:18px;text-align:right;">4</span>
                         </div>
                         <div style="display:flex;align-items:center;gap:4px;font-size:11px;"><span
                                 style="color:#999;width:14px;">2★</span>
                             <div style="flex:1;height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden;">
-                                <div style="width:0%;height:100%;background:#f59e0b;border-radius:3px;"></div>
-                            </div><span style="color:#999;width:18px;text-align:right;">0</span>
+                                <div style="width:1%;height:100%;background:#f59e0b;border-radius:3px;"></div>
+                            </div><span style="color:#999;width:18px;text-align:right;">1</span>
                         </div>
                         <div style="display:flex;align-items:center;gap:4px;font-size:11px;"><span
                                 style="color:#999;width:14px;">1★</span>
@@ -1503,7 +1518,7 @@
                 <div class="rv" style="padding:14px 0;border-bottom:1px solid #f0f0f0;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
                         <img src="assets/img/foto1.webp" alt=""
-                            style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
+                            style="width:32px;height:32px;border-radius:50%;object-fit:cover;" loading="lazy" />
                         <span style="font-size:14px;font-weight:700;color:#222;">Fernanda L.</span>
                     </div>
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
@@ -1515,13 +1530,13 @@
                         dos componentes dela e coloquei meu almoço pra gratinar, já vi q está funcionando e até tenho q
                         por menos tempo ou diminuir a potência dela pq é mto boa. Super indico</div>
                     <div style="margin-top:8px;"><img src="assets/img/review01.webp" alt=""
-                            style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;"
+                            style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;" loading="lazy"
                             onclick="openLightbox(this.src)" /></div>
                 </div>
                 <div class="rv" style="padding:14px 0;border-bottom:1px solid #f0f0f0;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
                         <img src="assets/img/foto2.webp" alt=""
-                            style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
+                            style="width:32px;height:32px;border-radius:50%;object-fit:cover;" loading="lazy" />
                         <span style="font-size:14px;font-weight:700;color:#222;">Bruna L.</span>
                     </div>
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
@@ -1533,13 +1548,13 @@
                         rsrs, estou muito satisfeita com a minha compra. Já testei e as batatas fritas ficaram ótimas!
                         Chegou muito rápido e muito bem embalada.</div>
                     <div style="margin-top:8px;"><img src="assets/img/review02.webp" alt=""
-                            style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;"
+                            style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;" loading="lazy"
                             onclick="openLightbox(this.src)" /></div>
                 </div>
                 <div class="rv" style="padding:14px 0;border-bottom:1px solid #f0f0f0;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
                         <img src="assets/img/foto3.webp" alt=""
-                            style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
+                            style="width:32px;height:32px;border-radius:50%;object-fit:cover;" loading="lazy" />
                         <span style="font-size:14px;font-weight:700;color:#222;">Marilia L.</span>
                     </div>
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
@@ -1549,13 +1564,13 @@
                     <div style="font-size:11px;color:#aaa;margin-bottom:8px;">Variação: 12 Litros — Preto</div>
                     <div style="font-size:13px;color:#333;line-height:1.5;">Lindo e eficiente.</div>
                     <div style="margin-top:8px;"><img src="assets/img/review03.webp" alt=""
-                            style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;"
+                            style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;" loading="lazy"
                             onclick="openLightbox(this.src)" /></div>
                 </div>
                 <div class="rv" style="padding:14px 0;border-bottom:1px solid #f0f0f0;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
                         <img src="assets/img/foto4.webp" alt=""
-                            style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
+                            style="width:32px;height:32px;border-radius:50%;object-fit:cover;" loading="lazy" />
                         <span style="font-size:14px;font-weight:700;color:#222;">Karina A.</span>
                     </div>
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
@@ -1566,13 +1581,13 @@
                     <div style="font-size:13px;color:#333;line-height:1.5;">Ótimo produto conforme anunciado. E chegou
                         antes do previsto. Super recomendo....</div>
                     <div style="margin-top:8px;"><img src="assets/img/review04.webp" alt=""
-                            style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;"
+                            style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;" loading="lazy"
                             onclick="openLightbox(this.src)" /></div>
                 </div>
                 <div class="rv" style="padding:14px 0;border-bottom:1px solid #f0f0f0;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
                         <img src="assets/img/foto5.webp" alt=""
-                            style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
+                            style="width:32px;height:32px;border-radius:50%;object-fit:cover;" loading="lazy" />
                         <span style="font-size:14px;font-weight:700;color:#222;">Bruna S.</span>
                     </div>
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
@@ -1583,13 +1598,13 @@
                     <div style="font-size:13px;color:#333;line-height:1.5;">Bonita grande e eficiente, nada a reclamar
                         até o momento.</div>
                     <div style="margin-top:8px;"><img src="assets/img/review05.webp" alt=""
-                            style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;"
+                            style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;" loading="lazy"
                             onclick="openLightbox(this.src)" /></div>
                 </div>
                 <div class="rv" style="padding:14px 0;border-bottom:1px solid #f0f0f0;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
                         <img src="assets/img/foto6.webp" alt=""
-                            style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
+                            style="width:32px;height:32px;border-radius:50%;object-fit:cover;" loading="lazy" />
                         <span style="font-size:14px;font-weight:700;color:#222;">Kailane C.</span>
                     </div>
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
@@ -1600,13 +1615,13 @@
                     <div style="font-size:13px;color:#333;line-height:1.5;">Gente eu ameiii, superou minhas
                         expectativas, lindaaa, ameiii!!!</div>
                     <div style="margin-top:8px;"><img src="assets/img/review06.webp" alt=""
-                            style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;"
+                            style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;" loading="lazy"
                             onclick="openLightbox(this.src)" /></div>
                 </div>
                 <div class="rv" style="padding:14px 0;border-bottom:1px solid #f0f0f0;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
                         <img src="assets/img/foto7.webp" alt=""
-                            style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
+                            style="width:32px;height:32px;border-radius:50%;object-fit:cover;" loading="lazy" />
                         <span style="font-size:14px;font-weight:700;color:#222;">Mariana L.</span>
                     </div>
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
@@ -1617,7 +1632,7 @@
                     <div style="font-size:13px;color:#333;line-height:1.5;">Simplesmente estou apaixonada, excelente
                         mesmo.</div>
                     <div style="margin-top:8px;"><img src="assets/img/review07.webp" alt=""
-                            style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;"
+                            style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;" loading="lazy"
                             onclick="openLightbox(this.src)" /></div>
                 </div>
                 <div id="extra-reviews"></div>
@@ -1835,7 +1850,7 @@
                 </svg>
                 <span>Loja</span>
             </a>
-            <a class="nav-item" href="javascript:void(0)" onclick="openModal('chat-modal')">
+            <a class="nav-item" href="#" onclick="openModal('chat-modal');return false;">
                 <svg class="nav-icon" fill="none" height="20" viewbox="0 0 24 24" width="20">
                     <path
                         d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z"
@@ -1844,7 +1859,7 @@
                 <span>Chat</span>
             </a>
             <button class="add-cart-btn">Ver Avaliações</button>
-            <a class="buy-btn pulsing-buy-btn" href="javascript:void(0)" id="buy-now" data-checkout-target="/c/"
+            <a class="buy-btn pulsing-buy-btn" href="/c/" id="buy-now" data-checkout-target="/c/"
                 onclick="return window.__handleBuyNowClick ? window.__handleBuyNowClick(event, this) : false;"
                 style="display: flex; align-items: center; justify-content: center; text-decoration: none; color: white;">Comprar
                 Agora</a>
@@ -1883,7 +1898,9 @@
                 var saved = localStorage.getItem('user_location');
                 if (saved) { var d = JSON.parse(saved); if (d.city && d.state) updateLocation(d.city, d.state); }
             } catch (e) { }
-            fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(5000) })
+            var _geoCtrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+            if (_geoCtrl) setTimeout(function(){ try { _geoCtrl.abort(); } catch(e){} }, 5000);
+            fetch('https://ipapi.co/json/', _geoCtrl ? { signal: _geoCtrl.signal } : {})
                 .then(function (r) { return r.json() })
                 .then(function (data) { if (data && data.city && data.region) updateLocation(data.city, data.region); })
                 .catch(function () { });
@@ -2121,7 +2138,7 @@
                     if (sortedImages[i]) {
                         html += '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">';
                         for (var j = 0; j < sortedImages[i].length; j++) {
-                            html += '<img src="assets/img/' + sortedImages[i][j] + '" alt="" style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;" onclick="openLightbox(this.src)"/>';
+                            html += '<img src="assets/img/' + sortedImages[i][j] + '" alt="" loading="lazy" style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;" onclick="openLightbox(this.src)"/>';
                         }
                         html += '</div>';
                     }
@@ -2974,9 +2991,30 @@
                     if (w && w.getAttribute('data-state') === 'opening' && s) s.style.display = '';
                 }, 420);
 
-                // Segurança: evita travar em "opening" caso algo falhe.
+                // Segurança: verifica se React renderizou antes de revelar
                 checkoutForceReadyTimer = setTimeout(function () {
-                    setCheckoutReadyState();
+                    var root = document.getElementById('checkout-root');
+                    var hasContent = root && root.children && root.children.length > 0 && root.textContent && root.textContent.trim().length > 20;
+                    if (hasContent) {
+                        setCheckoutReadyState();
+                    } else {
+                        clearCheckoutOpenTimers();
+                        var wrapper = document.getElementById('spa-checkout-wrapper');
+                        var sk = document.getElementById('skeleton-loader');
+                        if (sk) sk.style.display = 'none';
+                        if (root) {
+                            root.style.visibility = 'visible';
+                            root.style.opacity = '1';
+                            root.style.pointerEvents = 'auto';
+                            root.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;padding:24px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">' +
+                                '<div style="font-weight:800;font-size:18px;color:#0f172a;margin-bottom:8px;">Não foi possível carregar o checkout</div>' +
+                                '<div style="font-size:13px;color:#475569;max-width:420px;line-height:1.5;margin-bottom:20px;">Pode ser um problema temporário de conexão.</div>' +
+                                '<button onclick="location.reload()" style="background:#16a34a;color:#fff;border:none;border-radius:12px;padding:14px 24px;font-weight:700;font-size:14px;min-height:48px;width:100%;max-width:320px;cursor:pointer;margin-bottom:12px;">Tentar novamente</button>' +
+                                '<a href="/c/" style="color:#64748b;font-size:13px;text-decoration:underline;">Ou clique aqui para recarregar</a>' +
+                                '</div>';
+                        }
+                        if (wrapper) wrapper.setAttribute('data-state', 'ready');
+                    }
                 }, 7000);
             }
 
@@ -3050,8 +3088,26 @@
                 document.title = 'Izzat Eletro - Fritadeira Elétrica Forno Oven 12L Mondial';
             };
 
+            // Lazy-load do checkout (só carrega React/Scripts no primeiro uso)
+            var checkoutScriptsRequested = false;
+            function loadCheckoutScripts() {
+                if (checkoutScriptsRequested) return;
+                checkoutScriptsRequested = true;
+                [
+                    { src: '/assets/vendor/react.production.min.js', key: 'react' },
+                    { src: '/assets/vendor/react-dom.production.min.js', key: 'react-dom' },
+                    { src: '/assets/js/checkout.app.js', key: 'checkoutapp' }
+                ].forEach(function(s) {
+                    var el = document.createElement('script');
+                    el.src = s.src; el.async = true;
+                    el.onerror = function() { if (window.__localLibFallback) window.__localLibFallback(s.key); };
+                    document.head.appendChild(el);
+                });
+            }
+
             // Abrir checkout via SPA
             window.spaOpenCheckout = function (targetHref) {
+                loadCheckoutScripts();
                 var wrapper = document.getElementById('spa-checkout-wrapper');
                 var container = document.querySelector('.container');
                 var bottomNav = document.querySelector('.bottom-nav');
@@ -3088,37 +3144,7 @@
 
                 document.title = 'Checkout - Fritadeira Elétrica Forno Oven 12L';
 
-                // Configura Tailwind com o MESMO config de c/index.html
-                if (typeof window.tailwind !== 'undefined') {
-                    window.tailwind = window.tailwind || {};
-                    window.tailwind.config = {
-                        theme: {
-                            extend: {
-                                fontFamily: { sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'] },
-                                colors: { clifford: '#da373d' },
-                                spacing: {
-                                    'safe-top': 'env(safe-area-inset-top)',
-                                    'safe-bottom': 'env(safe-area-inset-bottom)'
-                                },
-                                keyframes: {
-                                    fadeIn: {
-                                        '0%': { opacity: '0', transform: 'translateY(10px)' },
-                                        '100%': { opacity: '1', transform: 'translateY(0)' }
-                                    },
-                                    pulseUrgent: {
-                                        '0%, 100%': { opacity: '1' },
-                                        '50%': { opacity: '0.8' }
-                                    }
-                                },
-                                animation: {
-                                    'fade-in': 'fadeIn 0.5s ease-out forwards',
-                                    'pulse-urgent': 'pulseUrgent 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                                    'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite'
-                                }
-                            }
-                        }
-                    };
-                }
+                // CSS Tailwind já carregado via <link> estático — sem JIT runtime
 
                 // CRITICAL: Reset React flags para permitir nova montagem
                 window.checkoutInitialized = false;
@@ -3132,64 +3158,28 @@
                     oldRoot.parentNode.replaceChild(newRoot, oldRoot);
                 }
 
-                // Recarrega o Tailwind script para forçar re-scan do DOM inteiro
-                function reloadTailwindAfterReact() {
+                // CSS Tailwind estático já presente — apenas aguarda React renderizar
+                function waitReactAndReveal() {
                     var root = document.getElementById('checkout-root');
                     if (!root || root.innerHTML.length < 50) {
-                        setTimeout(reloadTailwindAfterReact, 150);
+                        setTimeout(waitReactAndReveal, 150);
                         return;
                     }
-                    console.log('[SPA] React renderizou. Recarregando Tailwind...');
-
-                    // Remove o style tag gerado pelo Tailwind antigo
-                    var oldStyles = document.querySelectorAll('style[data-made-with="tailwindcss"]');
-                    oldStyles.forEach(function (s) { s.remove(); });
-
-                    // Remove o script antigo do Tailwind
-                    var oldScripts = document.querySelectorAll('script[src*="tailwindcss"]');
-                    oldScripts.forEach(function (s) { s.remove(); });
-
-                    // Reseta o estado interno do Tailwind
-                    delete window.__tw_loaded;
-
-                    // Configura Tailwind config novamente
-                    window.tailwind = window.tailwind || {};
-                    window.tailwind.config = {
-                        theme: {
-                            extend: {
-                                fontFamily: { sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'] },
-                                colors: { clifford: '#da373d' }
-                            }
-                        }
-                    };
-
-                    // Carrega uma cópia nova do Tailwind
-                    var newScript = document.createElement('script');
-                    newScript.src = '/assets/vendor/tailwindcss.js?t=' + Date.now();
-                    var revealDone = false;
-                    var reveal = function () {
-                        if (revealDone) return;
-                        revealDone = true;
-                        setTimeout(setCheckoutReadyState, 60);
-                    };
-                    newScript.onload = reveal;
-                    newScript.onerror = reveal;
-                    setTimeout(reveal, 1200);
-                    document.head.appendChild(newScript);
+                    setTimeout(setCheckoutReadyState, 60);
                 }
 
                 // Inicia o React checkout
                 if (window.initReactCheckout) {
                     try {
                         window.initReactCheckout();
-                        setTimeout(reloadTailwindAfterReact, 300);
+                        setTimeout(waitReactAndReveal, 300);
                     } catch (err) { console.error('[SPA] Error:', err); }
                 } else {
                     var poll = setInterval(function () {
                         if (window.initReactCheckout) {
                             clearInterval(poll);
                             window.initReactCheckout();
-                            setTimeout(reloadTailwindAfterReact, 300);
+                            setTimeout(waitReactAndReveal, 300);
                         }
                     }, 100);
                 }
@@ -3249,7 +3239,7 @@
                 var tries = [];
                 if (which === 'react') tries = ['assets/vendor/react.production.min.js', 'https://unpkg.com/react@18/umd/react.production.min.js'];
                 if (which === 'react-dom') tries = ['assets/vendor/react-dom.production.min.js', 'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js'];
-                if (which.indexOf('tailwind') === 0) tries = ['assets/vendor/tailwindcss.js', 'https://cdn.tailwindcss.com'];
+                // Tailwind agora é CSS estático — sem fallback necessário
                 if (which === 'checkoutapp') tries = ['assets/js/checkout.app.js?v=' + Date.now()];
 
                 var src = tries[Math.min(n - 1, tries.length - 1)];
@@ -3263,42 +3253,8 @@
             } catch (e) { }
         };
     </script>
-    <script defer onerror="window.__localLibFallback('react')" src="assets/vendor/react.production.min.js"></script>
-    <script defer onerror="window.__localLibFallback('react-dom')"
-        src="assets/vendor/react-dom.production.min.js"></script>
-    <script>
-        // Tailwind config DEVE ser definido ANTES do tailwindcss.js carregar
-        window.tailwind = window.tailwind || {};
-        window.tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'] },
-                    colors: { clifford: '#da373d' },
-                    spacing: {
-                        'safe-top': 'env(safe-area-inset-top)',
-                        'safe-bottom': 'env(safe-area-inset-bottom)',
-                    },
-                    keyframes: {
-                        fadeIn: {
-                            '0%': { opacity: '0', transform: 'translateY(10px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        },
-                        pulseUrgent: {
-                            '0%, 100%': { opacity: '1' },
-                            '50%': { opacity: '0.8' },
-                        }
-                    },
-                    animation: {
-                        'fade-in': 'fadeIn 0.5s ease-out forwards',
-                        'pulse-urgent': 'pulseUrgent 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                    }
-                }
-            }
-        };
-    </script>
-    <script defer onerror="window.__localLibFallback('tailwind-local')" src="assets/vendor/tailwindcss.js"></script>
-    <script defer onerror="window.__localLibFallback('checkoutapp')" src="assets/js/checkout.app.js"></script>
+    <!-- Checkout scripts carregados on-demand via loadCheckoutScripts() -->
+    <link rel="stylesheet" href="/assets/css/tailwind.min.css" />
 </body>
 
 </html>
