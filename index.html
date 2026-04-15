@@ -123,7 +123,7 @@
         })();
     </script>
     <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content"
         name="viewport" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -2758,6 +2758,87 @@
                     if (keyboardDetectionStarted) return;
                     keyboardDetectionStarted = true;
                     var INITIAL_H = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                    var activeCheckoutField = null;
+                    var focusScrollTimers = [];
+                    function isCheckoutTextField(target) {
+                        if (!target || !target.tagName) return false;
+                        var tag = String(target.tagName).toUpperCase();
+                        if (tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT') return false;
+                        if (target.type && String(target.type).toLowerCase() === 'hidden') return false;
+                        return !!(target.closest && target.closest('#checkout-root, #spa-checkout-wrapper'));
+                    }
+                    function clearFocusScrollTimers() {
+                        while (focusScrollTimers.length) clearTimeout(focusScrollTimers.pop());
+                    }
+                    function getCheckoutHeaderOffset() {
+                        var header = document.querySelector('#checkout-root .static-nav, #spa-checkout-wrapper .static-nav');
+                        return header ? Math.max(76, header.getBoundingClientRect().height + 20) : 76;
+                    }
+                    function getCheckoutScrollContainer(field) {
+                        var wrapper = field && field.closest ? field.closest('#spa-checkout-wrapper') : null;
+                        if (wrapper && window.getComputedStyle(wrapper).display !== 'none') return wrapper;
+                        return document.scrollingElement || document.documentElement || document.body;
+                    }
+                    function scrollCheckoutBy(container, delta) {
+                        if (!container || container === document.documentElement || container === document.body || container === document.scrollingElement) {
+                            window.scrollBy({ top: delta, left: 0, behavior: 'auto' });
+                        } else {
+                            container.scrollTop += delta;
+                        }
+                    }
+                    function getNextCheckoutField(field) {
+                        var fields = Array.prototype.slice.call(document.querySelectorAll('#checkout-root input, #checkout-root textarea, #checkout-root select, #spa-checkout-wrapper input, #spa-checkout-wrapper textarea, #spa-checkout-wrapper select'));
+                        fields = fields.filter(function (item) {
+                            if (!isCheckoutTextField(item) || item.disabled) return false;
+                            var rect = item.getBoundingClientRect();
+                            return rect.width > 0 && rect.height > 0;
+                        });
+                        var index = fields.indexOf(field);
+                        return index >= 0 && index + 1 < fields.length ? fields[index + 1] : null;
+                    }
+                    function getEffectiveViewportBottom(viewportHeight, containerBottom) {
+                        var layoutHeight = window.innerHeight || document.documentElement.clientHeight || viewportHeight;
+                        var resizedForKeyboard = (INITIAL_H - viewportHeight > 120) || (INITIAL_H - layoutHeight > 120);
+                        var keyboardLikelyOverlaying = !!activeCheckoutField && !resizedForKeyboard;
+                        var estimatedKeyboardInset = keyboardLikelyOverlaying ? Math.max(260, Math.min(380, layoutHeight * 0.42)) : 0;
+                        return Math.min(viewportHeight, containerBottom, layoutHeight - estimatedKeyboardInset);
+                    }
+                    function ensureCheckoutFieldVisible(field) {
+                        if (!field || !document.contains(field) || !isCheckoutTextField(field)) return;
+                        var scrollContainer = getCheckoutScrollContainer(field);
+                        requestAnimationFrame(function () {
+                            if (!field || !document.contains(field)) return;
+                            var vv = window.visualViewport;
+                            var viewportHeight = vv ? vv.height : window.innerHeight;
+                            var containerRect = scrollContainer && scrollContainer.getBoundingClientRect && scrollContainer !== document.documentElement && scrollContainer !== document.body && scrollContainer !== document.scrollingElement
+                                ? scrollContainer.getBoundingClientRect()
+                                : { top: 0, bottom: viewportHeight };
+                            var rect = field.getBoundingClientRect();
+                            var nextField = getNextCheckoutField(field);
+                            var nextRect = nextField ? nextField.getBoundingClientRect() : null;
+                            var topGuard = Math.max(containerRect.top + 20, getCheckoutHeaderOffset());
+                            var visibleBottom = Math.max(topGuard + 150, getEffectiveViewportBottom(viewportHeight, containerRect.bottom) - 28);
+                            var nextReserve = nextRect ? Math.min(240, Math.max(150, nextRect.bottom - rect.top + 18)) : 150;
+                            var desiredTop = Math.max(topGuard + 6, Math.min(visibleBottom - nextReserve, viewportHeight * 0.31));
+                            var delta = 0;
+                            if (nextRect && nextRect.bottom > visibleBottom) delta = Math.max(delta, nextRect.bottom - visibleBottom);
+                            if (rect.bottom > visibleBottom) delta = Math.max(delta, rect.bottom - visibleBottom + 12);
+                            if (rect.top > desiredTop + 18) delta = Math.max(delta, rect.top - desiredTop);
+                            else if (rect.top < topGuard) delta = rect.top - topGuard;
+                            if (Math.abs(delta) > 18) scrollCheckoutBy(scrollContainer, delta);
+                        });
+                    }
+                    function scheduleCheckoutFieldScroll(field) {
+                        if (!isCheckoutTextField(field)) return;
+                        activeCheckoutField = field;
+                        document.body.classList.add('keyboard-open');
+                        clearFocusScrollTimers();
+                        [120, 380, 760].forEach(function (delay) {
+                            focusScrollTimers.push(setTimeout(function () {
+                                if (activeCheckoutField === field) ensureCheckoutFieldVisible(field);
+                            }, delay));
+                        });
+                    }
                     if (typeof window.visualViewport !== 'undefined') {
                         var vv = window.visualViewport;
                         vv.addEventListener('resize', function () {
@@ -2771,8 +2852,43 @@
                                 document.body.classList.remove('keyboard-open');
                                 document.documentElement.style.setProperty('--keyboard-height', '0px');
                             }
+                            if (activeCheckoutField) {
+                                ensureCheckoutFieldVisible(activeCheckoutField);
+                            }
                         });
                     }
+                    window.addEventListener('resize', function () {
+                        if (typeof window.visualViewport !== 'undefined') return;
+                        var ch = window.innerHeight;
+                        if (ch > INITIAL_H) INITIAL_H = ch;
+                        var d = INITIAL_H - ch;
+                        if (d > 150) document.body.classList.add('keyboard-open');
+                        else document.body.classList.remove('keyboard-open');
+                        if (activeCheckoutField) {
+                            ensureCheckoutFieldVisible(activeCheckoutField);
+                        }
+                    });
+                    document.addEventListener('focusin', function (e) {
+                        if (isCheckoutTextField(e.target)) scheduleCheckoutFieldScroll(e.target);
+                    }, true);
+                    document.addEventListener('focusout', function (e) {
+                        if (!isCheckoutTextField(e.target)) return;
+                        setTimeout(function () {
+                            if (!isCheckoutTextField(document.activeElement)) {
+                                activeCheckoutField = null;
+                                clearFocusScrollTimers();
+                                document.body.classList.remove('keyboard-open');
+                            }
+                        }, 180);
+                    }, true);
+                    window.addEventListener('orientationchange', function () {
+                        setTimeout(function () {
+                            INITIAL_H = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                            if (activeCheckoutField) {
+                                ensureCheckoutFieldVisible(activeCheckoutField);
+                            }
+                        }, 250);
+                    });
                 };
             }
 

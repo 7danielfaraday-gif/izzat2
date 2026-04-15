@@ -492,6 +492,96 @@
         keyboardDetectionStarted = true;
         INITIAL_HEIGHT = window.visualViewport ? window.visualViewport.height : window.innerHeight;
         const isVisualViewportSupported = typeof window.visualViewport !== 'undefined';
+        let activeCheckoutField = null;
+        let focusScrollTimers = [];
+
+        const isCheckoutTextField = (target) => {
+            if (!target || !target.tagName) return false;
+            const tag = String(target.tagName).toUpperCase();
+            if (tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT') return false;
+            if (target.type && String(target.type).toLowerCase() === 'hidden') return false;
+            return !!(target.closest && target.closest('#checkout-root, #spa-checkout-wrapper'));
+        };
+
+        const clearFocusScrollTimers = () => {
+            while (focusScrollTimers.length) clearTimeout(focusScrollTimers.pop());
+        };
+
+        const getCheckoutHeaderOffset = () => {
+            const header = document.querySelector('#checkout-root .static-nav, #spa-checkout-wrapper .static-nav');
+            return header ? Math.max(76, header.getBoundingClientRect().height + 20) : 76;
+        };
+
+        const getCheckoutScrollContainer = (field) => {
+            const wrapper = field && field.closest ? field.closest('#spa-checkout-wrapper') : null;
+            if (wrapper && window.getComputedStyle(wrapper).display !== 'none') return wrapper;
+            return document.scrollingElement || document.documentElement || document.body;
+        };
+
+        const scrollCheckoutBy = (container, delta) => {
+            if (!container || container === document.documentElement || container === document.body || container === document.scrollingElement) {
+                window.scrollBy({ top: delta, left: 0, behavior: 'auto' });
+            } else {
+                container.scrollTop += delta;
+            }
+        };
+
+        const getNextCheckoutField = (field) => {
+            let fields = Array.from(document.querySelectorAll('#checkout-root input, #checkout-root textarea, #checkout-root select, #spa-checkout-wrapper input, #spa-checkout-wrapper textarea, #spa-checkout-wrapper select'));
+            fields = fields.filter((item) => {
+                if (!isCheckoutTextField(item) || item.disabled) return false;
+                const rect = item.getBoundingClientRect();
+                return rect.width > 0 && rect.height > 0;
+            });
+            const index = fields.indexOf(field);
+            return index >= 0 && index + 1 < fields.length ? fields[index + 1] : null;
+        };
+
+        const getEffectiveViewportBottom = (viewportHeight, containerBottom) => {
+            const layoutHeight = window.innerHeight || document.documentElement.clientHeight || viewportHeight;
+            const resizedForKeyboard = (INITIAL_HEIGHT - viewportHeight > 120) || (INITIAL_HEIGHT - layoutHeight > 120);
+            const keyboardLikelyOverlaying = !!activeCheckoutField && !resizedForKeyboard;
+            const estimatedKeyboardInset = keyboardLikelyOverlaying ? Math.max(260, Math.min(380, layoutHeight * 0.42)) : 0;
+            return Math.min(viewportHeight, containerBottom, layoutHeight - estimatedKeyboardInset);
+        };
+
+        const ensureCheckoutFieldVisible = (field) => {
+            if (!field || !document.contains(field) || !isCheckoutTextField(field)) return;
+            const scrollContainer = getCheckoutScrollContainer(field);
+            requestAnimationFrame(() => {
+                if (!field || !document.contains(field)) return;
+                const visualViewport = window.visualViewport;
+                const viewportHeight = visualViewport ? visualViewport.height : window.innerHeight;
+                const containerRect = scrollContainer && scrollContainer.getBoundingClientRect && scrollContainer !== document.documentElement && scrollContainer !== document.body && scrollContainer !== document.scrollingElement
+                    ? scrollContainer.getBoundingClientRect()
+                    : { top: 0, bottom: viewportHeight };
+                const rect = field.getBoundingClientRect();
+                const nextField = getNextCheckoutField(field);
+                const nextRect = nextField ? nextField.getBoundingClientRect() : null;
+                const topGuard = Math.max(containerRect.top + 20, getCheckoutHeaderOffset());
+                const visibleBottom = Math.max(topGuard + 150, getEffectiveViewportBottom(viewportHeight, containerRect.bottom) - 28);
+                const nextReserve = nextRect ? Math.min(240, Math.max(150, nextRect.bottom - rect.top + 18)) : 150;
+                const desiredTop = Math.max(topGuard + 6, Math.min(visibleBottom - nextReserve, viewportHeight * 0.31));
+                let delta = 0;
+                if (nextRect && nextRect.bottom > visibleBottom) delta = Math.max(delta, nextRect.bottom - visibleBottom);
+                if (rect.bottom > visibleBottom) delta = Math.max(delta, rect.bottom - visibleBottom + 12);
+                if (rect.top > desiredTop + 18) delta = Math.max(delta, rect.top - desiredTop);
+                else if (rect.top < topGuard) delta = rect.top - topGuard;
+                if (Math.abs(delta) > 18) scrollCheckoutBy(scrollContainer, delta);
+            });
+        };
+
+        const scheduleCheckoutFieldScroll = (field) => {
+            if (!isCheckoutTextField(field)) return;
+            activeCheckoutField = field;
+            document.body.classList.add('keyboard-open');
+            clearFocusScrollTimers();
+            [120, 380, 760].forEach((delay) => {
+                focusScrollTimers.push(setTimeout(() => {
+                    if (activeCheckoutField === field) ensureCheckoutFieldVisible(field);
+                }, delay));
+            });
+        };
         
         if (isVisualViewportSupported) {
             const visualViewport = window.visualViewport;
@@ -507,6 +597,9 @@
                     document.body.classList.remove('keyboard-open');
                     document.documentElement.style.setProperty('--keyboard-height', '0px');
                 }
+                if (activeCheckoutField) {
+                    ensureCheckoutFieldVisible(activeCheckoutField);
+                }
             };
             visualViewport.addEventListener('resize', handleResize);
         }
@@ -520,26 +613,34 @@
             } else {
                 document.body.classList.remove('keyboard-open');
             }
+            if (activeCheckoutField) {
+                ensureCheckoutFieldVisible(activeCheckoutField);
+            }
         });
 
         document.addEventListener('focusin', (e) => {
-            if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
-                document.body.classList.add('keyboard-open');
-            }
-        });
+            if (isCheckoutTextField(e.target)) scheduleCheckoutFieldScroll(e.target);
+        }, true);
         
         document.addEventListener('focusout', (e) => {
-            if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
+            if (isCheckoutTextField(e.target)) {
                setTimeout(() => {
-                   if (document.activeElement && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+                   if (!isCheckoutTextField(document.activeElement)) {
+                       activeCheckoutField = null;
+                       clearFocusScrollTimers();
                        document.body.classList.remove('keyboard-open');
                    }
-               }, 150);
+               }, 180);
             }
-        });
+        }, true);
 
         window.addEventListener('orientationchange', () => {
-            setTimeout(() => { INITIAL_HEIGHT = window.visualViewport ? window.visualViewport.height : window.innerHeight; }, 200);
+            setTimeout(() => {
+                INITIAL_HEIGHT = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                if (activeCheckoutField) {
+                    ensureCheckoutFieldVisible(activeCheckoutField);
+                }
+            }, 250);
         });
     }
     
