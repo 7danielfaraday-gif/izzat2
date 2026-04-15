@@ -202,7 +202,7 @@ export async function onRequestPost(context) {
 
     // Metadados server-side (mais confiáveis que o browser)
     const ip        = context.request.headers.get('cf-connecting-ip')
-                   || (function(h){ return h ? h.split(',')[0].trim() : undefined; })(context.request.headers.get('x-forwarded-for'))
+                   || context.request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
                    || undefined;
     const userAgent = context.request.headers.get('user-agent') || undefined;
 

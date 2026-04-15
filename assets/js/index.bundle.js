@@ -1,4 +1,4 @@
-// ==================================================
+﻿// ==================================================
     // 1. TRACKING ZARAZ + TIKTOK TURBO (BEACON + FINGERPRINT)
     // ==================================================
     
@@ -7,10 +7,10 @@
         contents: [{ content_id: 'AFON-12L-BI', id: 'AFON-12L-BI', quantity: 1, price: 197.99, item_price: 197.99 }],
         content_id: 'AFON-12L-BI',
         content_ids: ['AFON-12L-BI'],
-        content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial',
-        description: 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI',
+        content_name: 'Fritadeira ElÃ©trica Forno Oven 12L Mondial',
+        description: 'Fritadeira ElÃ©trica Forno Oven 12L Mondial AFON-12L-BI',
         content_type: 'product',
-        category: 'Eletroportáteis',
+        category: 'EletroportÃ¡teis',
         quantity: 1,
         price: 197.99,
         value: 197.99,
@@ -289,11 +289,12 @@
         const baseCheckoutPath = '/c/';
         window.__buyNowJsReady = true;
 
-        // Progressive enhancement: mantém href real como fallback
+        // Modo 100% SPA: nunca redireciona por href.
+        btn.href = 'javascript:void(0)';
+
+        // MantÃ©m a URL de checkout com parÃ¢metros em data-attribute.
         try {
-            var checkoutUrl = window.buildCheckoutUrl(baseCheckoutPath);
-            btn.href = checkoutUrl;
-            btn.dataset.checkoutTarget = checkoutUrl;
+            btn.dataset.checkoutTarget = window.buildCheckoutUrl(baseCheckoutPath);
         } catch (e) {}
 
         // Setup SPA Checkout instead of redirecting
@@ -532,9 +533,8 @@
         const color = swatch.dataset.color;
         
         if (variantLinks[color]) {
-          var variantUrl = window.buildCheckoutUrl ? window.buildCheckoutUrl(variantLinks[color]) : variantLinks[color];
-          buyBtn.href = variantUrl;
-          buyBtn.dataset.checkoutTarget = variantUrl;
+          buyBtn.href = "javascript:void(0)";
+          buyBtn.dataset.checkoutTarget = window.buildCheckoutUrl ? window.buildCheckoutUrl(variantLinks[color]) : variantLinks[color];
           buyBtn.removeAttribute('onclick');
         }
         
@@ -548,9 +548,8 @@
     if (defaultSwatch) {
         defaultSwatch.classList.add('selected');
         if (variantLinks[currentVariant]) {
-            var defaultUrl = window.buildCheckoutUrl ? window.buildCheckoutUrl(variantLinks[currentVariant]) : variantLinks[currentVariant];
-            buyBtn.href = defaultUrl;
-            buyBtn.dataset.checkoutTarget = defaultUrl;
+            buyBtn.href = "javascript:void(0)";
+            buyBtn.dataset.checkoutTarget = window.buildCheckoutUrl ? window.buildCheckoutUrl(variantLinks[currentVariant]) : variantLinks[currentVariant];
             buyBtn.removeAttribute('onclick');
         }
     }
@@ -604,7 +603,7 @@
     // Pop-up de Vendas
     const buyers = [
         { name: "Fernanda Maia", city: "Rio de Janeiro, RJ", img: "/assets/img/foto1.webp" },
-        { name: "Bruna Lima", city: "São Paulo, SP", img: "/assets/img/foto2.webp" },
+        { name: "Bruna Lima", city: "SÃ£o Paulo, SP", img: "/assets/img/foto2.webp" },
         { name: "Marilia Lima", city: "Belo Horizonte, MG", img: "/assets/img/foto3.webp" },
         { name: "Karina Andrade", city: "Curitiba, PR", img: "/assets/img/foto4.webp" },
         { name: "Bruna Silva", city: "Salvador, BA", img: "/assets/img/foto5.webp" },
@@ -615,7 +614,7 @@
     const actions = [
         "Comprou agora mesmo",
         "Acabou de comprar",
-        "Comprou há 2 minutos",
+        "Comprou hÃ¡ 2 minutos",
         "Garantiu a oferta",
         "Comprou 2 unidades"
     ];

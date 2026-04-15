@@ -1,9 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./assets/js/checkout.app.js",
-    "./c/index.html",
-    "./index.html"
+    "./assets/js/checkout.app.js"
   ],
   theme: {
     extend: {
