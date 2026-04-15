@@ -402,7 +402,7 @@
                 var payload = Object.assign({}, finalData, window.getStoredUTMs(), {
                     external_id: window.getExternalId(),
                     ttclid: window.getTTCLID(),
-                    event_source_url: getTikTokEventSourceUrl(),
+                    event_source_url: finalData.event_source_url || getTikTokEventSourceUrl(),
                     event_time: Math.floor(Date.now() / 1000)
                 });
 

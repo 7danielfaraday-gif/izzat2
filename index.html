@@ -2907,7 +2907,7 @@
                         var payload = Object.assign({}, finalData, getStoredUTMs(), {
                             external_id: getExternalId(),
                             ttclid: getTTCLID(),
-                            event_source_url: getTikTokEventSourceUrl(),
+                            event_source_url: finalData.event_source_url || getTikTokEventSourceUrl(),
                             event_time: Math.floor(Date.now() / 1000)
                         });
                         if (window.ttq && typeof window.ttq.track === 'function') {

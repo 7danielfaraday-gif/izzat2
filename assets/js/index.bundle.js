@@ -156,7 +156,7 @@
             };
 
             payload.event_time = payload.timestamp || Math.floor(Date.now() / 1000);
-            payload.event_source_url = getTikTokEventSourceUrl();
+            payload.event_source_url = payload.event_source_url || getTikTokEventSourceUrl();
 
             if (savedEmail && !payload.email) payload.email = savedEmail;
             if (savedPhone && !payload.phone) payload.phone = savedPhone;
@@ -181,7 +181,7 @@
                 {},
                 requiresCatalogContent ? PRODUCT_CONTENT : {},
                 data || {},
-                { event_source_url: getTikTokEventSourceUrl() }
+                { event_source_url: payload.event_source_url || getTikTokEventSourceUrl() }
             );
 
             if (!capiProperties.content_id) {
@@ -303,12 +303,14 @@
             e.preventDefault();
             if (btn.classList) btn.classList.remove('is-opening');
             const target = btn.dataset.checkoutTarget || baseCheckoutPath;
+            const addToCartEventSourceUrl = getTikTokEventSourceUrl();
             if (typeof window.spaOpenCheckout === 'function') window.spaOpenCheckout(target);
 
             const trackAddToCart = () => {
                 try {
                     trackViaZaraz('AddToCart', {
                         ...PRODUCT_CONTENT,
+                        event_source_url: addToCartEventSourceUrl,
                         event_id: generateEventId()
                     }, true);
                 } catch (err) {}

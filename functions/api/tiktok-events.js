@@ -223,8 +223,8 @@ export async function onRequestPost(context) {
         ...(!hasText(properties.content_id) && fallbackContentId ? { content_id: fallbackContentId } : {}),
         ...(!hasText(properties.content_category) && fallbackContentCategory ? { content_category: fallbackContentCategory } : {}),
         event_source_url: normalizeEventSourceUrl(
-          context.request.headers.get('referer') ||
           properties.event_source_url ||
+          context.request.headers.get('referer') ||
           undefined
         ),
       },
