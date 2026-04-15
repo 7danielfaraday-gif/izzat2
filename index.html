@@ -11,8 +11,26 @@
             window.__buyNowJsReady = false;
             window.__pendingCheckoutClick = false;
             window.__pendingCheckoutTarget = '/c/';
+            window.__checkoutOpenScheduled = false;
             window.__checkoutEntrySource = /^\/c(?:\/|$)/i.test(window.location.pathname) ? 'direct' : 'lp';
             window.__currentCheckoutOpenToken = null;
+            window.__scheduleCheckoutOpen = window.__scheduleCheckoutOpen || function (target) {
+                if (window.__checkoutOpenScheduled) return;
+                window.__checkoutOpenScheduled = true;
+                var open = function () {
+                    window.__checkoutOpenScheduled = false;
+                    if (typeof window.spaOpenCheckout === 'function') {
+                        window.__pendingCheckoutClick = false;
+                        window.spaOpenCheckout(target || window.__pendingCheckoutTarget || '/c/');
+                    }
+                };
+                var afterPaint = function () { setTimeout(open, 0); };
+                if (typeof window.requestAnimationFrame === 'function') {
+                    window.requestAnimationFrame(afterPaint);
+                } else {
+                    setTimeout(open, 0);
+                }
+            };
             window.__prepareLabSession = window.__prepareLabSession || function () {
                 if (!window.__LAB_MODE || window.__labPrepared) return;
                 window.__labPrepared = true;
@@ -93,11 +111,11 @@
                     window.__pendingCheckoutClick = true;
 
                     if (btn && btn.classList) btn.classList.add('is-opening');
+                    if (btn && typeof btn.setAttribute === 'function') btn.setAttribute('aria-busy', 'true');
 
-                    // Se a SPA já estiver disponível, abre imediatamente.
+                    // Se a SPA já estiver disponível, abre após o primeiro paint do feedback visual.
                     if (typeof window.spaOpenCheckout === 'function') {
-                        window.__pendingCheckoutClick = false;
-                        window.spaOpenCheckout(target);
+                        window.__scheduleCheckoutOpen(target);
                     }
                 } catch (e) { }
                 return false;
@@ -126,7 +144,11 @@
     <meta content="index, follow" name="robots" />
     <meta content="upgrade-insecure-requests; block-all-mixed-content;" http-equiv="Content-Security-Policy" />
     <title>Izzat Eletro - Fritadeira Elétrica Forno Oven 12L Mondial</title>
-    <link as="image" href="/assets/img/01.webp" rel="preload" />
+    <link as="image" href="/assets/img/01.webp" rel="preload" type="image/webp" fetchpriority="high" />
+    <link rel="preload" as="script" href="/assets/vendor/react.production.min.js" />
+    <link rel="preload" as="script" href="/assets/vendor/react-dom.production.min.js" />
+    <link rel="preload" as="script" href="/assets/js/checkout.app.js" />
+    <link rel="prefetch" as="script" href="/assets/vendor/tailwindcss.js" />
     <noscript></noscript>
     <script>
         if (!window.__TEST_MODE && !window.__LAB_MODE) {
@@ -830,7 +852,7 @@
             font-size: 13px;
             font-weight: 600;
             text-align: center;
-            transition: all 0.2s
+            transition: transform 0.12s ease, opacity 0.12s ease, filter 0.12s ease, background-color 0.12s ease
         }
 
         .buy-btn.disabled {
@@ -843,9 +865,12 @@
         }
 
         .buy-btn.is-opening {
-            opacity: 0.92;
-            filter: saturate(0.9);
+            opacity: 0.96;
+            filter: saturate(0.95);
             cursor: progress;
+            background: #e02045;
+            box-shadow: inset 0 0 0 999px rgba(0, 0, 0, 0.06);
+            transform: scale(0.98);
         }
 
         @keyframes slideUp {
@@ -2869,6 +2894,7 @@
                     await fetch('/api/tiktok-events', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
+                        keepalive: true,
                         body: JSON.stringify({ event: event, event_id: eventId, properties: properties, user: user })
                     });
                 } catch (e) { }
@@ -2985,12 +3011,15 @@
                 var wrapper = document.getElementById('spa-checkout-wrapper');
                 var sk = document.getElementById('skeleton-loader');
                 var root = document.getElementById('checkout-root');
+                var buyNow = document.getElementById('buy-now');
                 if (!wrapper) return;
 
                 clearCheckoutOpenTimers();
                 wrapper.setAttribute('data-state', 'ready');
                 if (sk) sk.style.display = 'none';
                 if (root) { root.style.visibility = 'visible'; root.style.opacity = '1'; root.style.pointerEvents = 'auto'; }
+                if (buyNow && buyNow.classList) buyNow.classList.remove('is-opening');
+                if (buyNow && typeof buyNow.removeAttribute === 'function') buyNow.removeAttribute('aria-busy');
             }
 
             function watchCheckoutRender(timeoutMs) {
@@ -3024,11 +3053,14 @@
                 var buyNow = document.getElementById('buy-now');
 
                 clearCheckoutOpenTimers();
+                window.__checkoutOpenScheduled = false;
+                window.__pendingCheckoutClick = false;
                 if (wrapper) {
                     wrapper.style.display = 'none';
                     wrapper.setAttribute('data-state', 'idle');
                 }
                 if (buyNow && buyNow.classList) buyNow.classList.remove('is-opening');
+                if (buyNow && typeof buyNow.removeAttribute === 'function') buyNow.removeAttribute('aria-busy');
                 if (container) container.style.display = '';
                 if (bottomNav) bottomNav.style.display = '';
                 document.body.style.overflow = '';
@@ -3062,9 +3094,12 @@
 
                 window.__checkoutEntrySource = isDirectEntry ? 'direct' : 'lp';
                 window.__currentCheckoutOpenToken = 'checkout_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+                window.__checkoutOpenScheduled = false;
+                window.__pendingCheckoutClick = false;
 
                 setCheckoutOpeningState();
                 if (buyNow && buyNow.classList) buyNow.classList.remove('is-opening');
+                if (buyNow && typeof buyNow.removeAttribute === 'function') buyNow.removeAttribute('aria-busy');
 
                 // Esconde a LP
                 if (container) container.style.display = 'none';
@@ -3166,7 +3201,7 @@
 
                     // Carrega uma cópia nova do Tailwind
                     var newScript = document.createElement('script');
-                    newScript.src = '/assets/vendor/tailwindcss.js?t=' + Date.now();
+                    newScript.src = '/assets/vendor/tailwindcss.js';
                     var revealDone = false;
                     var reveal = function () {
                         if (revealDone) return;
@@ -3212,8 +3247,12 @@
             // Deep link: se a URL já é /c/, abre checkout automaticamente
             if (window.__pendingCheckoutClick) {
                 try {
-                    window.__pendingCheckoutClick = false;
-                    window.spaOpenCheckout(window.__pendingCheckoutTarget || '/c/');
+                    if (typeof window.__scheduleCheckoutOpen === 'function') {
+                        window.__scheduleCheckoutOpen(window.__pendingCheckoutTarget || '/c/');
+                    } else {
+                        window.__pendingCheckoutClick = false;
+                        window.spaOpenCheckout(window.__pendingCheckoutTarget || '/c/');
+                    }
                 } catch (e) { }
             }
 

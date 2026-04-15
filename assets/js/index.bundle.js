@@ -132,6 +132,7 @@
             await fetch('/api/tiktok-events', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                keepalive: true,
                 body: JSON.stringify({ event: event, event_id: eventId, properties: properties, user: user })
             });
         } catch(e) {}
@@ -301,10 +302,22 @@
         // Setup SPA Checkout instead of redirecting
         btn.addEventListener('click', (e) => {
             e.preventDefault();
-            if (btn.classList) btn.classList.remove('is-opening');
+            if (btn.classList) btn.classList.add('is-opening');
+            if (typeof btn.setAttribute === 'function') btn.setAttribute('aria-busy', 'true');
             const target = btn.dataset.checkoutTarget || baseCheckoutPath;
             const addToCartEventSourceUrl = getTikTokEventSourceUrl();
-            if (typeof window.spaOpenCheckout === 'function') window.spaOpenCheckout(target);
+            window.__pendingCheckoutTarget = target;
+            window.__pendingCheckoutClick = true;
+            if (typeof window.__scheduleCheckoutOpen === 'function') {
+                window.__scheduleCheckoutOpen(target);
+            } else if (typeof window.spaOpenCheckout === 'function') {
+                const openAfterPaint = () => setTimeout(() => window.spaOpenCheckout(target), 0);
+                if (typeof window.requestAnimationFrame === 'function') {
+                    window.requestAnimationFrame(openAfterPaint);
+                } else {
+                    setTimeout(openAfterPaint, 0);
+                }
+            }
 
             const trackAddToCart = () => {
                 try {
@@ -442,10 +455,14 @@
     
     // CORREÃ‡ÃƒO: Remover loader ao carregar imagem
     if (mainImage) {
-        mainImage.onload = function() {
+        const hideImageLoader = function() {
             const loader = document.getElementById('image-loading');
             if(loader) loader.style.display = 'none';
-        }
+        };
+        mainImage.onload = function() {
+            hideImageLoader();
+        };
+        if (mainImage.complete) hideImageLoader();
     }
 
     // FIX INP: OtimizaÃ§Ã£o do botÃ£o "Ver AvaliaÃ§Ãµes"
@@ -510,7 +527,8 @@
         // FIX INP: ManipulaÃ§Ã£o de DOM pesada movida para requestAnimationFrame
         requestAnimationFrame(() => {
           const imgName = padZero(currentImageIndex) + '.webp';
-          mainImage.src = '/assets/img/' + imgName;
+          const nextSrc = '/assets/img/' + imgName;
+          if (mainImage.getAttribute('src') !== nextSrc) mainImage.src = nextSrc;
           imageCounter.textContent = `${currentImageIndex}/${totalImages}`;
 
           imageDots.querySelectorAll('.dot').forEach((d, i) =>
