@@ -126,6 +126,8 @@ export async function onRequestPost(context) {
       cep: typeof body.cep === 'string' ? body.cep.trim() : '',
       address: typeof body.address === 'string' ? body.address.trim() : '',
       number: typeof body.number === 'string' ? body.number.trim() : '',
+      neighborhood: typeof body.neighborhood === 'string' ? body.neighborhood.trim() : '',
+      complement: typeof body.complement === 'string' ? body.complement.trim() : '',
       city: typeof body.city === 'string' ? body.city.trim() : '',
       value: typeof body.value === 'number' ? body.value : 197.99,
       status: 'pending',
@@ -143,6 +145,8 @@ export async function onRequestPost(context) {
       cep: order.cep,
       address: order.address,
       number: order.number,
+      neighborhood: order.neighborhood,
+      complement: order.complement,
       city: order.city,
       ip: context.request.headers.get('cf-connecting-ip') || '',
     });
@@ -224,7 +228,7 @@ export async function onRequestGet(context) {
         decrypted.push({
           id: order.id,
           name: '[erro ao descriptografar]',
-          email: '', phone: '', cpf: '', cep: '', address: '', number: '', city: '',
+          email: '', phone: '', cpf: '', cep: '', address: '', number: '', neighborhood: '', complement: '', city: '',
           value: order.value,
           status: order.status,
           created_at: order.created_at,

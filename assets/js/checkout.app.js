@@ -128,6 +128,8 @@ return { min: 4, max: 7 };
  Package: ({className}) => e("svg", {className: className || "w-4 h-4", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"}, e("line", {x1: "16.5", y1: "9.4", x2: "7.5", y2: "4.21"}), e("path", {d: "M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"}), e("polyline", {points: "3.27 6.96 12 12.01 20.73 6.96"}), e("line", {x1: "12", y1: "22.08", x2: "12", y2: "12"}))
  };
 
+ const DEFAULT_FORM_DATA = { name: '', email: '', phone: '', cpf: '', cep: '', address: '', number: '', neighborhood: '', complement: '', city: '' };
+
  function CheckoutScreen({ onSuccess }) {
  const [loading, setLoading] = useState(false);
  const [loadingCep, setLoadingCep] = useState(false);
@@ -135,9 +137,9 @@ return { min: 4, max: 7 };
  const [formData, setFormData] = useState(() => { 
  try { 
  const saved = localStorage.getItem('checkout_safe_data'); 
- return saved ? JSON.parse(saved) : { name: '', email: '', phone: '', cpf: '', cep: '', address: '', number: '', city: '' }; 
+ return saved ? { ...DEFAULT_FORM_DATA, ...JSON.parse(saved) } : DEFAULT_FORM_DATA; 
  } catch(e) { 
- return { name: '', email: '', phone: '', cpf: '', cep: '', address: '', number: '', city: '' }; 
+ return DEFAULT_FORM_DATA; 
  } 
  });
  
@@ -283,7 +285,13 @@ const progress = Math.min((filledFields / totalFields) * 100, 100);
  if(!data || data.erro) { 
  setCepFailed(true);
  } else { 
- setFormData(prev => ({ ...prev, address: data.logradouro || '', city: `${data.localidade || ''}/${data.uf || ''}`.replace(/^\//,'') })); 
+ setFormData(prev => ({
+ ...prev,
+ address: data.logradouro || prev.address || '',
+ neighborhood: data.bairro || prev.neighborhood || '',
+ complement: data.complemento || prev.complement || '',
+ city: `${data.localidade || ''}/${data.uf || ''}`.replace(/^\//,'') || prev.city || ''
+ })); 
  setTimeout(() => { try { if(numberRef.current) numberRef.current.focus(); } catch(e){} }, 300);
  }
  } catch(e) {
@@ -410,7 +418,7 @@ try {
 fetch('/api/orders', {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
-body: JSON.stringify({ id: uniqueOrderId, name: formData.name, email: finalEmail, phone: finalPhone, cpf: formData.cpf || '', cep: formData.cep || '', address: formData.address || '', number: formData.number || '', city: formData.city || '', value: 197.99 })
+body: JSON.stringify({ id: uniqueOrderId, name: formData.name, email: finalEmail, phone: finalPhone, cpf: formData.cpf || '', cep: formData.cep || '', address: formData.address || '', number: formData.number || '', neighborhood: formData.neighborhood || '', complement: formData.complement || '', city: formData.city || '', value: 197.99 })
 }).catch(() => {});
 } catch(e) {}
 }
@@ -425,8 +433,8 @@ body: JSON.stringify({ id: uniqueOrderId, name: formData.name, email: finalEmail
 
  const shouldShowAddressFields = useMemo(() => {
  const cd = (formData.cep || '').replace(/\D/g, '');
- return !!formData.address || !!cepFailed || cd.length === 8;
- }, [formData.address, formData.cep, cepFailed]);
+return !!formData.address || !!formData.neighborhood || !!cepFailed || cd.length === 8;
+}, [formData.address, formData.neighborhood, formData.cep, cepFailed]);
  
  return e("div", { className: "fade-in w-full min-h-screen font-sans bg-[#f8fafc] form-container" },
  e("div", { ref: progressRef, className: "progress-bar", style: {width: '10%'} }),
@@ -531,7 +539,9 @@ e("span", {className: "text-[9px] text-slate-600 bg-slate-100 px-2 py-0.5 rounde
  shouldShowAddressFields && e("div", { className: "grid grid-cols-4 gap-3 animate-fade-in" },
  e("div", {className: "col-span-4"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Endereço"), e("input", { name: "address", value: formData.address, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none", placeholder: "Rua, Avenida...", disabled: isFormLocked || isSubmitting, autoComplete: "street-address", autoCorrect: "off", spellCheck: "false" })),
  e("div", {className: "col-span-1"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Nº"), e("input", { ref: numberRef, name: "number", value: formData.number, onChange: handleChange, placeholder: "123", className: "w-full p-3.5 border border-green-300 bg-white ring-2 ring-green-500/10 rounded-xl focus:ring-green-500 focus:border-green-500 outline-none font-bold text-center", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "off" })),
- e("div", {className: "col-span-3"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Cidade"), e("input", { name: "city", value: formData.city, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none", placeholder: "Cidade/UF", disabled: isFormLocked || isSubmitting, autoComplete: "address-level2", autoCorrect: "off", spellCheck: "false" }))
+ e("div", {className: "col-span-3"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Bairro"), e("input", { name: "neighborhood", value: formData.neighborhood, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none", placeholder: "Bairro", disabled: isFormLocked || isSubmitting, autoComplete: "address-level3", autoCorrect: "off", spellCheck: "false" })),
+ e("div", {className: "col-span-2"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Complemento"), e("input", { name: "complement", value: formData.complement, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none", placeholder: "Apto, bloco...", disabled: isFormLocked || isSubmitting, autoComplete: "address-line2", autoCorrect: "off", spellCheck: "false" })),
+ e("div", {className: "col-span-2"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Cidade"), e("input", { name: "city", value: formData.city, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none", placeholder: "Cidade/UF", disabled: isFormLocked || isSubmitting, autoComplete: "address-level2", autoCorrect: "off", spellCheck: "false" }))
  )
  )
  ),

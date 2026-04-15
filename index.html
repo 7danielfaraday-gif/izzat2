@@ -148,7 +148,7 @@
     <link as="image" href="/assets/img/01.webp" rel="preload" type="image/webp" fetchpriority="high" />
     <link rel="preload" as="script" href="/assets/vendor/react.production.min.js" />
     <link rel="preload" as="script" href="/assets/vendor/react-dom.production.min.js" />
-    <link rel="preload" as="script" href="/assets/js/checkout.app.js" />
+    <link rel="preload" as="script" href="/assets/js/checkout.app.js?v=20260415c" />
     <noscript></noscript>
     <script>
         if (!window.__TEST_MODE && !window.__LAB_MODE) {
@@ -3352,7 +3352,7 @@
                     }
                     css = document.createElement('link');
                     css.rel = 'stylesheet';
-                    css.href = '/assets/css/checkout.tailwind.css?v=20260415b';
+                    css.href = '/assets/css/checkout.tailwind.css?v=20260415c';
                     css.setAttribute('data-checkout-tailwind-css', '');
                     css.onload = reveal;
                     css.onerror = function () {
@@ -3486,9 +3486,9 @@
             }
         };
     </script>
-    <link rel="stylesheet" href="/assets/css/checkout.tailwind.css?v=20260415b" data-checkout-tailwind-css
+    <link rel="stylesheet" href="/assets/css/checkout.tailwind.css?v=20260415c" data-checkout-tailwind-css
         onerror="window.__pendingTailwindFallback=true;window.__localLibFallback&&window.__localLibFallback('tailwind-local')" />
-    <script defer onerror="window.__localLibFallback('checkoutapp')" src="assets/js/checkout.app.js"></script>
+    <script defer onerror="window.__localLibFallback('checkoutapp')" src="assets/js/checkout.app.js?v=20260415c"></script>
 </body>
 
 </html>
