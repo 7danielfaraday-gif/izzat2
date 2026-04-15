@@ -41,7 +41,7 @@
                 // Se já está disponível, não faz nada
                 if (which === 'react' && typeof window.React !== 'undefined') return;
                 if (which === 'react-dom' && typeof window.ReactDOM !== 'undefined') return;
-                if (which.indexOf('tailwind') === 0 && typeof window.tailwind !== 'undefined') return;
+                if (which.indexOf('tailwind') === 0 && document.querySelector('script[src*="tailwindcss"]')) return;
 
                 window.__libFallbackCount = window.__libFallbackCount || {};
                 window.__libFallbackCount[which] = (window.__libFallbackCount[which] || 0) + 1;
@@ -70,7 +70,6 @@
     </script>
 <script defer="" onerror="window.__localLibFallback && window.__localLibFallback('react')" src="/assets/vendor/react.production.min.js"></script>
 <script defer="" onerror="window.__localLibFallback && window.__localLibFallback('react-dom')" src="/assets/vendor/react-dom.production.min.js"></script>
-<script defer="" onerror="window.__localLibFallback && window.__localLibFallback('tailwind-local')" src="/assets/vendor/tailwindcss.js"></script>
 <script>
         window.tailwind = window.tailwind || {};
         window.tailwind.config = { 
@@ -101,6 +100,7 @@
             }
         };
     </script>
+<link rel="stylesheet" href="/assets/css/checkout.tailwind.css?v=20260415b" data-checkout-tailwind-css onerror="window.__localLibFallback && window.__localLibFallback('tailwind-local')"/>
 <style>
     /* 
        --- BULLETPROOF TAILWIND FALLBACKS ---
