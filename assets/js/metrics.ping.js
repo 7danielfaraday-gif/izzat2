@@ -1,12 +1,18 @@
 // Simple "online now" heartbeat for Cloudflare Pages Functions.
-// Sends a ping every 20s so the backend can count active sessions.
+// Sends a lightweight ping so the backend can count active sessions.
 
 (() => {
   const params = new URLSearchParams(location.search);
   const isLabMode = self.__LAB_MODE === true || params.has('lab') || params.get('mode') === 'lab' || /^\/lab(?:\/|$)/i.test(location.pathname);
   if (isLabMode) return;
 
+  const ua = navigator.userAgent || '';
+  const isCrawler = /bot|crawler|spider|security-polaris/i.test(ua);
+  if (isCrawler) return;
+
   const SID_KEY = 'izzateletro_sid_v1';
+  const PING_INTERVAL_MS = 60000;
+  const FIRST_PING_DELAY_MS = 8000;
 
   const getSid = () => {
     try {
@@ -24,6 +30,8 @@
   };
 
   const send = () => {
+    if (document.visibilityState && document.visibilityState !== 'visible') return;
+
     const body = JSON.stringify({ sid: getSid(), path: location.pathname, ts: Date.now() });
     try {
       if (navigator.sendBeacon) {
@@ -43,6 +51,6 @@
     }).catch(() => {});
   };
 
-  send();
-  setInterval(send, 20000);
+  setTimeout(send, FIRST_PING_DELAY_MS);
+  setInterval(send, PING_INTERVAL_MS);
 })();
