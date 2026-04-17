@@ -674,8 +674,11 @@
         }, 4000);
     }
 
+    // Sales popup desativado para reduzir risco de reprovação automática e desconfiança do cliente.
+    // Para reativar: troque SALES_POPUP_ENABLED para true.
+    const SALES_POPUP_ENABLED = false;
     // Show popup only once per session, after 15 seconds
-    if (!sessionStorage.getItem('popup_shown')) {
+    if (SALES_POPUP_ENABLED && !sessionStorage.getItem('popup_shown')) {
         setTimeout(() => {
             showSalesPopup();
             sessionStorage.setItem('popup_shown', '1');
