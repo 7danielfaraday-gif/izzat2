@@ -296,16 +296,17 @@
         const btn = document.getElementById('buy-now') || document.querySelector('.buy-btn');
         if (!btn) return;
         const baseCheckoutPath = '/c/';
+        const inertCtaHref = 'javascript:void(0)';
         window.__buyNowJsReady = true;
 
-        // Href real para robôs/fallback; o listener preserva o fluxo SPA.
-        btn.href = baseCheckoutPath;
+        // Mantém o CTA inerte para o in-browser do TikTok; o SPA usa data-checkout-target.
+        btn.href = inertCtaHref;
 
         // MantÃ©m a URL de checkout com parÃ¢metros em data-attribute.
         try {
             btn.dataset.checkoutTarget = window.buildCheckoutUrl(baseCheckoutPath);
         } catch (e) {}
-        btn.href = btn.dataset.checkoutTarget || baseCheckoutPath;
+        btn.href = inertCtaHref;
 
         // Setup SPA Checkout instead of redirecting
         btn.addEventListener('click', (e) => {
@@ -564,7 +565,7 @@
         if (variantLinks[color]) {
           const variantTarget = window.buildCheckoutUrl ? window.buildCheckoutUrl(variantLinks[color]) : variantLinks[color];
           buyBtn.dataset.checkoutTarget = variantTarget;
-          buyBtn.href = variantTarget;
+          buyBtn.href = 'javascript:void(0)';
           buyBtn.removeAttribute('onclick');
         }
         
@@ -580,7 +581,7 @@
         if (variantLinks[currentVariant]) {
             const variantTarget = window.buildCheckoutUrl ? window.buildCheckoutUrl(variantLinks[currentVariant]) : variantLinks[currentVariant];
             buyBtn.dataset.checkoutTarget = variantTarget;
-            buyBtn.href = variantTarget;
+            buyBtn.href = 'javascript:void(0)';
             buyBtn.removeAttribute('onclick');
         }
     }
