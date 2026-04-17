@@ -1385,7 +1385,7 @@
                 style="display:flex;align-items:center;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid #e8e8e8;cursor:pointer;"
                 onclick="openModal('shipping-modal')">
                 <span style="color:#aaa;font-size:13px;">📍</span>
-                <span style="color:#888;font-size:12px;" id="shipping-location">Envio para São Paulo, São Paulo</span>
+                <span style="color:#888;font-size:12px;" id="shipping-location">Frete grátis para todo o Brasil</span>
             </div>
         </section>
         <div id="shipping-modal"
@@ -1412,8 +1412,7 @@
                         style="display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f0;justify-content:space-between;">
                         <div style="display:flex;align-items:center;gap:12px;">
                             <span style="font-size:18px;">📍</span>
-                            <span style="font-size:14px;color:#444;" id="modal-destination">São Paulo, São Paulo,
-                                Brasil</span>
+                            <span style="font-size:14px;color:#444;" id="modal-destination">Todo o Brasil</span>
                         </div>
                         <span style="color:#ccc;font-size:16px;">›</span>
                     </div>
@@ -1997,14 +1996,14 @@
                 if (el) el.textContent = 'Envio para ' + loc;
                 var dest = document.getElementById('modal-destination');
                 if (dest) dest.textContent = loc + ', Brasil';
-                try { localStorage.setItem('user_location', JSON.stringify({ city: city, state: state, at: Date.now() })); } catch (e) { }
+                try { localStorage.setItem('user_location', JSON.stringify({ city: city, state: state, source: 'cloudflare', at: Date.now() })); } catch (e) { }
             }
             try {
                 var saved = localStorage.getItem('user_location');
                 var hasFreshLocation = false;
                 if (saved) {
                     var d = JSON.parse(saved);
-                    if (d.city && d.state) {
+                    if (d.city && d.state && d.source === 'cloudflare') {
                         updateLocation(d.city, d.state);
                         hasFreshLocation = !!(d.at && (Date.now() - d.at) < 7 * 24 * 60 * 60 * 1000);
                     }
@@ -2015,9 +2014,13 @@
                 try {
                     if (window.AbortSignal && typeof AbortSignal.timeout === 'function') options.signal = AbortSignal.timeout(5000);
                 } catch (e) { }
-                fetch('https://ipapi.co/json/', options)
-                    .then(function (r) { return r.json() })
-                    .then(function (data) { if (data && data.city && data.region) updateLocation(data.city, data.region); })
+                fetch('/api/location', {
+                    cache: 'no-store',
+                    credentials: 'same-origin',
+                    signal: options.signal
+                })
+                    .then(function (r) { return r && r.ok ? r.json() : null; })
+                    .then(function (data) { if (data && data.ok && data.city && data.state) updateLocation(data.city, data.state); })
                     .catch(function () { });
             }
             if (!hasFreshLocation) {
