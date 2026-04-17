@@ -266,39 +266,87 @@ const progress = Math.min((filledFields / totalFields) * 100, 100);
  return `${days[d.getDay()]}, ${day} de ${months[d.getMonth()]}`;
  };
  
+ const fetchJsonWithTimeout = async (url, timeoutMs) => {
+ const controller = new AbortController();
+ const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+ try {
+ const res = await fetch(url, { cache: 'no-store', signal: controller.signal });
+ if (!res || !res.ok) throw new Error('cep_http_' + (res && res.status));
+ return await res.json();
+ } finally {
+ clearTimeout(timeoutId);
+ }
+ };
+
+ const normalizeCepAddress = (provider, data) => {
+ if (!data || data.erro) return null;
+ if (provider === 'viacep') {
+ const city = `${data.localidade || ''}/${data.uf || ''}`.replace(/^\//,'');
+ return {
+ address: data.logradouro || '',
+ neighborhood: data.bairro || '',
+ complement: data.complemento || '',
+ city
+ };
+ }
+ const city = `${data.city || ''}/${data.state || ''}`.replace(/^\//,'');
+ return {
+ address: data.street || '',
+ neighborhood: data.neighborhood || '',
+ complement: '',
+ city
+ };
+ };
+
+ const lookupCepAddress = async (cep) => {
+ try {
+ const data = await fetchJsonWithTimeout(`https://viacep.com.br/ws/${cep}/json/`, 9000);
+ const normalized = normalizeCepAddress('viacep', data);
+ if (normalized && (normalized.address || normalized.neighborhood || normalized.city)) return normalized;
+ } catch(e) {}
+
+ try {
+ const data = await fetchJsonWithTimeout(`https://brasilapi.com.br/api/cep/v2/${cep}`, 7000);
+ const normalized = normalizeCepAddress('brasilapi', data);
+ if (normalized && (normalized.address || normalized.neighborhood || normalized.city)) return normalized;
+ } catch(e) {}
+
+ return null;
+ };
+
  const handleCep = async (val) => { 
  if (fetchingCepRef.current) return;
  const cep = val.replace(/\D/g, ''); 
  if (cep.length === 8) { 
  fetchingCepRef.current = true; setLoadingCep(true); 
  
- // Adicionado AbortController para evitar travamento em 3G/4G instável
- const controller = new AbortController();
- const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
-
  try { 
  setCepFailed(false);
- const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`, { signal: controller.signal }); 
- clearTimeout(timeoutId);
- if (!res.ok) throw new Error('ViaCEP HTTP ' + res.status);
- const data = await res.json(); 
+ const data = await lookupCepAddress(cep);
+ const currentCep = cepInputRef.current ? cepInputRef.current.value.replace(/\D/g, '') : cep;
+ if (currentCep !== cep) return;
  if(!data || data.erro) { 
  setCepFailed(true);
  } else { 
- setFormData(prev => ({
+ setFormData(prev => {
+ if ((prev.cep || '').replace(/\D/g, '') !== cep) return prev;
+ return ({
  ...prev,
- address: data.logradouro || prev.address || '',
- neighborhood: data.bairro || prev.neighborhood || '',
- complement: data.complemento || prev.complement || '',
- city: `${data.localidade || ''}/${data.uf || ''}`.replace(/^\//,'') || prev.city || ''
- })); 
- setTimeout(() => { try { if(numberRef.current) numberRef.current.focus(); } catch(e){} }, 300);
+ address: prev.address || data.address || '',
+ neighborhood: prev.neighborhood || data.neighborhood || '',
+ complement: prev.complement || data.complement || '',
+ city: prev.city || data.city || ''
+ });
+ }); 
+ setTimeout(() => { try { if(numberRef.current && document.activeElement === cepInputRef.current) numberRef.current.focus(); } catch(e){} }, 300);
  }
  } catch(e) {
  // Falha comum em in-app / conexão fraca: libera preenchimento manual
  try { setCepFailed(true); } catch(_) {}
  } finally {
  setLoadingCep(false); fetchingCepRef.current = false;
+ const latestCep = cepInputRef.current ? cepInputRef.current.value.replace(/\D/g, '') : '';
+ if (latestCep.length === 8 && latestCep !== cep) setTimeout(() => handleCep(latestCep), 0);
  }
  } 
  };
@@ -535,7 +583,7 @@ e("span", {className: "text-[9px] text-slate-600 bg-slate-100 px-2 py-0.5 rounde
  e("div", { className: "bg-white p-2.5 rounded-full shadow-sm text-green-600" }, e(Icons.Truck, {className: "w-5 h-5"})),
  e("div", {className: "flex-1"}, e("p", { className: "text-[10px] uppercase tracking-wider text-green-800 font-bold mb-0.5 opacity-80" }, "Frete Grátis Chegando:"), e("p", { className: "text-sm font-black text-green-900 capitalize leading-none tracking-tight" }, getDeliveryDate()))
  ),
- cepFailed && e("div", { className: "bg-rose-50 border border-rose-100 text-rose-700 text-xs font-semibold rounded-xl p-3" }, "Não conseguimos buscar seu endereço automaticamente. Preencha abaixo para finalizar.") ,
+ cepFailed && e("div", { className: "bg-amber-50 border border-amber-100 text-amber-800 text-xs font-semibold rounded-xl p-3" }, "A busca automática demorou. Você pode preencher o endereço abaixo para continuar.") ,
  shouldShowAddressFields && e("div", { className: "grid grid-cols-4 gap-3 animate-fade-in" },
  e("div", {className: "col-span-4"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Endereço"), e("input", { name: "address", value: formData.address, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none", placeholder: "Rua, Avenida...", disabled: isFormLocked || isSubmitting, autoComplete: "street-address", autoCorrect: "off", spellCheck: "false" })),
  e("div", {className: "col-span-1"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Nº"), e("input", { ref: numberRef, name: "number", value: formData.number, onChange: handleChange, placeholder: "123", className: "w-full p-3.5 border border-green-300 bg-white ring-2 ring-green-500/10 rounded-xl focus:ring-green-500 focus:border-green-500 outline-none font-bold text-center", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "off" })),
