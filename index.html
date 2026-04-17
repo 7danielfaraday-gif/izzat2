@@ -133,10 +133,10 @@
     <link crossorigin="" href="https://analytics.tiktok.com" rel="preconnect" />
     <link href="//analytics.tiktok.com" rel="dns-prefetch" />
     <meta
-        content="Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI. 2 em 1: Air Fryer + Forno. Economize 71% hoje. Frete Grátis e Envio Imediato."
+        content="Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI. 2 em 1: Air Fryer + Forno. Economize R$ 201,91 hoje. Frete Grátis e Envio Imediato."
         name="description" />
     <meta content="Fritadeira Elétrica Forno Oven 12L Mondial - Izzat Eletro" property="og:title" />
-    <meta content="A Air Fryer AFON-12L-BI da Mondial é 2 em 1. Capacidade de 12 Litros. Compre com desconto!"
+    <meta content="A Air Fryer AFON-12L-BI da Mondial é 2 em 1. Capacidade de 12 Litros. Compre com 50% de desconto!"
         property="og:description" />
     <meta content="/assets/img/01.webp" property="og:image" />
     <meta content="product" property="og:type" />
@@ -921,6 +921,67 @@
             padding-bottom: calc(80px + env(safe-area-inset-bottom))
         }
 
+        .footer-legal {
+            font-size: 10px;
+            line-height: 1.55;
+            color: #9ca3af;
+            max-width: 560px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .footer-legal p {
+            margin: 0 0 5px;
+        }
+
+        .footer-legal strong {
+            color: #6b7280;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .footer-legal a {
+            color: #6b7280;
+            text-decoration: none;
+        }
+
+        .footer-legal-links {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px 12px;
+            margin: 8px 0 0;
+        }
+
+        .footer-legal-details {
+            color: #9ca3af;
+        }
+
+        .footer-legal-details summary {
+            color: #6b7280;
+            cursor: pointer;
+            list-style: none;
+            outline: none;
+        }
+
+        .footer-legal-details summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .footer-legal-details[open] {
+            flex-basis: 100%;
+        }
+
+        .footer-legal-details[open] summary {
+            font-weight: 600;
+        }
+
+        .footer-legal-details p {
+            max-width: 440px;
+            margin: 6px auto 0;
+            text-align: center;
+        }
+
         .footer-logo {
             display: flex;
             align-items: center;
@@ -1274,7 +1335,7 @@
             <div class="price-row">
                 <div class="price-info">
                     <div class="price-main">
-                        <span style="text-decoration:line-through;color:#ffccaa;font-size:14px;">R$399</span>
+                        <span style="text-decoration:line-through;color:#ffccaa;font-size:14px;">R$399,90</span>
                         <span style="font-size:24px;font-weight:800;color:white;">R$197,99</span>
                     </div>
                 </div>
@@ -1288,7 +1349,7 @@
         <section class="discount-banner" style="padding:8px 16px;">
             <div class="discount-content">
                 <span class="discount-badge">Desconto de 50%</span>
-                <span class="discount-text">Economize R$ 201,01</span>
+                <span class="discount-text">Economize R$ 201,91</span>
             </div>
             <span style="color:#ccc;">›</span>
         </section>
@@ -1382,7 +1443,7 @@
                                 d="M362.7 175.5l-142 160c-6.2 7-17.3 6.7-23.2-.7l-66-78c-6.1-7.2-5.2-18 2-24s18-5.2 24 2l53.9 63.8 130.7-147.2c6.3-7.1 17.3-7.8 24.3-1.5s7.9 17.4 1.3 24.6z"
                                 fill="#fff"></path>
                         </svg></div>
-                    <div style="color:#999;font-size:12px;margin-top:1px;">Loja verificada · Toque para saber mais</div>
+                    <div style="color:#999;font-size:12px;margin-top:1px;">Informações da loja · Toque para saber mais</div>
                 </div>
             </div>
         </section>
@@ -1407,7 +1468,7 @@
                                 d="M362.7 175.5l-142 160c-6.2 7-17.3 6.7-23.2-.7l-66-78c-6.1-7.2-5.2-18 2-24s18-5.2 24 2l53.9 63.8 130.7-147.2c6.3-7.1 17.3-7.8 24.3-1.5s7.9 17.4 1.3 24.6z"
                                 fill="#fff"></path>
                         </svg></div>
-                    <div style="color:#999;font-size:13px;margin-top:4px;">Loja Oficial Verificada</div>
+                    <div style="color:#999;font-size:13px;margin-top:4px;">Informações da loja</div>
                 </div>
                 <div style="display:flex;justify-content:space-around;padding:20px 16px;margin-top:16px;">
                     <div style="flex:1;text-align:center;border-right:1px solid #f0f0f0;">
@@ -1878,13 +1939,38 @@
                 <span>Chat</span>
             </a>
             <button class="add-cart-btn">Ver Avaliações</button>
-            <a class="buy-btn pulsing-buy-btn" href="javascript:void(0)" id="buy-now" data-checkout-target="/c/"
-                onclick="return window.__handleBuyNowClick ? window.__handleBuyNowClick(event, this) : false;"
+            <a class="buy-btn pulsing-buy-btn" href="/c/" id="buy-now" data-checkout-target="/c/"
+                onclick="return window.__handleBuyNowClick ? window.__handleBuyNowClick(event, this) : true;"
                 style="display: flex; align-items: center; justify-content: center; text-decoration: none; color: white;">Comprar
                 Agora</a>
         </nav>
-        <footer class="footer">
-            ...
+        <footer class="footer" aria-label="Informações legais da loja">
+            <div class="footer-legal">
+                <p><strong>Izzat Eletro</strong> - Razão social: 65.546.655 HAYSSAH MARTINS GONSALES GOUVEA - CNPJ: 65.546.655/0001-05.</p>
+                <p>Endereço: Rua Antônio de Mariz, 96, São Paulo - SP, CEP 05060-010. Atendimento: <a href="mailto:milensilv24@outlook.com">milensilv24@outlook.com</a>.</p>
+                <div class="footer-legal-links" aria-label="Políticas da loja">
+                    <details class="footer-legal-details" id="politica-privacidade">
+                        <summary>Privacidade</summary>
+                        <p>Os dados informados no pedido são usados para processar a compra, atendimento, entrega e comunicação sobre o pedido. Não vendemos dados pessoais a terceiros.</p>
+                    </details>
+                    <details class="footer-legal-details" id="termos-compra">
+                        <summary>Termos de compra</summary>
+                        <p>Os preços, disponibilidade e condições promocionais podem variar durante campanhas. A confirmação do pedido ocorre após a aprovação do pagamento.</p>
+                    </details>
+                    <details class="footer-legal-details" id="trocas-devolucoes">
+                        <summary>Trocas e devoluções</summary>
+                        <p>O cliente pode solicitar troca ou devolução em até 7 dias após o recebimento do produto, conforme o Código de Defesa do Consumidor.</p>
+                    </details>
+                    <details class="footer-legal-details" id="envio-entrega">
+                        <summary>Envio e entrega</summary>
+                        <p>O prazo de entrega é informado durante a compra e pode variar conforme região, confirmação de pagamento e operação logística.</p>
+                    </details>
+                    <details class="footer-legal-details" id="contato-loja">
+                        <summary>Contato</summary>
+                        <p>Para dúvidas sobre pedidos, pagamento, envio, garantia, troca ou devolução, fale pelo e-mail <a href="mailto:milensilv24@outlook.com">milensilv24@outlook.com</a>.</p>
+                    </details>
+                </div>
+            </div>
         </footer>
         <div class="sales-popup" id="sales-popup">
             <div class="popup-image">
@@ -1898,7 +1984,7 @@
                     <span class="live-dot"></span>
                     <span id="popup-action">Comprou agora mesmo</span>
                 </p>
-                <div style="font-size: 10px; color: #00d4aa; font-weight: 700;">Compra Verificada</div>
+                <div style="font-size: 10px; color: #00d4aa; font-weight: 700;">Pedido recente</div>
             </div>
         </div>
     </div>
@@ -2631,7 +2717,7 @@
             <div class="static-container">
                 <div class="static-left-col">
                     <div class="static-card">
-                        <div class="static-badge">OFERTA TIKTOK</div>
+                        <div class="static-badge">OFERTA ESPECIAL</div>
                         <div class="static-img-box"><img alt="Fritadeira" class="static-img" decoding="async"
                                 height="80" loading="eager" src="/assets/img/01.webp" width="80" /></div>
                         <div class="static-info">
@@ -2669,6 +2755,17 @@
 
         <!-- React Checkout Root -->
         <div id="checkout-root"></div>
+        <div class="footer-legal" aria-label="Informações legais da loja no checkout"
+            style="max-width:480px;padding:16px 20px 28px;">
+            <p><strong>Izzat Eletro</strong> - Razão social: 65.546.655 HAYSSAH MARTINS GONSALES GOUVEA - CNPJ: 65.546.655/0001-05.</p>
+            <p>Rua Antônio de Mariz, 96, São Paulo - SP, CEP 05060-010. Contato: <a href="mailto:milensilv24@outlook.com">milensilv24@outlook.com</a>.</p>
+            <div class="footer-legal-links" aria-label="Políticas da loja no checkout">
+                <details class="footer-legal-details">
+                    <summary>Políticas da loja</summary>
+                    <p>Privacidade, termos de compra, envio, troca, devolução e atendimento seguem as informações legais disponíveis no rodapé da loja. Atendimento: <a href="mailto:milensilv24@outlook.com">milensilv24@outlook.com</a>.</p>
+                </details>
+            </div>
+        </div>
     </div>
 
     <script>

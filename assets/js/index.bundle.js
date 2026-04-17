@@ -298,13 +298,14 @@
         const baseCheckoutPath = '/c/';
         window.__buyNowJsReady = true;
 
-        // Modo 100% SPA: nunca redireciona por href.
-        btn.href = 'javascript:void(0)';
+        // Href real para robôs/fallback; o listener preserva o fluxo SPA.
+        btn.href = baseCheckoutPath;
 
         // MantÃ©m a URL de checkout com parÃ¢metros em data-attribute.
         try {
             btn.dataset.checkoutTarget = window.buildCheckoutUrl(baseCheckoutPath);
         } catch (e) {}
+        btn.href = btn.dataset.checkoutTarget || baseCheckoutPath;
 
         // Setup SPA Checkout instead of redirecting
         btn.addEventListener('click', (e) => {
@@ -561,8 +562,9 @@
         const color = swatch.dataset.color;
         
         if (variantLinks[color]) {
-          buyBtn.href = "javascript:void(0)";
-          buyBtn.dataset.checkoutTarget = window.buildCheckoutUrl ? window.buildCheckoutUrl(variantLinks[color]) : variantLinks[color];
+          const variantTarget = window.buildCheckoutUrl ? window.buildCheckoutUrl(variantLinks[color]) : variantLinks[color];
+          buyBtn.dataset.checkoutTarget = variantTarget;
+          buyBtn.href = variantTarget;
           buyBtn.removeAttribute('onclick');
         }
         
@@ -576,8 +578,9 @@
     if (defaultSwatch) {
         defaultSwatch.classList.add('selected');
         if (variantLinks[currentVariant]) {
-            buyBtn.href = "javascript:void(0)";
-            buyBtn.dataset.checkoutTarget = window.buildCheckoutUrl ? window.buildCheckoutUrl(variantLinks[currentVariant]) : variantLinks[currentVariant];
+            const variantTarget = window.buildCheckoutUrl ? window.buildCheckoutUrl(variantLinks[currentVariant]) : variantLinks[currentVariant];
+            buyBtn.dataset.checkoutTarget = variantTarget;
+            buyBtn.href = variantTarget;
             buyBtn.removeAttribute('onclick');
         }
     }
