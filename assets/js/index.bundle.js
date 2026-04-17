@@ -120,8 +120,15 @@
     function getTikTokEventSourceUrl() {
         try {
             var u = new URL(window.location.href);
+            var host = String(u.hostname || '').toLowerCase();
             u.protocol = 'https:';
-            u.hostname = 'oficial.izzateletro.shop';
+            if (host === 'izzateletro.shop' || host === 'oficial.izzateletro.shop') {
+                u.hostname = host;
+            } else if (host === 'www.izzateletro.shop') {
+                u.hostname = 'izzateletro.shop';
+            } else {
+                u.hostname = 'oficial.izzateletro.shop';
+            }
             u.port = '';
             return u.toString();
         } catch(_) { return 'https://oficial.izzateletro.shop/'; }
