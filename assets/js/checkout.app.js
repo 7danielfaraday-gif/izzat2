@@ -34,6 +34,54 @@ if (isLabMode()) return;
 if (window.trackPixel) window.trackPixel(event, data); 
 };
 
+const flushGAOnlyQueue = () => {
+try {
+if (typeof window.gtag !== 'function' || !window.trackingQueue || !window.trackingQueue.length) return;
+const queue = window.trackingQueue.slice();
+window.trackingQueue = [];
+queue.forEach(item => {
+if (!item || !item.event) return;
+try { window.gtag('event', item.event, item.data || {}); } catch(e) {}
+});
+} catch(e) {}
+};
+
+const trackCheckoutGAOnly = (event, data = {}) => {
+if (isLabMode() || window.__TEST_MODE) return;
+try {
+const token = getCheckoutOpenToken();
+const key = event + '::' + token;
+window.__checkoutGAOnlyEvents = window.__checkoutGAOnlyEvents || {};
+if (window.__checkoutGAOnlyEvents[key]) return;
+window.__checkoutGAOnlyEvents[key] = true;
+
+const payload = Object.assign({
+event_category: 'checkout_diagnostic',
+checkout_open_token: token,
+checkout_entry_source: window.__checkoutEntrySource || 'unknown',
+page_location: window.location.href,
+page_path: window.location.pathname
+}, data || {});
+
+if (typeof window.gtag === 'function') {
+try {
+window.gtag('event', event, payload);
+return;
+} catch(e) {}
+}
+
+window.trackingQueue = window.trackingQueue || [];
+window.trackingQueue.push({ event: event, data: payload });
+if (typeof window.loadAnalytics === 'function') {
+try { window.loadAnalytics(); } catch(e) {}
+}
+setTimeout(flushGAOnlyQueue, 1200);
+setTimeout(flushGAOnlyQueue, 4000);
+} catch(e) {}
+};
+
+window.trackCheckoutGAOnly = trackCheckoutGAOnly;
+
 const LP_VIEW_CONTENT_KEY = '__tt_lp_viewcontent';
 const CHECKOUT_OPEN_EVENT_PREFIX = '__tt_checkout_open_event__';
 
@@ -182,6 +230,15 @@ return { min: 4, max: 7 };
  useEffect(() => { 
  try { 
  window.scrollTo(0, 0); 
+ if (window.__checkoutEntrySource !== 'lp') {
+ requestAnimationFrame(() => {
+ requestAnimationFrame(() => {
+ if (typeof window.trackCheckoutGAOnly === 'function') {
+ window.trackCheckoutGAOnly('checkout__Visible', { checkout_ready_state: 'react_mounted', checkout_visible_source: 'direct' });
+ }
+ });
+ });
+ }
  
  // Deduplicação de ViewContent por sessão (evita "chuva" de eventos no Pixel Helper)
  const checkoutSource = window.__checkoutEntrySource === 'lp' ? 'lp' : 'direct';
@@ -708,6 +765,22 @@ const step3 = setTimeout(() => { setLoadingState(3); setKeyboardClosed(true); },
  
 return () => { clearTimeout(step1); clearTimeout(step2); clearTimeout(step3); };
 }, [transactionId]);
+
+useEffect(() => {
+if (loadingState < 3 || !keyboardClosed) return;
+const rafId = requestAnimationFrame(() => {
+if (typeof window.trackCheckoutGAOnly === 'function') {
+window.trackCheckoutGAOnly('pix__Visible', {
+checkout_visible_source: window.__checkoutEntrySource || 'unknown',
+order_id: transactionId,
+transaction_id: transactionId,
+value: PRODUCT_INFO.price,
+currency: 'BRL'
+});
+}
+});
+return () => { try { cancelAnimationFrame(rafId); } catch(e) {} };
+}, [loadingState, keyboardClosed, transactionId]);
 
 const doCopy = async () => {
 try {

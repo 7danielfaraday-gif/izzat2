@@ -3263,6 +3263,15 @@
                 if (root) { root.style.visibility = 'visible'; root.style.opacity = '1'; root.style.pointerEvents = 'auto'; }
                 if (buyNow && buyNow.classList) buyNow.classList.remove('is-opening');
                 if (buyNow && typeof buyNow.removeAttribute === 'function') buyNow.removeAttribute('aria-busy');
+                try {
+                    var checkoutHasContent = !!(root && root.children && root.children.length > 0 && root.textContent && root.textContent.trim().length > 20);
+                    if (checkoutHasContent && typeof window.trackCheckoutGAOnly === 'function') {
+                        window.trackCheckoutGAOnly('checkout__Visible', {
+                            checkout_ready_state: 'spa_ready',
+                            checkout_visible_source: window.__checkoutEntrySource || 'lp'
+                        });
+                    }
+                } catch (e) { }
             }
 
             function watchCheckoutRender(timeoutMs) {
