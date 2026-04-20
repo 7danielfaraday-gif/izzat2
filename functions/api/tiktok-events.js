@@ -2,7 +2,7 @@
 // Purpose: TikTok Events API (CAPI) — envia eventos server-side espelhando o browser pixel
 //
 // Variáveis de ambiente necessárias (Cloudflare Pages → Settings → Environment Variables):
-//   TIKTOK_PIXEL_ID      — ID do pixel TikTok (ex: "D7ACRTJC77U58B5BD9DG")
+//   TIKTOK_PIXEL_ID      — ID do pixel TikTok (ex: "D7J1OVBC77U02SC96L1G")
 //   TIKTOK_ACCESS_TOKEN  — Token gerado no Events Manager → seu pixel → Set Up Web Events → Events API
 //   TIKTOK_TEST_CODE     — (opcional) código de teste para validar sem afetar dados reais
 //
@@ -10,10 +10,10 @@
 // O TikTok detecta o par (browser + server) com o mesmo event_id e mantém apenas 1.
 
 const TIKTOK_EVENTS_API = 'https://business-api.tiktok.com/open_api/v1.3/event/track/';
-const TIKTOK_EVENT_SOURCE_PRIMARY_HOST = 'oficial.izzateletro.shop';
+const TIKTOK_EVENT_SOURCE_PRIMARY_HOST = 'oficial.redeizzat.shop';
 const TIKTOK_EVENT_SOURCE_ALLOWED_HOSTS = new Set([
-  'oficial.izzateletro.shop',
-  'izzateletro.shop',
+  'oficial.redeizzat.shop',
+  'redeizzat.shop',
 ]);
 
 // Campo correto da API v1.3 é "phone" (não "phone_number")
@@ -32,8 +32,8 @@ function normalizeEventSourceUrl(value) {
     base.protocol = 'https:';
     if (TIKTOK_EVENT_SOURCE_ALLOWED_HOSTS.has(hostname)) {
       base.hostname = hostname;
-    } else if (hostname === 'www.izzateletro.shop') {
-      base.hostname = 'izzateletro.shop';
+    } else if (hostname === 'www.redeizzat.shop') {
+      base.hostname = 'redeizzat.shop';
     } else {
       base.hostname = TIKTOK_EVENT_SOURCE_PRIMARY_HOST;
     }

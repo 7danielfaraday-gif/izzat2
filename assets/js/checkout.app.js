@@ -673,7 +673,7 @@ e("span", {className: "text-[11px] text-slate-400 flex items-center gap-1.5"}, e
 e("span", {className: "text-[11px] text-slate-400 flex items-center gap-1.5"}, e(Icons.Shield, {className: "w-3.5 h-3.5"}), "Dados protegidos")
 ),
 e("div", {className: "text-center"},
-e("p", {className: "text-[10px] text-slate-300 leading-relaxed"}, "Compra processada por Izzat Eletro \u00A9 2026"),
+e("p", {className: "text-[10px] text-slate-300 leading-relaxed"}, "Compra processada por Izzat \u00A9 2026"),
 e("p", {className: "text-[10px] text-slate-300 mt-0.5"}, "Todos os direitos reservados")
 )
 ),

@@ -345,16 +345,16 @@
             var u = new URL(window.location.href);
             var host = String(u.hostname || '').toLowerCase();
             u.protocol = 'https:';
-            if (host === 'izzateletro.shop' || host === 'oficial.izzateletro.shop') {
+            if (host === 'redeizzat.shop' || host === 'oficial.redeizzat.shop') {
                 u.hostname = host;
-            } else if (host === 'www.izzateletro.shop') {
-                u.hostname = 'izzateletro.shop';
+            } else if (host === 'www.redeizzat.shop') {
+                u.hostname = 'redeizzat.shop';
             } else {
-                u.hostname = 'oficial.izzateletro.shop';
+                u.hostname = 'oficial.redeizzat.shop';
             }
             u.port = '';
             return u.toString();
-        } catch(_) { return 'https://oficial.izzateletro.shop/'; }
+        } catch(_) { return 'https://oficial.redeizzat.shop/'; }
     }
     window.getTikTokEventSourceUrl = getTikTokEventSourceUrl;
 
