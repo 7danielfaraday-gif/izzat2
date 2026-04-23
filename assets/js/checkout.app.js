@@ -1,4 +1,4 @@
-window.activateCheckoutKeyboardDetection = window.activateCheckoutKeyboardDetection || function() {
+﻿window.activateCheckoutKeyboardDetection = window.activateCheckoutKeyboardDetection || function() {
 try {
 if (typeof setupKeyboardDetection === 'function') setupKeyboardDetection();
 else if (typeof window.setupKeyboardDetection === 'function') window.setupKeyboardDetection();
@@ -129,6 +129,68 @@ if (!existing || !existing.at) return false;
 return (Date.now() - existing.at) < (30 * 60 * 1000);
 };
 
+
+const getCheckoutScrollViewport = () => {
+try {
+const wrapper = document.getElementById('spa-checkout-wrapper');
+if (wrapper && wrapper.style && wrapper.style.display !== 'none') return wrapper;
+} catch(e) {}
+return window;
+};
+
+const scrollCheckoutViewportToTop = (behavior) => {
+const viewport = getCheckoutScrollViewport();
+const scrollBehavior = behavior || 'auto';
+try {
+if (viewport && typeof viewport.scrollTo === 'function' && viewport !== window) {
+viewport.scrollTo({ top: 0, left: 0, behavior: scrollBehavior });
+return;
+}
+} catch(e) {}
+try {
+window.scrollTo({ top: 0, left: 0, behavior: scrollBehavior });
+} catch(e) {
+try { window.scrollTo(0, 0); } catch(_) {}
+}
+};
+
+const scrollCheckoutViewportToY = (y, behavior) => {
+const top = Math.max(0, Number.isFinite(y) ? y : 0);
+const viewport = getCheckoutScrollViewport();
+const scrollBehavior = behavior || 'auto';
+try {
+if (viewport && typeof viewport.scrollTo === 'function' && viewport !== window) {
+viewport.scrollTo({ top: top, left: 0, behavior: scrollBehavior });
+return;
+}
+} catch(e) {}
+try {
+window.scrollTo({ top: top, left: 0, behavior: scrollBehavior });
+} catch(e) {
+try { window.scrollTo(0, top); } catch(_) {}
+}
+};
+
+
+const scrollCheckoutElementIntoView = (element, offset, behavior) => {
+if (!element || !element.getBoundingClientRect) return;
+const safeOffset = Math.max(0, Number(offset) || 0);
+const viewport = getCheckoutScrollViewport();
+try {
+if (viewport && viewport !== window && viewport.getBoundingClientRect) {
+const viewportRect = viewport.getBoundingClientRect();
+const elementRect = element.getBoundingClientRect();
+const targetTop = viewport.scrollTop + (elementRect.top - viewportRect.top) - safeOffset;
+scrollCheckoutViewportToY(targetTop, behavior || 'smooth');
+return;
+}
+} catch(e) {}
+try {
+const targetTop = (window.scrollY || window.pageYOffset || 0) + element.getBoundingClientRect().top - safeOffset;
+scrollCheckoutViewportToY(targetTop, behavior || 'smooth');
+} catch(e) {}
+};
+
 const getFreightRangeByUf = (uf) => {
 const normalizedUf = String(uf || '').toUpperCase();
 const north = ['AC', 'AP', 'AM', 'PA', 'RO', 'RR', 'TO'];
@@ -177,6 +239,52 @@ return { min: 4, max: 7 };
  };
 
  const DEFAULT_FORM_DATA = { name: '', email: '', phone: '', cpf: '', cep: '', address: '', number: '', neighborhood: '', complement: '', city: '' };
+ const ORDER_SOURCE_KEYS = { ttclid: true, gclid: true, fbclid: true, msclkid: true, external_id: true };
+
+ const getOrderSourceData = () => {
+ const source = {};
+ try {
+ const urlParams = new URLSearchParams(window.location.search || '');
+ urlParams.forEach((value, rawKey) => {
+ if (!value) return;
+ const key = String(rawKey || '').toLowerCase();
+ if (!key) return;
+ if (key === 'eid') {
+ source.external_id = value;
+ return;
+ }
+ if (key.indexOf('utm_') === 0 || key.indexOf('tt_') === 0 || ORDER_SOURCE_KEYS[key]) {
+ source[key] = value;
+ }
+ });
+ } catch(e) {}
+ try {
+ const stored = (typeof window.getStoredUTMs === 'function') ? window.getStoredUTMs() : {};
+ Object.keys(stored || {}).forEach((rawKey) => {
+ const value = stored[rawKey];
+ if (!value) return;
+ const key = String(rawKey || '').toLowerCase();
+ if (!source[key]) source[key] = String(value);
+ });
+ } catch(e) {}
+ try {
+ const ttclid = (typeof window.getTTCLID === 'function') ? window.getTTCLID() : '';
+ if (ttclid && !source.ttclid) source.ttclid = ttclid;
+ } catch(e) {}
+ try {
+ const ttp = (typeof window.getTTP === 'function') ? window.getTTP() : '';
+ if (ttp && !source.ttp) source.ttp = ttp;
+ } catch(e) {}
+ try {
+ const externalId = (typeof window.getExternalId === 'function') ? window.getExternalId() : '';
+ if (externalId && !source.external_id) source.external_id = externalId;
+ } catch(e) {}
+ try {
+ const eventSourceUrl = (typeof window.getTikTokEventSourceUrl === 'function') ? window.getTikTokEventSourceUrl() : window.location.href;
+ if (eventSourceUrl && !source.event_source_url) source.event_source_url = eventSourceUrl;
+ } catch(e) {}
+ return source;
+ };
 
  function CheckoutScreen({ onSuccess }) {
  const [loading, setLoading] = useState(false);
@@ -191,7 +299,7 @@ return { min: 4, max: 7 };
  } 
  });
  
- // ⭐️ SEGURANÇA: Lógica de tempo mantida para evitar ReferenceError (Crash)
+ // ⭐️ SEGURAN�?A: Lógica de tempo mantida para evitar ReferenceError (Crash)
  const [timeLeft, setTimeLeft] = useState(15 * 60);
  const [submitAttempted, setSubmitAttempted] = useState(false);
  const [isFormLocked, setIsFormLocked] = useState(false);
@@ -229,7 +337,7 @@ return { min: 4, max: 7 };
 
  useEffect(() => { 
  try { 
- window.scrollTo(0, 0); 
+ scrollCheckoutViewportToTop('auto'); 
  if (window.__checkoutEntrySource !== 'lp') {
  requestAnimationFrame(() => {
  requestAnimationFrame(() => {
@@ -440,7 +548,7 @@ const progress = Math.min((filledFields / totalFields) * 100, 100);
  // CRITICAL FIX: Prevent default FIRST to avoid page reload on Enter key if locked
  if(ev) ev.preventDefault();
  
- // ⭐️ CORREÇÃO 4: Race condition check logo no início ⭐️
+ // ⭐️ CORRE�?�fO 4: Race condition check logo no início ⭐️
  if (isSubmitting || isFormLocked || loading) return;
  
  setIsSubmitting(true);
@@ -472,10 +580,7 @@ const progress = Math.min((filledFields / totalFields) * 100, 100);
  // SCROLL INTELIGENTE: Calcula altura do header dinamicamente + Footer height
  const header = document.querySelector('.static-nav');
  const offset = header ? header.clientHeight + 60 : 120;
- // Garante que não fique atrás do footer
- const footerHeight = 100; 
- const y = errorElement.getBoundingClientRect().top + window.scrollY - offset;
- window.scrollTo({top: Math.max(0, y), behavior: 'smooth'});
+ scrollCheckoutElementIntoView(errorElement, offset, 'smooth');
  errorElement.focus({preventScroll: true}); 
  });
  }
@@ -520,10 +625,11 @@ const progress = Math.min((filledFields / totalFields) * 100, 100);
 // Salvar pedido no servidor
 if (!isLabMode()) {
 try {
+const orderSource = getOrderSourceData();
 fetch('/api/orders', {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
-body: JSON.stringify({ id: uniqueOrderId, name: formData.name, email: finalEmail, phone: finalPhone, cpf: formData.cpf || '', cep: formData.cep || '', address: formData.address || '', number: formData.number || '', neighborhood: formData.neighborhood || '', complement: formData.complement || '', city: formData.city || '', value: 197.99 })
+body: JSON.stringify({ id: uniqueOrderId, name: formData.name, email: finalEmail, phone: finalPhone, cpf: formData.cpf || '', cep: formData.cep || '', address: formData.address || '', number: formData.number || '', neighborhood: formData.neighborhood || '', complement: formData.complement || '', city: formData.city || '', value: 197.99, source: orderSource })
 }).catch(() => {});
 } catch(e) {}
 }
@@ -543,7 +649,7 @@ return !!formData.address || !!formData.neighborhood || !!cepFailed || cd.length
  
  return e("div", { className: "fade-in w-full min-h-screen font-sans bg-[#f8fafc] form-container" },
  e("div", { ref: progressRef, className: "progress-bar", style: {width: '10%'} }),
- /* ⭐️ SEGURANÇA: Barra visual removida, lógica mantida internamente no componente */
+ /* ⭐️ SEGURAN�?A: Barra visual removida, lógica mantida internamente no componente */
 e("div", { className: "static-nav bg-white/98 border-b border-gray-200 px-4 flex justify-between items-center z-30 shadow-[0_2px_8px_rgba(0,0,0,0.04)]" },
 e("button", { type: "button", onClick: () => {
 if (isFormLocked || isSubmitting) return;
@@ -563,7 +669,7 @@ e("img", { src: "/assets/img/logo.webp", alt: "Logo", className: "h-8 w-auto obj
  e("div", { className: "max-w-[480px] mx-auto p-4 pt-6 space-y-4 " },
  e("div", { className: "space-y-4 " },
  e("div", { className: "bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] p-5 flex gap-4 border border-slate-100 items-center relative overflow-hidden group" },
-e("div", { className: "absolute top-0 left-0 bg-green-600 text-white text-[10px] font-bold px-3 py-1 rounded-br-lg shadow-sm tracking-wide" }, "OFERTA ESPECIAL"),
+e("div", { className: "absolute top-0 left-0 bg-green-600 text-white text-[10px] font-bold px-3 py-1 rounded-br-lg shadow-sm tracking-wide" }, "OFERTA TIKTOK"),
  e("div", { className: "w-24 h-24 bg-white rounded-xl overflow-hidden flex-shrink-0 border border-slate-100 p-2 shadow-inner" }, e("img", { src: PRODUCT_INFO.image, className: "w-full h-full object-contain transform group-hover:scale-105 transition-transform duration-500", alt: PRODUCT_INFO.name, loading: "eager", decoding: "async", onError: (ev) => { try { const img = ev.target; if(!img.dataset.fallback){ img.dataset.fallback='1'; img.src = "/" + String(PRODUCT_INFO.image || '').replace(/^\/+/, ''); } } catch(e) {} } })),
  e("div", {className: "flex-1 min-w-0 mt-2"},
  e("h3", { className: "text-sm font-bold text-slate-800 leading-snug line-clamp-2 mb-1" }, PRODUCT_INFO.name),
@@ -682,12 +788,14 @@ e("div", {style: {height: '60vh'}})
  }
 
 function PixScreen({ customerData, pixCode, qrCodeUrl }) {
-const [loadingState, setLoadingState] = useState(0); 
-const [copiedText, setCopiedText] = useState(false);
-const [copiedBtn, setCopiedBtn] = useState(false);
+const [loadingState, setLoadingState] = useState(0);
 const [keyboardClosed, setKeyboardClosed] = useState(false);
 const [showQrCode, setShowQrCode] = useState(false);
 const [shippingRange, setShippingRange] = useState({ min: 4, max: 7 });
+const [copyPulseActive, setCopyPulseActive] = useState(false);
+const [copyConfirmed, setCopyConfirmed] = useState(false);
+const copyPulseTimeoutRef = useRef(null);
+const copyResetTimeoutRef = useRef(null);
 
 const activeData = customerData || {};
 const firstName = activeData.firstName || 'Cliente';
@@ -696,7 +804,6 @@ const transactionId = activeData.transactionId || 'ERR_NO_ID';
 const effectivePixCode = (pixCode && String(pixCode).trim()) ? String(pixCode).trim() : DEFAULT_CODIGO_PIX_COPIA_COLA;
 let effectiveQrUrl = (typeof qrCodeUrl === 'string' && qrCodeUrl.trim()) ? qrCodeUrl.trim() : DEFAULT_URL_IMAGEM_QRCODE;
 
-// Normaliza URLs relativas (ex: 'assets/img/qrcode.webp') para não quebrar em /checkout/
 try {
 if (effectiveQrUrl && typeof effectiveQrUrl === 'string') {
 const isHttp = /^https?:\/\//i.test(effectiveQrUrl);
@@ -715,6 +822,13 @@ const [qrImageSrc, setQrImageSrc] = useState(generatedQrUrl);
 useEffect(() => {
 setQrImageSrc(generatedQrUrl);
 }, [generatedQrUrl]);
+
+useEffect(() => {
+return () => {
+if (copyPulseTimeoutRef.current) clearTimeout(copyPulseTimeoutRef.current);
+if (copyResetTimeoutRef.current) clearTimeout(copyResetTimeoutRef.current);
+};
+}, []);
 
 useEffect(() => {
 let cancelled = false;
@@ -753,16 +867,12 @@ try { controller.abort(); } catch(e) {}
 
 useEffect(() => {
 if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
-requestAnimationFrame(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
- 
-if (customerData && customerData.transactionId) {
-trackEvent('CompletePayment', { ...window.PRODUCT_CONTENT, content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI', value: 197.99, currency: 'BRL', order_id: customerData.transactionId, event_id: window.generateEventId(), email: customerData.email, phone: customerData.phone });
-}
- 
+requestAnimationFrame(() => { scrollCheckoutViewportToTop('smooth'); });
+
 const step1 = setTimeout(() => setLoadingState(1), 500);
-const step2 = setTimeout(() => setLoadingState(2), 1200); 
-const step3 = setTimeout(() => { setLoadingState(3); setKeyboardClosed(true); }, 2000); 
- 
+const step2 = setTimeout(() => setLoadingState(2), 1200);
+const step3 = setTimeout(() => { setLoadingState(3); setKeyboardClosed(true); }, 2000);
+
 return () => { clearTimeout(step1); clearTimeout(step2); clearTimeout(step3); };
 }, [transactionId]);
 
@@ -792,7 +902,7 @@ if (typeof window.fallbackCopy === 'function') ok = window.fallbackCopy(effectiv
 else if (typeof fallbackCopy === 'function') ok = fallbackCopy(effectivePixCode);
 } catch(_) {}
 if (!ok) {
-try { window.prompt('Copie o código PIX abaixo:', effectivePixCode); } catch(_) {}
+try { window.prompt('Copie o c\u00f3digo PIX abaixo:', effectivePixCode); } catch(_) {}
 }
 }
 trackEvent('Pix_Copy_Click', { event_id: window.generateEventId(), order_id: transactionId });
@@ -805,17 +915,28 @@ else { fetch('/api/metrics/pix-copy', { method: 'POST', headers: { 'content-type
 }
 };
 
-const copyPixText = async () => {
-await doCopy();
-setCopiedText(true);
-setTimeout(() => setCopiedText(false), 2000);
+const triggerCopyFeedback = () => {
+if (copyPulseTimeoutRef.current) clearTimeout(copyPulseTimeoutRef.current);
+if (copyResetTimeoutRef.current) clearTimeout(copyResetTimeoutRef.current);
+setCopyPulseActive(true);
+setCopyConfirmed(true);
+copyPulseTimeoutRef.current = setTimeout(() => {
+setCopyPulseActive(false);
+}, 420);
+copyResetTimeoutRef.current = setTimeout(() => {
+setCopyConfirmed(false);
+}, 1800);
 };
 
-const copyPixBtn = async () => {
-await doCopy();
-setCopiedBtn(true);
-trackEvent('ClickButton', { button_name: 'copy_pix_code', content_name: 'Cópia PIX' });
-setTimeout(() => setCopiedBtn(false), 2000);
+const copyPixText = () => {
+triggerCopyFeedback();
+Promise.resolve(doCopy()).catch(() => {});
+};
+
+const copyPixBtn = () => {
+triggerCopyFeedback();
+trackEvent('ClickButton', { button_name: 'copy_pix_code', content_name: 'Copia PIX' });
+Promise.resolve(doCopy()).catch(() => {});
 };
 
 const toggleQrCode = () => {
@@ -826,47 +947,66 @@ return next;
 });
 };
 
-// Timer de expiração (15 min)
-const [timeLeft, setTimeLeft] = useState(15 * 60);
-useEffect(() => {
-const timer = setInterval(() => setTimeLeft(prev => prev > 0 ? prev - 1 : 0), 1000);
-return () => clearInterval(timer);
-}, []);
-const minutes = String(Math.floor(timeLeft / 60)).padStart(2, '0');
-const seconds = String(timeLeft % 60).padStart(2, '0');
+if (loadingState < 3) {
+const loadingTitle = loadingState === 0 ? "Iniciando transacao segura..." : loadingState === 1 ? "Reservando estoque..." : "Preparando pagamento PIX...";
 
-if (loadingState < 3) return e("div", { className: "min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center font-sans safe-area-padding" },
-e("div", { className: "w-20 h-20 border-[6px] border-slate-200 border-t-green-500 rounded-full animate-spin mb-8 shadow-2xl shadow-green-500/20" }),
-e("h2", { className: "text-2xl font-bold text-slate-800 animate-pulse tracking-tight" }, loadingState === 0 && "Iniciando transação segura...", loadingState === 1 && "Reservando estoque...", loadingState === 2 && "Aplicando cupom de oferta..."),
-e("p", { className: "text-sm text-slate-500 mt-4 font-medium" }, "Por favor, não feche esta página.")
+return e("div", { className: "min-h-screen bg-slate-50 flex flex-col items-center justify-center text-center font-sans safe-area-padding" },
+e("div", { className: "relative w-24 h-24", style: { marginBottom: '48px' } },
+e("div", {
+style: {
+position: 'absolute',
+inset: '-8px',
+borderRadius: '999px',
+background: 'radial-gradient(circle, rgba(34,197,94,0.10) 0%, rgba(34,197,94,0.04) 46%, rgba(255,255,255,0) 74%)',
+animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+}
+}),
+e("div", {
+style: {
+position: 'absolute',
+inset: '0',
+borderRadius: '999px',
+border: '6px solid #e2e8f0'
+}
+}),
+e("div", {
+style: {
+position: 'absolute',
+inset: '0',
+borderRadius: '999px',
+border: '6px solid transparent',
+borderTopColor: '#22c55e',
+borderRightColor: '#86efac',
+animation: 'spin 0.9s linear infinite'
+}
+}),
+e("div", {
+style: {
+position: 'absolute',
+inset: '18px',
+borderRadius: '999px',
+background: '#ffffff'
+}
+})
+),
+e("div", { className: "w-full max-w-[360px] px-5" },
+e("h2", { className: "text-[21px] font-extrabold text-slate-800 tracking-tight leading-tight text-center whitespace-nowrap" }, loadingTitle),
+e("p", { className: "mt-4 text-[13px] text-slate-500 leading-[1.6] text-center max-w-[248px] mx-auto" }, "Estamos preparando a etapa de pagamento. Por favor, nao feche esta pagina.")
+)
 );
-
-return e("div", { className: `min-h-screen bg-[#f8fafc] font-sans pb-10 safe-area-padding transition-all duration-500 ${keyboardClosed ? 'opacity-100' : 'opacity-0'}` },
-
-// Timer + progress bar
-e("div", {className: "bg-white border-b border-slate-100"},
-e("div", {className: "w-full h-[3px] bg-slate-100"},
-e("div", {className: "h-full bg-green-500 transition-all duration-1000 ease-linear rounded-r", style: {width: ((timeLeft / (15 * 60)) * 100) + '%'}})
+}
+return e(React.Fragment, null,
+e("div", { className: `min-h-screen bg-[#f8fafc] font-sans pb-10 safe-area-padding transition-all duration-500 ${keyboardClosed ? 'opacity-100' : 'opacity-0'}` },
+e("div", { className: "static-nav bg-white/98 border-b border-gray-200 px-4 flex justify-between items-center z-30 shadow-[0_2px_8px_rgba(0,0,0,0.04)]" },
+e("div", {className: "w-12"}),
+e("img", { src: "/assets/img/logo.webp", alt: "Logo", className: "h-8 w-auto object-contain", onError: (ev) => { try { const img = ev.target; if(!img.dataset.fallback){ img.dataset.fallback='1'; img.src = "/assets/img/logo.webp"; } } catch(e) {} } }),
+e("div", {className: "w-12"})
 ),
-e("div", {className: "px-4 py-2.5 flex items-center gap-2"},
-e("svg", {className: "w-5 h-5 text-slate-500", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"}, e("circle", {cx: "12", cy: "12", r: "10"}), e("polyline", {points: "12 6 12 12 16 14"})),
-e("div", null,
-e("p", {className: "text-[10px] text-slate-400 leading-none"}, "Expira em"),
-e("p", {className: "text-base font-bold text-slate-700 tracking-tight leading-tight"}, minutes + ":" + seconds)
-)
-)
-),
-
-// Content
 e("div", {className: "max-w-[480px] mx-auto px-4 pt-5"},
-
-// Title
 e("div", {className: "text-center mb-5"},
-e("h1", {className: "text-lg font-extrabold text-slate-800 mb-0.5"}, "Quase lá, " + firstName + "!"),
-e("p", {className: "text-xs text-slate-400"}, "Finalize o pagamento para garantir a oferta.")
+e("h1", {className: "text-lg font-extrabold text-slate-800 mb-0.5"}, "Quase l\u00e1, " + firstName + "!"),
+e("p", {className: "text-xs text-slate-400"}, "Copie o c\u00f3digo abaixo e conclua no app do seu banco.")
 ),
-
-// Pix Copia e Cola card
 e("div", {className: "bg-white rounded-xl border border-slate-100 p-4 mb-3"},
 e("div", {className: "flex items-center gap-2.5 mb-3"},
 e("div", {className: "w-7 h-7 flex-shrink-0 flex items-center justify-center", dangerouslySetInnerHTML: {__html: '<svg viewBox="0 0 32 32" width="28" height="28"><g transform="translate(16,16) rotate(45)"><rect x="-11" y="-11" width="10" height="10" rx="2" fill="#32BCAD"/><rect x="1" y="-11" width="10" height="10" rx="2" fill="#32BCAD"/><rect x="-11" y="1" width="10" height="10" rx="2" fill="#32BCAD"/><rect x="1" y="1" width="10" height="10" rx="2" fill="#2D9F93"/></g></svg>'}}),
@@ -875,26 +1015,40 @@ e("p", {className: "font-bold text-slate-800 text-sm leading-tight"}, "Pix Copia
 e("p", {className: "text-[11px] text-slate-400"}, "Copie o codigo abaixo")
 )
 ),
-
-// Code box (clicável para copiar)
-e("div", {onClick: copyPixText, className: "bg-slate-50 border border-slate-100 rounded-lg p-3 mb-3 cursor-pointer active:bg-slate-100 transition-colors relative"},
-e("p", {className: "text-[11px] text-slate-500 font-mono break-all leading-relaxed select-all"}, effectivePixCode),
-copiedText && e("div", {className: "absolute inset-0 bg-slate-800/90 rounded-lg flex items-center justify-center gap-1.5 text-white text-xs font-bold"}, e(Icons.Check, {className: "w-3.5 h-3.5"}), "Código copiado!")
+e("div", {onClick: copyPixText, className: "bg-slate-50 border border-slate-100 rounded-lg p-3 mb-3 cursor-pointer active:bg-slate-100 transition-colors"},
+e("p", {
+className: "text-[11px] text-slate-500 font-mono leading-relaxed",
+title: effectivePixCode,
+style: {
+display: '-webkit-box',
+WebkitLineClamp: 3,
+WebkitBoxOrient: 'vertical',
+overflow: 'hidden',
+wordBreak: 'break-all',
+maxHeight: '4.4em',
+userSelect: 'none'
+}
+}, effectivePixCode)
 ),
-
-// Copy button
-e("button", {onClick: copyPixBtn, className: `w-full py-3.5 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] min-h-[48px] ${copiedBtn ? 'bg-slate-700' : 'bg-green-500 hover:bg-green-600'} btn-tactile`},
-copiedBtn ? e(React.Fragment, null, e(Icons.Check, {className: "w-4 h-4"}), "Codigo copiado!") : e(React.Fragment, null, e(Icons.Copy, {className: "w-4 h-4"}), "Copiar codigo PIX")
+e("button", {
+onClick: copyPixBtn,
+className: `w-full py-3.5 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] min-h-[48px] ${copyConfirmed ? 'bg-green-600' : 'bg-green-500 hover:bg-green-600'} btn-tactile`,
+style: {
+transform: copyPulseActive ? 'scale(1.015)' : 'scale(1)',
+boxShadow: copyPulseActive ? '0 0 0 8px rgba(34, 197, 94, 0.12), 0 14px 28px rgba(34, 197, 94, 0.24)' : '0 10px 24px rgba(34, 197, 94, 0.18)',
+transition: 'transform 180ms ease, box-shadow 320ms ease, background-color 180ms ease'
+}
+},
+e(React.Fragment, null,
+copyConfirmed ? e(Icons.Check, {className: "w-4 h-4"}) : e(Icons.Copy, {className: "w-4 h-4"}),
+copyConfirmed ? "Codigo copiado" : "Copiar codigo PIX"
+)
 ),
-
-// Value
 e("div", {className: "flex justify-between items-center mt-3 pt-3 border-t border-slate-100"},
 e("span", {className: "text-sm text-slate-400"}, "Valor Total:"),
 e("span", {className: "text-lg font-extrabold text-slate-800"}, "R$ " + PRODUCT_INFO.price.toFixed(2).replace('.',','))
 )
 ),
-
-// Meu pedido
 e("div", {className: "bg-white rounded-xl border border-slate-200 p-3 mb-3"},
 e("div", {className: "flex items-center gap-1.5 mb-2.5"},
 e("div", {className: "w-4.5 h-4.5 text-slate-500"}, e(Icons.Package, {className: "w-4 h-4 text-slate-500"})),
@@ -917,7 +1071,7 @@ e("div", {className: "mt-2.5 pt-2.5 border-t border-slate-200/70 flex items-cent
 e("div", {className: "flex items-start gap-2"},
 e("div", {className: "text-slate-400 mt-0.5"}, e(Icons.Truck, {className: "w-4 h-4 text-slate-400"})),
 e("div", null,
-e("p", {className: "text-[11px] text-slate-500 leading-tight"}, "Prazo de entrega estimado"),
+e("p", {className: "text-[11px] text-slate-500 leading-tight"}, "Entrega estimada"),
 e("p", {className: "text-sm font-semibold text-slate-800 leading-tight"}, "Entrega de " + shippingRange.min + " a " + shippingRange.max + " dias")
 )
 ),
@@ -925,8 +1079,6 @@ e("span", {className: "text-[11px] font-semibold text-slate-500 bg-white border 
 )
 )
 ),
-
-// QR Code expansivel
 e("div", {className: "bg-white rounded-xl border border-slate-100 p-4 mb-3"},
 e("button", { type: "button", onClick: toggleQrCode, className: "w-full flex items-center justify-between text-left" },
 e("span", {className: "font-bold text-slate-800 text-sm"}, "Prefere pagar com QR Code?"),
@@ -939,8 +1091,6 @@ e("img", { src: qrImageSrc, alt: "QR Code PIX", className: "w-full h-full object
 e("p", {className: "text-center text-[12px] text-slate-500 mt-3"}, "Aponte a camera do app do banco")
 )
 ),
-
-// Como pagar
 e("div", {className: "bg-white rounded-xl border border-slate-100 p-4 mb-3"},
 e("h3", {className: "font-bold text-slate-800 text-sm mb-4"}, "Como pagar"),
 [
@@ -956,13 +1106,11 @@ e("p", {className: "text-[11px] text-slate-400 mt-0.5"}, step.desc)
 )
 ))
 ),
-
-// ID
 e("p", {className: "text-center text-[11px] text-slate-300 font-mono mt-3"}, "ID: " + transactionId)
 )
+),
 );
 }
-
  function App() {
  const [screen, setScreen] = useState('checkout');
  const [customerData, setCustomerData] = useState(null);
@@ -1009,7 +1157,7 @@ e("p", {className: "text-center text-[11px] text-slate-300 font-mono mt-3"}, "ID
  
  const rootElement = document.getElementById('checkout-root');
  if (rootElement) {
- // ⭐️ CORREÇÃO 5: Evita race condition se o script for executado duas vezes
+ // ⭐️ CORRE�?�fO 5: Evita race condition se o script for executado duas vezes
  if (!window.checkoutMounted) {
  window.checkoutMounted = true;
  try {
@@ -1042,3 +1190,5 @@ e("p", {className: "text-center text-[11px] text-slate-300 font-mono mt-3"}, "ID
  
     // O Checkout não será mais inicializado automaticamente no DOMContentLoaded.
     // Ele será inicializado sob demanda via window.initReactCheckout() pela página host.
+
+

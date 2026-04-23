@@ -2,15 +2,19 @@
 // Purpose: TikTok Events API (CAPI) — envia eventos server-side espelhando o browser pixel
 //
 // Variáveis de ambiente necessárias (Cloudflare Pages → Settings → Environment Variables):
-//   TIKTOK_PIXEL_ID      — ID do pixel TikTok (ex: "D7J4UVBC77U85JI03BFG")
-//   TIKTOK_ACCESS_TOKEN  — Token gerado no Events Manager → seu pixel → Set Up Web Events → Events API
+//   TIKTOK_PIXEL_ID                 — ID do pixel TikTok primario (ex: "D7J5BQJC77U557SHJJC0")
+//   TIKTOK_ACCESS_TOKEN             — Token do Events API do pixel primario
+//   TIKTOK_PIXEL_ID_SECONDARY       — (opcional) ID do pixel TikTok secundario
+//   TIKTOK_ACCESS_TOKEN_SECONDARY   — (opcional) Token do Events API do pixel secundario
+//   TIKTOK_PIXEL_ID_TERTIARY        — (opcional) ID do pixel TikTok terciario/backup
+//   TIKTOK_ACCESS_TOKEN_TERTIARY    — (opcional) Token do Events API do pixel terciario/backup
 //   TIKTOK_TEST_CODE     — (opcional) código de teste para validar sem afetar dados reais
 //
 // Deduplicação: o browser envia o mesmo event_id que este endpoint.
 // O TikTok detecta o par (browser + server) com o mesmo event_id e mantém apenas 1.
 
 const TIKTOK_EVENTS_API = 'https://business-api.tiktok.com/open_api/v1.3/event/track/';
-const TIKTOK_EVENT_SOURCE_PRIMARY_HOST = 'oficial.redeizzat.shop';
+export const TIKTOK_EVENT_SOURCE_PRIMARY_HOST = 'oficial.redeizzat.shop';
 const TIKTOK_EVENT_SOURCE_ALLOWED_HOSTS = new Set([
   'oficial.redeizzat.shop',
   'redeizzat.shop',
@@ -25,7 +29,7 @@ const PROPS_FIELDS = [
   'event_source_url', 'description'
 ];
 
-function normalizeEventSourceUrl(value) {
+export function normalizeEventSourceUrl(value) {
   try {
     const base = value ? new URL(value) : new URL(`https://${TIKTOK_EVENT_SOURCE_PRIMARY_HOST}/`);
     const hostname = base.hostname.toLowerCase();
@@ -102,7 +106,7 @@ function getFallbackContentCategory(properties) {
   return null;
 }
 
-async function buildSafeUser(user) {
+export async function buildSafeUser(user) {
   const raw = pick(user, USER_FIELDS);
   const safe = {};
 
@@ -188,19 +192,105 @@ export async function onRequestOptions(context) {
   });
 }
 
+function cleanEnvText(value) {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+export function getTikTokDestinations(env) {
+  const candidates = [
+    {
+      label: 'primary',
+      pixelId: env.TIKTOK_PIXEL_ID,
+      accessToken: env.TIKTOK_ACCESS_TOKEN,
+    },
+    {
+      label: 'secondary',
+      pixelId: env.TIKTOK_PIXEL_ID_SECONDARY || env.TIKTOK_PIXEL_ID_2 || env.TIKTOK_SECONDARY_PIXEL_ID,
+      accessToken: env.TIKTOK_ACCESS_TOKEN_SECONDARY || env.TIKTOK_ACCESS_TOKEN_2 || env.TIKTOK_SECONDARY_ACCESS_TOKEN,
+    },
+    {
+      label: 'tertiary',
+      pixelId: env.TIKTOK_PIXEL_ID_TERTIARY || env.TIKTOK_PIXEL_ID_3 || env.TIKTOK_TERTIARY_PIXEL_ID,
+      accessToken: env.TIKTOK_ACCESS_TOKEN_TERTIARY || env.TIKTOK_ACCESS_TOKEN_3 || env.TIKTOK_TERTIARY_ACCESS_TOKEN,
+    },
+  ];
+
+  const destinations = [];
+  for (const candidate of candidates) {
+    const pixelId = cleanEnvText(candidate.pixelId);
+    const accessToken = cleanEnvText(candidate.accessToken);
+    if (!pixelId || pixelId.indexOf('REPLACE') !== -1 || !accessToken) continue;
+    destinations.push({ label: candidate.label, pixelId, accessToken });
+  }
+  return destinations;
+}
+
+export async function sendTikTokEvent(destination, eventPayload, testCode, event, eventId) {
+  const apiBody = JSON.stringify({
+    event_source: 'web',
+    event_source_id: destination.pixelId,
+    ...(testCode && { test_event_code: testCode }),
+    data: [eventPayload],
+  });
+
+  try {
+    const apiRes = await fetch(TIKTOK_EVENTS_API, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Token': destination.accessToken,
+      },
+      body: apiBody,
+    });
+
+    let apiJson = null;
+    try { apiJson = await apiRes.json(); } catch { apiJson = null; }
+
+    const ok = apiRes.ok;
+    const result = {
+      label: destination.label,
+      pixel_id: destination.pixelId,
+      ok,
+      status: apiRes.status,
+      response: apiJson,
+    };
+
+    console.log('[tiktok-events]', JSON.stringify({
+      event,
+      event_id: eventId || null,
+      destination: destination.label,
+      pixel_id: destination.pixelId,
+      status: apiRes.status,
+      response: apiJson,
+    }));
+
+    if (!ok) {
+      console.error('[tiktok-events] API error', JSON.stringify(result));
+    }
+
+    return result;
+  } catch (err) {
+    const result = {
+      label: destination.label,
+      pixel_id: destination.pixelId,
+      ok: false,
+      status: 0,
+      error: 'network_error',
+    };
+    console.error('[tiktok-events] Fetch error', JSON.stringify(result), err);
+    return result;
+  }
+}
+
 export async function onRequestPost(context) {
   try {
     const env = context.env;
 
-    const pixelId     = env.TIKTOK_PIXEL_ID;
-    const accessToken = env.TIKTOK_ACCESS_TOKEN;
-    const testCode    = env.TIKTOK_TEST_CODE || undefined;
+    const destinations = getTikTokDestinations(env);
+    const testCode = env.TIKTOK_TEST_CODE || undefined;
 
-    if (!pixelId || pixelId.indexOf('REPLACE') !== -1) {
+    if (!destinations.length) {
       return json({ ok: true, skipped: 'pixel_not_configured' }, 200, context.request);
-    }
-    if (!accessToken) {
-      return json({ ok: false, error: 'access_token_not_configured' }, 500, context.request);
     }
 
     let body = null;
@@ -260,39 +350,16 @@ export async function onRequestPost(context) {
       }
     }
 
-    // Estrutura correta da API v1.3
-    const apiBody = JSON.stringify({
-      event_source:    'web',
-      event_source_id: pixelId,
-      ...(testCode && { test_event_code: testCode }),
-      data: [eventPayload],
-    });
-
-    const apiRes = await fetch(TIKTOK_EVENTS_API, {
-      method:  'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Token': accessToken,
-      },
-      body: apiBody,
-    });
-
-    let apiJson = null;
-    try { apiJson = await apiRes.json(); } catch { apiJson = null; }
-
-    console.log('[tiktok-events]', JSON.stringify({
-      event,
-      event_id: event_id || null,
-      status: apiRes.status,
-      response: apiJson,
+    const results = await Promise.all(destinations.map((destination) => {
+      return sendTikTokEvent(destination, eventPayload, testCode, event, event_id);
     }));
 
-    if (!apiRes.ok) {
-      console.error('[tiktok-events] API error', apiRes.status, JSON.stringify(apiJson));
-      return json({ ok: false, error: 'api_error', status: apiRes.status, detail: apiJson }, 200, context.request);
+    const failures = results.filter((result) => !result.ok);
+    if (failures.length === results.length) {
+      return json({ ok: false, error: 'api_error', event, event_id: event_id || null, results }, 200, context.request);
     }
 
-    return json({ ok: true, event, event_id: event_id || null }, 200, context.request);
+    return json({ ok: true, event, event_id: event_id || null, results }, 200, context.request);
 
   } catch (err) {
     console.error('[tiktok-events] Unexpected error:', err);

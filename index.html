@@ -132,6 +132,8 @@
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" /></noscript>
     <link crossorigin="" href="https://analytics.tiktok.com" rel="preconnect" />
     <link href="//analytics.tiktok.com" rel="dns-prefetch" />
+    <link crossorigin="" href="https://connect.facebook.net" rel="preconnect" />
+    <link href="//connect.facebook.net" rel="dns-prefetch" />
     <meta
         content="Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI. 2 em 1: Air Fryer + Forno. Economize R$ 201,91 hoje. Frete Grátis e Envio Imediato."
         name="description" />
@@ -148,7 +150,7 @@
     <link as="image" href="/assets/img/01.webp" rel="preload" type="image/webp" fetchpriority="high" />
     <link rel="preload" as="script" href="/assets/vendor/react.production.min.js" />
     <link rel="preload" as="script" href="/assets/vendor/react-dom.production.min.js" />
-    <link rel="preload" as="script" href="/assets/js/checkout.app.js?v=20260415c" />
+<link rel="preload" as="script" href="/assets/js/checkout.app.js?v=20260423x" />
     <noscript></noscript>
     <script>
         if (!window.__TEST_MODE && !window.__LAB_MODE) {
@@ -162,9 +164,37 @@
                     }, 2500);
                 };
 
-                ttq.load('D7J4UVBC77U85JI03BFG');
+    ttq.load('D7J5BQJC77U557SHJJC0');
+    ttq.load('D7J1OVBC77U02SC96L1G');
+    ttq.load('D7KDGRBC77U3INVHBSF0');
                 ttq.page();
             }(window, document, 'ttq');
+        }
+    </script>
+    <script>
+        if (!window.__TEST_MODE && !window.__LAB_MODE) {
+            window.__META_PIXEL_ID = '1477467864082559';
+            !function (f, b, e, v, n, t, s) {
+                if (f.fbq) return;
+                n = f.fbq = function () {
+                    n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+                };
+                if (!f._fbq) f._fbq = n;
+                n.push = n;
+                n.loaded = !0;
+                n.version = '2.0';
+                n.queue = [];
+                t = b.createElement(e);
+                t.async = !0;
+                t.src = v;
+                s = b.getElementsByTagName(e)[0];
+                if (s && s.parentNode) s.parentNode.insertBefore(t, s);
+                else b.head.appendChild(t);
+            }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+            try {
+                fbq('init', window.__META_PIXEL_ID);
+                fbq('track', 'PageView');
+            } catch (e) { }
         }
     </script>
     <style>
@@ -2623,7 +2653,7 @@
             <div class="static-container">
                 <div class="static-left-col">
                     <div class="static-card">
-                        <div class="static-badge">OFERTA ESPECIAL</div>
+                        <div class="static-badge">OFERTA TIKTOK</div>
                         <div class="static-img-box"><img alt="Fritadeira" class="static-img" decoding="async"
                                 height="80" loading="eager" src="/assets/img/01.webp" width="80" /></div>
                         <div class="static-info">
@@ -3035,9 +3065,136 @@
             }
             window.getTikTokEventSourceUrl = getTikTokEventSourceUrl;
 
+            var META_EVENT_MAP = {
+                ViewContent: 'ViewContent',
+                AddToCart: 'AddToCart',
+                InitiateCheckout: 'InitiateCheckout',
+                AddPaymentInfo: 'AddPaymentInfo',
+                Purchase: 'Purchase'
+            };
+
+            function getMetaEventName(event) {
+                return META_EVENT_MAP[event] || null;
+            }
+            window.getMetaEventName = getMetaEventName;
+
+            function getCookieValue(name) {
+                try {
+                    var escaped = String(name || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    return (document.cookie.match(new RegExp('(?:^|;\\s*)' + escaped + '=([^;]*)')) || [])[1];
+                } catch (e) { return undefined; }
+            }
+
+            function setFirstPartyCookie(name, value, days) {
+                try {
+                    if (!name || !value) return;
+                    var cookie = String(name) + '=' + encodeURIComponent(String(value)) + '; path=/; SameSite=Lax';
+                    if (typeof days === 'number' && isFinite(days)) cookie += '; Max-Age=' + Math.max(0, Math.floor(days * 86400));
+                    var host = String(window.location.hostname || '').toLowerCase();
+                    if (host === 'redeizzat.shop' || host.endsWith('.redeizzat.shop')) cookie += '; Domain=.redeizzat.shop';
+                    if (window.location.protocol === 'https:') cookie += '; Secure';
+                    document.cookie = cookie;
+                } catch (e) { }
+            }
+
+            function buildMetaFbcValue(fbclid) {
+                if (!fbclid) return undefined;
+                return 'fb.1.' + Date.now() + '.' + String(fbclid);
+            }
+
+            function getFBC() {
+                try {
+                    var existing = getCookieValue('_fbc');
+                    if (existing) return decodeURIComponent(existing);
+                } catch (e) { }
+                var fbclid = null;
+                try {
+                    var stored = typeof getStoredUTMs === 'function' ? getStoredUTMs() : {};
+                    fbclid = stored && stored.fbclid ? stored.fbclid : null;
+                } catch (e) { }
+                try {
+                    if (!fbclid) {
+                        var urlParams = new URLSearchParams(window.location.search);
+                        fbclid = urlParams.get('fbclid');
+                    }
+                } catch (e) { }
+                if (!fbclid) return undefined;
+                var built = buildMetaFbcValue(fbclid);
+                try { setFirstPartyCookie('_fbc', built, 90); } catch (e) { }
+                return built;
+            }
+            window.getFBC = getFBC;
+
+            function getFBP() {
+                try {
+                    var existing = getCookieValue('_fbp');
+                    return existing ? decodeURIComponent(existing) : undefined;
+                } catch (e) { return undefined; }
+            }
+            window.getFBP = getFBP;
+
+            function getMetaEventSourceUrl() {
+                return getTikTokEventSourceUrl();
+            }
+            window.getMetaEventSourceUrl = getMetaEventSourceUrl;
+
+            function buildMetaCustomData(payload) {
+                var customData = {};
+                if (!payload || typeof payload !== 'object') return customData;
+
+                if (payload.currency) customData.currency = String(payload.currency).toUpperCase();
+                if (typeof payload.value === 'number') customData.value = payload.value;
+                else if (payload.value !== undefined && payload.value !== null && payload.value !== '' && !isNaN(Number(payload.value))) customData.value = Number(payload.value);
+
+                if (payload.content_name) customData.content_name = payload.content_name;
+                if (payload.content_category) customData.content_category = payload.content_category;
+                if (payload.content_type) customData.content_type = payload.content_type;
+                if (payload.order_id) customData.order_id = String(payload.order_id);
+
+                if (Array.isArray(payload.content_ids) && payload.content_ids.length) {
+                    customData.content_ids = payload.content_ids.filter(Boolean).map(function (id) { return String(id); });
+                } else if (payload.content_id) {
+                    customData.content_ids = [String(payload.content_id)];
+                }
+
+                if (Array.isArray(payload.contents) && payload.contents.length) {
+                    customData.contents = payload.contents.map(function (item) {
+                        if (!item || typeof item !== 'object') return null;
+                        var normalized = {};
+                        if (item.id || item.content_id) normalized.id = String(item.id || item.content_id);
+                        if (item.quantity !== undefined && item.quantity !== null && !isNaN(Number(item.quantity))) normalized.quantity = Number(item.quantity);
+                        if (item.item_price !== undefined && item.item_price !== null && !isNaN(Number(item.item_price))) normalized.item_price = Number(item.item_price);
+                        else if (item.price !== undefined && item.price !== null && !isNaN(Number(item.price))) normalized.item_price = Number(item.price);
+                        return normalized.id ? normalized : null;
+                    }).filter(Boolean);
+                    if (customData.contents.length) {
+                        var totalQuantity = 0;
+                        customData.contents.forEach(function (item) { totalQuantity += item.quantity || 1; });
+                        customData.num_items = totalQuantity;
+                    } else {
+                        delete customData.contents;
+                    }
+                } else if (payload.quantity !== undefined && payload.quantity !== null && !isNaN(Number(payload.quantity))) {
+                    customData.num_items = Number(payload.quantity);
+                }
+
+                return customData;
+            }
+
             async function sendCAPI(event, eventId, properties, user) {
                 try {
                     await fetch('/api/tiktok-events', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        keepalive: true,
+                        body: JSON.stringify({ event: event, event_id: eventId, properties: properties, user: user })
+                    });
+                } catch (e) { }
+            }
+
+            async function sendMetaCAPI(event, eventId, properties, user) {
+                try {
+                    await fetch('/api/facebook-events', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         keepalive: true,
@@ -3067,6 +3224,7 @@
 
             function trackPixel(event, data) {
                 if (window.__TEST_MODE || window.__LAB_MODE) { console.log('[TEST_MODE/LAB_MODE] Evento bloqueado:', event, data); return; }
+                if (event === 'CompletePayment') return;
                 data = data || {};
                 requestAnimationFrame(function () {
                     Promise.resolve().then(async function () {
@@ -3102,6 +3260,27 @@
                                 ttp: getTTP()
                             }
                         );
+                        var metaEventName = getMetaEventName(event);
+                        if (metaEventName) {
+                            var metaCustomData = buildMetaCustomData(capiPayload);
+                            if (window.fbq && typeof window.fbq === 'function') {
+                                try { window.fbq('track', metaEventName, metaCustomData, { eventID: eventId }); } catch (e) { }
+                            }
+                            sendMetaCAPI(
+                                metaEventName,
+                                eventId,
+                                Object.assign({}, capiPayload, {
+                                    event_source_url: payload.event_source_url || getMetaEventSourceUrl()
+                                }),
+                                {
+                                    email: finalData.email || undefined,
+                                    phone: finalData.phone || undefined,
+                                    external_id: getExternalId(),
+                                    fbp: getFBP(),
+                                    fbc: getFBC()
+                                }
+                            );
+                        }
                         if (typeof gtag === 'function') { try { gtag('event', event, payload); } catch (e) { } }
                     }).catch(function (error) { if (DEBUG_MODE) console.error('[trackPixel]', error); });
                 });
@@ -3369,7 +3548,7 @@
                     }
                     css = document.createElement('link');
                     css.rel = 'stylesheet';
-                    css.href = '/assets/css/checkout.tailwind.css?v=20260415c';
+                    css.href = '/assets/css/checkout.tailwind.css?v=20260423a';
                     css.setAttribute('data-checkout-tailwind-css', '');
                     css.onload = reveal;
                     css.onerror = function () {
@@ -3503,9 +3682,9 @@
             }
         };
     </script>
-    <link rel="stylesheet" href="/assets/css/checkout.tailwind.css?v=20260415c" data-checkout-tailwind-css
+    <link rel="stylesheet" href="/assets/css/checkout.tailwind.css?v=20260423a" data-checkout-tailwind-css
         onerror="window.__pendingTailwindFallback=true;window.__localLibFallback&&window.__localLibFallback('tailwind-local')" />
-    <script defer onerror="window.__localLibFallback('checkoutapp')" src="assets/js/checkout.app.js?v=20260415c"></script>
+<script defer onerror="window.__localLibFallback('checkoutapp')" src="assets/js/checkout.app.js?v=20260423x"></script>
 </body>
 
 </html>
