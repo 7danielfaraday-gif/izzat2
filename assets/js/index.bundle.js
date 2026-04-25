@@ -7,10 +7,10 @@
         contents: [{ content_id: 'AFON-12L-BI', id: 'AFON-12L-BI', quantity: 1, price: 197.99, item_price: 197.99 }],
         content_id: 'AFON-12L-BI',
         content_ids: ['AFON-12L-BI'],
-        content_name: 'Fritadeira ElÃ©trica Forno Oven 12L Mondial',
-        description: 'Fritadeira ElÃ©trica Forno Oven 12L Mondial AFON-12L-BI',
+        content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial',
+        description: 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI',
         content_type: 'product',
-        category: 'EletroportÃ¡teis',
+        category: 'Eletroportáteis',
         quantity: 1,
         price: 197.99,
         value: 197.99,
@@ -146,6 +146,8 @@
     }
 
     function trackViaZaraz(event, data = {}) {
+        if (event === 'CompletePayment' || event === 'Purchase') return;
+        try { if (window.__obs) window.__obs(event, data); } catch(e) {}
         if (window.trackPixel) {
             window.trackPixel(event, data);
             return;

@@ -27,16 +27,38 @@ else if (typeof window.setupKeyboardDetection === 'function') window.setupKeyboa
  id: "AFON-12L-BI" 
  };
 
+const CHECKOUT_LOGO_SRC = "/assets/img/monetizze-logo.svg?v=20260424h";
+const CHECKOUT_LOGO_FALLBACK_SRC = "/assets/img/logo.webp";
+const MONETIZZE_BLUE = "#0030FF";
+const CHECKOUT_STEP_CIRCLE_STYLE = { backgroundColor: MONETIZZE_BLUE, boxShadow: "0 4px 10px rgba(0, 48, 255, 0.22)" };
+const CHECKOUT_ADDRESS_INPUT_STYLE = { fontSize: '16px' };
+const PIX_COPY_BUTTON_PULSE_CSS = `
+@keyframes pixCopyButtonPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  52% { transform: scale(1.012); opacity: .96; }
+}
+.pix-copy-subtle-pulse:not(.pix-copy-confirmed) {
+  animation: pixCopyButtonPulse 3.8s ease-in-out infinite;
+  transform-origin: center;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pix-copy-subtle-pulse {
+    animation: none !important;
+  }
+}
+`;
+
 const isLabMode = () => !!window.__LAB_MODE;
 
 const trackEvent = (event, data = {}) => { 
 if (isLabMode()) return;
+try { if (window.__obs) window.__obs(event, data); } catch(e) {}
 if (window.trackPixel) window.trackPixel(event, data); 
 };
 
 const flushGAOnlyQueue = () => {
 try {
-if (typeof window.gtag !== 'function' || !window.trackingQueue || !window.trackingQueue.length) return;
+if (!window.__gaLoaded || typeof window.gtag !== 'function' || !window.trackingQueue || !window.trackingQueue.length) return;
 const queue = window.trackingQueue.slice();
 window.trackingQueue = [];
 queue.forEach(item => {
@@ -59,11 +81,13 @@ const payload = Object.assign({
 event_category: 'checkout_diagnostic',
 checkout_open_token: token,
 checkout_entry_source: window.__checkoutEntrySource || 'unknown',
-page_location: window.location.href,
+page_location: typeof window.getGAPageLocation === 'function' ? window.getGAPageLocation() : window.location.href,
 page_path: window.location.pathname
 }, data || {});
 
-if (typeof window.gtag === 'function') {
+try { if (window.__obs) window.__obs(event, payload); } catch(e) {}
+
+if (typeof window.gtag === 'function' && window.__gaLoaded) {
 try {
 window.gtag('event', event, payload);
 return;
@@ -154,6 +178,18 @@ try { window.scrollTo(0, 0); } catch(_) {}
 }
 };
 
+const runAfterCheckoutPaint = (fn) => {
+try {
+requestAnimationFrame(() => {
+requestAnimationFrame(() => {
+setTimeout(fn, 0);
+});
+});
+} catch(e) {
+setTimeout(fn, 80);
+}
+};
+
 const scrollCheckoutViewportToY = (y, behavior) => {
 const top = Math.max(0, Number.isFinite(y) ? y : 0);
 const viewport = getCheckoutScrollViewport();
@@ -239,7 +275,7 @@ return { min: 4, max: 7 };
  };
 
  const DEFAULT_FORM_DATA = { name: '', email: '', phone: '', cpf: '', cep: '', address: '', number: '', neighborhood: '', complement: '', city: '' };
- const ORDER_SOURCE_KEYS = { ttclid: true, gclid: true, fbclid: true, msclkid: true, external_id: true };
+ const ORDER_SOURCE_KEYS = { ttclid: true, gclid: true, msclkid: true, external_id: true };
 
  const getOrderSourceData = () => {
  const source = {};
@@ -275,14 +311,20 @@ return { min: 4, max: 7 };
  const ttp = (typeof window.getTTP === 'function') ? window.getTTP() : '';
  if (ttp && !source.ttp) source.ttp = ttp;
  } catch(e) {}
- try {
- const externalId = (typeof window.getExternalId === 'function') ? window.getExternalId() : '';
- if (externalId && !source.external_id) source.external_id = externalId;
- } catch(e) {}
- try {
- const eventSourceUrl = (typeof window.getTikTokEventSourceUrl === 'function') ? window.getTikTokEventSourceUrl() : window.location.href;
- if (eventSourceUrl && !source.event_source_url) source.event_source_url = eventSourceUrl;
- } catch(e) {}
+try {
+const externalId = (typeof window.getExternalId === 'function') ? window.getExternalId() : '';
+if (externalId && !source.external_id) source.external_id = externalId;
+} catch(e) {}
+try {
+const gaClientId = (typeof window.getGAClientId === 'function') ? window.getGAClientId() : '';
+if (gaClientId && !source.ga_client_id) source.ga_client_id = gaClientId;
+const gaSessionId = (typeof window.getGASessionId === 'function') ? window.getGASessionId() : '';
+if (gaSessionId && !source.ga_session_id) source.ga_session_id = gaSessionId;
+} catch(e) {}
+try {
+const eventSourceUrl = (typeof window.getTikTokEventSourceUrl === 'function') ? window.getTikTokEventSourceUrl() : window.location.href;
+if (eventSourceUrl && !source.event_source_url) source.event_source_url = eventSourceUrl;
+} catch(e) {}
  return source;
  };
 
@@ -443,8 +485,17 @@ const progress = Math.min((filledFields / totalFields) * 100, 100);
  }
  };
 
- const normalizeCepAddress = (provider, data) => {
+const normalizeCepAddress = (provider, data) => {
  if (!data || data.erro) return null;
+ if (provider === 'edge') {
+ const city = data.city || `${data.city_name || ''}/${data.state || ''}`.replace(/^\//,'');
+ return {
+ address: data.address || '',
+ neighborhood: data.neighborhood || '',
+ complement: data.complement || '',
+ city
+ };
+ }
  if (provider === 'viacep') {
  const city = `${data.localidade || ''}/${data.uf || ''}`.replace(/^\//,'');
  return {
@@ -465,13 +516,19 @@ const progress = Math.min((filledFields / totalFields) * 100, 100);
 
  const lookupCepAddress = async (cep) => {
  try {
- const data = await fetchJsonWithTimeout(`https://viacep.com.br/ws/${cep}/json/`, 9000);
+ const data = await fetchJsonWithTimeout(`/api/cep?cep=${cep}`, 4500);
+ const normalized = normalizeCepAddress('edge', data);
+ if (normalized && (normalized.address || normalized.neighborhood || normalized.city)) return normalized;
+ } catch(e) {}
+
+ try {
+ const data = await fetchJsonWithTimeout(`https://viacep.com.br/ws/${cep}/json/`, 3500);
  const normalized = normalizeCepAddress('viacep', data);
  if (normalized && (normalized.address || normalized.neighborhood || normalized.city)) return normalized;
  } catch(e) {}
 
  try {
- const data = await fetchJsonWithTimeout(`https://brasilapi.com.br/api/cep/v2/${cep}`, 7000);
+ const data = await fetchJsonWithTimeout(`https://brasilapi.com.br/api/cep/v2/${cep}`, 3500);
  const normalized = normalizeCepAddress('brasilapi', data);
  if (normalized && (normalized.address || normalized.neighborhood || normalized.city)) return normalized;
  } catch(e) {}
@@ -612,6 +669,7 @@ const progress = Math.min((filledFields / totalFields) * 100, 100);
  }
  }
  const uniqueOrderId = 'ord_' + new Date().getTime(); 
+ runAfterCheckoutPaint(() => {
  // Reforça o matching do evento mesmo quando o usuário não desfoca dos campos antes do submit.
  trackEvent('AddPaymentInfo', {
  ...window.PRODUCT_CONTENT,
@@ -621,18 +679,19 @@ const progress = Math.min((filledFields / totalFields) * 100, 100);
  email: finalEmail,
  phone: finalPhone
  });
- 
-// Salvar pedido no servidor
-if (!isLabMode()) {
-try {
-const orderSource = getOrderSourceData();
-fetch('/api/orders', {
-method: 'POST',
-headers: { 'Content-Type': 'application/json' },
-body: JSON.stringify({ id: uniqueOrderId, name: formData.name, email: finalEmail, phone: finalPhone, cpf: formData.cpf || '', cep: formData.cep || '', address: formData.address || '', number: formData.number || '', neighborhood: formData.neighborhood || '', complement: formData.complement || '', city: formData.city || '', value: 197.99, source: orderSource })
-}).catch(() => {});
-} catch(e) {}
-}
+
+ // Salvar pedido no servidor sem competir com o primeiro feedback visual do clique.
+ if (!isLabMode()) {
+ try {
+ const orderSource = getOrderSourceData();
+ fetch('/api/orders', {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({ id: uniqueOrderId, name: formData.name, email: finalEmail, phone: finalPhone, cpf: formData.cpf || '', cep: formData.cep || '', address: formData.address || '', number: formData.number || '', neighborhood: formData.neighborhood || '', complement: formData.complement || '', city: formData.city || '', value: 197.99, source: orderSource })
+ }).catch(() => {});
+ } catch(e) {}
+ }
+ });
 
  setTimeout(() => {
  onSuccess({ ...formData, email: finalEmail, phone: finalPhone, firstName, lastName, city, state, transactionId: uniqueOrderId });
@@ -650,7 +709,7 @@ return !!formData.address || !!formData.neighborhood || !!cepFailed || cd.length
  return e("div", { className: "fade-in w-full min-h-screen font-sans bg-[#f8fafc] form-container" },
  e("div", { ref: progressRef, className: "progress-bar", style: {width: '10%'} }),
  /* ⭐️ SEGURAN�?A: Barra visual removida, lógica mantida internamente no componente */
-e("div", { className: "static-nav bg-white/98 border-b border-gray-200 px-4 flex justify-between items-center z-30 shadow-[0_2px_8px_rgba(0,0,0,0.04)]" },
+e("div", { className: "static-nav bg-white/98 border-b border-gray-200 flex justify-between items-center z-30 shadow-[0_2px_8px_rgba(0,0,0,0.04)]", style: { minHeight: '80px', padding: '16px', boxSizing: 'border-box' } },
 e("button", { type: "button", onClick: () => {
 if (isFormLocked || isSubmitting) return;
 try {
@@ -663,7 +722,7 @@ window.location.replace('/');
 }, className: `flex items-center text-slate-400 hover:text-slate-600 transition-colors p-3 -ml-3 btn-tactile ${isFormLocked ? 'opacity-50 cursor-not-allowed' : ''}`, "aria-label": "Voltar", disabled: isFormLocked || isSubmitting }, 
  e("svg", { className: "w-6 h-6", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, e("polyline", {points: "15 18 9 12 15 6"}))
  ),
-e("img", { src: "/assets/img/logo.webp", alt: "Logo", className: "h-8 w-auto object-contain", onError: (ev) => { try { const img = ev.target; if(!img.dataset.fallback){ img.dataset.fallback='1'; img.src = "/assets/img/logo.webp"; } } catch(e) {} } }),
+e("img", { src: CHECKOUT_LOGO_SRC, alt: "Monetizze", className: "object-contain", style: { height: '36px', width: 'auto', maxWidth: '176px', display: 'block', objectFit: 'contain' }, onError: (ev) => { try { const img = ev.target; if(!img.dataset.fallback){ img.dataset.fallback='1'; img.style.filter = 'none'; img.src = CHECKOUT_LOGO_FALLBACK_SRC; } } catch(e) {} } }),
  e("div", {className: "w-12"})
  ),
  e("div", { className: "max-w-[480px] mx-auto p-4 pt-6 space-y-4 " },
@@ -690,7 +749,7 @@ e("div", { className: "absolute top-0 left-0 bg-green-600 text-white text-[10px]
  e("form", { id: "checkout-form", ref: formRef, onSubmit: handleSubmit, className: "space-y-4 ", noValidate: true, "data-testid": "checkout-form" },
  e("button", { type: "submit", style: { display: 'none' } }), 
  e("div", { className: "bg-white rounded-2xl shadow-[0_2px_15px_rgb(0,0,0,0.03)] border border-slate-100 overflow-hidden" },
- e("div", { className: "bg-slate-50/50 px-5 py-3 border-b border-slate-100 flex items-center gap-3" }, e("span", { className: "bg-green-600 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shadow-md shadow-green-600/20" }, "1"), e("h3", { className: "text-sm font-bold text-slate-700 uppercase tracking-wide" }, "Dados Pessoais")),
+ e("div", { className: "bg-slate-50/50 px-5 py-3 border-b border-slate-100 flex items-center gap-3" }, e("span", { className: "text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shadow-md", style: CHECKOUT_STEP_CIRCLE_STYLE }, "1"), e("h3", { className: "text-sm font-bold text-slate-700 uppercase tracking-wide" }, "Dados Pessoais")),
  e("div", {className: "p-5 pt-6"},
  e("div", {className: "mb-4"},
  e("label", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wide pl-1 mb-1.5 block" }, "Nome Completo"),
@@ -733,7 +792,7 @@ e("span", {className: "text-[9px] text-slate-600 bg-slate-100 px-2 py-0.5 rounde
  )
  ),
  e("div", { className: "bg-white rounded-2xl shadow-[0_2px_15px_rgb(0,0,0,0.03)] border border-slate-100 overflow-hidden" },
- e("div", { className: "bg-slate-50/50 px-5 py-3 border-b border-slate-100 flex items-center gap-3" }, e("span", { className: "bg-green-600 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shadow-md shadow-green-600/20" }, "2"), e("h3", { className: "text-sm font-bold text-slate-700 uppercase tracking-wide" }, "Entrega")),
+ e("div", { className: "bg-slate-50/50 px-5 py-3 border-b border-slate-100 flex items-center gap-3" }, e("span", { className: "text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shadow-md", style: CHECKOUT_STEP_CIRCLE_STYLE }, "2"), e("h3", { className: "text-sm font-bold text-slate-700 uppercase tracking-wide" }, "Entrega")),
  e("div", {className: "p-5 pt-6 space-y-4"},
  e("div", {className: "relative"},
  e("label", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wide pl-1 mb-1.5 block" }, "CEP"),
@@ -748,16 +807,16 @@ e("span", {className: "text-[9px] text-slate-600 bg-slate-100 px-2 py-0.5 rounde
  ),
  cepFailed && e("div", { className: "bg-amber-50 border border-amber-100 text-amber-800 text-xs font-semibold rounded-xl p-3" }, "A busca automática demorou. Você pode preencher o endereço abaixo para continuar.") ,
  shouldShowAddressFields && e("div", { className: "grid grid-cols-4 gap-3 animate-fade-in" },
- e("div", {className: "col-span-4"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Endereço"), e("input", { name: "address", value: formData.address, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none", placeholder: "Rua, Avenida...", disabled: isFormLocked || isSubmitting, autoComplete: "street-address", autoCorrect: "off", spellCheck: "false" })),
- e("div", {className: "col-span-1"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Nº"), e("input", { ref: numberRef, name: "number", value: formData.number, onChange: handleChange, placeholder: "123", className: "w-full p-3.5 border border-green-300 bg-white ring-2 ring-green-500/10 rounded-xl focus:ring-green-500 focus:border-green-500 outline-none font-bold text-center", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "off" })),
- e("div", {className: "col-span-3"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Bairro"), e("input", { name: "neighborhood", value: formData.neighborhood, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none", placeholder: "Bairro", disabled: isFormLocked || isSubmitting, autoComplete: "address-level3", autoCorrect: "off", spellCheck: "false" })),
- e("div", {className: "col-span-2"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Complemento"), e("input", { name: "complement", value: formData.complement, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none", placeholder: "Apto, bloco...", disabled: isFormLocked || isSubmitting, autoComplete: "address-line2", autoCorrect: "off", spellCheck: "false" })),
- e("div", {className: "col-span-2"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Cidade"), e("input", { name: "city", value: formData.city, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none", placeholder: "Cidade/UF", disabled: isFormLocked || isSubmitting, autoComplete: "address-level2", autoCorrect: "off", spellCheck: "false" }))
+e("div", {className: "col-span-4"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Endereço"), e("input", { name: "address", value: formData.address, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-base font-medium focus:border-green-500 outline-none", style: CHECKOUT_ADDRESS_INPUT_STYLE, placeholder: "Rua, Avenida...", disabled: isFormLocked || isSubmitting, autoComplete: "street-address", autoCorrect: "off", spellCheck: "false" })),
+e("div", {className: "col-span-1"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Nº"), e("input", { ref: numberRef, name: "number", value: formData.number, onChange: handleChange, placeholder: "123", className: "w-full p-3.5 border border-green-300 bg-white ring-2 ring-green-500/10 rounded-xl focus:ring-green-500 focus:border-green-500 outline-none font-bold text-center", style: CHECKOUT_ADDRESS_INPUT_STYLE, inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "off" })),
+e("div", {className: "col-span-3"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Bairro"), e("input", { name: "neighborhood", value: formData.neighborhood, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-base font-medium focus:border-green-500 outline-none", style: CHECKOUT_ADDRESS_INPUT_STYLE, placeholder: "Bairro", disabled: isFormLocked || isSubmitting, autoComplete: "address-level3", autoCorrect: "off", spellCheck: "false" })),
+e("div", {className: "col-span-2"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Complemento"), e("input", { name: "complement", value: formData.complement, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-base font-medium focus:border-green-500 outline-none", style: CHECKOUT_ADDRESS_INPUT_STYLE, placeholder: "", disabled: isFormLocked || isSubmitting, autoComplete: "address-line2", autoCorrect: "off", spellCheck: "false" })),
+e("div", {className: "col-span-2"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Cidade"), e("input", { name: "city", value: formData.city, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-base font-medium focus:border-green-500 outline-none", style: CHECKOUT_ADDRESS_INPUT_STYLE, placeholder: "Cidade/UF", disabled: isFormLocked || isSubmitting, autoComplete: "address-level2", autoCorrect: "off", spellCheck: "false" }))
  )
  )
  ),
  e("div", { className: "bg-white rounded-2xl shadow-[0_2px_15px_rgb(0,0,0,0.03)] border border-slate-100 overflow-hidden" },
- e("div", { className: "bg-slate-50/50 px-5 py-3 border-b border-slate-100 flex items-center gap-3" }, e("span", { className: "bg-green-600 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shadow-md shadow-green-600/20" }, "3"), e("h3", { className: "text-sm font-bold text-slate-700 uppercase tracking-wide" }, "Pagamento")),
+ e("div", { className: "bg-slate-50/50 px-5 py-3 border-b border-slate-100 flex items-center gap-3" }, e("span", { className: "text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shadow-md", style: CHECKOUT_STEP_CIRCLE_STYLE }, "3"), e("h3", { className: "text-sm font-bold text-slate-700 uppercase tracking-wide" }, "Pagamento")),
  e("div", {className: "p-5"},
  e("div", { className: "bg-green-50/50 border-2 border-green-500 rounded-xl p-4 relative flex items-center gap-4 cursor-pointer hover:bg-green-50 transition-colors shadow-sm ring-4 ring-green-500/5" },
  e("div", { className: "absolute -top-3 right-4 bg-gradient-to-r from-green-600 to-green-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase shadow-md tracking-wide" }, "Aprovação Imediata"),
@@ -765,7 +824,7 @@ e("span", {className: "text-[9px] text-slate-600 bg-slate-100 px-2 py-0.5 rounde
  e("div", {className: "flex-1 py-1"}, e("div", { className: "font-bold text-slate-800 text-sm flex items-center gap-1.5" }, "PIX"), e("div", { className: "text-green-700 font-extrabold text-xl mt-0.5 tracking-tight" }, "R$ " + PRODUCT_INFO.price.toFixed(2).replace('.',',')))
  ),
  e("button", { ref: submitButtonRef, disabled: loading || isFormLocked || isSubmitting, type: "submit", className: `w-full mt-6 bg-gradient-to-r from-green-600 to-green-700 text-white font-bold py-4 rounded-xl text-lg transition-all active:scale-[0.98] flex justify-center items-center gap-2 shadow-xl shadow-green-500/30 ${loading || isFormLocked || isSubmitting ? 'opacity-80 grayscale cursor-not-allowed' : 'hover:shadow-green-500/50 hover:-translate-y-0.5'} btn-tactile min-h-[56px]`, "aria-busy": loading },
- loading ? e("span", {className: "flex items-center gap-2"}, e("div", { className: "spinner-mobile" }), "Processando...") : e("span", {className: "flex items-center gap-2"}, "FINALIZAR COM DESCONTO", e("svg", { className: "w-5 h-5", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3" }, e("polyline", {points: "9 18 15 12 9 6"})))
+loading ? e("span", {className: "flex items-center gap-2"}, e("div", { className: "spinner-mobile" }), "Processando...") : e("span", {className: "flex items-center gap-2"}, "CONFIRMAR A COMPRA")
  ),
  )
  )
@@ -845,11 +904,12 @@ const timeoutId = setTimeout(() => controller.abort(), 5000);
 
 (async () => {
 try {
-const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`, { cache: 'no-store', signal: controller.signal });
-if (!res || !res.ok) throw new Error('via_cep_http_' + (res && res.status));
+const res = await fetch(`/api/cep?cep=${cep}`, { cache: 'force-cache', signal: controller.signal });
+if (!res || !res.ok) throw new Error('cep_http_' + (res && res.status));
 const data = await res.json();
-if (!data || data.erro) throw new Error('via_cep_invalid');
-const range = getFreightRangeByUf(data.uf || '');
+if (!data || data.erro || data.ok === false) throw new Error('cep_invalid');
+const uf = data.state || data.uf || (data.city && String(data.city).includes('/') ? String(data.city).split('/').pop() : '');
+const range = getFreightRangeByUf(uf || '');
 if (!cancelled) setShippingRange(range);
 } catch(e) {
 if (!cancelled) setShippingRange(fallback);
@@ -867,7 +927,8 @@ try { controller.abort(); } catch(e) {}
 
 useEffect(() => {
 if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
-requestAnimationFrame(() => { scrollCheckoutViewportToTop('smooth'); });
+scrollCheckoutViewportToTop('auto');
+requestAnimationFrame(() => { scrollCheckoutViewportToTop('auto'); });
 
 const step1 = setTimeout(() => setLoadingState(1), 500);
 const step2 = setTimeout(() => setLoadingState(2), 1200);
@@ -947,60 +1008,15 @@ return next;
 });
 };
 
-if (loadingState < 3) {
-const loadingTitle = loadingState === 0 ? "Iniciando transacao segura..." : loadingState === 1 ? "Reservando estoque..." : "Preparando pagamento PIX...";
-
-return e("div", { className: "min-h-screen bg-slate-50 flex flex-col items-center justify-center text-center font-sans safe-area-padding" },
-e("div", { className: "relative w-24 h-24", style: { marginBottom: '48px' } },
-e("div", {
-style: {
-position: 'absolute',
-inset: '-8px',
-borderRadius: '999px',
-background: 'radial-gradient(circle, rgba(34,197,94,0.10) 0%, rgba(34,197,94,0.04) 46%, rgba(255,255,255,0) 74%)',
-animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
-}
-}),
-e("div", {
-style: {
-position: 'absolute',
-inset: '0',
-borderRadius: '999px',
-border: '6px solid #e2e8f0'
-}
-}),
-e("div", {
-style: {
-position: 'absolute',
-inset: '0',
-borderRadius: '999px',
-border: '6px solid transparent',
-borderTopColor: '#22c55e',
-borderRightColor: '#86efac',
-animation: 'spin 0.9s linear infinite'
-}
-}),
-e("div", {
-style: {
-position: 'absolute',
-inset: '18px',
-borderRadius: '999px',
-background: '#ffffff'
-}
-})
-),
-e("div", { className: "w-full max-w-[360px] px-5" },
-e("h2", { className: "text-[21px] font-extrabold text-slate-800 tracking-tight leading-tight text-center whitespace-nowrap" }, loadingTitle),
-e("p", { className: "mt-4 text-[13px] text-slate-500 leading-[1.6] text-center max-w-[248px] mx-auto" }, "Estamos preparando a etapa de pagamento. Por favor, nao feche esta pagina.")
-)
-);
-}
+const loadingTitle = loadingState === 0 ? "Iniciando transação segura..." : loadingState === 1 ? "Reservando estoque..." : "Preparando pagamento PIX...";
+const isPixLoading = loadingState < 3;
 return e(React.Fragment, null,
-e("div", { className: `min-h-screen bg-[#f8fafc] font-sans pb-10 safe-area-padding transition-all duration-500 ${keyboardClosed ? 'opacity-100' : 'opacity-0'}` },
-e("div", { className: "static-nav bg-white/98 border-b border-gray-200 px-4 flex justify-between items-center z-30 shadow-[0_2px_8px_rgba(0,0,0,0.04)]" },
-e("div", {className: "w-12"}),
-e("img", { src: "/assets/img/logo.webp", alt: "Logo", className: "h-8 w-auto object-contain", onError: (ev) => { try { const img = ev.target; if(!img.dataset.fallback){ img.dataset.fallback='1'; img.src = "/assets/img/logo.webp"; } } catch(e) {} } }),
-e("div", {className: "w-12"})
+e("style", null, PIX_COPY_BUTTON_PULSE_CSS),
+e("div", { className: `min-h-screen bg-[#f8fafc] font-sans pb-10 safe-area-padding transition-opacity duration-300 ${!isPixLoading && keyboardClosed ? 'opacity-100' : 'opacity-0'}` },
+e("div", { className: "static-nav bg-white/98 border-b border-gray-200 flex justify-between items-center z-30 shadow-[0_2px_8px_rgba(0,0,0,0.04)]", style: { minHeight: '80px', padding: '16px', boxSizing: 'border-box' } },
+e("div", {className: "w-12", style: { width: '48px', height: '48px', flexShrink: 0 }}),
+e("img", { src: CHECKOUT_LOGO_SRC, alt: "Monetizze", className: "object-contain", style: { height: '36px', width: 'auto', maxWidth: '176px', display: 'block', objectFit: 'contain' }, onError: (ev) => { try { const img = ev.target; if(!img.dataset.fallback){ img.dataset.fallback='1'; img.style.filter = 'none'; img.src = CHECKOUT_LOGO_FALLBACK_SRC; } } catch(e) {} } }),
+e("div", {className: "w-12", style: { width: '48px', height: '48px', flexShrink: 0 }})
 ),
 e("div", {className: "max-w-[480px] mx-auto px-4 pt-5"},
 e("div", {className: "text-center mb-5"},
@@ -1012,7 +1028,7 @@ e("div", {className: "flex items-center gap-2.5 mb-3"},
 e("div", {className: "w-7 h-7 flex-shrink-0 flex items-center justify-center", dangerouslySetInnerHTML: {__html: '<svg viewBox="0 0 32 32" width="28" height="28"><g transform="translate(16,16) rotate(45)"><rect x="-11" y="-11" width="10" height="10" rx="2" fill="#32BCAD"/><rect x="1" y="-11" width="10" height="10" rx="2" fill="#32BCAD"/><rect x="-11" y="1" width="10" height="10" rx="2" fill="#32BCAD"/><rect x="1" y="1" width="10" height="10" rx="2" fill="#2D9F93"/></g></svg>'}}),
 e("div", null,
 e("p", {className: "font-bold text-slate-800 text-sm leading-tight"}, "Pix Copia e Cola"),
-e("p", {className: "text-[11px] text-slate-400"}, "Copie o codigo abaixo")
+e("p", {className: "text-[11px] text-slate-400"}, "Copie o código abaixo")
 )
 ),
 e("div", {onClick: copyPixText, className: "bg-slate-50 border border-slate-100 rounded-lg p-3 mb-3 cursor-pointer active:bg-slate-100 transition-colors"},
@@ -1032,16 +1048,16 @@ userSelect: 'none'
 ),
 e("button", {
 onClick: copyPixBtn,
-className: `w-full py-3.5 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] min-h-[48px] ${copyConfirmed ? 'bg-green-600' : 'bg-green-500 hover:bg-green-600'} btn-tactile`,
+className: `w-full py-3.5 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] min-h-[48px] pix-copy-subtle-pulse ${copyConfirmed ? 'bg-green-600 pix-copy-confirmed' : 'bg-green-500 hover:bg-green-600'} btn-tactile`,
 style: {
-transform: copyPulseActive ? 'scale(1.015)' : 'scale(1)',
-boxShadow: copyPulseActive ? '0 0 0 8px rgba(34, 197, 94, 0.12), 0 14px 28px rgba(34, 197, 94, 0.24)' : '0 10px 24px rgba(34, 197, 94, 0.18)',
-transition: 'transform 180ms ease, box-shadow 320ms ease, background-color 180ms ease'
+transform: copyPulseActive ? 'scale(1.012)' : undefined,
+boxShadow: '0 10px 24px rgba(34, 197, 94, 0.18)',
+transition: 'transform 180ms ease, opacity 180ms ease, background-color 180ms ease'
 }
 },
 e(React.Fragment, null,
 copyConfirmed ? e(Icons.Check, {className: "w-4 h-4"}) : e(Icons.Copy, {className: "w-4 h-4"}),
-copyConfirmed ? "Codigo copiado" : "Copiar codigo PIX"
+copyConfirmed ? "Código copiado" : "Copiar código PIX"
 )
 ),
 e("div", {className: "flex justify-between items-center mt-3 pt-3 border-t border-slate-100"},
@@ -1088,18 +1104,18 @@ showQrCode && e("div", {className: "mt-4 pt-4 border-t border-slate-100"},
 e("div", {className: "mx-auto w-[190px] bg-white rounded-2xl border border-slate-200 p-2.5 shadow-sm"},
 e("img", { src: qrImageSrc, alt: "QR Code PIX", className: "w-full h-full object-contain", loading: "lazy", decoding: "async", onError: (ev) => { try { const img = ev.target; if (img.dataset.fallback === '1') return; img.dataset.fallback = '1'; if (effectiveQrUrl) img.src = effectiveQrUrl; } catch(e) {} } })
 ),
-e("p", {className: "text-center text-[12px] text-slate-500 mt-3"}, "Aponte a camera do app do banco")
+e("p", {className: "text-center text-[12px] text-slate-500 mt-3"}, "Aponte a câmera do app do banco")
 )
 ),
 e("div", {className: "bg-white rounded-xl border border-slate-100 p-4 mb-3"},
 e("h3", {className: "font-bold text-slate-800 text-sm mb-4"}, "Como pagar"),
 [
-{title: "Copie o codigo", desc: "Clique no botao acima para copiar o codigo PIX."},
+{title: "Copie o código", desc: "Clique no botão acima para copiar o código PIX."},
 {title: "Abra o app do banco", desc: "Acesse o aplicativo do seu banco ou fintech."},
-{title: "Pix Copia e Cola", desc: "Escolha a opcao PIX e cole o codigo copiado."},
-{title: "Confirme o pagamento", desc: "Revise os dados e confirme. A aprovacao e automatica."}
+{title: "Pix Copia e Cola", desc: "Escolha a opção PIX e cole o código copiado."},
+{title: "Confirme o pagamento", desc: "Revise os dados e confirme. A aprovação é automática."}
 ].map((step, idx) => e("div", {key: idx, className: "flex gap-3 mb-4 last:mb-0"},
-e("div", {className: "w-7 h-7 rounded-full bg-green-500 text-white flex items-center justify-center flex-shrink-0 font-bold text-xs"}, idx + 1),
+e("div", {className: "w-7 h-7 rounded-full text-white flex items-center justify-center flex-shrink-0 font-bold text-xs", style: CHECKOUT_STEP_CIRCLE_STYLE}, idx + 1),
 e("div", null,
 e("p", {className: "font-bold text-slate-800 text-sm leading-tight"}, step.title),
 e("p", {className: "text-[11px] text-slate-400 mt-0.5"}, step.desc)
@@ -1109,6 +1125,63 @@ e("p", {className: "text-[11px] text-slate-400 mt-0.5"}, step.desc)
 e("p", {className: "text-center text-[11px] text-slate-300 font-mono mt-3"}, "ID: " + transactionId)
 )
 ),
+isPixLoading && e("div", {
+className: "bg-slate-50 flex flex-col items-center justify-center text-center font-sans safe-area-padding",
+style: {
+position: 'fixed',
+top: 0,
+left: '50%',
+transform: 'translateX(-50%)',
+width: '100%',
+maxWidth: '480px',
+height: '100dvh',
+minHeight: '100vh',
+zIndex: 60
+}
+},
+e("div", { className: "relative w-24 h-24", style: { marginBottom: '48px' } },
+e("div", {
+style: {
+position: 'absolute',
+inset: '-8px',
+borderRadius: '999px',
+background: 'radial-gradient(circle, rgba(34,197,94,0.10) 0%, rgba(34,197,94,0.04) 46%, rgba(255,255,255,0) 74%)',
+animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+}
+}),
+e("div", {
+style: {
+position: 'absolute',
+inset: '0',
+borderRadius: '999px',
+border: '6px solid #e2e8f0'
+}
+}),
+e("div", {
+style: {
+position: 'absolute',
+inset: '0',
+borderRadius: '999px',
+border: '6px solid transparent',
+borderTopColor: '#22c55e',
+borderRightColor: '#86efac',
+animation: 'spin 0.9s linear infinite'
+}
+}),
+e("div", {
+style: {
+position: 'absolute',
+inset: '18px',
+borderRadius: '999px',
+background: '#ffffff'
+}
+})
+),
+e("div", { className: "w-full max-w-[360px] px-5" },
+e("h2", { className: "text-[21px] font-extrabold text-slate-800 tracking-tight leading-tight text-center whitespace-nowrap" }, loadingTitle),
+e("p", { className: "mt-4 text-[13px] text-slate-500 leading-[1.6] text-center max-w-[248px] mx-auto" }, "Estamos preparando a etapa de pagamento. Por favor, não feche esta página.")
+)
+)
 );
 }
  function App() {
@@ -1152,7 +1225,7 @@ e("p", {className: "text-center text-[11px] text-slate-300 font-mono mt-3"}, "ID
  }, []);
 
  
- return screen === 'checkout' ? e(CheckoutScreen, { onSuccess: (data) => { setCustomerData(data); setScreen('pix'); } }) : e(PixScreen, { customerData: customerData, pixCode: pixConfig.pixCode, qrCodeUrl: pixConfig.qrCodeUrl });
+ return screen === 'checkout' ? e(CheckoutScreen, { onSuccess: (data) => { setCustomerData(data); scrollCheckoutViewportToTop('auto'); setScreen('pix'); } }) : e(PixScreen, { customerData: customerData, pixCode: pixConfig.pixCode, qrCodeUrl: pixConfig.qrCodeUrl });
  }
  
  const rootElement = document.getElementById('checkout-root');
@@ -1190,5 +1263,3 @@ e("p", {className: "text-center text-[11px] text-slate-300 font-mono mt-3"}, "ID
  
     // O Checkout não será mais inicializado automaticamente no DOMContentLoaded.
     // Ele será inicializado sob demanda via window.initReactCheckout() pela página host.
-
-

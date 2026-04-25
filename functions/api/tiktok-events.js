@@ -296,12 +296,20 @@ export async function onRequestPost(context) {
     let body = null;
     try { body = await context.request.json(); } catch { body = {}; }
 
-    const event      = typeof body.event === 'string' ? body.event : null;
+    const event      = typeof body.event === 'string' ? body.event.trim() : null;
     const event_id   = typeof body.event_id === 'string' ? body.event_id : null;
     const properties = body.properties || {};
     const user       = body.user       || {};
 
     if (!event) return json({ ok: false, error: 'missing_event' }, 400, context.request);
+    if (event === 'Purchase' || event === 'CompletePayment') {
+      return json({
+        ok: true,
+        skipped: 'purchase_requires_admin_confirmation',
+        event,
+        event_id: event_id || null,
+      }, 200, context.request);
+    }
 
     // Metadados server-side (mais confiáveis que o browser)
     const ip        = context.request.headers.get('cf-connecting-ip')

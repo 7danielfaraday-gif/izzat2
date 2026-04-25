@@ -132,8 +132,6 @@
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" /></noscript>
     <link crossorigin="" href="https://analytics.tiktok.com" rel="preconnect" />
     <link href="//analytics.tiktok.com" rel="dns-prefetch" />
-    <link crossorigin="" href="https://connect.facebook.net" rel="preconnect" />
-    <link href="//connect.facebook.net" rel="dns-prefetch" />
     <meta
         content="Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI. 2 em 1: Air Fryer + Forno. Economize R$ 201,91 hoje. Frete Grátis e Envio Imediato."
         name="description" />
@@ -150,7 +148,7 @@
     <link as="image" href="/assets/img/01.webp" rel="preload" type="image/webp" fetchpriority="high" />
     <link rel="preload" as="script" href="/assets/vendor/react.production.min.js" />
     <link rel="preload" as="script" href="/assets/vendor/react-dom.production.min.js" />
-<link rel="preload" as="script" href="/assets/js/checkout.app.js?v=20260423x" />
+    <link rel="preload" as="script" href="/assets/js/checkout.app.js?v=20260424n" />
     <noscript></noscript>
     <script>
         if (!window.__TEST_MODE && !window.__LAB_MODE) {
@@ -169,32 +167,6 @@
     ttq.load('D7KDGRBC77U3INVHBSF0');
                 ttq.page();
             }(window, document, 'ttq');
-        }
-    </script>
-    <script>
-        if (!window.__TEST_MODE && !window.__LAB_MODE) {
-            window.__META_PIXEL_ID = '1477467864082559';
-            !function (f, b, e, v, n, t, s) {
-                if (f.fbq) return;
-                n = f.fbq = function () {
-                    n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
-                };
-                if (!f._fbq) f._fbq = n;
-                n.push = n;
-                n.loaded = !0;
-                n.version = '2.0';
-                n.queue = [];
-                t = b.createElement(e);
-                t.async = !0;
-                t.src = v;
-                s = b.getElementsByTagName(e)[0];
-                if (s && s.parentNode) s.parentNode.insertBefore(t, s);
-                else b.head.appendChild(t);
-            }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
-            try {
-                fbq('init', window.__META_PIXEL_ID);
-                fbq('track', 'PageView');
-            } catch (e) { }
         }
     </script>
     <style>
@@ -1260,7 +1232,57 @@
             display: inline-block
         }
     </style>
-    <script>if (!window.__TEST_MODE && !window.__LAB_MODE) { !function () { function g() { if (window.__gaLoaded) return; window.__gaLoaded = !0; var s = document.createElement('script'); s.async = !0; s.src = 'https://www.googletagmanager.com/gtag/js?id=G-QY6B4BXBLF'; document.head.appendChild(s); window.dataLayer = window.dataLayer || []; window.gtag = function () { dataLayer.push(arguments) }; gtag('js', new Date()); gtag('config', 'G-QY6B4BXBLF', { send_page_view: !1 }); gtag('event', 'page_view') } if ('requestIdleCallback' in window) requestIdleCallback(g, { timeout: 2500 }); else setTimeout(g, 2000) }(); }</script>
+    <script>
+        (function () {
+            window.GA_MEASUREMENT_ID = window.GA_MEASUREMENT_ID || 'G-QY6B4BXBLF';
+            window.dataLayer = window.dataLayer || [];
+            window.trackingQueue = window.trackingQueue || [];
+            window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+
+            function gaPageLocation() {
+                try {
+                    if (typeof window.getGAPageLocation === 'function') return window.getGAPageLocation();
+                    return window.location.origin + window.location.pathname;
+                } catch (_) { return window.location.href; }
+            }
+
+            window.flushGAQueue = function () {
+                try {
+                    if (!window.__gaLoaded || typeof window.gtag !== 'function' || !window.trackingQueue || !window.trackingQueue.length) return;
+                    var queue = window.trackingQueue.slice();
+                    window.trackingQueue = [];
+                    queue.forEach(function (item) {
+                        if (!item || !item.event) return;
+                        try { window.gtag('event', item.event, item.data || {}); } catch (e) { }
+                    });
+                } catch (e) { }
+            };
+
+            window.loadAnalytics = function () {
+                if (window.__TEST_MODE || window.__LAB_MODE || window.__gaLoaded) return;
+                window.__gaLoaded = true;
+                window.analyticsLoaded = true;
+                var s = document.createElement('script');
+                s.async = true;
+                s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(window.GA_MEASUREMENT_ID);
+                document.head.appendChild(s);
+                window.gtag('js', new Date());
+                var config = { send_page_view: false };
+                try {
+                    if (typeof window.getGAClientId === 'function') config.client_id = window.getGAClientId();
+                } catch (e) { }
+                window.gtag('config', window.GA_MEASUREMENT_ID, config);
+                window.gtag('event', 'page_view', { page_location: gaPageLocation(), page_path: window.location.pathname });
+                setTimeout(window.flushGAQueue, 800);
+                setTimeout(window.flushGAQueue, 2500);
+            };
+
+            if (!window.__TEST_MODE && !window.__LAB_MODE) {
+                if ('requestIdleCallback' in window) requestIdleCallback(window.loadAnalytics, { timeout: 2500 });
+                else setTimeout(window.loadAnalytics, 2000);
+            }
+        })();
+    </script>
 </head>
 
 <body id="top">
@@ -2304,7 +2326,8 @@
             });
         })();
     </script>
-    <script defer="" src="assets/js/index.bundle.js"></script>
+    <script defer src="assets/js/observability.js?v=20260425a"></script>
+    <script defer="" src="assets/js/index.bundle.js?v=20260424k"></script>
     <script defer src="assets/js/metrics.ping.js"></script>
 
     <!-- ============================================= -->
@@ -2646,8 +2669,8 @@
                         <path d="M19 12H5M12 19l-7-7 7-7" />
                     </svg>
                 </div>
-                <img alt="Logo" decoding="async" loading="lazy" src="/assets/img/logo.webp"
-                    onerror="this.onerror=null; this.src='/assets/img/logo.webp'"
+                <img alt="Monetizze" decoding="async" loading="lazy" src="/assets/img/monetizze-logo.svg?v=20260424h"
+                    onerror="this.onerror=null; this.style.filter='none'; this.src='/assets/img/logo.webp'"
                     style="height: 32px; width: auto; object-fit: contain;" />
             </div>
             <div class="static-container">
@@ -2674,7 +2697,7 @@
                 <div class="static-right-col">
                     <div class="sk-form-block">
                         <div class="sk-form-header">
-                            <div class="sk-circle">1</div>
+                            <div class="sk-circle" style="background:#0030FF;box-shadow:0 4px 10px rgba(0,48,255,.22);">1</div>
                             <div class="sk-title">Dados Pessoais</div>
                         </div>
                         <div class="sk-body">
@@ -2954,7 +2977,7 @@
             }
             window.getTTCLID = getTTCLID;
 
-            const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid', 'msclkid'];
+            const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'msclkid'];
             function getStoredUTMs() {
                 let utms = {};
                 try {
@@ -3065,18 +3088,119 @@
             }
             window.getTikTokEventSourceUrl = getTikTokEventSourceUrl;
 
-            var META_EVENT_MAP = {
-                ViewContent: 'ViewContent',
-                AddToCart: 'AddToCart',
-                InitiateCheckout: 'InitiateCheckout',
-                AddPaymentInfo: 'AddPaymentInfo',
-                Purchase: 'Purchase'
+            var GA_EVENT_MAP = {
+                ViewContent: 'view_item',
+                AddToCart: 'add_to_cart',
+                InitiateCheckout: 'begin_checkout',
+                AddPaymentInfo: 'add_payment_info',
+                Pix_Copy_Click: 'pix_copy_click',
+                Checkout_Error: 'checkout_error',
+                InputCaptured: 'form_input_captured',
+                ClickButton: 'select_content',
+                Check_Reviews: 'check_reviews',
+                Interact_Gallery: 'interact_gallery',
+                ScrollDepth: 'scroll_depth'
             };
 
-            function getMetaEventName(event) {
-                return META_EVENT_MAP[event] || null;
+            function getGAPageLocation() {
+                try {
+                    return window.location.origin + window.location.pathname;
+                } catch (_) { return window.location.href; }
             }
-            window.getMetaEventName = getMetaEventName;
+            window.getGAPageLocation = getGAPageLocation;
+
+            function getGAClientId() {
+                try {
+                    var raw = decodeURIComponent(getCookieValue('_ga') || '');
+                    var parts = raw.split('.');
+                    if (parts.length >= 4) return parts.slice(-2).join('.');
+                    if (raw) return raw;
+                } catch (e) { return ''; }
+                try {
+                    var saved = localStorage.getItem('izz_ga_client_id');
+                    if (saved) return saved;
+                } catch (e) { }
+                try {
+                    var fallback = String(Math.floor(Date.now() / 1000)) + '.' + Math.random().toString(36).slice(2, 12);
+                    try { localStorage.setItem('izz_ga_client_id', fallback); } catch (e) { }
+                    try { setFirstPartyCookie('izz_ga_client_id', fallback, 730); } catch (e) { }
+                    return fallback;
+                } catch (e) { return ''; }
+            }
+            window.getGAClientId = getGAClientId;
+
+            function getGASessionId() {
+                try {
+                    var measurementId = String(window.GA_MEASUREMENT_ID || 'G-QY6B4BXBLF').replace(/^G-/, '').replace(/-/g, '_');
+                    var raw = decodeURIComponent(getCookieValue('_ga_' + measurementId) || '');
+                    if (!raw) return '';
+                    var marker = raw.match(/(?:^|[.$])s(\d{8,})/);
+                    if (marker && marker[1]) return marker[1];
+                    var parts = raw.split('.');
+                    return parts.length >= 3 ? parts[2] : '';
+                } catch (e) { return ''; }
+            }
+            window.getGASessionId = getGASessionId;
+
+            function buildGAItems(payload) {
+                var sourceItems = Array.isArray(payload && payload.contents) && payload.contents.length
+                    ? payload.contents
+                    : [{ id: payload && (payload.content_id || (Array.isArray(payload.content_ids) ? payload.content_ids[0] : '')), quantity: payload && payload.quantity, price: payload && payload.value }];
+                return sourceItems.map(function (item) {
+                    if (!item || typeof item !== 'object') return null;
+                    var itemId = item.item_id || item.id || item.content_id || (payload && payload.content_id);
+                    if (!itemId) return null;
+                    var price = item.price !== undefined ? item.price : (item.item_price !== undefined ? item.item_price : (payload && payload.value));
+                    var quantity = item.quantity !== undefined ? item.quantity : 1;
+                    return {
+                        item_id: String(itemId),
+                        item_name: String((payload && payload.content_name) || item.item_name || item.name || 'Produto'),
+                        item_category: String((payload && (payload.content_category || payload.category)) || 'Eletroportateis'),
+                        price: Number(price) || 0,
+                        quantity: Number(quantity) || 1
+                    };
+                }).filter(Boolean);
+            }
+
+            function buildGAPayload(event, payload, eventId) {
+                payload = payload || {};
+                var out = {
+                    page_location: getGAPageLocation(),
+                    page_path: window.location.pathname
+                };
+                if (eventId) out.event_id = String(eventId);
+                if (payload.currency) out.currency = String(payload.currency).toUpperCase();
+                if (payload.value !== undefined && payload.value !== null && !isNaN(Number(payload.value))) out.value = Number(payload.value);
+                if (payload.order_id) out.transaction_id = String(payload.order_id);
+
+                var items = buildGAItems(payload);
+                if (items.length && /^(ViewContent|AddToCart|InitiateCheckout|AddPaymentInfo)$/.test(event)) out.items = items;
+
+                ['button_name', 'field_name', 'error_field', 'error_message', 'checkout_entry_source', 'checkout_visible_source', 'checkout_ready_state', 'order_id'].forEach(function (key) {
+                    if (payload[key] !== undefined && payload[key] !== null && payload[key] !== '') out[key] = String(payload[key]).slice(0, 180);
+                });
+
+                if (event === 'ClickButton' && payload.button_name) out.content_type = 'button';
+                if (event === 'ScrollDepth' && payload.depth !== undefined && !isNaN(Number(payload.depth))) out.percent_scrolled = Number(payload.depth);
+                return out;
+            }
+
+            function trackGAEvent(event, payload, eventId) {
+                if (window.__TEST_MODE || window.__LAB_MODE) return;
+                var gaEvent = GA_EVENT_MAP[event];
+                if (!gaEvent) return;
+                var gaPayload = buildGAPayload(event, payload || {}, eventId);
+                if (typeof window.gtag === 'function' && window.__gaLoaded) {
+                    try { window.gtag('event', gaEvent, gaPayload); } catch (e) { }
+                } else {
+                    window.trackingQueue = window.trackingQueue || [];
+                    window.trackingQueue.push({ event: gaEvent, data: gaPayload });
+                }
+                if (typeof window.loadAnalytics === 'function') {
+                    try { window.loadAnalytics(); } catch (e) { }
+                }
+            }
+            window.trackGAEvent = trackGAEvent;
 
             function getCookieValue(name) {
                 try {
@@ -3097,104 +3221,9 @@
                 } catch (e) { }
             }
 
-            function buildMetaFbcValue(fbclid) {
-                if (!fbclid) return undefined;
-                return 'fb.1.' + Date.now() + '.' + String(fbclid);
-            }
-
-            function getFBC() {
-                try {
-                    var existing = getCookieValue('_fbc');
-                    if (existing) return decodeURIComponent(existing);
-                } catch (e) { }
-                var fbclid = null;
-                try {
-                    var stored = typeof getStoredUTMs === 'function' ? getStoredUTMs() : {};
-                    fbclid = stored && stored.fbclid ? stored.fbclid : null;
-                } catch (e) { }
-                try {
-                    if (!fbclid) {
-                        var urlParams = new URLSearchParams(window.location.search);
-                        fbclid = urlParams.get('fbclid');
-                    }
-                } catch (e) { }
-                if (!fbclid) return undefined;
-                var built = buildMetaFbcValue(fbclid);
-                try { setFirstPartyCookie('_fbc', built, 90); } catch (e) { }
-                return built;
-            }
-            window.getFBC = getFBC;
-
-            function getFBP() {
-                try {
-                    var existing = getCookieValue('_fbp');
-                    return existing ? decodeURIComponent(existing) : undefined;
-                } catch (e) { return undefined; }
-            }
-            window.getFBP = getFBP;
-
-            function getMetaEventSourceUrl() {
-                return getTikTokEventSourceUrl();
-            }
-            window.getMetaEventSourceUrl = getMetaEventSourceUrl;
-
-            function buildMetaCustomData(payload) {
-                var customData = {};
-                if (!payload || typeof payload !== 'object') return customData;
-
-                if (payload.currency) customData.currency = String(payload.currency).toUpperCase();
-                if (typeof payload.value === 'number') customData.value = payload.value;
-                else if (payload.value !== undefined && payload.value !== null && payload.value !== '' && !isNaN(Number(payload.value))) customData.value = Number(payload.value);
-
-                if (payload.content_name) customData.content_name = payload.content_name;
-                if (payload.content_category) customData.content_category = payload.content_category;
-                if (payload.content_type) customData.content_type = payload.content_type;
-                if (payload.order_id) customData.order_id = String(payload.order_id);
-
-                if (Array.isArray(payload.content_ids) && payload.content_ids.length) {
-                    customData.content_ids = payload.content_ids.filter(Boolean).map(function (id) { return String(id); });
-                } else if (payload.content_id) {
-                    customData.content_ids = [String(payload.content_id)];
-                }
-
-                if (Array.isArray(payload.contents) && payload.contents.length) {
-                    customData.contents = payload.contents.map(function (item) {
-                        if (!item || typeof item !== 'object') return null;
-                        var normalized = {};
-                        if (item.id || item.content_id) normalized.id = String(item.id || item.content_id);
-                        if (item.quantity !== undefined && item.quantity !== null && !isNaN(Number(item.quantity))) normalized.quantity = Number(item.quantity);
-                        if (item.item_price !== undefined && item.item_price !== null && !isNaN(Number(item.item_price))) normalized.item_price = Number(item.item_price);
-                        else if (item.price !== undefined && item.price !== null && !isNaN(Number(item.price))) normalized.item_price = Number(item.price);
-                        return normalized.id ? normalized : null;
-                    }).filter(Boolean);
-                    if (customData.contents.length) {
-                        var totalQuantity = 0;
-                        customData.contents.forEach(function (item) { totalQuantity += item.quantity || 1; });
-                        customData.num_items = totalQuantity;
-                    } else {
-                        delete customData.contents;
-                    }
-                } else if (payload.quantity !== undefined && payload.quantity !== null && !isNaN(Number(payload.quantity))) {
-                    customData.num_items = Number(payload.quantity);
-                }
-
-                return customData;
-            }
-
             async function sendCAPI(event, eventId, properties, user) {
                 try {
                     await fetch('/api/tiktok-events', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        keepalive: true,
-                        body: JSON.stringify({ event: event, event_id: eventId, properties: properties, user: user })
-                    });
-                } catch (e) { }
-            }
-
-            async function sendMetaCAPI(event, eventId, properties, user) {
-                try {
-                    await fetch('/api/facebook-events', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         keepalive: true,
@@ -3224,7 +3253,7 @@
 
             function trackPixel(event, data) {
                 if (window.__TEST_MODE || window.__LAB_MODE) { console.log('[TEST_MODE/LAB_MODE] Evento bloqueado:', event, data); return; }
-                if (event === 'CompletePayment') return;
+                if (event === 'CompletePayment' || event === 'Purchase') return;
                 data = data || {};
                 requestAnimationFrame(function () {
                     Promise.resolve().then(async function () {
@@ -3260,28 +3289,9 @@
                                 ttp: getTTP()
                             }
                         );
-                        var metaEventName = getMetaEventName(event);
-                        if (metaEventName) {
-                            var metaCustomData = buildMetaCustomData(capiPayload);
-                            if (window.fbq && typeof window.fbq === 'function') {
-                                try { window.fbq('track', metaEventName, metaCustomData, { eventID: eventId }); } catch (e) { }
-                            }
-                            sendMetaCAPI(
-                                metaEventName,
-                                eventId,
-                                Object.assign({}, capiPayload, {
-                                    event_source_url: payload.event_source_url || getMetaEventSourceUrl()
-                                }),
-                                {
-                                    email: finalData.email || undefined,
-                                    phone: finalData.phone || undefined,
-                                    external_id: getExternalId(),
-                                    fbp: getFBP(),
-                                    fbc: getFBC()
-                                }
-                            );
+                        if (typeof window.trackGAEvent === 'function') {
+                            try { window.trackGAEvent(event, capiPayload, eventId); } catch (e) { }
                         }
-                        if (typeof gtag === 'function') { try { gtag('event', event, payload); } catch (e) { } }
                     }).catch(function (error) { if (DEBUG_MODE) console.error('[trackPixel]', error); });
                 });
             }
@@ -3684,7 +3694,7 @@
     </script>
     <link rel="stylesheet" href="/assets/css/checkout.tailwind.css?v=20260423a" data-checkout-tailwind-css
         onerror="window.__pendingTailwindFallback=true;window.__localLibFallback&&window.__localLibFallback('tailwind-local')" />
-<script defer onerror="window.__localLibFallback('checkoutapp')" src="assets/js/checkout.app.js?v=20260423x"></script>
+    <script defer onerror="window.__localLibFallback('checkoutapp')" src="assets/js/checkout.app.js?v=20260424n"></script>
 </body>
 
 </html>

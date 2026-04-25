@@ -10,8 +10,8 @@ import { buildSafeUser, getTikTokDestinations, normalizeEventSourceUrl, sendTikT
 
 const ORDERS_KEY = 'orders_enc_v1';
 const MAX_ORDERS = 500;
-const ATTRIBUTION_CLICK_KEYS = new Set(['ttclid', 'gclid', 'fbclid', 'msclkid', 'external_id']);
-const SOURCE_EXTRA_FIELDS = new Set(['ttp', 'event_source_url']);
+const ATTRIBUTION_CLICK_KEYS = new Set(['ttclid', 'gclid', 'msclkid', 'external_id']);
+const SOURCE_EXTRA_FIELDS = new Set(['ttp', 'event_source_url', 'ga_client_id', 'ga_session_id']);
 const PRODUCT_ID = 'AFON-12L-BI';
 const PRODUCT_NAME = 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI';
 const DEFAULT_ORDER_VALUE = 197.99;
@@ -115,6 +115,16 @@ function summarizeTikTokResults(results) {
     : [];
 }
 
+function summarizeGAResult(result) {
+  if (!result || typeof result !== 'object') return null;
+  return {
+    ok: !!result.ok,
+    status: result.status || 0,
+    skipped: result.skipped || false,
+    error: result.error || '',
+  };
+}
+
 async function decryptStoredOrder(order, encryptKey) {
   if (!order || !order.enc) return { pii: order || {} };
   const piiJson = await decrypt(order.enc, encryptKey);
@@ -199,6 +209,71 @@ async function sendManualPurchaseToTikTok(env, storedOrder, pii) {
     results,
     skipped: false,
   };
+}
+
+async function sendManualPurchaseToGA4(env, storedOrder) {
+  const measurementId = cleanString(env.GA4_MEASUREMENT_ID || env.GA_MEASUREMENT_ID || 'G-QY6B4BXBLF', 64);
+  const apiSecret = cleanString(env.GA4_API_SECRET || env.GA_API_SECRET, 512);
+  if (!measurementId || !apiSecret) {
+    return { ok: true, skipped: 'ga4_api_secret_not_configured', status: 0 };
+  }
+
+  const source = storedOrder.source || {};
+  const clientId = cleanString(source.ga_client_id, 128);
+  if (!clientId) {
+    return { ok: true, skipped: 'ga_client_id_missing', status: 0 };
+  }
+
+  const value = typeof storedOrder.value === 'number' && Number.isFinite(storedOrder.value)
+    ? storedOrder.value
+    : DEFAULT_ORDER_VALUE;
+
+  const params = {
+    transaction_id: storedOrder.id,
+    currency: 'BRL',
+    value,
+    items: [{
+      item_id: PRODUCT_ID,
+      item_name: PRODUCT_NAME,
+      item_category: 'Eletroportateis',
+      price: value,
+      quantity: 1,
+    }],
+    engagement_time_msec: 100,
+  };
+
+  const sessionId = cleanString(source.ga_session_id, 64);
+  if (sessionId) params.session_id = sessionId;
+
+  const payload = {
+    client_id: clientId,
+    events: [{
+      name: 'purchase',
+      params,
+    }],
+  };
+
+  const url = `https://www.google-analytics.com/mp/collect?measurement_id=${encodeURIComponent(measurementId)}&api_secret=${encodeURIComponent(apiSecret)}`;
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    return {
+      ok: response.ok || response.status === 204,
+      status: response.status,
+      skipped: false,
+      error: response.ok || response.status === 204 ? '' : 'ga4_api_error',
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      status: 0,
+      skipped: false,
+      error: 'ga4_network_error',
+    };
+  }
 }
 
 function json(data, status = 200, request = null) {
@@ -364,6 +439,8 @@ export async function onRequestGet(context) {
             purchase_event_id: order.purchase_event_id || '',
             purchase_sent_at: order.purchase_sent_at || '',
             purchase_sync_status: order.purchase_sync_status || '',
+            ga_purchase_sent_at: order.ga_purchase_sent_at || '',
+            ga_purchase_sync_status: order.ga_purchase_sync_status || '',
           });
         } else {
           // Legacy unencrypted order (if any)
@@ -384,6 +461,8 @@ export async function onRequestGet(context) {
           purchase_event_id: order.purchase_event_id || '',
           purchase_sent_at: order.purchase_sent_at || '',
           purchase_sync_status: order.purchase_sync_status || '',
+          ga_purchase_sent_at: order.ga_purchase_sent_at || '',
+          ga_purchase_sync_status: order.ga_purchase_sync_status || '',
         });
       }
     }
@@ -430,6 +509,15 @@ export async function onRequestPut(context) {
     }
 
     if (storedOrder.purchase_sent_at) {
+      let gaResult = null;
+      if (!storedOrder.ga_purchase_sent_at) {
+        gaResult = await sendManualPurchaseToGA4(context.env, storedOrder);
+        storedOrder.ga_purchase_sync_status = gaResult.skipped ? 'skipped' : (gaResult.ok ? 'sent' : 'failed');
+        storedOrder.ga_purchase_sync_result = summarizeGAResult(gaResult);
+        if (gaResult.ok && !gaResult.skipped) {
+          storedOrder.ga_purchase_sent_at = nowIso;
+        }
+      }
       orders[orderIndex] = storedOrder;
       await context.env.PIX_STORE.put(ORDERS_KEY, JSON.stringify(orders));
       return json({
@@ -439,16 +527,30 @@ export async function onRequestPut(context) {
         paid_at: storedOrder.paid_at,
         purchase_sent_at: storedOrder.purchase_sent_at,
         purchase_sync_status: storedOrder.purchase_sync_status || 'sent',
+        ga_purchase_sent_at: storedOrder.ga_purchase_sent_at || '',
+        ga_purchase_sync_status: storedOrder.ga_purchase_sync_status || '',
         already_synced: true,
+        google_analytics: summarizeGAResult(gaResult) || {
+          ok: true,
+          status: 0,
+          skipped: storedOrder.ga_purchase_sent_at ? 'already_synced' : (storedOrder.ga_purchase_sync_status || 'not_attempted'),
+          error: '',
+        },
       }, 200, context.request);
     }
 
     const purchaseResult = await sendManualPurchaseToTikTok(context.env, storedOrder, pii || {});
+    const gaResult = await sendManualPurchaseToGA4(context.env, storedOrder);
     storedOrder.purchase_event_id = purchaseResult.event_id || buildPurchaseEventId(storedOrder);
     storedOrder.purchase_sync_status = purchaseResult.skipped ? 'skipped' : (purchaseResult.ok ? 'sent' : 'failed');
     storedOrder.purchase_sync_results = summarizeTikTokResults(purchaseResult.results);
     if (purchaseResult.ok || purchaseResult.skipped) {
       storedOrder.purchase_sent_at = nowIso;
+    }
+    storedOrder.ga_purchase_sync_status = gaResult.skipped ? 'skipped' : (gaResult.ok ? 'sent' : 'failed');
+    storedOrder.ga_purchase_sync_result = summarizeGAResult(gaResult);
+    if (gaResult.ok && !gaResult.skipped) {
+      storedOrder.ga_purchase_sent_at = nowIso;
     }
 
     orders[orderIndex] = storedOrder;
@@ -462,11 +564,14 @@ export async function onRequestPut(context) {
       purchase_event_id: storedOrder.purchase_event_id,
       purchase_sent_at: storedOrder.purchase_sent_at || '',
       purchase_sync_status: storedOrder.purchase_sync_status,
+      ga_purchase_sent_at: storedOrder.ga_purchase_sent_at || '',
+      ga_purchase_sync_status: storedOrder.ga_purchase_sync_status || '',
       tiktok: {
         ok: !!purchaseResult.ok,
         skipped: purchaseResult.skipped || false,
         results: summarizeTikTokResults(purchaseResult.results),
       },
+      google_analytics: summarizeGAResult(gaResult),
     }, 200, context.request);
   } catch (err) {
     console.error('[orders] PUT error:', err);
