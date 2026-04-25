@@ -5,14 +5,25 @@
 const SESSION_PREFIX = 'obs_session_v1:';
 const REPORT_KEY = 'obs_ai_report_v1';
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7;
-const MAX_BATCH_EVENTS = 12;
-const MAX_SESSION_EVENTS = 80;
+const MAX_BATCH_EVENTS = 25;
+const MAX_SESSION_EVENTS = 160;
 const MAX_LIST_SESSIONS = 120;
 
 const ALLOWED_EVENTS = new Set([
   'LP_View',
   'Checkout_Page_Load',
   'Page_Ready',
+  'Env_Info',
+  'Perf_Navigation',
+  'Perf_Paint',
+  'Perf_LCP',
+  'Perf_CLS',
+  'Perf_Long_Task',
+  'Perf_Resource_Slow',
+  'LP_CTA_Visible',
+  'LP_CTA_Not_Visible_After_Load',
+  'LP_Scroll_Depth',
+  'LP_Scroll_Stalled',
   'ViewContent',
   'AddToCart',
   'InitiateCheckout',
@@ -20,7 +31,17 @@ const ALLOWED_EVENTS = new Set([
   'Checkout_Visible',
   'CTA_Click',
   'Checkout_Open_Timeout',
+  'Checkout_Form_Ready',
+  'Submit_Attempt',
+  'Submit_Blocked',
+  'Submit_Valid',
+  'Validation_Error',
+  'CEP_Input_Complete',
+  'Loading_Shown',
+  'Pix_Loading_State',
   'Field_Focus',
+  'Field_Input_Start',
+  'Field_Input_Filled',
   'API_Success',
   'API_Error',
   'Checkout_Error',
@@ -33,6 +54,8 @@ const ALLOWED_EVENTS = new Set([
   'Session_Abandoned',
   'Session_End',
   'JS_Error',
+  'Console_Error',
+  'Resource_Error',
 ]);
 
 const SAFE_DATA_FIELDS = new Set([
@@ -57,6 +80,60 @@ const SAFE_DATA_FIELDS = new Set([
   'currency',
   'checkout_entry_source',
   'checkout_visible_source',
+  'checkout_ready_state',
+  'filename',
+  'lineno',
+  'colno',
+  'stack',
+  'tag',
+  'selector',
+  'resource',
+  'resource_name',
+  'initiator',
+  'ready_state',
+  'viewport_w',
+  'viewport_h',
+  'connection_type',
+  'effective_type',
+  'downlink',
+  'rtt',
+  'save_data',
+  'ttfb_ms',
+  'dcl_ms',
+  'dom_interactive_ms',
+  'transfer_size',
+  'encoded_size',
+  'decoded_size',
+  'fcp_ms',
+  'fp_ms',
+  'lcp_ms',
+  'cls_milli',
+  'longtask_ms',
+  'render_ms',
+  'enabled',
+  'visible',
+  'top',
+  'bottom',
+  'width',
+  'height',
+  'input_count',
+  'required_filled',
+  'form_ready_ms',
+  'has_submit',
+  'submit_top',
+  'submit_enabled',
+  'active_field',
+  'has_value',
+  'value_len',
+  'is_cross_origin',
+  'scroll_depth',
+  'scroll_y',
+  'doc_height',
+  'cta_visible',
+  'cta_top',
+  'cta_bottom',
+  'cta_kind',
+  'idle_ms',
 ]);
 
 const SOURCE_FIELDS = new Set(['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'ttclid']);
@@ -136,7 +213,8 @@ function cleanData(data) {
   const out = {};
   if (!data || typeof data !== 'object') return out;
   for (const key of SAFE_DATA_FIELDS) {
-    const value = cleanText(data[key], 180);
+    const max = key === 'stack' ? 700 : (key === 'resource' || key === 'resource_name' || key === 'filename' || key === 'selector' ? 260 : 180);
+    const value = cleanText(data[key], max);
     if (value !== undefined && value !== '') out[key] = value;
   }
   return out;
@@ -168,7 +246,13 @@ function detectFlags(events) {
 
   for (const event of events) {
     if (event.name === 'JS_Error') {
-      flags.push({ type: 'js_error', severity: 'high', detail: event.data.error_message || 'erro javascript' });
+      flags.push({ type: 'js_error', severity: 'high', detail: `${event.data.error_message || 'erro javascript'} ${event.data.filename || event.data.path || ''}`.trim() });
+    }
+    if (event.name === 'Console_Error') {
+      flags.push({ type: 'console_error', severity: 'medium', detail: event.data.error_message || 'console.error' });
+    }
+    if (event.name === 'Resource_Error') {
+      flags.push({ type: 'resource_error', severity: 'high', detail: `${event.data.tag || 'resource'} ${event.data.resource || ''}`.trim() });
     }
     if (event.name === 'Checkout_Error') {
       flags.push({ type: 'checkout_error', severity: 'medium', detail: `${event.data.error_field || 'campo'}: ${event.data.error_message || 'erro'}` });
@@ -181,6 +265,21 @@ function detectFlags(events) {
     if (event.name === 'API_Success' && Number(event.data.duration_ms || 0) >= 2500) {
       flags.push({ type: 'api_slow', severity: 'medium', detail: `${event.data.api || 'api'} ${event.data.duration_ms}ms` });
     }
+    if (event.name === 'Perf_Resource_Slow' && Number(event.data.duration_ms || 0) >= 1500) {
+      flags.push({ type: 'resource_slow', severity: 'medium', detail: `${event.data.resource_name || event.data.resource || 'resource'} ${event.data.duration_ms}ms` });
+    }
+    if (event.name === 'Perf_Long_Task' && Number(event.data.longtask_ms || 0) >= 200) {
+      flags.push({ type: 'long_task', severity: 'medium', detail: `${event.data.longtask_ms}ms` });
+    }
+    if (event.name === 'Perf_Navigation' && Number(event.data.load_ms || 0) >= 4000) {
+      flags.push({ type: 'page_load_slow', severity: 'medium', detail: `${event.data.load_ms}ms` });
+    }
+    if (event.name === 'LP_CTA_Not_Visible_After_Load') {
+      flags.push({ type: 'lp_cta_not_visible', severity: 'high', detail: event.data.reason || 'cta nao visivel' });
+    }
+    if (event.name === 'LP_Scroll_Stalled') {
+      flags.push({ type: 'lp_scroll_stalled', severity: 'medium', detail: `${event.data.scroll_depth || 0}% em ${event.data.idle_ms || 0}ms` });
+    }
     if (event.name === 'Checkout_Open_Timeout') {
       flags.push({ type: 'checkout_open_timeout', severity: 'high', detail: `${event.data.duration_ms || 0}ms` });
     }
@@ -190,7 +289,8 @@ function detectFlags(events) {
   }
 
   if (names.has('Checkout_Visible') && !names.has('Submit_Click') && last && ['Session_Abandoned', 'Page_Hidden'].includes(last.name)) {
-    flags.push({ type: 'checkout_abandoned_before_submit', severity: 'medium', detail: last.data.stage || 'checkout' });
+    const typed = names.has('Field_Input_Start') ? 'com digitacao' : 'sem digitacao';
+    flags.push({ type: 'checkout_abandoned_before_submit', severity: 'medium', detail: `${last.data.stage || 'checkout'} ${typed}` });
   }
   if (names.has('Submit_Click') && !names.has('Pix_Visible')) {
     flags.push({ type: 'submitted_no_pix', severity: 'high', detail: 'cliente enviou formulario e nao viu pix' });
@@ -224,6 +324,16 @@ function compactSession(session) {
 }
 
 function buildStats(sessions) {
+  const metricBuckets = {
+    lp_load_ms: [],
+    lp_ttfb_ms: [],
+    lp_fcp_ms: [],
+    lp_lcp_ms: [],
+    checkout_open_ms: [],
+    form_ready_ms: [],
+    pix_load_ms: [],
+  };
+
   const stats = {
     sessions: sessions.length,
     anomalies: 0,
@@ -235,9 +345,18 @@ function buildStats(sessions) {
     api_errors: 0,
     api_slow: 0,
     js_errors: 0,
+    console_errors: 0,
+    resource_errors: 0,
+    slow_resources: 0,
+    long_tasks: 0,
+    validation_errors: 0,
+    cta_visible: 0,
+    cta_not_visible: 0,
+    scroll_stalled: 0,
     by_device: {},
     by_source: {},
     top_flags: {},
+    speed: {},
     updated_at: new Date().toISOString(),
   };
 
@@ -249,6 +368,26 @@ function buildStats(sessions) {
     if (names.has('Pix_Copy_Click')) stats.pix_copy += 1;
     if (names.has('API_Error')) stats.api_errors += 1;
     if (names.has('JS_Error')) stats.js_errors += 1;
+    if (names.has('Console_Error')) stats.console_errors += 1;
+    if (names.has('Resource_Error')) stats.resource_errors += 1;
+    if (names.has('Perf_Resource_Slow')) stats.slow_resources += 1;
+    if (names.has('Perf_Long_Task')) stats.long_tasks += 1;
+    if (names.has('Validation_Error')) stats.validation_errors += 1;
+    if (names.has('LP_CTA_Visible')) stats.cta_visible += 1;
+    if (names.has('LP_CTA_Not_Visible_After_Load')) stats.cta_not_visible += 1;
+    if (names.has('LP_Scroll_Stalled')) stats.scroll_stalled += 1;
+
+    for (const event of session.events || []) {
+      if (event.name === 'Perf_Navigation') {
+        if (event.data.load_ms) metricBuckets.lp_load_ms.push(Number(event.data.load_ms));
+        if (event.data.ttfb_ms) metricBuckets.lp_ttfb_ms.push(Number(event.data.ttfb_ms));
+      }
+      if (event.name === 'Perf_Paint' && event.data.fcp_ms) metricBuckets.lp_fcp_ms.push(Number(event.data.fcp_ms));
+      if (event.name === 'Perf_LCP' && event.data.lcp_ms) metricBuckets.lp_lcp_ms.push(Number(event.data.lcp_ms));
+      if (event.name === 'Checkout_Visible' && event.data.checkout_open_ms) metricBuckets.checkout_open_ms.push(Number(event.data.checkout_open_ms));
+      if (event.name === 'Checkout_Form_Ready' && event.data.form_ready_ms) metricBuckets.form_ready_ms.push(Number(event.data.form_ready_ms));
+      if (event.name === 'Pix_Visible' && event.data.pix_load_ms) metricBuckets.pix_load_ms.push(Number(event.data.pix_load_ms));
+    }
 
     const device = session.device || 'unknown';
     stats.by_device[device] = (stats.by_device[device] || 0) + 1;
@@ -265,7 +404,35 @@ function buildStats(sessions) {
     }
   }
 
+  stats.speed = buildSpeedStats(metricBuckets);
   return stats;
+}
+
+function percentile(values, p) {
+  const arr = values.filter((value) => Number.isFinite(value) && value >= 0).sort((a, b) => a - b);
+  if (!arr.length) return 0;
+  const idx = Math.min(arr.length - 1, Math.ceil((p / 100) * arr.length) - 1);
+  return Math.round(arr[idx]);
+}
+
+function average(values) {
+  const arr = values.filter((value) => Number.isFinite(value) && value >= 0);
+  if (!arr.length) return 0;
+  return Math.round(arr.reduce((sum, value) => sum + value, 0) / arr.length);
+}
+
+function buildSpeedStats(metricBuckets) {
+  const out = {};
+  for (const key of Object.keys(metricBuckets)) {
+    const values = metricBuckets[key];
+    out[key] = {
+      count: values.length,
+      avg: average(values),
+      p75: percentile(values, 75),
+      p90: percentile(values, 90),
+    };
+  }
+  return out;
 }
 
 async function listSessions(env) {
@@ -281,6 +448,21 @@ async function listSessions(env) {
   return sessions.slice(0, MAX_LIST_SESSIONS);
 }
 
+async function deleteObservabilityLogs(env) {
+  let deleted = 0;
+  let cursor = undefined;
+  while (true) {
+    const listed = await env.PIX_STORE.list({ prefix: SESSION_PREFIX, limit: 1000, cursor });
+    const keys = listed.keys || [];
+    await Promise.all(keys.map((key) => env.PIX_STORE.delete(key.name).then(() => { deleted += 1; }).catch(() => {})));
+    if (listed.list_complete) break;
+    cursor = listed.cursor;
+    if (!cursor) break;
+  }
+  await env.PIX_STORE.delete(REPORT_KEY).catch(() => {});
+  return deleted;
+}
+
 function buildHaikuPrompt(stats, sessions) {
   const suspicious = sessions
     .map(compactSession)
@@ -291,7 +473,9 @@ function buildHaikuPrompt(stats, sessions) {
     'Voce e um analista tecnico de funil ecommerce mobile.',
     'Analise somente problemas tecnicos e friccoes de UX a partir de logs anonimos.',
     'Nao use nem solicite dados pessoais. Foque em bugs, lentidao, pontos de abandono e priorizacao.',
-    'Responda em portugues do Brasil, direto, com: resumo, achados provaveis, evidencias, prioridade e proximos testes.',
+    'Nao gere checklist generico de testes se os logs nao sustentarem isso.',
+    'Cite os erros exatos registrados nos logs quando existirem: nome do evento, device, origem, campo, api, status, duracao e mensagem.',
+    'Responda em portugues do Brasil, direto, com secoes: Resumo, Erros exatos, Hipotese provavel, Prioridade, Proximo ajuste recomendado.',
     '',
     'ESTATISTICAS:',
     JSON.stringify(stats, null, 2),
@@ -311,41 +495,69 @@ async function runHaiku(env, stats, sessions) {
     };
   }
 
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model: env.HAIKU_MODEL || 'claude-3-5-haiku-latest',
-      max_tokens: 1400,
-      temperature: 0.2,
-      messages: [
-        {
-          role: 'user',
-          content: buildHaikuPrompt(stats, sessions),
-        },
-      ],
-    }),
-  });
+  const requestedModel = cleanText(env.HAIKU_MODEL, 80);
+  const models = [
+    requestedModel,
+    'claude-haiku-4-5-20251001',
+    'claude-3-5-haiku-20241022',
+    'claude-3-haiku-20240307',
+  ].filter((model, index, list) => model && list.indexOf(model) === index);
 
-  if (!response.ok) {
+  let lastError = null;
+  for (const model of models) {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: 3200,
+        temperature: 0.2,
+        messages: [
+          {
+            role: 'user',
+            content: buildHaikuPrompt(stats, sessions),
+          },
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      let detail = '';
+      try {
+        const errorPayload = await response.json();
+        detail = cleanText(errorPayload && errorPayload.error && errorPayload.error.message, 220) || '';
+      } catch {}
+      lastError = {
+        status: response.status,
+        model,
+        detail,
+      };
+      if (response.status === 404) continue;
+      break;
+    }
+
+    const data = await response.json();
+    const text = ((data.content || []).find((part) => part && part.type === 'text') || {}).text || '';
     return {
-      ok: false,
-      error: 'haiku_request_failed',
-      status: response.status,
+      ok: true,
+      model: data.model || model,
+      text,
+      stop_reason: data.stop_reason || '',
+      usage: data.usage || null,
+      generated_at: new Date().toISOString(),
     };
   }
 
-  const data = await response.json();
-  const text = ((data.content || []).find((part) => part && part.type === 'text') || {}).text || '';
   return {
-    ok: true,
-    model: data.model || env.HAIKU_MODEL || 'claude-3-5-haiku-latest',
-    text,
-    generated_at: new Date().toISOString(),
+    ok: false,
+    error: 'haiku_request_failed',
+    status: lastError ? lastError.status : 0,
+    model: lastError ? lastError.model : '',
+    detail: lastError ? lastError.detail : '',
   };
 }
 
@@ -438,6 +650,22 @@ export async function onRequestPut(context) {
     await context.env.PIX_STORE.put(REPORT_KEY, JSON.stringify(stored), { expirationTtl: SESSION_TTL_SECONDS });
 
     return json({ ok: report.ok, ai_report: stored });
+  } catch {
+    return json({ ok: false, error: 'server_error' }, 500);
+  }
+}
+
+export async function onRequestDelete(context) {
+  try {
+    if (!checkBasicAuth(context.request, context.env)) return unauthorized();
+    if (!context.env.PIX_STORE) return json({ ok: false, error: 'kv_not_configured' }, 500);
+
+    const deleted = await deleteObservabilityLogs(context.env);
+    return json({
+      ok: true,
+      deleted,
+      cleared_at: new Date().toISOString(),
+    });
   } catch {
     return json({ ok: false, error: 'server_error' }, 500);
   }

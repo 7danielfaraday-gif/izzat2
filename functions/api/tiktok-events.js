@@ -2,12 +2,8 @@
 // Purpose: TikTok Events API (CAPI) — envia eventos server-side espelhando o browser pixel
 //
 // Variáveis de ambiente necessárias (Cloudflare Pages → Settings → Environment Variables):
-//   TIKTOK_PIXEL_ID                 — ID do pixel TikTok primario (ex: "D7J5BQJC77U557SHJJC0")
-//   TIKTOK_ACCESS_TOKEN             — Token do Events API do pixel primario
-//   TIKTOK_PIXEL_ID_SECONDARY       — (opcional) ID do pixel TikTok secundario
-//   TIKTOK_ACCESS_TOKEN_SECONDARY   — (opcional) Token do Events API do pixel secundario
-//   TIKTOK_PIXEL_ID_TERTIARY        — (opcional) ID do pixel TikTok terciario/backup
-//   TIKTOK_ACCESS_TOKEN_TERTIARY    — (opcional) Token do Events API do pixel terciario/backup
+//   TIKTOK_PIXEL_ID                 — ID do pixel TikTok principal
+//   TIKTOK_ACCESS_TOKEN             — Token do Events API do pixel principal
 //   TIKTOK_TEST_CODE     — (opcional) código de teste para validar sem afetar dados reais
 //
 // Deduplicação: o browser envia o mesmo event_id que este endpoint.
@@ -197,32 +193,10 @@ function cleanEnvText(value) {
 }
 
 export function getTikTokDestinations(env) {
-  const candidates = [
-    {
-      label: 'primary',
-      pixelId: env.TIKTOK_PIXEL_ID,
-      accessToken: env.TIKTOK_ACCESS_TOKEN,
-    },
-    {
-      label: 'secondary',
-      pixelId: env.TIKTOK_PIXEL_ID_SECONDARY || env.TIKTOK_PIXEL_ID_2 || env.TIKTOK_SECONDARY_PIXEL_ID,
-      accessToken: env.TIKTOK_ACCESS_TOKEN_SECONDARY || env.TIKTOK_ACCESS_TOKEN_2 || env.TIKTOK_SECONDARY_ACCESS_TOKEN,
-    },
-    {
-      label: 'tertiary',
-      pixelId: env.TIKTOK_PIXEL_ID_TERTIARY || env.TIKTOK_PIXEL_ID_3 || env.TIKTOK_TERTIARY_PIXEL_ID,
-      accessToken: env.TIKTOK_ACCESS_TOKEN_TERTIARY || env.TIKTOK_ACCESS_TOKEN_3 || env.TIKTOK_TERTIARY_ACCESS_TOKEN,
-    },
-  ];
-
-  const destinations = [];
-  for (const candidate of candidates) {
-    const pixelId = cleanEnvText(candidate.pixelId);
-    const accessToken = cleanEnvText(candidate.accessToken);
-    if (!pixelId || pixelId.indexOf('REPLACE') !== -1 || !accessToken) continue;
-    destinations.push({ label: candidate.label, pixelId, accessToken });
-  }
-  return destinations;
+  const pixelId = cleanEnvText(env.TIKTOK_PIXEL_ID);
+  const accessToken = cleanEnvText(env.TIKTOK_ACCESS_TOKEN);
+  if (!pixelId || pixelId.indexOf('REPLACE') !== -1 || !accessToken) return [];
+  return [{ label: 'primary', pixelId, accessToken }];
 }
 
 export async function sendTikTokEvent(destination, eventPayload, testCode, event, eventId) {

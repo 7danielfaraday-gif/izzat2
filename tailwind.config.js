@@ -5,7 +5,7 @@ module.exports = {
   ],
   theme: {
     extend: {
-      fontFamily: { sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'] },
+      fontFamily: { sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'] },
       colors: { clifford: '#da373d' },
       spacing: {
           'safe-top': 'env(safe-area-inset-top)',

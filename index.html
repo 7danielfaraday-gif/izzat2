@@ -125,11 +125,6 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content"
         name="viewport" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
-        as="style" onload="this.onload=null;this.rel='stylesheet'" />
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" /></noscript>
     <link crossorigin="" href="https://analytics.tiktok.com" rel="preconnect" />
     <link href="//analytics.tiktok.com" rel="dns-prefetch" />
     <meta
@@ -146,9 +141,6 @@
     <title>Izzat - Fritadeira Elétrica Forno Oven 12L Mondial</title>
     <link rel="icon" href="data:," />
     <link as="image" href="/assets/img/01.webp" rel="preload" type="image/webp" fetchpriority="high" />
-    <link rel="preload" as="script" href="/assets/vendor/react.production.min.js" />
-    <link rel="preload" as="script" href="/assets/vendor/react-dom.production.min.js" />
-    <link rel="preload" as="script" href="/assets/js/checkout.app.js?v=20260424n" />
     <noscript></noscript>
     <script>
         if (!window.__TEST_MODE && !window.__LAB_MODE) {
@@ -162,9 +154,7 @@
                     }, 2500);
                 };
 
-    ttq.load('D7J5BQJC77U557SHJJC0');
-    ttq.load('D7J1OVBC77U02SC96L1G');
-    ttq.load('D7KDGRBC77U3INVHBSF0');
+    ttq.load('D7J4UVBC77U85JI03BFG');
                 ttq.page();
             }(window, document, 'ttq');
         }
@@ -193,7 +183,7 @@
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background-color: #fff;
             color: #333;
             line-height: 1.4;
@@ -432,7 +422,7 @@
         }
 
         .price-main {
-            font-family: 'Inter', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             align-items: baseline;
             gap: 6px;
@@ -458,7 +448,7 @@
         }
 
         .flash-deal-text {
-            font-family: 'Inter', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             align-items: center;
             gap: 4px;
@@ -512,7 +502,7 @@
         }
 
         .product-title {
-            font-family: 'Inter', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             font-size: 17px;
             font-weight: 700;
             color: #222;
@@ -588,7 +578,7 @@
         }
 
         .tab {
-            font-family: 'Inter', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             flex: 1;
             padding: 16px 8px;
             text-align: center;
@@ -621,7 +611,7 @@
         }
 
         .section-title {
-            font-family: 'Inter', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             font-size: 16px;
             font-weight: 600;
             margin-bottom: 12px;
@@ -695,7 +685,7 @@
         }
 
         .reviews-title {
-            font-family: 'Inter', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             font-size: 16px;
             font-weight: 700;
             color: #111
@@ -832,7 +822,7 @@
         }
 
         .add-cart-btn {
-            font-family: 'Inter', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             flex: 1;
             background: #f0f0f0;
             color: #333;
@@ -844,7 +834,7 @@
         }
 
         .buy-btn {
-            font-family: 'Inter', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             flex: 1;
             background: #ff2d55;
             color: white;
@@ -1235,44 +1225,35 @@
     <script>
         (function () {
             window.GA_MEASUREMENT_ID = window.GA_MEASUREMENT_ID || 'G-QY6B4BXBLF';
-            window.dataLayer = window.dataLayer || [];
-            window.trackingQueue = window.trackingQueue || [];
-            window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
-
-            function gaPageLocation() {
-                try {
-                    if (typeof window.getGAPageLocation === 'function') return window.getGAPageLocation();
-                    return window.location.origin + window.location.pathname;
-                } catch (_) { return window.location.href; }
-            }
+            window.__zarazGAQueue = window.__zarazGAQueue || [];
 
             window.flushGAQueue = function () {
                 try {
-                    if (!window.__gaLoaded || typeof window.gtag !== 'function' || !window.trackingQueue || !window.trackingQueue.length) return;
-                    var queue = window.trackingQueue.slice();
-                    window.trackingQueue = [];
+                    if (!window.zaraz || typeof window.zaraz.track !== 'function' || !window.__zarazGAQueue || !window.__zarazGAQueue.length) return;
+                    var queue = window.__zarazGAQueue.slice();
+                    window.__zarazGAQueue = [];
                     queue.forEach(function (item) {
                         if (!item || !item.event) return;
-                        try { window.gtag('event', item.event, item.data || {}); } catch (e) { }
+                        try { window.zaraz.track(item.event, item.data || {}); } catch (e) { }
                     });
                 } catch (e) { }
             };
 
-            window.loadAnalytics = function () {
-                if (window.__TEST_MODE || window.__LAB_MODE || window.__gaLoaded) return;
-                window.__gaLoaded = true;
-                window.analyticsLoaded = true;
-                var s = document.createElement('script');
-                s.async = true;
-                s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(window.GA_MEASUREMENT_ID);
-                document.head.appendChild(s);
-                window.gtag('js', new Date());
-                var config = { send_page_view: false };
+            window.trackZarazGAEvent = window.trackZarazGAEvent || function (event, data) {
+                if (window.__TEST_MODE || window.__LAB_MODE || !event) return;
                 try {
-                    if (typeof window.getGAClientId === 'function') config.client_id = window.getGAClientId();
+                    if (window.zaraz && typeof window.zaraz.track === 'function') {
+                        window.zaraz.track(event, data || {});
+                        return;
+                    }
+                    window.__zarazGAQueue = window.__zarazGAQueue || [];
+                    window.__zarazGAQueue.push({ event: event, data: data || {} });
                 } catch (e) { }
-                window.gtag('config', window.GA_MEASUREMENT_ID, config);
-                window.gtag('event', 'page_view', { page_location: gaPageLocation(), page_path: window.location.pathname });
+            };
+
+            window.loadAnalytics = function () {
+                if (window.__TEST_MODE || window.__LAB_MODE) return;
+                window.analyticsLoaded = true;
                 setTimeout(window.flushGAQueue, 800);
                 setTimeout(window.flushGAQueue, 2500);
             };
@@ -1441,7 +1422,7 @@
                         style="cursor:pointer;width:32px;height:32px;background:#f0f0f0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;color:#666;">✕</span>
                 </div>
                 <div style="display:flex;flex-direction:column;align-items:center;padding:20px 24px 0;">
-                    <img src="assets/img/seller-avatarr.webp" alt="Izzat"
+                    <img src="assets/img/seller-avatarr.webp" alt="Izzat" loading="lazy" decoding="async"
                         style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid #00d4aa;margin-bottom:12px;" />
                     <div style="display:flex;align-items:center;gap:6px;font-size:20px;font-weight:800;color:#222;">
                         Izzat <svg height="20" width="20" viewbox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
@@ -1579,7 +1560,7 @@
                 </div>
                 <div class="rv" style="padding:14px 0;border-bottom:1px solid #f0f0f0;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-                        <img src="assets/img/foto1.webp" alt=""
+                        <img src="assets/img/foto1.webp" alt="" loading="lazy" decoding="async"
                             style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
                         <span style="font-size:14px;font-weight:700;color:#222;">Fernanda L.</span>
                     </div>
@@ -1591,13 +1572,13 @@
                     <div style="font-size:13px;color:#333;line-height:1.5;">Ela é maravilhosa, lindona! Já fiz a cura
                         dos componentes dela e coloquei meu almoço pra gratinar, já vi q está funcionando e até tenho q
                         por menos tempo ou diminuir a potência dela pq é mto boa. Super indico</div>
-                    <div style="margin-top:8px;"><img src="assets/img/review01.webp" alt=""
+                    <div style="margin-top:8px;"><img src="assets/img/review01.webp" alt="" loading="lazy" decoding="async"
                             style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;"
                             onclick="openLightbox(this.src)" /></div>
                 </div>
                 <div class="rv" style="padding:14px 0;border-bottom:1px solid #f0f0f0;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-                        <img src="assets/img/foto2.webp" alt=""
+                        <img src="assets/img/foto2.webp" alt="" loading="lazy" decoding="async"
                             style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
                         <span style="font-size:14px;font-weight:700;color:#222;">Bruna L.</span>
                     </div>
@@ -1609,13 +1590,13 @@
                     <div style="font-size:13px;color:#333;line-height:1.5;">A fritadeira é ótima, um sonho de consumo
                         rsrs, estou muito satisfeita com a minha compra. Já testei e as batatas fritas ficaram ótimas!
                         Chegou muito rápido e muito bem embalada.</div>
-                    <div style="margin-top:8px;"><img src="assets/img/review02.webp" alt=""
+                    <div style="margin-top:8px;"><img src="assets/img/review02.webp" alt="" loading="lazy" decoding="async"
                             style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;"
                             onclick="openLightbox(this.src)" /></div>
                 </div>
                 <div class="rv" style="padding:14px 0;border-bottom:1px solid #f0f0f0;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-                        <img src="assets/img/foto3.webp" alt=""
+                        <img src="assets/img/foto3.webp" alt="" loading="lazy" decoding="async"
                             style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
                         <span style="font-size:14px;font-weight:700;color:#222;">Marilia L.</span>
                     </div>
@@ -1625,13 +1606,13 @@
                     </div>
                     <div style="font-size:11px;color:#aaa;margin-bottom:8px;">Variação: 12 Litros — Preto</div>
                     <div style="font-size:13px;color:#333;line-height:1.5;">Lindo e eficiente.</div>
-                    <div style="margin-top:8px;"><img src="assets/img/review03.webp" alt=""
+                    <div style="margin-top:8px;"><img src="assets/img/review03.webp" alt="" loading="lazy" decoding="async"
                             style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;"
                             onclick="openLightbox(this.src)" /></div>
                 </div>
                 <div class="rv" style="padding:14px 0;border-bottom:1px solid #f0f0f0;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-                        <img src="assets/img/foto4.webp" alt=""
+                        <img src="assets/img/foto4.webp" alt="" loading="lazy" decoding="async"
                             style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
                         <span style="font-size:14px;font-weight:700;color:#222;">Karina A.</span>
                     </div>
@@ -1642,13 +1623,13 @@
                     <div style="font-size:11px;color:#aaa;margin-bottom:8px;">Variação: 12 Litros — Preto</div>
                     <div style="font-size:13px;color:#333;line-height:1.5;">Ótimo produto conforme anunciado. E chegou
                         antes do previsto. Super recomendo....</div>
-                    <div style="margin-top:8px;"><img src="assets/img/review04.webp" alt=""
+                    <div style="margin-top:8px;"><img src="assets/img/review04.webp" alt="" loading="lazy" decoding="async"
                             style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;"
                             onclick="openLightbox(this.src)" /></div>
                 </div>
                 <div class="rv" style="padding:14px 0;border-bottom:1px solid #f0f0f0;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-                        <img src="assets/img/foto5.webp" alt=""
+                        <img src="assets/img/foto5.webp" alt="" loading="lazy" decoding="async"
                             style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
                         <span style="font-size:14px;font-weight:700;color:#222;">Bruna S.</span>
                     </div>
@@ -1659,13 +1640,13 @@
                     <div style="font-size:11px;color:#aaa;margin-bottom:8px;">Variação: 12 Litros — Preto</div>
                     <div style="font-size:13px;color:#333;line-height:1.5;">Bonita grande e eficiente, nada a reclamar
                         até o momento.</div>
-                    <div style="margin-top:8px;"><img src="assets/img/review05.webp" alt=""
+                    <div style="margin-top:8px;"><img src="assets/img/review05.webp" alt="" loading="lazy" decoding="async"
                             style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;"
                             onclick="openLightbox(this.src)" /></div>
                 </div>
                 <div class="rv" style="padding:14px 0;border-bottom:1px solid #f0f0f0;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-                        <img src="assets/img/foto6.webp" alt=""
+                        <img src="assets/img/foto6.webp" alt="" loading="lazy" decoding="async"
                             style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
                         <span style="font-size:14px;font-weight:700;color:#222;">Kailane C.</span>
                     </div>
@@ -1676,13 +1657,13 @@
                     <div style="font-size:11px;color:#aaa;margin-bottom:8px;">Variação: 12 Litros — Preto</div>
                     <div style="font-size:13px;color:#333;line-height:1.5;">Gente eu ameiii, superou minhas
                         expectativas, lindaaa, ameiii!!!</div>
-                    <div style="margin-top:8px;"><img src="assets/img/review06.webp" alt=""
+                    <div style="margin-top:8px;"><img src="assets/img/review06.webp" alt="" loading="lazy" decoding="async"
                             style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;"
                             onclick="openLightbox(this.src)" /></div>
                 </div>
                 <div class="rv" style="padding:14px 0;border-bottom:1px solid #f0f0f0;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-                        <img src="assets/img/foto7.webp" alt=""
+                        <img src="assets/img/foto7.webp" alt="" loading="lazy" decoding="async"
                             style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
                         <span style="font-size:14px;font-weight:700;color:#222;">Mariana L.</span>
                     </div>
@@ -1693,7 +1674,7 @@
                     <div style="font-size:11px;color:#aaa;margin-bottom:8px;">Variação: 12 Litros — Preto</div>
                     <div style="font-size:13px;color:#333;line-height:1.5;">Simplesmente estou apaixonada, excelente
                         mesmo.</div>
-                    <div style="margin-top:8px;"><img src="assets/img/review07.webp" alt=""
+                    <div style="margin-top:8px;"><img src="assets/img/review07.webp" alt="" loading="lazy" decoding="async"
                             style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;"
                             onclick="openLightbox(this.src)" /></div>
                 </div>
@@ -1827,7 +1808,7 @@
                                 stroke-linejoin="round" />
                         </svg>
                     </div>
-                    <img src="assets/img/seller-avatarr.webp" alt="Izzat"
+                    <img src="assets/img/seller-avatarr.webp" alt="Izzat" loading="lazy" decoding="async"
                         style="width:40px;height:40px;border-radius:50%;object-fit:cover;" />
                     <div>
                         <div style="font-size:15px;font-weight:700;color:#222;">Izzat</div>
@@ -1875,7 +1856,7 @@
                         </div>
                     </div>
                     <div style="display:flex;align-items:center;gap:6px;">
-                        <img src="assets/img/seller-avatarr.webp" alt=""
+                        <img src="assets/img/seller-avatarr.webp" alt="" loading="lazy" decoding="async"
                             style="width:20px;height:20px;border-radius:50%;object-fit:cover;" />
                         <span style="font-size:11px;color:#aaa;" id="chat-time"></span>
                     </div>
@@ -2219,7 +2200,7 @@
                     if (sortedImages[i]) {
                         html += '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">';
                         for (var j = 0; j < sortedImages[i].length; j++) {
-                            html += '<img src="assets/img/' + sortedImages[i][j] + '" alt="" style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;" onclick="openLightbox(this.src)"/>';
+                            html += '<img src="assets/img/' + sortedImages[i][j] + '" alt="" loading="lazy" decoding="async" style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;" onclick="openLightbox(this.src)"/>';
                         }
                         html += '</div>';
                     }
@@ -2285,7 +2266,7 @@
                     if (typing) typing.remove();
                     var answerText = faq.a.replace(/\n/g, '<br>');
                     var ansHtml = '<div style="display:flex;align-items:flex-end;gap:8px;"><div style="max-width:75%;background:#f0f0f0;border-radius:12px 12px 12px 4px;padding:12px 14px;"><div style="font-size:13px;color:#333;line-height:1.5;">' + answerText + '</div></div></div>';
-                    ansHtml += '<div style="display:flex;align-items:center;gap:6px;"><img src="assets/img/seller-avatarr.webp" alt="" style="width:20px;height:20px;border-radius:50%;object-fit:cover;"/><span style="font-size:11px;color:#aaa;">' + time + '</span></div>';
+                    ansHtml += '<div style="display:flex;align-items:center;gap:6px;"><img src="assets/img/seller-avatarr.webp" alt="" loading="lazy" decoding="async" style="width:20px;height:20px;border-radius:50%;object-fit:cover;"/><span style="font-size:11px;color:#aaa;">' + time + '</span></div>';
                     msgs.insertAdjacentHTML('beforeend', ansHtml);
                     requestAnimationFrame(function () { msgs.scrollTop = msgs.scrollHeight; });
                 }, 1200);
@@ -2326,7 +2307,7 @@
             });
         })();
     </script>
-    <script defer src="assets/js/observability.js?v=20260425a"></script>
+    <script defer src="assets/js/observability.js?v=20260425e"></script>
     <script defer="" src="assets/js/index.bundle.js?v=20260424k"></script>
     <script defer src="assets/js/metrics.ping.js"></script>
 
@@ -3190,14 +3171,11 @@
                 var gaEvent = GA_EVENT_MAP[event];
                 if (!gaEvent) return;
                 var gaPayload = buildGAPayload(event, payload || {}, eventId);
-                if (typeof window.gtag === 'function' && window.__gaLoaded) {
-                    try { window.gtag('event', gaEvent, gaPayload); } catch (e) { }
+                if (typeof window.trackZarazGAEvent === 'function') {
+                    try { window.trackZarazGAEvent(gaEvent, gaPayload); } catch (e) { }
                 } else {
-                    window.trackingQueue = window.trackingQueue || [];
-                    window.trackingQueue.push({ event: gaEvent, data: gaPayload });
-                }
-                if (typeof window.loadAnalytics === 'function') {
-                    try { window.loadAnalytics(); } catch (e) { }
+                    window.__zarazGAQueue = window.__zarazGAQueue || [];
+                    window.__zarazGAQueue.push({ event: gaEvent, data: gaPayload });
                 }
             }
             window.trackGAEvent = trackGAEvent;
@@ -3318,6 +3296,12 @@
                 if (checkoutForceReadyTimer) { clearTimeout(checkoutForceReadyTimer); checkoutForceReadyTimer = null; }
             }
 
+            function checkoutStylesAreReady() {
+                if (window.__checkoutStylesReady) return true;
+                var css = document.querySelector('link[data-checkout-tailwind-css]');
+                return !!(css && css.sheet);
+            }
+
             function setCheckoutOpeningState() {
                 var wrapper = document.getElementById('spa-checkout-wrapper');
                 var sk = document.getElementById('skeleton-loader');
@@ -3325,6 +3309,7 @@
                 if (!wrapper) return;
 
                 clearCheckoutOpenTimers();
+                window.__checkoutStylesReady = false;
                 wrapper.setAttribute('data-state', 'opening');
                 if (sk) { sk.style.display = 'none'; sk.style.opacity = '1'; sk.style.transition = ''; }
                 if (root) { root.style.visibility = 'hidden'; root.style.opacity = '0'; root.style.pointerEvents = 'none'; }
@@ -3338,16 +3323,22 @@
 
                 // Segurança: evita travar em "opening" caso algo falhe.
                 checkoutForceReadyTimer = setTimeout(function () {
-                    setCheckoutReadyState();
+                    setCheckoutReadyState({ force: true });
                 }, 7000);
             }
 
-            function setCheckoutReadyState() {
+            function setCheckoutReadyState(options) {
+                options = options || {};
                 var wrapper = document.getElementById('spa-checkout-wrapper');
                 var sk = document.getElementById('skeleton-loader');
                 var root = document.getElementById('checkout-root');
                 var buyNow = document.getElementById('buy-now');
                 if (!wrapper) return;
+
+                if (!options.force && wrapper.getAttribute('data-state') === 'opening' && !checkoutStylesAreReady()) {
+                    setTimeout(function () { setCheckoutReadyState(options); }, 60);
+                    return;
+                }
 
                 clearCheckoutOpenTimers();
                 wrapper.setAttribute('data-state', 'ready');
@@ -3494,7 +3485,7 @@
                     window.tailwind.config = {
                         theme: {
                             extend: {
-                                fontFamily: { sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'] },
+                                fontFamily: { sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'] },
                                 colors: { clifford: '#da373d' },
                                 spacing: {
                                     'safe-top': 'env(safe-area-inset-top)',
@@ -3539,34 +3530,17 @@
                         setTimeout(reloadTailwindAfterReact, 150);
                         return;
                     }
-                    var css = document.querySelector('link[data-checkout-tailwind-css]');
                     var revealDone = false;
                     var reveal = function () {
                         if (revealDone) return;
                         revealDone = true;
                         setTimeout(setCheckoutReadyState, 60);
                     };
-                    if (css) {
-                        if (css.sheet) {
-                            reveal();
-                        } else {
-                            css.addEventListener('load', reveal, { once: true });
-                            css.addEventListener('error', reveal, { once: true });
-                            setTimeout(reveal, 900);
-                        }
-                        return;
-                    }
-                    css = document.createElement('link');
-                    css.rel = 'stylesheet';
-                    css.href = '/assets/css/checkout.tailwind.css?v=20260423a';
-                    css.setAttribute('data-checkout-tailwind-css', '');
-                    css.onload = reveal;
-                    css.onerror = function () {
-                        if (window.__localLibFallback) window.__localLibFallback('tailwind-local');
+                    if (window.__ensureCheckoutStyles) {
+                        window.__ensureCheckoutStyles(reveal);
+                    } else {
                         reveal();
-                    };
-                    setTimeout(reveal, 900);
-                    document.head.appendChild(css);
+                    }
                 }
 
                 // Inicia o React checkout
@@ -3667,7 +3641,7 @@
         window.tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'] },
+                    fontFamily: { sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'] },
                     colors: { clifford: '#da373d' },
                     spacing: {
                         'safe-top': 'env(safe-area-inset-top)',
@@ -3692,9 +3666,98 @@
             }
         };
     </script>
-    <link rel="stylesheet" href="/assets/css/checkout.tailwind.css?v=20260423a" data-checkout-tailwind-css
-        onerror="window.__pendingTailwindFallback=true;window.__localLibFallback&&window.__localLibFallback('tailwind-local')" />
-    <script defer onerror="window.__localLibFallback('checkoutapp')" src="assets/js/checkout.app.js?v=20260424n"></script>
+    <script>
+        (function () {
+            var href = '/assets/css/checkout.tailwind.css?v=20260423a';
+            var preloadStarted = false;
+            var applied = false;
+
+            function applyPreload(preload, onReady) {
+                if (!preload || applied) {
+                    if (onReady) setTimeout(onReady, 0);
+                    return;
+                }
+                applied = true;
+                preload.rel = 'stylesheet';
+                preload.removeAttribute('as');
+                preload.removeAttribute('data-checkout-tailwind-preload');
+                preload.setAttribute('data-checkout-tailwind-css', '');
+                if (onReady) {
+                    if (preload.sheet) {
+                        window.__checkoutStylesReady = true;
+                        requestAnimationFrame(function () { onReady(); });
+                    } else {
+                        preload.addEventListener('load', function () {
+                            window.__checkoutStylesReady = true;
+                            requestAnimationFrame(function () { onReady(); });
+                        }, { once: true });
+                        preload.addEventListener('error', function () { onReady(); }, { once: true });
+                        setTimeout(function () { if (onReady) onReady(); }, 900);
+                    }
+                }
+            }
+
+            window.__preloadCheckoutStyles = window.__preloadCheckoutStyles || function () {
+                if (preloadStarted || document.querySelector('link[data-checkout-tailwind-css],link[data-checkout-tailwind-preload]')) return;
+                preloadStarted = true;
+                var link = document.createElement('link');
+                link.rel = 'prefetch';
+                link.as = 'style';
+                link.href = href;
+                link.setAttribute('data-checkout-tailwind-preload', '');
+                link.onload = function () { link.dataset.loaded = '1'; };
+                link.onerror = function () { preloadStarted = false; };
+                document.head.appendChild(link);
+            };
+
+            window.__ensureCheckoutStyles = window.__ensureCheckoutStyles || function (onReady) {
+                var css = document.querySelector('link[data-checkout-tailwind-css]');
+                if (css) {
+                    if (css.sheet) {
+                        window.__checkoutStylesReady = true;
+                        if (onReady) onReady();
+                    } else {
+                        css.addEventListener('load', function () { window.__checkoutStylesReady = true; if (onReady) onReady(); }, { once: true });
+                        css.addEventListener('error', function () { if (onReady) onReady(); }, { once: true });
+                        setTimeout(function () { if (onReady) onReady(); }, 900);
+                    }
+                    return;
+                }
+
+                var preload = document.querySelector('link[data-checkout-tailwind-preload]');
+                if (preload) {
+                    applyPreload(preload, onReady);
+                    return;
+                }
+
+                css = document.createElement('link');
+                css.rel = 'stylesheet';
+                css.href = href;
+                css.setAttribute('data-checkout-tailwind-css', '');
+                css.onload = function () { window.__checkoutStylesReady = true; if (onReady) onReady(); };
+                css.onerror = function () {
+                    window.__pendingTailwindFallback = true;
+                    if (window.__localLibFallback) window.__localLibFallback('tailwind-local');
+                    if (onReady) onReady();
+                };
+                setTimeout(function () { if (onReady) onReady(); }, 900);
+                document.head.appendChild(css);
+            };
+
+            ['pointerenter', 'touchstart', 'focus'].forEach(function (eventName) {
+                document.addEventListener(eventName, function (event) {
+                    var target = event.target && event.target.closest ? event.target.closest('#buy-now,.buy-btn,[data-checkout-target]') : null;
+                    if (target && window.__preloadCheckoutStyles) window.__preloadCheckoutStyles();
+                }, { passive: true, capture: true });
+            });
+
+            var schedule = window.requestIdleCallback || function (fn) { return setTimeout(fn, 1600); };
+            schedule(function () {
+                if (window.__preloadCheckoutStyles) window.__preloadCheckoutStyles();
+            }, { timeout: 5000 });
+        })();
+    </script>
+    <script defer onerror="window.__localLibFallback('checkoutapp')" src="assets/js/checkout.app.js?v=20260425f"></script>
 </body>
 
 </html>

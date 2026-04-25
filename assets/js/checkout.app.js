@@ -58,15 +58,17 @@ if (window.trackPixel) window.trackPixel(event, data);
 
 const flushGAOnlyQueue = () => {
 try {
-if (!window.__gaLoaded || typeof window.gtag !== 'function' || !window.trackingQueue || !window.trackingQueue.length) return;
-const queue = window.trackingQueue.slice();
-window.trackingQueue = [];
-queue.forEach(item => {
-if (!item || !item.event) return;
-try { window.gtag('event', item.event, item.data || {}); } catch(e) {}
-});
+if (typeof window.flushGAQueue === 'function') window.flushGAQueue();
 } catch(e) {}
 };
+
+const shouldLoadGAOnlyImmediately = (event) => (
+event === 'pix__Visible' ||
+event === 'pix_copy_click' ||
+event === 'begin_checkout' ||
+event === 'add_payment_info' ||
+event === 'checkout_error'
+);
 
 const trackCheckoutGAOnly = (event, data = {}) => {
 if (isLabMode() || window.__TEST_MODE) return;
@@ -87,16 +89,16 @@ page_path: window.location.pathname
 
 try { if (window.__obs) window.__obs(event, payload); } catch(e) {}
 
-if (typeof window.gtag === 'function' && window.__gaLoaded) {
+if (typeof window.trackZarazGAEvent === 'function') {
 try {
-window.gtag('event', event, payload);
+window.trackZarazGAEvent(event, payload);
 return;
 } catch(e) {}
 }
 
-window.trackingQueue = window.trackingQueue || [];
-window.trackingQueue.push({ event: event, data: payload });
-if (typeof window.loadAnalytics === 'function') {
+window.__zarazGAQueue = window.__zarazGAQueue || [];
+window.__zarazGAQueue.push({ event: event, data: payload });
+if (shouldLoadGAOnlyImmediately(event) && typeof window.loadAnalytics === 'function') {
 try { window.loadAnalytics(); } catch(e) {}
 }
 setTimeout(flushGAOnlyQueue, 1200);
@@ -598,7 +600,10 @@ const normalizeCepAddress = (provider, data) => {
  setFormData(prev => ({...prev, [name]: result.formatted}));
  cursorRef.current = { ref: cepInputRef, pos: result.cursorPosition };
  if (value.replace(/\D/g, '').length < 8) { try { setCepFailed(false); } catch(e) {} }
- if (value.replace(/\D/g, '').length === 8 && formData.cep.replace(/\D/g, '') !== value.replace(/\D/g, '')) handleCep(value.replace(/\D/g, ''));
+ if (value.replace(/\D/g, '').length === 8 && formData.cep.replace(/\D/g, '') !== value.replace(/\D/g, '')) {
+ try { if (window.__obs) window.__obs('CEP_Input_Complete', { field: 'cep', stage: 'checkout' }); } catch(e) {}
+ handleCep(value.replace(/\D/g, ''));
+ }
  };
 
  const handleSubmit = (ev) => {
@@ -606,7 +611,11 @@ const normalizeCepAddress = (provider, data) => {
  if(ev) ev.preventDefault();
  
  // ⭐️ CORRE�?�fO 4: Race condition check logo no início ⭐️
- if (isSubmitting || isFormLocked || loading) return;
+ if (isSubmitting || isFormLocked || loading) {
+ try { if (window.__obs) window.__obs('Submit_Blocked', { stage: 'checkout', reason: 'locked_or_loading' }); } catch(e) {}
+ return;
+ }
+ try { if (window.__obs) window.__obs('Submit_Attempt', { stage: 'checkout' }); } catch(e) {}
  
  setIsSubmitting(true);
  // BLINDA RACE CONDITION: Desabilita botões IMEDIATAMENTE no DOM
@@ -623,6 +632,7 @@ const normalizeCepAddress = (provider, data) => {
  
  if (Object.keys(errors).length > 0) {
  const firstError = Object.keys(errors)[0];
+ try { if (window.__obs) window.__obs('Validation_Error', { stage: 'checkout', error_field: firstError, error_message: errors[firstError] }); } catch(e) {}
  
  // --- RASTREAMENTO DE ERRO (Fricção) ---
  trackEvent('Checkout_Error', {
@@ -651,6 +661,7 @@ const normalizeCepAddress = (provider, data) => {
  
  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
  setIsFormLocked(true); setLoading(true);
+ try { if (window.__obs) window.__obs('Submit_Valid', { stage: 'checkout', required_filled: 3 }); window.__obs('Loading_Shown', { stage: 'checkout' }); } catch(e) {}
  
  const finalEmail = formData.email.toLowerCase().trim();
  const finalPhone = formData.phone.replace(/\D/g, ''); 
@@ -930,9 +941,10 @@ if (document.activeElement && document.activeElement.blur) document.activeElemen
 scrollCheckoutViewportToTop('auto');
 requestAnimationFrame(() => { scrollCheckoutViewportToTop('auto'); });
 
-const step1 = setTimeout(() => setLoadingState(1), 500);
-const step2 = setTimeout(() => setLoadingState(2), 1200);
-const step3 = setTimeout(() => { setLoadingState(3); setKeyboardClosed(true); }, 2000);
+try { if (window.__obs) window.__obs('Pix_Loading_State', { stage: 'pix_loading', result: 'start' }); } catch(e) {}
+const step1 = setTimeout(() => { setLoadingState(1); try { if (window.__obs) window.__obs('Pix_Loading_State', { stage: 'pix_loading', result: 'stock' }); } catch(e) {} }, 500);
+const step2 = setTimeout(() => { setLoadingState(2); try { if (window.__obs) window.__obs('Pix_Loading_State', { stage: 'pix_loading', result: 'payment' }); } catch(e) {} }, 1200);
+const step3 = setTimeout(() => { setLoadingState(3); setKeyboardClosed(true); try { if (window.__obs) window.__obs('Pix_Loading_State', { stage: 'pix_loading', result: 'ready' }); } catch(e) {} }, 2000);
 
 return () => { clearTimeout(step1); clearTimeout(step2); clearTimeout(step3); };
 }, [transactionId]);
