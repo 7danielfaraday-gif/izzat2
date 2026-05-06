@@ -1,0 +1,18 @@
+{
+  "name": "izzat-synthetic-diagnostics",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Synthetic mobile diagnostics for the Izzat checkout funnel.",
+  "scripts": {
+    "diagnostics:analyze": "node tools/analyze-diagnostics.js",
+    "synthetic": "playwright test -c synthetic/playwright.config.js",
+    "synthetic:headed": "playwright test -c synthetic/playwright.config.js --headed",
+    "synthetic:install": "playwright install chromium webkit",
+    "synthetic:lighthouse": "node synthetic/lighthouse/run-lighthouse.mjs",
+    "synthetic:all": "npm run synthetic && npm run synthetic:lighthouse"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "lighthouse": "^13.1.0"
+  }
+}
