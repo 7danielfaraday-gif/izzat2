@@ -1,9 +1,9 @@
-﻿window.activateCheckoutKeyboardDetection = window.activateCheckoutKeyboardDetection || function() {
-try {
-if (typeof setupKeyboardDetection === 'function') setupKeyboardDetection();
-else if (typeof window.setupKeyboardDetection === 'function') window.setupKeyboardDetection();
-} catch(e) {}
-};
+document.addEventListener('DOMContentLoaded', function(){
+ try {
+ if (typeof setupKeyboardDetection === 'function') setupKeyboardDetection();
+ else if (typeof window.setupKeyboardDetection === 'function') window.setupKeyboardDetection();
+ } catch(e) {}
+});
  
  window.initReactCheckout = function() {
  if (window.checkoutInitialized) return;
@@ -11,7 +11,6 @@ else if (typeof window.setupKeyboardDetection === 'function') window.setupKeyboa
  setTimeout(window.initReactCheckout, 50); 
  return;
  }
- if (typeof window.activateCheckoutKeyboardDetection === 'function') window.activateCheckoutKeyboardDetection();
  window.checkoutInitialized = true;
  const { useState, useEffect, useRef, useMemo, useCallback, useLayoutEffect } = React;
  const e = React.createElement; 
@@ -27,222 +26,9 @@ else if (typeof window.setupKeyboardDetection === 'function') window.setupKeyboa
  id: "AFON-12L-BI" 
  };
 
-const CHECKOUT_LOGO_SRC = "/assets/img/monetizze-logo.svg?v=20260424h";
-const CHECKOUT_LOGO_FALLBACK_SRC = "/assets/img/logo.webp";
-const MONETIZZE_BLUE = "#0030FF";
-const CHECKOUT_STEP_CIRCLE_STYLE = { backgroundColor: MONETIZZE_BLUE, boxShadow: "0 4px 10px rgba(0, 48, 255, 0.22)" };
-const CHECKOUT_ADDRESS_INPUT_STYLE = { fontSize: '16px' };
-const PIX_COPY_BUTTON_PULSE_CSS = `
-@keyframes pixCopyButtonPulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  52% { transform: scale(1.012); opacity: .96; }
-}
-.pix-copy-subtle-pulse:not(.pix-copy-confirmed) {
-  animation: pixCopyButtonPulse 3.8s ease-in-out infinite;
-  transform-origin: center;
-}
-@media (prefers-reduced-motion: reduce) {
-  .pix-copy-subtle-pulse {
-    animation: none !important;
-  }
-}
-`;
-
-const isLabMode = () => !!window.__LAB_MODE;
-
-const trackEvent = (event, data = {}) => { 
-if (isLabMode()) return;
-try { if (window.__obs) window.__obs(event, data); } catch(e) {}
-if (window.trackPixel) window.trackPixel(event, data); 
-};
-
-const flushGAOnlyQueue = () => {
-try {
-if (typeof window.flushGAQueue === 'function') window.flushGAQueue();
-} catch(e) {}
-};
-
-const shouldLoadGAOnlyImmediately = (event) => (
-event === 'pix__Visible' ||
-event === 'pix_copy_click' ||
-event === 'begin_checkout' ||
-event === 'add_payment_info' ||
-event === 'checkout_error'
-);
-
-const trackCheckoutGAOnly = (event, data = {}) => {
-if (isLabMode() || window.__TEST_MODE) return;
-try {
-const token = getCheckoutOpenToken();
-const key = event + '::' + token;
-window.__checkoutGAOnlyEvents = window.__checkoutGAOnlyEvents || {};
-if (window.__checkoutGAOnlyEvents[key]) return;
-window.__checkoutGAOnlyEvents[key] = true;
-
-const payload = Object.assign({
-event_category: 'checkout_diagnostic',
-checkout_open_token: token,
-checkout_entry_source: window.__checkoutEntrySource || 'unknown',
-page_location: typeof window.getGAPageLocation === 'function' ? window.getGAPageLocation() : window.location.href,
-page_path: window.location.pathname
-}, data || {});
-
-try { if (window.__obs) window.__obs(event, payload); } catch(e) {}
-
-if (typeof window.trackZarazGAEvent === 'function') {
-try {
-window.trackZarazGAEvent(event, payload);
-return;
-} catch(e) {}
-}
-
-window.__zarazGAQueue = window.__zarazGAQueue || [];
-window.__zarazGAQueue.push({ event: event, data: payload });
-if (shouldLoadGAOnlyImmediately(event) && typeof window.loadAnalytics === 'function') {
-try { window.loadAnalytics(); } catch(e) {}
-}
-setTimeout(flushGAOnlyQueue, 1200);
-setTimeout(flushGAOnlyQueue, 4000);
-} catch(e) {}
-};
-
-window.trackCheckoutGAOnly = trackCheckoutGAOnly;
-
-const LP_VIEW_CONTENT_KEY = '__tt_lp_viewcontent';
-const CHECKOUT_OPEN_EVENT_PREFIX = '__tt_checkout_open_event__';
-
-const readSessionJson = (key) => {
-try {
-const raw = sessionStorage.getItem(key);
-return raw ? JSON.parse(raw) : null;
-} catch(e) {
-return null;
-}
-};
-
-const writeSessionJson = (key, value) => {
-try {
-sessionStorage.setItem(key, JSON.stringify(value));
-} catch(e) {}
-};
-
-const getCheckoutOpenToken = () => {
-try {
-if (window.__currentCheckoutOpenToken) return String(window.__currentCheckoutOpenToken);
-const fallback = 'checkout_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
-window.__currentCheckoutOpenToken = fallback;
-return fallback;
-} catch(e) {
-return 'checkout_' + Date.now();
-}
-};
-
-const claimCheckoutOpenEvent = (eventName) => {
-const openToken = getCheckoutOpenToken();
-const memoryKey = eventName + '::' + openToken;
-window.__checkoutTrackedOpenEvents = window.__checkoutTrackedOpenEvents || {};
-if (window.__checkoutTrackedOpenEvents[memoryKey]) return null;
-window.__checkoutTrackedOpenEvents[memoryKey] = true;
-
-const eventId = window.generateEventId ? window.generateEventId() : 'evt_' + Date.now();
-writeSessionJson(CHECKOUT_OPEN_EVENT_PREFIX + memoryKey, { event_id: eventId, at: Date.now() });
-return eventId;
-};
-
-const hasRecentLandingViewContent = () => {
-const existing = readSessionJson(LP_VIEW_CONTENT_KEY);
-if (!existing || !existing.at) return false;
-return (Date.now() - existing.at) < (30 * 60 * 1000);
-};
-
-
-const getCheckoutScrollViewport = () => {
-try {
-const wrapper = document.getElementById('spa-checkout-wrapper');
-if (wrapper && wrapper.style && wrapper.style.display !== 'none') return wrapper;
-} catch(e) {}
-return window;
-};
-
-const scrollCheckoutViewportToTop = (behavior) => {
-const viewport = getCheckoutScrollViewport();
-const scrollBehavior = behavior || 'auto';
-try {
-if (viewport && typeof viewport.scrollTo === 'function' && viewport !== window) {
-viewport.scrollTo({ top: 0, left: 0, behavior: scrollBehavior });
-return;
-}
-} catch(e) {}
-try {
-window.scrollTo({ top: 0, left: 0, behavior: scrollBehavior });
-} catch(e) {
-try { window.scrollTo(0, 0); } catch(_) {}
-}
-};
-
-const runAfterCheckoutPaint = (fn) => {
-try {
-requestAnimationFrame(() => {
-requestAnimationFrame(() => {
-setTimeout(fn, 0);
-});
-});
-} catch(e) {
-setTimeout(fn, 80);
-}
-};
-
-const scrollCheckoutViewportToY = (y, behavior) => {
-const top = Math.max(0, Number.isFinite(y) ? y : 0);
-const viewport = getCheckoutScrollViewport();
-const scrollBehavior = behavior || 'auto';
-try {
-if (viewport && typeof viewport.scrollTo === 'function' && viewport !== window) {
-viewport.scrollTo({ top: top, left: 0, behavior: scrollBehavior });
-return;
-}
-} catch(e) {}
-try {
-window.scrollTo({ top: top, left: 0, behavior: scrollBehavior });
-} catch(e) {
-try { window.scrollTo(0, top); } catch(_) {}
-}
-};
-
-
-const scrollCheckoutElementIntoView = (element, offset, behavior) => {
-if (!element || !element.getBoundingClientRect) return;
-const safeOffset = Math.max(0, Number(offset) || 0);
-const viewport = getCheckoutScrollViewport();
-try {
-if (viewport && viewport !== window && viewport.getBoundingClientRect) {
-const viewportRect = viewport.getBoundingClientRect();
-const elementRect = element.getBoundingClientRect();
-const targetTop = viewport.scrollTop + (elementRect.top - viewportRect.top) - safeOffset;
-scrollCheckoutViewportToY(targetTop, behavior || 'smooth');
-return;
-}
-} catch(e) {}
-try {
-const targetTop = (window.scrollY || window.pageYOffset || 0) + element.getBoundingClientRect().top - safeOffset;
-scrollCheckoutViewportToY(targetTop, behavior || 'smooth');
-} catch(e) {}
-};
-
-const getFreightRangeByUf = (uf) => {
-const normalizedUf = String(uf || '').toUpperCase();
-const north = ['AC', 'AP', 'AM', 'PA', 'RO', 'RR', 'TO'];
-const northeast = ['AL', 'BA', 'CE', 'MA', 'PB', 'PE', 'PI', 'RN', 'SE'];
-const midwest = ['DF', 'GO', 'MS', 'MT'];
-const southSoutheast = ['ES', 'MG', 'RJ', 'SP', 'PR', 'RS', 'SC'];
-
-if (north.includes(normalizedUf)) return { min: 6, max: 10 };
-if (northeast.includes(normalizedUf)) return { min: 5, max: 8 };
-if (midwest.includes(normalizedUf)) return { min: 4, max: 7 };
-if (southSoutheast.includes(normalizedUf)) return { min: 3, max: 6 };
-
-return { min: 4, max: 7 };
-};
+ const trackEvent = (event, data = {}) => { 
+ if (window.trackPixel) window.trackPixel(event, data); 
+ };
 
  const useInputMask = (type) => {
  const mask = useMemo(() => {
@@ -276,60 +62,6 @@ return { min: 4, max: 7 };
  Package: ({className}) => e("svg", {className: className || "w-4 h-4", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"}, e("line", {x1: "16.5", y1: "9.4", x2: "7.5", y2: "4.21"}), e("path", {d: "M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"}), e("polyline", {points: "3.27 6.96 12 12.01 20.73 6.96"}), e("line", {x1: "12", y1: "22.08", x2: "12", y2: "12"}))
  };
 
- const DEFAULT_FORM_DATA = { name: '', email: '', phone: '', cpf: '', cep: '', address: '', number: '', neighborhood: '', complement: '', city: '' };
- const ORDER_SOURCE_KEYS = { ttclid: true, gclid: true, msclkid: true, external_id: true };
-
- const getOrderSourceData = () => {
- const source = {};
- try {
- const urlParams = new URLSearchParams(window.location.search || '');
- urlParams.forEach((value, rawKey) => {
- if (!value) return;
- const key = String(rawKey || '').toLowerCase();
- if (!key) return;
- if (key === 'eid') {
- source.external_id = value;
- return;
- }
- if (key.indexOf('utm_') === 0 || key.indexOf('tt_') === 0 || ORDER_SOURCE_KEYS[key]) {
- source[key] = value;
- }
- });
- } catch(e) {}
- try {
- const stored = (typeof window.getStoredUTMs === 'function') ? window.getStoredUTMs() : {};
- Object.keys(stored || {}).forEach((rawKey) => {
- const value = stored[rawKey];
- if (!value) return;
- const key = String(rawKey || '').toLowerCase();
- if (!source[key]) source[key] = String(value);
- });
- } catch(e) {}
- try {
- const ttclid = (typeof window.getTTCLID === 'function') ? window.getTTCLID() : '';
- if (ttclid && !source.ttclid) source.ttclid = ttclid;
- } catch(e) {}
- try {
- const ttp = (typeof window.getTTP === 'function') ? window.getTTP() : '';
- if (ttp && !source.ttp) source.ttp = ttp;
- } catch(e) {}
-try {
-const externalId = (typeof window.getExternalId === 'function') ? window.getExternalId() : '';
-if (externalId && !source.external_id) source.external_id = externalId;
-} catch(e) {}
-try {
-const gaClientId = (typeof window.getGAClientId === 'function') ? window.getGAClientId() : '';
-if (gaClientId && !source.ga_client_id) source.ga_client_id = gaClientId;
-const gaSessionId = (typeof window.getGASessionId === 'function') ? window.getGASessionId() : '';
-if (gaSessionId && !source.ga_session_id) source.ga_session_id = gaSessionId;
-} catch(e) {}
-try {
-const eventSourceUrl = (typeof window.getTikTokEventSourceUrl === 'function') ? window.getTikTokEventSourceUrl() : window.location.href;
-if (eventSourceUrl && !source.event_source_url) source.event_source_url = eventSourceUrl;
-} catch(e) {}
- return source;
- };
-
  function CheckoutScreen({ onSuccess }) {
  const [loading, setLoading] = useState(false);
  const [loadingCep, setLoadingCep] = useState(false);
@@ -337,13 +69,13 @@ if (eventSourceUrl && !source.event_source_url) source.event_source_url = eventS
  const [formData, setFormData] = useState(() => { 
  try { 
  const saved = localStorage.getItem('checkout_safe_data'); 
- return saved ? { ...DEFAULT_FORM_DATA, ...JSON.parse(saved) } : DEFAULT_FORM_DATA; 
+ return saved ? JSON.parse(saved) : { name: '', email: '', phone: '', cpf: '', cep: '', address: '', number: '', city: '' }; 
  } catch(e) { 
- return DEFAULT_FORM_DATA; 
+ return { name: '', email: '', phone: '', cpf: '', cep: '', address: '', number: '', city: '' }; 
  } 
  });
  
- // ⭐️ SEGURAN�?A: Lógica de tempo mantida para evitar ReferenceError (Crash)
+ // ⭐️ SEGURANÇA: Lógica de tempo mantida para evitar ReferenceError (Crash)
  const [timeLeft, setTimeLeft] = useState(15 * 60);
  const [submitAttempted, setSubmitAttempted] = useState(false);
  const [isFormLocked, setIsFormLocked] = useState(false);
@@ -381,40 +113,36 @@ if (eventSourceUrl && !source.event_source_url) source.event_source_url = eventS
 
  useEffect(() => { 
  try { 
- scrollCheckoutViewportToTop('auto'); 
- if (window.__checkoutEntrySource !== 'lp') {
- requestAnimationFrame(() => {
- requestAnimationFrame(() => {
- if (typeof window.trackCheckoutGAOnly === 'function') {
- window.trackCheckoutGAOnly('checkout__Visible', { checkout_ready_state: 'react_mounted', checkout_visible_source: 'direct' });
- }
- });
- });
- }
+ window.scrollTo(0, 0); 
  
  // Deduplicação de ViewContent por sessão (evita "chuva" de eventos no Pixel Helper)
- const checkoutSource = window.__checkoutEntrySource === 'lp' ? 'lp' : 'direct';
- if (!(checkoutSource === 'lp' && hasRecentLandingViewContent())) {
- const vcId = claimCheckoutOpenEvent('ViewContent');
- if (vcId) trackEvent('ViewContent', { ...window.PRODUCT_CONTENT, event_id: vcId, content_name: PRODUCT_INFO.name });
+ let vcId = sessionStorage.getItem('last_vc_id');
+ if (!vcId) {
+ vcId = window.generateEventId ? window.generateEventId() : 'evt_'+Date.now();
+ sessionStorage.setItem('last_vc_id', vcId);
  }
+ trackEvent('ViewContent', { ...window.PRODUCT_CONTENT, event_id: vcId, content_name: PRODUCT_INFO.name }); 
  } catch(e) {} 
  
  // Deduplicação de InitiateCheckout: se o usuário já iniciou checkout recentemente (30 min), 
  // reaproveita o ID para o TikTok deduplicar no servidor e não poluir o painel.
- const icId = claimCheckoutOpenEvent('InitiateCheckout');
- if (icId) trackEvent('InitiateCheckout', { ...window.PRODUCT_CONTENT, content_name: PRODUCT_INFO.name, event_id: icId }); 
+ let icId = sessionStorage.getItem('last_ic_id');
+ if (!icId) {
+ icId = window.generateEventId ? window.generateEventId() : 'evt_'+Date.now(); 
+ sessionStorage.setItem('last_ic_id', icId);
+ }
+ trackEvent('InitiateCheckout', { ...window.PRODUCT_CONTENT, content_name: PRODUCT_INFO.name, event_id: icId }); 
  
-const analyticsTimer = setTimeout(() => { if (!isLabMode() && window.loadAnalytics) window.loadAnalytics(); }, 3500);
+ const analyticsTimer = setTimeout(() => { if (window.loadAnalytics) window.loadAnalytics(); }, 3500);
  const timerInterval = setInterval(() => { setTimeLeft(prev => prev > 0 ? prev - 1 : 0); }, 1000);
 
  return () => { clearTimeout(analyticsTimer); clearInterval(timerInterval); }
  }, []);
 
  useEffect(() => { 
-const totalFields = 5; 
-const filledFields = Object.keys(formData).filter(key => ['name', 'email', 'phone', 'address', 'number'].includes(key) && formData[key]).length;
-const progress = Math.min((filledFields / totalFields) * 100, 100);
+ const totalFields = 5; 
+ const filledFields = Object.keys(formData).filter(key => ['name', 'email', 'phone', 'cpf', 'address', 'number'].includes(key) && formData[key]).length;
+ const progress = Math.min((filledFields / totalFields) * 100, 100);
  if (progressRef.current) progressRef.current.style.width = `${progress}%`; 
  }, [formData]);
 
@@ -475,102 +203,33 @@ const progress = Math.min((filledFields / totalFields) * 100, 100);
  return `${days[d.getDay()]}, ${day} de ${months[d.getMonth()]}`;
  };
  
- const fetchJsonWithTimeout = async (url, timeoutMs) => {
- const controller = new AbortController();
- const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
- try {
- const res = await fetch(url, { cache: 'no-store', signal: controller.signal });
- if (!res || !res.ok) throw new Error('cep_http_' + (res && res.status));
- return await res.json();
- } finally {
- clearTimeout(timeoutId);
- }
- };
-
-const normalizeCepAddress = (provider, data) => {
- if (!data || data.erro) return null;
- if (provider === 'edge') {
- const city = data.city || `${data.city_name || ''}/${data.state || ''}`.replace(/^\//,'');
- return {
- address: data.address || '',
- neighborhood: data.neighborhood || '',
- complement: data.complement || '',
- city
- };
- }
- if (provider === 'viacep') {
- const city = `${data.localidade || ''}/${data.uf || ''}`.replace(/^\//,'');
- return {
- address: data.logradouro || '',
- neighborhood: data.bairro || '',
- complement: data.complemento || '',
- city
- };
- }
- const city = `${data.city || ''}/${data.state || ''}`.replace(/^\//,'');
- return {
- address: data.street || '',
- neighborhood: data.neighborhood || '',
- complement: '',
- city
- };
- };
-
- const lookupCepAddress = async (cep) => {
- try {
- const data = await fetchJsonWithTimeout(`/api/cep?cep=${cep}`, 4500);
- const normalized = normalizeCepAddress('edge', data);
- if (normalized && (normalized.address || normalized.neighborhood || normalized.city)) return normalized;
- } catch(e) {}
-
- try {
- const data = await fetchJsonWithTimeout(`https://viacep.com.br/ws/${cep}/json/`, 3500);
- const normalized = normalizeCepAddress('viacep', data);
- if (normalized && (normalized.address || normalized.neighborhood || normalized.city)) return normalized;
- } catch(e) {}
-
- try {
- const data = await fetchJsonWithTimeout(`https://brasilapi.com.br/api/cep/v2/${cep}`, 3500);
- const normalized = normalizeCepAddress('brasilapi', data);
- if (normalized && (normalized.address || normalized.neighborhood || normalized.city)) return normalized;
- } catch(e) {}
-
- return null;
- };
-
  const handleCep = async (val) => { 
  if (fetchingCepRef.current) return;
  const cep = val.replace(/\D/g, ''); 
  if (cep.length === 8) { 
  fetchingCepRef.current = true; setLoadingCep(true); 
  
+ // Adicionado AbortController para evitar travamento em 3G/4G instável
+ const controller = new AbortController();
+ const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+
  try { 
  setCepFailed(false);
- const data = await lookupCepAddress(cep);
- const currentCep = cepInputRef.current ? cepInputRef.current.value.replace(/\D/g, '') : cep;
- if (currentCep !== cep) return;
+ const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`, { signal: controller.signal }); 
+ clearTimeout(timeoutId);
+ if (!res.ok) throw new Error('ViaCEP HTTP ' + res.status);
+ const data = await res.json(); 
  if(!data || data.erro) { 
  setCepFailed(true);
  } else { 
- setFormData(prev => {
- if ((prev.cep || '').replace(/\D/g, '') !== cep) return prev;
- return ({
- ...prev,
- address: prev.address || data.address || '',
- neighborhood: prev.neighborhood || data.neighborhood || '',
- complement: prev.complement || data.complement || '',
- city: prev.city || data.city || ''
- });
- }); 
- setTimeout(() => { try { if(numberRef.current && document.activeElement === cepInputRef.current) numberRef.current.focus(); } catch(e){} }, 300);
+ setFormData(prev => ({ ...prev, address: data.logradouro || '', city: `${data.localidade || ''}/${data.uf || ''}`.replace(/^\//,'') })); 
+ setTimeout(() => { try { if(numberRef.current) numberRef.current.focus(); } catch(e){} }, 300);
  }
  } catch(e) {
  // Falha comum em in-app / conexão fraca: libera preenchimento manual
  try { setCepFailed(true); } catch(_) {}
  } finally {
  setLoadingCep(false); fetchingCepRef.current = false;
- const latestCep = cepInputRef.current ? cepInputRef.current.value.replace(/\D/g, '') : '';
- if (latestCep.length === 8 && latestCep !== cep) setTimeout(() => handleCep(latestCep), 0);
  }
  } 
  };
@@ -600,22 +259,15 @@ const normalizeCepAddress = (provider, data) => {
  setFormData(prev => ({...prev, [name]: result.formatted}));
  cursorRef.current = { ref: cepInputRef, pos: result.cursorPosition };
  if (value.replace(/\D/g, '').length < 8) { try { setCepFailed(false); } catch(e) {} }
- if (value.replace(/\D/g, '').length === 8 && formData.cep.replace(/\D/g, '') !== value.replace(/\D/g, '')) {
- try { if (window.__obs) window.__obs('CEP_Input_Complete', { field: 'cep', stage: 'checkout' }); } catch(e) {}
- handleCep(value.replace(/\D/g, ''));
- }
+ if (value.replace(/\D/g, '').length === 8 && formData.cep.replace(/\D/g, '') !== value.replace(/\D/g, '')) handleCep(value.replace(/\D/g, ''));
  };
 
  const handleSubmit = (ev) => {
  // CRITICAL FIX: Prevent default FIRST to avoid page reload on Enter key if locked
  if(ev) ev.preventDefault();
  
- // ⭐️ CORRE�?�fO 4: Race condition check logo no início ⭐️
- if (isSubmitting || isFormLocked || loading) {
- try { if (window.__obs) window.__obs('Submit_Blocked', { stage: 'checkout', reason: 'locked_or_loading' }); } catch(e) {}
- return;
- }
- try { if (window.__obs) window.__obs('Submit_Attempt', { stage: 'checkout' }); } catch(e) {}
+ // ⭐️ CORREÇÃO 4: Race condition check logo no início ⭐️
+ if (isSubmitting || isFormLocked || loading) return;
  
  setIsSubmitting(true);
  // BLINDA RACE CONDITION: Desabilita botões IMEDIATAMENTE no DOM
@@ -632,7 +284,6 @@ const normalizeCepAddress = (provider, data) => {
  
  if (Object.keys(errors).length > 0) {
  const firstError = Object.keys(errors)[0];
- try { if (window.__obs) window.__obs('Validation_Error', { stage: 'checkout', error_field: firstError, error_message: errors[firstError] }); } catch(e) {}
  
  // --- RASTREAMENTO DE ERRO (Fricção) ---
  trackEvent('Checkout_Error', {
@@ -647,7 +298,10 @@ const normalizeCepAddress = (provider, data) => {
  // SCROLL INTELIGENTE: Calcula altura do header dinamicamente + Footer height
  const header = document.querySelector('.static-nav');
  const offset = header ? header.clientHeight + 60 : 120;
- scrollCheckoutElementIntoView(errorElement, offset, 'smooth');
+ // Garante que não fique atrás do footer
+ const footerHeight = 100; 
+ const y = errorElement.getBoundingClientRect().top + window.scrollY - offset;
+ window.scrollTo({top: Math.max(0, y), behavior: 'smooth'});
  errorElement.focus({preventScroll: true}); 
  });
  }
@@ -661,7 +315,6 @@ const normalizeCepAddress = (provider, data) => {
  
  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
  setIsFormLocked(true); setLoading(true);
- try { if (window.__obs) window.__obs('Submit_Valid', { stage: 'checkout', required_filled: 3 }); window.__obs('Loading_Shown', { stage: 'checkout' }); } catch(e) {}
  
  const finalEmail = formData.email.toLowerCase().trim();
  const finalPhone = formData.phone.replace(/\D/g, ''); 
@@ -680,29 +333,19 @@ const normalizeCepAddress = (provider, data) => {
  }
  }
  const uniqueOrderId = 'ord_' + new Date().getTime(); 
- runAfterCheckoutPaint(() => {
- // Reforça o matching do evento mesmo quando o usuário não desfoca dos campos antes do submit.
- trackEvent('AddPaymentInfo', {
- ...window.PRODUCT_CONTENT,
- content_name: PRODUCT_INFO.name,
- event_id: window.generateEventId(),
- order_id: uniqueOrderId,
- email: finalEmail,
- phone: finalPhone
- });
-
- // Salvar pedido no servidor sem competir com o primeiro feedback visual do clique.
- if (!isLabMode()) {
+ // Reseta IDs para que a próxima compra seja considerada um novo evento
+ try { sessionStorage.removeItem('last_ic_id'); sessionStorage.removeItem('last_vc_id'); } catch(e) {}
+ 
+ trackEvent('AddPaymentInfo', { ...window.PRODUCT_CONTENT, event_id: window.generateEventId(), order_id: uniqueOrderId });
+ 
+ // Salvar pedido no servidor
  try {
- const orderSource = getOrderSourceData();
  fetch('/api/orders', {
  method: 'POST',
  headers: { 'Content-Type': 'application/json' },
- body: JSON.stringify({ id: uniqueOrderId, name: formData.name, email: finalEmail, phone: finalPhone, cpf: formData.cpf || '', cep: formData.cep || '', address: formData.address || '', number: formData.number || '', neighborhood: formData.neighborhood || '', complement: formData.complement || '', city: formData.city || '', value: 197.99, source: orderSource })
+ body: JSON.stringify({ id: uniqueOrderId, name: formData.name, email: finalEmail, phone: finalPhone, cpf: formData.cpf || '', cep: formData.cep || '', address: formData.address || '', number: formData.number || '', city: formData.city || '', value: 197.99 })
  }).catch(() => {});
  } catch(e) {}
- }
- });
 
  setTimeout(() => {
  onSuccess({ ...formData, email: finalEmail, phone: finalPhone, firstName, lastName, city, state, transactionId: uniqueOrderId });
@@ -714,32 +357,35 @@ const normalizeCepAddress = (provider, data) => {
 
  const shouldShowAddressFields = useMemo(() => {
  const cd = (formData.cep || '').replace(/\D/g, '');
-return !!formData.address || !!formData.neighborhood || !!cepFailed || cd.length === 8;
-}, [formData.address, formData.neighborhood, formData.cep, cepFailed]);
+ return !!formData.address || !!cepFailed || cd.length === 8;
+ }, [formData.address, formData.cep, cepFailed]);
  
  return e("div", { className: "fade-in w-full min-h-screen font-sans bg-[#f8fafc] form-container" },
  e("div", { ref: progressRef, className: "progress-bar", style: {width: '10%'} }),
- /* ⭐️ SEGURAN�?A: Barra visual removida, lógica mantida internamente no componente */
-e("div", { className: "static-nav bg-white/98 border-b border-gray-200 flex justify-between items-center z-30 shadow-[0_2px_8px_rgba(0,0,0,0.04)]", style: { minHeight: '80px', padding: '16px', boxSizing: 'border-box' } },
-e("button", { type: "button", onClick: () => {
-if (isFormLocked || isSubmitting) return;
-try {
-if (typeof window.spaGoBack === 'function') {
-window.spaGoBack({ replace: true });
-} else {
-window.location.replace('/');
-}
-} catch(e) { window.location.replace('/'); }
-}, className: `flex items-center text-slate-400 hover:text-slate-600 transition-colors p-3 -ml-3 btn-tactile ${isFormLocked ? 'opacity-50 cursor-not-allowed' : ''}`, "aria-label": "Voltar", disabled: isFormLocked || isSubmitting }, 
+ /* ⭐️ SEGURANÇA: Barra visual removida, lógica mantida internamente no componente */
+ e("div", { className: "static-nav bg-white/98 border-b border-gray-200 px-4 flex justify-between items-center z-30 shadow-[0_2px_8px_rgba(0,0,0,0.04)]" },
+ e("button", { type: "button", onClick: () => {
+ if (isFormLocked || isSubmitting) return;
+ try {
+ const ref = document.referrer || '';
+ const sameOrigin = ref && ref.indexOf(window.location.origin) === 0;
+ const external = /tiktok|instagram|facebook|fb\.|l\.facebook\.com|t\.co|twitter/i.test(ref);
+ if (window.history.length > 1 && sameOrigin && !external) {
+ window.history.back();
+ } else {
+ window.location.href = '/';
+ }
+ } catch(e) { window.location.href = '/'; }
+ }, className: `flex items-center text-slate-400 hover:text-slate-600 transition-colors p-3 -ml-3 btn-tactile ${isFormLocked ? 'opacity-50 cursor-not-allowed' : ''}`, "aria-label": "Voltar", disabled: isFormLocked || isSubmitting }, 
  e("svg", { className: "w-6 h-6", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, e("polyline", {points: "15 18 9 12 15 6"}))
  ),
-e("img", { src: CHECKOUT_LOGO_SRC, alt: "Monetizze", className: "object-contain", style: { height: '36px', width: 'auto', maxWidth: '176px', display: 'block', objectFit: 'contain' }, onError: (ev) => { try { const img = ev.target; if(!img.dataset.fallback){ img.dataset.fallback='1'; img.style.filter = 'none'; img.src = CHECKOUT_LOGO_FALLBACK_SRC; } } catch(e) {} } }),
+ e("img", { src: "assets/img/logo.webp", alt: "Logo", className: "h-8 w-auto object-contain", onError: (ev) => { try { const img = ev.target; if(!img.dataset.fallback){ img.dataset.fallback='1'; img.src = "/assets/img/logo.webp"; } } catch(e) {} } }),
  e("div", {className: "w-12"})
  ),
  e("div", { className: "max-w-[480px] mx-auto p-4 pt-6 space-y-4 " },
  e("div", { className: "space-y-4 " },
  e("div", { className: "bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] p-5 flex gap-4 border border-slate-100 items-center relative overflow-hidden group" },
-e("div", { className: "absolute top-0 left-0 bg-green-600 text-white text-[10px] font-bold px-3 py-1 rounded-br-lg shadow-sm tracking-wide" }, "OFERTA TIKTOK"),
+ e("div", { className: "absolute top-0 left-0 bg-green-600 text-white text-[10px] font-bold px-3 py-1 rounded-br-lg shadow-sm tracking-wide" }, "OFERTA TIKTOK"),
  e("div", { className: "w-24 h-24 bg-white rounded-xl overflow-hidden flex-shrink-0 border border-slate-100 p-2 shadow-inner" }, e("img", { src: PRODUCT_INFO.image, className: "w-full h-full object-contain transform group-hover:scale-105 transition-transform duration-500", alt: PRODUCT_INFO.name, loading: "eager", decoding: "async", onError: (ev) => { try { const img = ev.target; if(!img.dataset.fallback){ img.dataset.fallback='1'; img.src = "/" + String(PRODUCT_INFO.image || '').replace(/^\/+/, ''); } } catch(e) {} } })),
  e("div", {className: "flex-1 min-w-0 mt-2"},
  e("h3", { className: "text-sm font-bold text-slate-800 leading-snug line-clamp-2 mb-1" }, PRODUCT_INFO.name),
@@ -760,7 +406,7 @@ e("div", { className: "absolute top-0 left-0 bg-green-600 text-white text-[10px]
  e("form", { id: "checkout-form", ref: formRef, onSubmit: handleSubmit, className: "space-y-4 ", noValidate: true, "data-testid": "checkout-form" },
  e("button", { type: "submit", style: { display: 'none' } }), 
  e("div", { className: "bg-white rounded-2xl shadow-[0_2px_15px_rgb(0,0,0,0.03)] border border-slate-100 overflow-hidden" },
- e("div", { className: "bg-slate-50/50 px-5 py-3 border-b border-slate-100 flex items-center gap-3" }, e("span", { className: "text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shadow-md", style: CHECKOUT_STEP_CIRCLE_STYLE }, "1"), e("h3", { className: "text-sm font-bold text-slate-700 uppercase tracking-wide" }, "Dados Pessoais")),
+ e("div", { className: "bg-slate-50/50 px-5 py-3 border-b border-slate-100 flex items-center gap-3" }, e("span", { className: "bg-green-600 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shadow-md shadow-green-600/20" }, "1"), e("h3", { className: "text-sm font-bold text-slate-700 uppercase tracking-wide" }, "Dados Pessoais")),
  e("div", {className: "p-5 pt-6"},
  e("div", {className: "mb-4"},
  e("label", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wide pl-1 mb-1.5 block" }, "Nome Completo"),
@@ -789,7 +435,7 @@ e("div", { className: "absolute top-0 left-0 bg-green-600 text-white text-[10px]
  e("div", {className: "mb-4"},
  e("label", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wide pl-1 mb-1.5 flex justify-between items-center" }, 
  "CPF",
-e("span", {className: "text-[9px] text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200 normal-case"}, "Opcional")
+ e("span", {className: "text-[9px] text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100 normal-case"}, "Necessário para Nota Fiscal")
  ),
  e("div", {className: "relative"},
  e("div", { className: "absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400" }, e(Icons.Shield, {className: "w-5 h-5"})),
@@ -803,7 +449,7 @@ e("span", {className: "text-[9px] text-slate-600 bg-slate-100 px-2 py-0.5 rounde
  )
  ),
  e("div", { className: "bg-white rounded-2xl shadow-[0_2px_15px_rgb(0,0,0,0.03)] border border-slate-100 overflow-hidden" },
- e("div", { className: "bg-slate-50/50 px-5 py-3 border-b border-slate-100 flex items-center gap-3" }, e("span", { className: "text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shadow-md", style: CHECKOUT_STEP_CIRCLE_STYLE }, "2"), e("h3", { className: "text-sm font-bold text-slate-700 uppercase tracking-wide" }, "Entrega")),
+ e("div", { className: "bg-slate-50/50 px-5 py-3 border-b border-slate-100 flex items-center gap-3" }, e("span", { className: "bg-green-600 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shadow-md shadow-green-600/20" }, "2"), e("h3", { className: "text-sm font-bold text-slate-700 uppercase tracking-wide" }, "Entrega")),
  e("div", {className: "p-5 pt-6 space-y-4"},
  e("div", {className: "relative"},
  e("label", { className: "text-[11px] font-bold text-slate-500 uppercase tracking-wide pl-1 mb-1.5 block" }, "CEP"),
@@ -816,18 +462,16 @@ e("span", {className: "text-[9px] text-slate-600 bg-slate-100 px-2 py-0.5 rounde
  e("div", { className: "bg-white p-2.5 rounded-full shadow-sm text-green-600" }, e(Icons.Truck, {className: "w-5 h-5"})),
  e("div", {className: "flex-1"}, e("p", { className: "text-[10px] uppercase tracking-wider text-green-800 font-bold mb-0.5 opacity-80" }, "Frete Grátis Chegando:"), e("p", { className: "text-sm font-black text-green-900 capitalize leading-none tracking-tight" }, getDeliveryDate()))
  ),
- cepFailed && e("div", { className: "bg-amber-50 border border-amber-100 text-amber-800 text-xs font-semibold rounded-xl p-3" }, "A busca automática demorou. Você pode preencher o endereço abaixo para continuar.") ,
+ cepFailed && e("div", { className: "bg-rose-50 border border-rose-100 text-rose-700 text-xs font-semibold rounded-xl p-3" }, "Não conseguimos buscar seu endereço automaticamente. Preencha abaixo para finalizar.") ,
  shouldShowAddressFields && e("div", { className: "grid grid-cols-4 gap-3 animate-fade-in" },
-e("div", {className: "col-span-4"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Endereço"), e("input", { name: "address", value: formData.address, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-base font-medium focus:border-green-500 outline-none", style: CHECKOUT_ADDRESS_INPUT_STYLE, placeholder: "Rua, Avenida...", disabled: isFormLocked || isSubmitting, autoComplete: "street-address", autoCorrect: "off", spellCheck: "false" })),
-e("div", {className: "col-span-1"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Nº"), e("input", { ref: numberRef, name: "number", value: formData.number, onChange: handleChange, placeholder: "123", className: "w-full p-3.5 border border-green-300 bg-white ring-2 ring-green-500/10 rounded-xl focus:ring-green-500 focus:border-green-500 outline-none font-bold text-center", style: CHECKOUT_ADDRESS_INPUT_STYLE, inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "off" })),
-e("div", {className: "col-span-3"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Bairro"), e("input", { name: "neighborhood", value: formData.neighborhood, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-base font-medium focus:border-green-500 outline-none", style: CHECKOUT_ADDRESS_INPUT_STYLE, placeholder: "Bairro", disabled: isFormLocked || isSubmitting, autoComplete: "address-level3", autoCorrect: "off", spellCheck: "false" })),
-e("div", {className: "col-span-2"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Complemento"), e("input", { name: "complement", value: formData.complement, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-base font-medium focus:border-green-500 outline-none", style: CHECKOUT_ADDRESS_INPUT_STYLE, placeholder: "", disabled: isFormLocked || isSubmitting, autoComplete: "address-line2", autoCorrect: "off", spellCheck: "false" })),
-e("div", {className: "col-span-2"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Cidade"), e("input", { name: "city", value: formData.city, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-base font-medium focus:border-green-500 outline-none", style: CHECKOUT_ADDRESS_INPUT_STYLE, placeholder: "Cidade/UF", disabled: isFormLocked || isSubmitting, autoComplete: "address-level2", autoCorrect: "off", spellCheck: "false" }))
+ e("div", {className: "col-span-4"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Endereço"), e("input", { name: "address", value: formData.address, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none", placeholder: "Rua, Avenida...", disabled: isFormLocked || isSubmitting, autoComplete: "street-address", autoCorrect: "off", spellCheck: "false" })),
+ e("div", {className: "col-span-1"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Nº"), e("input", { ref: numberRef, name: "number", value: formData.number, onChange: handleChange, placeholder: "123", className: "w-full p-3.5 border border-green-300 bg-white ring-2 ring-green-500/10 rounded-xl focus:ring-green-500 focus:border-green-500 outline-none font-bold text-center", inputMode: "numeric", disabled: isFormLocked || isSubmitting, autoComplete: "off" })),
+ e("div", {className: "col-span-3"}, e("label", { className: "text-[10px] font-bold text-gray-400 uppercase pl-1 mb-1 block" }, "Cidade"), e("input", { name: "city", value: formData.city, onChange: handleChange, className: "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-slate-600 text-sm font-medium focus:border-green-500 outline-none", placeholder: "Cidade/UF", disabled: isFormLocked || isSubmitting, autoComplete: "address-level2", autoCorrect: "off", spellCheck: "false" }))
  )
  )
  ),
  e("div", { className: "bg-white rounded-2xl shadow-[0_2px_15px_rgb(0,0,0,0.03)] border border-slate-100 overflow-hidden" },
- e("div", { className: "bg-slate-50/50 px-5 py-3 border-b border-slate-100 flex items-center gap-3" }, e("span", { className: "text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shadow-md", style: CHECKOUT_STEP_CIRCLE_STYLE }, "3"), e("h3", { className: "text-sm font-bold text-slate-700 uppercase tracking-wide" }, "Pagamento")),
+ e("div", { className: "bg-slate-50/50 px-5 py-3 border-b border-slate-100 flex items-center gap-3" }, e("span", { className: "bg-green-600 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shadow-md shadow-green-600/20" }, "3"), e("h3", { className: "text-sm font-bold text-slate-700 uppercase tracking-wide" }, "Pagamento")),
  e("div", {className: "p-5"},
  e("div", { className: "bg-green-50/50 border-2 border-green-500 rounded-xl p-4 relative flex items-center gap-4 cursor-pointer hover:bg-green-50 transition-colors shadow-sm ring-4 ring-green-500/5" },
  e("div", { className: "absolute -top-3 right-4 bg-gradient-to-r from-green-600 to-green-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase shadow-md tracking-wide" }, "Aprovação Imediata"),
@@ -835,7 +479,7 @@ e("div", {className: "col-span-2"}, e("label", { className: "text-[10px] font-bo
  e("div", {className: "flex-1 py-1"}, e("div", { className: "font-bold text-slate-800 text-sm flex items-center gap-1.5" }, "PIX"), e("div", { className: "text-green-700 font-extrabold text-xl mt-0.5 tracking-tight" }, "R$ " + PRODUCT_INFO.price.toFixed(2).replace('.',',')))
  ),
  e("button", { ref: submitButtonRef, disabled: loading || isFormLocked || isSubmitting, type: "submit", className: `w-full mt-6 bg-gradient-to-r from-green-600 to-green-700 text-white font-bold py-4 rounded-xl text-lg transition-all active:scale-[0.98] flex justify-center items-center gap-2 shadow-xl shadow-green-500/30 ${loading || isFormLocked || isSubmitting ? 'opacity-80 grayscale cursor-not-allowed' : 'hover:shadow-green-500/50 hover:-translate-y-0.5'} btn-tactile min-h-[56px]`, "aria-busy": loading },
-loading ? e("span", {className: "flex items-center gap-2"}, e("div", { className: "spinner-mobile" }), "Processando...") : e("span", {className: "flex items-center gap-2"}, "CONFIRMAR A COMPRA")
+ loading ? e("span", {className: "flex items-center gap-2"}, e("div", { className: "spinner-mobile" }), "Processando...") : e("span", {className: "flex items-center gap-2"}, "FINALIZAR COM DESCONTO", e("svg", { className: "w-5 h-5", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3" }, e("polyline", {points: "9 18 15 12 9 6"})))
  ),
  )
  )
@@ -857,345 +501,169 @@ e("div", {style: {height: '60vh'}})
  );
  }
 
-function PixScreen({ customerData, pixCode, qrCodeUrl }) {
-const [loadingState, setLoadingState] = useState(0);
-const [keyboardClosed, setKeyboardClosed] = useState(false);
-const [showQrCode, setShowQrCode] = useState(false);
-const [shippingRange, setShippingRange] = useState({ min: 4, max: 7 });
-const [copyPulseActive, setCopyPulseActive] = useState(false);
-const [copyConfirmed, setCopyConfirmed] = useState(false);
-const copyPulseTimeoutRef = useRef(null);
-const copyResetTimeoutRef = useRef(null);
+ function PixScreen({ customerData, pixCode, qrCodeUrl }) {
+ const [loadingState, setLoadingState] = useState(0); 
+ const [copiedText, setCopiedText] = useState(false);
+ const [copiedBtn, setCopiedBtn] = useState(false);
+ const [keyboardClosed, setKeyboardClosed] = useState(false);
+ 
+ const activeData = customerData || {};
+ const firstName = activeData.firstName || 'Cliente';
+ const transactionId = activeData.transactionId || 'ERR_NO_ID';
 
-const activeData = customerData || {};
-const firstName = activeData.firstName || 'Cliente';
-const transactionId = activeData.transactionId || 'ERR_NO_ID';
+ const effectivePixCode = (pixCode && String(pixCode).trim()) ? String(pixCode).trim() : DEFAULT_CODIGO_PIX_COPIA_COLA;
+ let effectiveQrUrl = (typeof qrCodeUrl === 'string' && qrCodeUrl.trim()) ? qrCodeUrl.trim() : DEFAULT_URL_IMAGEM_QRCODE;
 
-const effectivePixCode = (pixCode && String(pixCode).trim()) ? String(pixCode).trim() : DEFAULT_CODIGO_PIX_COPIA_COLA;
-let effectiveQrUrl = (typeof qrCodeUrl === 'string' && qrCodeUrl.trim()) ? qrCodeUrl.trim() : DEFAULT_URL_IMAGEM_QRCODE;
+ // Normaliza URLs relativas (ex: 'assets/img/qrcode.webp') para não quebrar em /checkout/
+ try {
+ if (effectiveQrUrl && typeof effectiveQrUrl === 'string') {
+ const isHttp = /^https?:\/\//i.test(effectiveQrUrl);
+ if (!isHttp && !effectiveQrUrl.startsWith('/')) {
+ effectiveQrUrl = '/' + String(effectiveQrUrl).replace(/^\/+/, '');
+ }
+ }
+ } catch(e) {}
 
-try {
-if (effectiveQrUrl && typeof effectiveQrUrl === 'string') {
-const isHttp = /^https?:\/\//i.test(effectiveQrUrl);
-if (!isHttp && !effectiveQrUrl.startsWith('/')) {
-effectiveQrUrl = '/' + String(effectiveQrUrl).replace(/^\/+/, '');
-}
-}
-} catch(e) {}
+ useEffect(() => {
+ if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+ requestAnimationFrame(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+ 
+ if (customerData && customerData.transactionId) {
+ trackEvent('CompletePayment', { ...window.PRODUCT_CONTENT, content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI', value: 197.99, currency: 'BRL', order_id: customerData.transactionId, event_id: window.generateEventId(), email: customerData.email, phone: customerData.phone });
+ }
+ 
+ const step1 = setTimeout(() => setLoadingState(1), 500);
+ const step2 = setTimeout(() => setLoadingState(2), 1200); 
+ const step3 = setTimeout(() => { setLoadingState(3); setKeyboardClosed(true); }, 2000); 
+ 
+ return () => { clearTimeout(step1); clearTimeout(step2); clearTimeout(step3); };
+ }, [transactionId]);
 
-const generatedQrUrl = useMemo(() => {
-return 'https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=0&data=' + encodeURIComponent(effectivePixCode);
-}, [effectivePixCode]);
+ const doCopy = async () => {
+ try {
+ await window.safeCopyToClipboard(effectivePixCode);
+ } catch (err) {
+ let ok = false;
+ try {
+ if (typeof window.fallbackCopy === 'function') ok = window.fallbackCopy(effectivePixCode);
+ else if (typeof fallbackCopy === 'function') ok = fallbackCopy(effectivePixCode);
+ } catch(_) {}
+ if (!ok) {
+ try { window.prompt('Copie o código PIX abaixo:', effectivePixCode); } catch(_) {}
+ }
+ }
+ trackEvent('Pix_Copy_Click', { event_id: window.generateEventId(), order_id: transactionId });
+ try {
+ const payload = JSON.stringify({ ts: Date.now(), order_id: transactionId });
+ if (navigator.sendBeacon) { navigator.sendBeacon('/api/metrics/pix-copy', payload); }
+ else { fetch('/api/metrics/pix-copy', { method: 'POST', headers: { 'content-type': 'application/json' }, body: payload, keepalive: true }).catch(() => {}); }
+ } catch (e) {}
+ };
 
-const [qrImageSrc, setQrImageSrc] = useState(generatedQrUrl);
+ const copyPixText = async () => {
+ await doCopy();
+ setCopiedText(true);
+ setTimeout(() => setCopiedText(false), 2000);
+ };
 
-useEffect(() => {
-setQrImageSrc(generatedQrUrl);
-}, [generatedQrUrl]);
+ const copyPixBtn = async () => {
+ await doCopy();
+ setCopiedBtn(true);
+ trackEvent('ClickButton', { button_name: 'copy_pix_code', content_name: 'Cópia PIX' });
+ setTimeout(() => setCopiedBtn(false), 2000);
+ };
 
-useEffect(() => {
-return () => {
-if (copyPulseTimeoutRef.current) clearTimeout(copyPulseTimeoutRef.current);
-if (copyResetTimeoutRef.current) clearTimeout(copyResetTimeoutRef.current);
-};
-}, []);
+ // Timer de expiração (15 min)
+ const [timeLeft, setTimeLeft] = useState(15 * 60);
+ useEffect(() => {
+ const timer = setInterval(() => setTimeLeft(prev => prev > 0 ? prev - 1 : 0), 1000);
+ return () => clearInterval(timer);
+ }, []);
+ const minutes = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+ const seconds = String(timeLeft % 60).padStart(2, '0');
 
-useEffect(() => {
-let cancelled = false;
-const fallback = { min: 4, max: 7 };
-const cep = String(activeData.cep || '').replace(/\D/g, '');
+ if (loadingState < 3) return e("div", { className: "min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center font-sans safe-area-padding" },
+ e("div", { className: "w-20 h-20 border-[6px] border-slate-200 border-t-green-500 rounded-full animate-spin mb-8 shadow-2xl shadow-green-500/20" }),
+ e("h2", { className: "text-2xl font-bold text-slate-800 animate-pulse tracking-tight" }, loadingState === 0 && "Iniciando transação segura...", loadingState === 1 && "Reservando estoque...", loadingState === 2 && "Aplicando cupom de oferta..."),
+ e("p", { className: "text-sm text-slate-500 mt-4 font-medium" }, "Por favor, não feche esta página.")
+ );
 
-if (cep.length !== 8) {
-setShippingRange(fallback);
-return () => {};
-}
+ return e("div", { className: `min-h-screen bg-[#f8fafc] font-sans pb-10 safe-area-padding transition-all duration-500 ${keyboardClosed ? 'opacity-100' : 'opacity-0'}` },
 
-const controller = new AbortController();
-const timeoutId = setTimeout(() => controller.abort(), 5000);
+ // Timer + progress bar
+ e("div", {className: "bg-white border-b border-slate-100"},
+ e("div", {className: "w-full h-[3px] bg-slate-100"},
+ e("div", {className: "h-full bg-green-500 transition-all duration-1000 ease-linear rounded-r", style: {width: ((timeLeft / (15 * 60)) * 100) + '%'}})
+ ),
+ e("div", {className: "px-4 py-2.5 flex items-center gap-2"},
+ e("svg", {className: "w-5 h-5 text-slate-500", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"}, e("circle", {cx: "12", cy: "12", r: "10"}), e("polyline", {points: "12 6 12 12 16 14"})),
+ e("div", null,
+ e("p", {className: "text-[10px] text-slate-400 leading-none"}, "Expira em"),
+ e("p", {className: "text-base font-bold text-slate-700 tracking-tight leading-tight"}, minutes + ":" + seconds)
+ )
+ )
+ ),
 
-(async () => {
-try {
-const res = await fetch(`/api/cep?cep=${cep}`, { cache: 'force-cache', signal: controller.signal });
-if (!res || !res.ok) throw new Error('cep_http_' + (res && res.status));
-const data = await res.json();
-if (!data || data.erro || data.ok === false) throw new Error('cep_invalid');
-const uf = data.state || data.uf || (data.city && String(data.city).includes('/') ? String(data.city).split('/').pop() : '');
-const range = getFreightRangeByUf(uf || '');
-if (!cancelled) setShippingRange(range);
-} catch(e) {
-if (!cancelled) setShippingRange(fallback);
-} finally {
-clearTimeout(timeoutId);
-}
-})();
+ // Content
+ e("div", {className: "max-w-[480px] mx-auto px-4 pt-5"},
 
-return () => {
-cancelled = true;
-clearTimeout(timeoutId);
-try { controller.abort(); } catch(e) {}
-};
-}, [activeData.cep]);
+ // Title
+ e("div", {className: "text-center mb-5"},
+ e("h1", {className: "text-lg font-extrabold text-slate-800 mb-0.5"}, "Quase lá, " + firstName + "!"),
+ e("p", {className: "text-xs text-slate-400"}, "Finalize o pagamento para garantir a oferta.")
+ ),
 
-useEffect(() => {
-if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
-scrollCheckoutViewportToTop('auto');
-requestAnimationFrame(() => { scrollCheckoutViewportToTop('auto'); });
+ // Pix Copia e Cola card
+ e("div", {className: "bg-white rounded-xl border border-slate-100 p-4 mb-3"},
+ e("div", {className: "flex items-center gap-2.5 mb-3"},
+ e("div", {className: "w-7 h-7 flex-shrink-0 flex items-center justify-center", dangerouslySetInnerHTML: {__html: '<svg viewBox="0 0 32 32" width="28" height="28"><g transform="translate(16,16) rotate(45)"><rect x="-11" y="-11" width="10" height="10" rx="2" fill="#32BCAD"/><rect x="1" y="-11" width="10" height="10" rx="2" fill="#32BCAD"/><rect x="-11" y="1" width="10" height="10" rx="2" fill="#32BCAD"/><rect x="1" y="1" width="10" height="10" rx="2" fill="#2D9F93"/></g></svg>'}}),
+ e("div", null,
+ e("p", {className: "font-bold text-slate-800 text-sm leading-tight"}, "Pix Copia e Cola"),
+ e("p", {className: "text-[11px] text-slate-400"}, "Copie o codigo abaixo")
+ )
+ ),
 
-try { if (window.__obs) window.__obs('Pix_Loading_State', { stage: 'pix_loading', result: 'start' }); } catch(e) {}
-const step1 = setTimeout(() => { setLoadingState(1); try { if (window.__obs) window.__obs('Pix_Loading_State', { stage: 'pix_loading', result: 'stock' }); } catch(e) {} }, 500);
-const step2 = setTimeout(() => { setLoadingState(2); try { if (window.__obs) window.__obs('Pix_Loading_State', { stage: 'pix_loading', result: 'payment' }); } catch(e) {} }, 1200);
-const step3 = setTimeout(() => { setLoadingState(3); setKeyboardClosed(true); try { if (window.__obs) window.__obs('Pix_Loading_State', { stage: 'pix_loading', result: 'ready' }); } catch(e) {} }, 2000);
+ // Code box (clicável para copiar)
+ e("div", {onClick: copyPixText, className: "bg-slate-50 border border-slate-100 rounded-lg p-3 mb-3 cursor-pointer active:bg-slate-100 transition-colors relative"},
+ e("p", {className: "text-[11px] text-slate-500 font-mono break-all leading-relaxed select-all"}, effectivePixCode),
+ copiedText && e("div", {className: "absolute inset-0 bg-slate-800/90 rounded-lg flex items-center justify-center gap-1.5 text-white text-xs font-bold"}, e(Icons.Check, {className: "w-3.5 h-3.5"}), "Código copiado!")
+ ),
 
-return () => { clearTimeout(step1); clearTimeout(step2); clearTimeout(step3); };
-}, [transactionId]);
+ // Copy button
+ e("button", {onClick: copyPixBtn, className: `w-full py-3.5 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] min-h-[48px] ${copiedBtn ? 'bg-slate-700' : 'bg-green-500 hover:bg-green-600'} btn-tactile`},
+ copiedBtn ? e(React.Fragment, null, e(Icons.Check, {className: "w-4 h-4"}), "Codigo copiado!") : e(React.Fragment, null, e(Icons.Copy, {className: "w-4 h-4"}), "Copiar codigo PIX")
+ ),
 
-useEffect(() => {
-if (loadingState < 3 || !keyboardClosed) return;
-const rafId = requestAnimationFrame(() => {
-if (typeof window.trackCheckoutGAOnly === 'function') {
-window.trackCheckoutGAOnly('pix__Visible', {
-checkout_visible_source: window.__checkoutEntrySource || 'unknown',
-order_id: transactionId,
-transaction_id: transactionId,
-value: PRODUCT_INFO.price,
-currency: 'BRL'
-});
-}
-});
-return () => { try { cancelAnimationFrame(rafId); } catch(e) {} };
-}, [loadingState, keyboardClosed, transactionId]);
+ // Value
+ e("div", {className: "flex justify-between items-center mt-3 pt-3 border-t border-slate-100"},
+ e("span", {className: "text-sm text-slate-400"}, "Valor Total:"),
+ e("span", {className: "text-lg font-extrabold text-slate-800"}, "R$ " + PRODUCT_INFO.price.toFixed(2).replace('.',','))
+ )
+ ),
 
-const doCopy = async () => {
-try {
-await window.safeCopyToClipboard(effectivePixCode);
-} catch (err) {
-let ok = false;
-try {
-if (typeof window.fallbackCopy === 'function') ok = window.fallbackCopy(effectivePixCode);
-else if (typeof fallbackCopy === 'function') ok = fallbackCopy(effectivePixCode);
-} catch(_) {}
-if (!ok) {
-try { window.prompt('Copie o c\u00f3digo PIX abaixo:', effectivePixCode); } catch(_) {}
-}
-}
-trackEvent('Pix_Copy_Click', { event_id: window.generateEventId(), order_id: transactionId });
-if (!isLabMode()) {
-try {
-const payload = JSON.stringify({ ts: Date.now(), order_id: transactionId });
-if (navigator.sendBeacon) { navigator.sendBeacon('/api/metrics/pix-copy', payload); }
-else { fetch('/api/metrics/pix-copy', { method: 'POST', headers: { 'content-type': 'application/json' }, body: payload, keepalive: true }).catch(() => {}); }
-} catch (e) {}
-}
-};
+ // Como pagar
+ e("div", {className: "bg-white rounded-xl border border-slate-100 p-4 mb-3"},
+ e("h3", {className: "font-bold text-slate-800 text-sm mb-4"}, "Como pagar"),
+ [
+ {title: "Copie o codigo", desc: "Clique no botao acima para copiar o codigo PIX."},
+ {title: "Abra o app do banco", desc: "Acesse o aplicativo do seu banco ou fintech."},
+ {title: "Pix Copia e Cola", desc: "Escolha a opcao PIX e cole o codigo copiado."},
+ {title: "Confirme o pagamento", desc: "Revise os dados e confirme. A aprovacao e automatica."}
+ ].map((step, idx) => e("div", {key: idx, className: "flex gap-3 mb-4 last:mb-0"},
+ e("div", {className: "w-7 h-7 rounded-full bg-green-500 text-white flex items-center justify-center flex-shrink-0 font-bold text-xs"}, idx + 1),
+ e("div", null,
+ e("p", {className: "font-bold text-slate-800 text-sm leading-tight"}, step.title),
+ e("p", {className: "text-[11px] text-slate-400 mt-0.5"}, step.desc)
+ )
+ ))
+ ),
 
-const triggerCopyFeedback = () => {
-if (copyPulseTimeoutRef.current) clearTimeout(copyPulseTimeoutRef.current);
-if (copyResetTimeoutRef.current) clearTimeout(copyResetTimeoutRef.current);
-setCopyPulseActive(true);
-setCopyConfirmed(true);
-copyPulseTimeoutRef.current = setTimeout(() => {
-setCopyPulseActive(false);
-}, 420);
-copyResetTimeoutRef.current = setTimeout(() => {
-setCopyConfirmed(false);
-}, 1800);
-};
+ // ID
+ e("p", {className: "text-center text-[11px] text-slate-300 font-mono mt-3"}, "ID: " + transactionId)
+ )
+ );
+ }
 
-const copyPixText = () => {
-triggerCopyFeedback();
-Promise.resolve(doCopy()).catch(() => {});
-};
-
-const copyPixBtn = () => {
-triggerCopyFeedback();
-trackEvent('ClickButton', { button_name: 'copy_pix_code', content_name: 'Copia PIX' });
-Promise.resolve(doCopy()).catch(() => {});
-};
-
-const toggleQrCode = () => {
-setShowQrCode(prev => {
-const next = !prev;
-if (next) trackEvent('ClickButton', { button_name: 'show_qr_code', content_name: 'Abrir QR Code' });
-return next;
-});
-};
-
-const loadingTitle = loadingState === 0 ? "Iniciando transação segura..." : loadingState === 1 ? "Reservando estoque..." : "Preparando pagamento PIX...";
-const isPixLoading = loadingState < 3;
-return e(React.Fragment, null,
-e("style", null, PIX_COPY_BUTTON_PULSE_CSS),
-e("div", { className: `min-h-screen bg-[#f8fafc] font-sans pb-10 safe-area-padding transition-opacity duration-300 ${!isPixLoading && keyboardClosed ? 'opacity-100' : 'opacity-0'}` },
-e("div", { className: "static-nav bg-white/98 border-b border-gray-200 flex justify-between items-center z-30 shadow-[0_2px_8px_rgba(0,0,0,0.04)]", style: { minHeight: '80px', padding: '16px', boxSizing: 'border-box' } },
-e("div", {className: "w-12", style: { width: '48px', height: '48px', flexShrink: 0 }}),
-e("img", { src: CHECKOUT_LOGO_SRC, alt: "Monetizze", className: "object-contain", style: { height: '36px', width: 'auto', maxWidth: '176px', display: 'block', objectFit: 'contain' }, onError: (ev) => { try { const img = ev.target; if(!img.dataset.fallback){ img.dataset.fallback='1'; img.style.filter = 'none'; img.src = CHECKOUT_LOGO_FALLBACK_SRC; } } catch(e) {} } }),
-e("div", {className: "w-12", style: { width: '48px', height: '48px', flexShrink: 0 }})
-),
-e("div", {className: "max-w-[480px] mx-auto px-4 pt-5"},
-e("div", {className: "text-center mb-5"},
-e("h1", {className: "text-lg font-extrabold text-slate-800 mb-0.5"}, "Quase l\u00e1, " + firstName + "!"),
-e("p", {className: "text-xs text-slate-400"}, "Copie o c\u00f3digo abaixo e conclua no app do seu banco.")
-),
-e("div", {className: "bg-white rounded-xl border border-slate-100 p-4 mb-3"},
-e("div", {className: "flex items-center gap-2.5 mb-3"},
-e("div", {className: "w-7 h-7 flex-shrink-0 flex items-center justify-center", dangerouslySetInnerHTML: {__html: '<svg viewBox="0 0 32 32" width="28" height="28"><g transform="translate(16,16) rotate(45)"><rect x="-11" y="-11" width="10" height="10" rx="2" fill="#32BCAD"/><rect x="1" y="-11" width="10" height="10" rx="2" fill="#32BCAD"/><rect x="-11" y="1" width="10" height="10" rx="2" fill="#32BCAD"/><rect x="1" y="1" width="10" height="10" rx="2" fill="#2D9F93"/></g></svg>'}}),
-e("div", null,
-e("p", {className: "font-bold text-slate-800 text-sm leading-tight"}, "Pix Copia e Cola"),
-e("p", {className: "text-[11px] text-slate-400"}, "Copie o código abaixo")
-)
-),
-e("div", {onClick: copyPixText, className: "bg-slate-50 border border-slate-100 rounded-lg p-3 mb-3 cursor-pointer active:bg-slate-100 transition-colors"},
-e("p", {
-className: "text-[11px] text-slate-500 font-mono leading-relaxed",
-title: effectivePixCode,
-style: {
-display: '-webkit-box',
-WebkitLineClamp: 3,
-WebkitBoxOrient: 'vertical',
-overflow: 'hidden',
-wordBreak: 'break-all',
-maxHeight: '4.4em',
-userSelect: 'none'
-}
-}, effectivePixCode)
-),
-e("button", {
-onClick: copyPixBtn,
-className: `w-full py-3.5 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] min-h-[48px] pix-copy-subtle-pulse ${copyConfirmed ? 'bg-green-600 pix-copy-confirmed' : 'bg-green-500 hover:bg-green-600'} btn-tactile`,
-style: {
-transform: copyPulseActive ? 'scale(1.012)' : undefined,
-boxShadow: '0 10px 24px rgba(34, 197, 94, 0.18)',
-transition: 'transform 180ms ease, opacity 180ms ease, background-color 180ms ease'
-}
-},
-e(React.Fragment, null,
-copyConfirmed ? e(Icons.Check, {className: "w-4 h-4"}) : e(Icons.Copy, {className: "w-4 h-4"}),
-copyConfirmed ? "Código copiado" : "Copiar código PIX"
-)
-),
-e("div", {className: "flex justify-between items-center mt-3 pt-3 border-t border-slate-100"},
-e("span", {className: "text-sm text-slate-400"}, "Valor Total:"),
-e("span", {className: "text-lg font-extrabold text-slate-800"}, "R$ " + PRODUCT_INFO.price.toFixed(2).replace('.',','))
-)
-),
-e("div", {className: "bg-white rounded-xl border border-slate-200 p-3 mb-3"},
-e("div", {className: "flex items-center gap-1.5 mb-2.5"},
-e("div", {className: "w-4.5 h-4.5 text-slate-500"}, e(Icons.Package, {className: "w-4 h-4 text-slate-500"})),
-e("h3", {className: "text-sm font-semibold text-slate-800 leading-none"}, "Meu pedido")
-),
-e("div", {className: "bg-slate-50/60 rounded-lg border border-slate-200 p-3"},
-e("div", {className: "flex items-center gap-2.5"},
-e("div", {className: "w-12 h-12 bg-white rounded-md border border-slate-200 p-1.5 flex-shrink-0"},
-e("img", { src: PRODUCT_INFO.image, alt: PRODUCT_INFO.name, className: "w-full h-full object-contain", loading: "lazy", decoding: "async", onError: (ev) => { try { const img = ev.target; if(!img.dataset.fallback){ img.dataset.fallback='1'; img.src = "/" + String(PRODUCT_INFO.image || '').replace(/^\/+/, ''); } } catch(e) {} } })
-),
-e("div", {className: "flex-1 min-w-0"},
-e("p", {className: "text-[15px] font-medium text-slate-800 leading-snug line-clamp-2"}, PRODUCT_INFO.name),
-e("div", {className: "flex items-center gap-2 mt-1.5"},
-e("span", {className: "text-[13px] text-slate-500"}, "Qtd: 1"),
-e("span", {className: "text-[13px] font-semibold text-rose-500"}, "R$ " + PRODUCT_INFO.price.toFixed(2).replace('.',','))
-)
-)
-),
-e("div", {className: "mt-2.5 pt-2.5 border-t border-slate-200/70 flex items-center justify-between gap-2"},
-e("div", {className: "flex items-start gap-2"},
-e("div", {className: "text-slate-400 mt-0.5"}, e(Icons.Truck, {className: "w-4 h-4 text-slate-400"})),
-e("div", null,
-e("p", {className: "text-[11px] text-slate-500 leading-tight"}, "Entrega estimada"),
-e("p", {className: "text-sm font-semibold text-slate-800 leading-tight"}, "Entrega de " + shippingRange.min + " a " + shippingRange.max + " dias")
-)
-),
-e("span", {className: "text-[11px] font-semibold text-slate-500 bg-white border border-slate-200 rounded-md px-2.5 py-1 whitespace-nowrap"}, "GRATIS")
-)
-)
-),
-e("div", {className: "bg-white rounded-xl border border-slate-100 p-4 mb-3"},
-e("button", { type: "button", onClick: toggleQrCode, className: "w-full flex items-center justify-between text-left" },
-e("span", {className: "font-bold text-slate-800 text-sm"}, "Prefere pagar com QR Code?"),
-e("svg", {className: `w-5 h-5 text-slate-500 transition-transform ${showQrCode ? 'rotate-180' : ''}`, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"}, e("polyline", {points: "6 9 12 15 18 9"}))
-),
-showQrCode && e("div", {className: "mt-4 pt-4 border-t border-slate-100"},
-e("div", {className: "mx-auto w-[190px] bg-white rounded-2xl border border-slate-200 p-2.5 shadow-sm"},
-e("img", { src: qrImageSrc, alt: "QR Code PIX", className: "w-full h-full object-contain", loading: "lazy", decoding: "async", onError: (ev) => { try { const img = ev.target; if (img.dataset.fallback === '1') return; img.dataset.fallback = '1'; if (effectiveQrUrl) img.src = effectiveQrUrl; } catch(e) {} } })
-),
-e("p", {className: "text-center text-[12px] text-slate-500 mt-3"}, "Aponte a câmera do app do banco")
-)
-),
-e("div", {className: "bg-white rounded-xl border border-slate-100 p-4 mb-3"},
-e("h3", {className: "font-bold text-slate-800 text-sm mb-4"}, "Como pagar"),
-[
-{title: "Copie o código", desc: "Clique no botão acima para copiar o código PIX."},
-{title: "Abra o app do banco", desc: "Acesse o aplicativo do seu banco ou fintech."},
-{title: "Pix Copia e Cola", desc: "Escolha a opção PIX e cole o código copiado."},
-{title: "Confirme o pagamento", desc: "Revise os dados e confirme. A aprovação é automática."}
-].map((step, idx) => e("div", {key: idx, className: "flex gap-3 mb-4 last:mb-0"},
-e("div", {className: "w-7 h-7 rounded-full text-white flex items-center justify-center flex-shrink-0 font-bold text-xs", style: CHECKOUT_STEP_CIRCLE_STYLE}, idx + 1),
-e("div", null,
-e("p", {className: "font-bold text-slate-800 text-sm leading-tight"}, step.title),
-e("p", {className: "text-[11px] text-slate-400 mt-0.5"}, step.desc)
-)
-))
-),
-e("p", {className: "text-center text-[11px] text-slate-300 font-mono mt-3"}, "ID: " + transactionId)
-)
-),
-isPixLoading && e("div", {
-className: "bg-slate-50 flex flex-col items-center justify-center text-center font-sans safe-area-padding",
-style: {
-position: 'fixed',
-top: 0,
-left: '50%',
-transform: 'translateX(-50%)',
-width: '100%',
-maxWidth: '480px',
-height: '100dvh',
-minHeight: '100vh',
-zIndex: 60
-}
-},
-e("div", { className: "relative w-24 h-24", style: { marginBottom: '48px' } },
-e("div", {
-style: {
-position: 'absolute',
-inset: '-8px',
-borderRadius: '999px',
-background: 'radial-gradient(circle, rgba(34,197,94,0.10) 0%, rgba(34,197,94,0.04) 46%, rgba(255,255,255,0) 74%)',
-animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
-}
-}),
-e("div", {
-style: {
-position: 'absolute',
-inset: '0',
-borderRadius: '999px',
-border: '6px solid #e2e8f0'
-}
-}),
-e("div", {
-style: {
-position: 'absolute',
-inset: '0',
-borderRadius: '999px',
-border: '6px solid transparent',
-borderTopColor: '#22c55e',
-borderRightColor: '#86efac',
-animation: 'spin 0.9s linear infinite'
-}
-}),
-e("div", {
-style: {
-position: 'absolute',
-inset: '18px',
-borderRadius: '999px',
-background: '#ffffff'
-}
-})
-),
-e("div", { className: "w-full max-w-[360px] px-5" },
-e("h2", { className: "text-[21px] font-extrabold text-slate-800 tracking-tight leading-tight text-center whitespace-nowrap" }, loadingTitle),
-e("p", { className: "mt-4 text-[13px] text-slate-500 leading-[1.6] text-center max-w-[248px] mx-auto" }, "Estamos preparando a etapa de pagamento. Por favor, não feche esta página.")
-)
-)
-);
-}
  function App() {
  const [screen, setScreen] = useState('checkout');
  const [customerData, setCustomerData] = useState(null);
@@ -1237,12 +705,12 @@ e("p", { className: "mt-4 text-[13px] text-slate-500 leading-[1.6] text-center m
  }, []);
 
  
- return screen === 'checkout' ? e(CheckoutScreen, { onSuccess: (data) => { setCustomerData(data); scrollCheckoutViewportToTop('auto'); setScreen('pix'); } }) : e(PixScreen, { customerData: customerData, pixCode: pixConfig.pixCode, qrCodeUrl: pixConfig.qrCodeUrl });
+ return screen === 'checkout' ? e(CheckoutScreen, { onSuccess: (data) => { setCustomerData(data); setScreen('pix'); } }) : e(PixScreen, { customerData: customerData, pixCode: pixConfig.pixCode, qrCodeUrl: pixConfig.qrCodeUrl });
  }
  
  const rootElement = document.getElementById('checkout-root');
  if (rootElement) {
- // ⭐️ CORRE�?�fO 5: Evita race condition se o script for executado duas vezes
+ // ⭐️ CORREÇÃO 5: Evita race condition se o script for executado duas vezes
  if (!window.checkoutMounted) {
  window.checkoutMounted = true;
  try {

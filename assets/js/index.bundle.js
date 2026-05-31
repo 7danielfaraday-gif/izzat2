@@ -1,4 +1,4 @@
-﻿// ==================================================
+// ==================================================
     // 1. TRACKING ZARAZ + TIKTOK TURBO (BEACON + FINGERPRINT)
     // ==================================================
     
@@ -16,13 +16,10 @@
         value: 197.99,
         currency: 'BRL'
     };
-    window.PRODUCT_CONTENT = window.PRODUCT_CONTENT || PRODUCT_CONTENT;
-    const LP_VIEW_CONTENT_KEY = '__tt_lp_viewcontent';
 
     // --- HELPER FUNCTIONS ---
 
     function setCookie(name, value, days) {
-        if (window.__LAB_MODE) return;
         var expires = "";
         if (days) {
             var date = new Date();
@@ -33,7 +30,6 @@
     }
     
     function getCookie(name) {
-        if (window.__LAB_MODE) return null;
         var nameEQ = name + "=";
         var ca = document.cookie.split(';');
         for(var i=0;i < ca.length;i++) {
@@ -48,7 +44,7 @@
         return 'evt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     }
     window.generateEventId = generateEventId;
-    // trackViaZaraz serÃ¡ definida mais abaixo (Browser Pixel + CAPI)
+    // trackViaZaraz será definida mais abaixo (Browser Pixel + CAPI)
 
     function getExternalId() {
         let eid = localStorage.getItem('user_external_id');
@@ -93,7 +89,7 @@
         return utms;
     }
 
-    // Contexto AvanÃ§ado (Fingerprinting Lite)
+    // Contexto Avançado (Fingerprinting Lite)
     function getContext() {
         let connection = 'unknown';
         if (navigator.connection) {
@@ -111,7 +107,7 @@
         };
     }
 
-    // --- FUNÃ‡ÃƒO DE DISPARO HÃBRIDA (Browser Pixel + CAPI) ---
+    // --- FUNÇÃO DE DISPARO HÍBRIDA (Browser Pixel + CAPI) ---
     // Leitura do cookie _ttp (TikTok Pixel cookie)
     function getTTP() {
         return (document.cookie.match(/(?:^|;\s*)_ttp=([^;]*)/) || [])[1] || undefined;
@@ -120,18 +116,10 @@
     function getTikTokEventSourceUrl() {
         try {
             var u = new URL(window.location.href);
-            var host = String(u.hostname || '').toLowerCase();
             u.protocol = 'https:';
-            if (host === 'redeizzat.shop' || host === 'oficial.redeizzat.shop') {
-                u.hostname = host;
-            } else if (host === 'www.redeizzat.shop') {
-                u.hostname = 'redeizzat.shop';
-            } else {
-                u.hostname = 'oficial.redeizzat.shop';
-            }
-            u.port = '';
+            u.host = 'lojaizzat.shop';
             return u.toString();
-        } catch(_) { return 'https://oficial.redeizzat.shop/'; }
+        } catch(_) { return 'https://lojaizzat.shop/'; }
     }
 
     async function sendCAPI(event, eventId, properties, user) {
@@ -139,20 +127,17 @@
             await fetch('/api/tiktok-events', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                keepalive: true,
                 body: JSON.stringify({ event: event, event_id: eventId, properties: properties, user: user })
             });
         } catch(e) {}
     }
 
     function trackViaZaraz(event, data = {}) {
-        if (event === 'CompletePayment' || event === 'Purchase') return;
-        try { if (window.__obs) window.__obs(event, data); } catch(e) {}
         if (window.trackPixel) {
             window.trackPixel(event, data);
             return;
         }
-        if (window.__TEST_MODE || window.__LAB_MODE) { console.log('[TEST_MODE/LAB_MODE] Evento bloqueado:', event, data); return; }
+        if (window.__TEST_MODE) { console.log('[TEST_MODE] Evento bloqueado:', event, data); return; }
         try {
             const savedEmail = localStorage.getItem('user_hashed_email');
             const savedPhone = localStorage.getItem('user_hashed_phone');
@@ -166,15 +151,14 @@
             };
 
             payload.event_time = payload.timestamp || Math.floor(Date.now() / 1000);
-            payload.event_source_url = payload.event_source_url || getTikTokEventSourceUrl();
+            payload.event_source_url = getTikTokEventSourceUrl();
 
             if (savedEmail && !payload.email) payload.email = savedEmail;
             if (savedPhone && !payload.phone) payload.phone = savedPhone;
 
             var eventId = payload.event_id || window.generateEventId();
-            if (window.shouldSkipDuplicateTikTokEvent && window.shouldSkipDuplicateTikTokEvent(event, eventId)) return;
 
-            // 1. Browser Pixel (com event_id para deduplicaÃ§Ã£o)
+            // 1. Browser Pixel (com event_id para deduplicação)
             if (window.ttq && typeof window.ttq.track === 'function') {
                 if (event !== 'PageView') {
                     try {
@@ -185,27 +169,11 @@
                 }
             }
 
-            // 2. CAPI server-side (dupla camada â€” mesmo event_id para deduplicaÃ§Ã£o)
-            var requiresCatalogContent = (event === 'ViewContent' || event === 'AddToCart');
-            var capiProperties = Object.assign(
-                {},
-                requiresCatalogContent ? PRODUCT_CONTENT : {},
-                data || {},
-                { event_source_url: payload.event_source_url || getTikTokEventSourceUrl() }
-            );
-
-            if (!capiProperties.content_id) {
-                if (Array.isArray(capiProperties.contents) && capiProperties.contents[0] && capiProperties.contents[0].content_id) {
-                    capiProperties.content_id = capiProperties.contents[0].content_id;
-                } else if (Array.isArray(capiProperties.content_ids) && capiProperties.content_ids[0]) {
-                    capiProperties.content_id = capiProperties.content_ids[0];
-                }
-            }
-
+            // 2. CAPI server-side (dupla camada — mesmo event_id para deduplicação)
             sendCAPI(
                 event,
                 eventId,
-                capiProperties,
+                { event_source_url: getTikTokEventSourceUrl() },
                 {
                     email:       payload.email || undefined,
                     phone_number: payload.phone || undefined,
@@ -233,36 +201,17 @@
         saveUTMs();
     });
 
-    // 2. ViewContent da LP (melhor prática para TikTok)
-    // O checkout só dispara ViewContent como fallback em entrada direta.
-    (function triggerLandingViewContent() {
-        if (/^\/c(?:\/|$)/i.test(window.location.pathname)) return;
-        try {
-            var now = Date.now();
-            var existing = null;
-            try { existing = JSON.parse(sessionStorage.getItem(LP_VIEW_CONTENT_KEY) || 'null'); } catch (e) {}
-            if (existing && existing.at && (now - existing.at) < (30 * 60 * 1000)) return;
+    // 2. ViewContent — disparado exclusivamente pelo checkout.app.js (React)
+    // para evitar duplicidade: LP + checkout.app ambos acionavam ViewContent com event_ids diferentes.
+    // O checkout.app.js já tem deduplicação por sessionStorage (last_vc_id).
 
-            var eventId = generateEventId();
-            try {
-                sessionStorage.setItem(LP_VIEW_CONTENT_KEY, JSON.stringify({ event_id: eventId, at: now, source: 'lp' }));
-            } catch (e) {}
-
-            trackViaZaraz('ViewContent', {
-                ...PRODUCT_CONTENT,
-                event_id: eventId,
-                content_name: PRODUCT_CONTENT.content_name
-            });
-        } catch (e) {}
-    })();
-
-    // 3. CTA Comprar Agora (WebView-safe: nÃ£o bloqueia navegaÃ§Ã£o)
-    // Monta o link com parÃ¢metros (ttclid/utm/eid) ANTES do clique, evitando redirect com delay.
+    // 3. CTA Comprar Agora (WebView-safe: não bloqueia navegação)
+    // Monta o link com parâmetros (ttclid/utm/eid) ANTES do clique, evitando redirect com delay.
     window.buildCheckoutUrl = function(baseHref) {
         try {
             const urlObj = new URL(baseHref, window.location.origin);
 
-            // 1) MantÃ©m parÃ¢metros atuais da URL (UTMs, ttclid etc.)
+            // 1) Mantém parâmetros atuais da URL (UTMs, ttclid etc.)
             const currentParams = new URLSearchParams(window.location.search);
             currentParams.forEach((value, key) => {
                 urlObj.searchParams.set(key, value);
@@ -297,59 +246,28 @@
     (function setupBuyNowButton() {
         const btn = document.getElementById('buy-now') || document.querySelector('.buy-btn');
         if (!btn) return;
-        const baseCheckoutPath = '/c/';
-        const inertCtaHref = 'javascript:void(0)';
-        window.__buyNowJsReady = true;
 
-        // Mantém o CTA inerte para o in-browser do TikTok; o SPA usa data-checkout-target.
-        btn.href = inertCtaHref;
-
-        // MantÃ©m a URL de checkout com parÃ¢metros em data-attribute.
+        // Atualiza href uma vez (e sempre que possível, deixa o browser fazer a navegação nativa)
         try {
-            btn.dataset.checkoutTarget = window.buildCheckoutUrl(baseCheckoutPath);
+            btn.href = window.buildCheckoutUrl(btn.getAttribute('href') || btn.href);
         } catch (e) {}
-        btn.href = inertCtaHref;
 
         // Setup SPA Checkout instead of redirecting
         btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (btn.classList) btn.classList.add('is-opening');
-            if (typeof btn.setAttribute === 'function') btn.setAttribute('aria-busy', 'true');
-            const target = btn.dataset.checkoutTarget || baseCheckoutPath;
-            const addToCartEventSourceUrl = getTikTokEventSourceUrl();
-            window.__pendingCheckoutTarget = target;
-            window.__pendingCheckoutClick = true;
-            if (typeof window.__scheduleCheckoutOpen === 'function') {
-                window.__scheduleCheckoutOpen(target);
-            } else if (typeof window.spaOpenCheckout === 'function') {
-                const openAfterPaint = () => setTimeout(() => window.spaOpenCheckout(target), 0);
-                if (typeof window.requestAnimationFrame === 'function') {
-                    window.requestAnimationFrame(openAfterPaint);
-                } else {
-                    setTimeout(openAfterPaint, 0);
-                }
+            if (typeof window.spaOpenCheckout === 'function') {
+                e.preventDefault();
+                window.spaOpenCheckout(btn.getAttribute('href') || btn.href);
             }
-
-            const trackAddToCart = () => {
-                try {
-                    trackViaZaraz('AddToCart', {
-                        ...PRODUCT_CONTENT,
-                        event_source_url: addToCartEventSourceUrl,
-                        event_id: generateEventId()
-                    }, true);
-                } catch (err) {}
-            };
-
-            // Evita custo extra no frame do clique (sensaÃ§Ã£o de "botÃ£o travado")
-            if ('requestIdleCallback' in window) {
-                requestIdleCallback(trackAddToCart, { timeout: 1200 });
-            } else {
-                setTimeout(trackAddToCart, 0);
-            }
+            try {
+                trackViaZaraz('AddToCart', {
+                    ...PRODUCT_CONTENT,
+                    event_id: generateEventId()
+                }, true);
+            } catch (err) {}
         });
     })();
     // ==================================================
-    // 4. MICRO-CONVERSÃ•ES (NOVO: ALIMENTA O ALGORITMO)
+    // 4. MICRO-CONVERSÕES (NOVO: ALIMENTA O ALGORITMO)
     // ==================================================
 
     // A) Scroll Profundo (Leitura)
@@ -367,7 +285,7 @@
     }, { passive: true });
 
 // ==================================================
-  // 2. FUNÃ‡Ã•ES VISUAIS DA LOJA (UI/UX)
+  // 2. FUNÇÕES VISUAIS DA LOJA (UI/UX)
   // ==================================================
   
   function showTab(tabName) {
@@ -395,7 +313,7 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     
-    // CronÃ´metro Persistente (Anti-Fake)
+    // Cronômetro Persistente (Anti-Fake)
     function startCountdown() {
       const countdownEl = document.getElementById('countdown-timer');
       if (!countdownEl) return;
@@ -404,7 +322,7 @@
       let savedTime = localStorage.getItem('offer_timer_v4');
       let timeLeft = savedTime ? parseInt(savedTime) : 900;
       
-      // Se o tempo acabou ou Ã© invÃ¡lido, reseta
+      // Se o tempo acabou ou é inválido, reseta
       if(isNaN(timeLeft) || timeLeft <= 0) timeLeft = 900;
 
       const updateDisplay = () => {
@@ -417,7 +335,7 @@
 
       const timerInterval = setInterval(() => {
         if (timeLeft <= 0) {
-          // Quando acaba, reinicia discretamente para manter a pressÃ£o (loop infinito sutil)
+          // Quando acaba, reinicia discretamente para manter a pressão (loop infinito sutil)
           timeLeft = 900; 
         } else {
           timeLeft--;
@@ -464,20 +382,16 @@
     const viewReviewsBtn = document.querySelector('.add-cart-btn');
     const reviewsSection = document.querySelector('.reviews-section');
     
-    // CORREÃ‡ÃƒO: Remover loader ao carregar imagem
+    // CORREÇÃO: Remover loader ao carregar imagem
     if (mainImage) {
-        const hideImageLoader = function() {
+        mainImage.onload = function() {
             const loader = document.getElementById('image-loading');
             if(loader) loader.style.display = 'none';
-        };
-        mainImage.onload = function() {
-            hideImageLoader();
-        };
-        if (mainImage.complete) hideImageLoader();
+        }
     }
 
-    // FIX INP: OtimizaÃ§Ã£o do botÃ£o "Ver AvaliaÃ§Ãµes"
-    // â­ï¸ NOVO: Rastreamento de Micro-ConversÃ£o (Click em AvaliaÃ§Ãµes)
+    // FIX INP: Otimização do botão "Ver Avaliações"
+    // ⭐️ NOVO: Rastreamento de Micro-Conversão (Click em Avaliações)
     if (viewReviewsBtn && reviewsSection) {
       viewReviewsBtn.addEventListener('click', (e) => {
         
@@ -486,7 +400,7 @@
             window.trackViaZaraz('Check_Reviews', { event_id: window.generateEventId() });
         }
 
-        // Envolve em requestAnimationFrame para nÃ£o bloquear o clique inicial
+        // Envolve em requestAnimationFrame para não bloquear o clique inicial
         requestAnimationFrame(() => {
             // FIX: Alterado de 'smooth' para 'auto' para garantir scroll em mobile (TikTok Browser)
             reviewsSection.scrollIntoView({ behavior: 'auto', block: 'start' });
@@ -521,7 +435,7 @@
         const thumbImg = document.createElement('img');
         const imgName = 'thumb_' + padZero(i) + '.webp'; 
         
-        thumbImg.src = '/assets/img/' + imgName;
+        thumbImg.src = 'assets/img/' + imgName;
         thumbImg.alt = `Miniatura ${i}`;
         thumbImg.loading = 'lazy';
         
@@ -535,11 +449,10 @@
     }
 
     function updateImageDisplay() {
-        // FIX INP: ManipulaÃ§Ã£o de DOM pesada movida para requestAnimationFrame
+        // FIX INP: Manipulação de DOM pesada movida para requestAnimationFrame
         requestAnimationFrame(() => {
           const imgName = padZero(currentImageIndex) + '.webp';
-          const nextSrc = '/assets/img/' + imgName;
-          if (mainImage.getAttribute('src') !== nextSrc) mainImage.src = nextSrc;
+          mainImage.src = 'assets/img/' + imgName;
           imageCounter.textContent = `${currentImageIndex}/${totalImages}`;
 
           imageDots.querySelectorAll('.dot').forEach((d, i) =>
@@ -550,7 +463,7 @@
       });
     }
 
-    // â­ï¸ CORREÃ‡ÃƒO 1: Tornando a funÃ§Ã£o GLOBAL para o HTML encontrar â­ï¸
+    // ⭐️ CORREÇÃO 1: Tornando a função GLOBAL para o HTML encontrar ⭐️
     window.changeImage = function(dir) {
       currentImageIndex += dir;
       if (currentImageIndex > totalImages) currentImageIndex = 1;
@@ -565,10 +478,8 @@
         const color = swatch.dataset.color;
         
         if (variantLinks[color]) {
-          const variantTarget = window.buildCheckoutUrl ? window.buildCheckoutUrl(variantLinks[color]) : variantLinks[color];
-          buyBtn.dataset.checkoutTarget = variantTarget;
-          buyBtn.href = 'javascript:void(0)';
-          buyBtn.removeAttribute('onclick');
+          buyBtn.href = "javascript:void(0)";
+          buyBtn.onclick = function() { if(window.spaOpenCheckout) window.spaOpenCheckout(); };
         }
         
         currentVariant = color;
@@ -581,10 +492,8 @@
     if (defaultSwatch) {
         defaultSwatch.classList.add('selected');
         if (variantLinks[currentVariant]) {
-            const variantTarget = window.buildCheckoutUrl ? window.buildCheckoutUrl(variantLinks[currentVariant]) : variantLinks[currentVariant];
-            buyBtn.dataset.checkoutTarget = variantTarget;
-            buyBtn.href = 'javascript:void(0)';
-            buyBtn.removeAttribute('onclick');
+            buyBtn.href = "javascript:void(0)";
+            buyBtn.onclick = function() { if(window.spaOpenCheckout) window.spaOpenCheckout(); };
         }
     }
 
@@ -594,14 +503,14 @@
     startCountdown();     
     updateShippingDate(); 
     
-    // â­ï¸ CORREÃ‡ÃƒO 2: SWIPE com verificaÃ§Ã£o de eixo Y (Scroll) â­ï¸
+    // ⭐️ CORREÇÃO 2: SWIPE com verificação de eixo Y (Scroll) ⭐️
     const imgContainer = document.querySelector('.image-container');
     let touchStartX = 0;
     let touchStartY = 0;
     let touchEndX = 0;
     let touchEndY = 0;
     
-    // Controle de disparo Ãºnico para evento de Galeria
+    // Controle de disparo único para evento de Galeria
     let galleryEventFired = false;
 
     if (imgContainer) {
@@ -621,12 +530,12 @@
       const xDiff = touchEndX - touchStartX;
       const yDiff = touchEndY - touchStartY;
       
-      // SÃ³ muda imagem se movimento horizontal for maior que vertical (para nÃ£o atrapalhar o scroll)
+      // Só muda imagem se movimento horizontal for maior que vertical (para não atrapalhar o scroll)
       if (Math.abs(xDiff) > 50 && Math.abs(xDiff) > Math.abs(yDiff)) {
-        if (xDiff < 0) window.changeImage(1); // Swipe Esquerda -> PrÃ³xima
+        if (xDiff < 0) window.changeImage(1); // Swipe Esquerda -> Próxima
         else window.changeImage(-1); // Swipe Direita -> Anterior
         
-        // â­ï¸ NOVO: Rastreia interaÃ§Ã£o com galeria (Micro-ConversÃ£o)
+        // ⭐️ NOVO: Rastreia interação com galeria (Micro-Conversão)
         if (!galleryEventFired && window.trackViaZaraz) {
             galleryEventFired = true;
             window.trackViaZaraz('Interact_Gallery', { event_id: window.generateEventId() });
@@ -636,19 +545,19 @@
     
     // Pop-up de Vendas
     const buyers = [
-        { name: "Fernanda Maia", city: "Rio de Janeiro, RJ", img: "/assets/img/foto1.webp" },
-        { name: "Bruna Lima", city: "SÃ£o Paulo, SP", img: "/assets/img/foto2.webp" },
-        { name: "Marilia Lima", city: "Belo Horizonte, MG", img: "/assets/img/foto3.webp" },
-        { name: "Karina Andrade", city: "Curitiba, PR", img: "/assets/img/foto4.webp" },
-        { name: "Bruna Silva", city: "Salvador, BA", img: "/assets/img/foto5.webp" },
-        { name: "Kailane Cristina", city: "Fortaleza, CE", img: "/assets/img/foto6.webp" },
-        { name: "Mariana Lemos", city: "Porto Alegre, RS", img: "/assets/img/foto7.webp" }
+        { name: "Fernanda Maia", city: "Rio de Janeiro, RJ", img: "assets/img/foto1.webp" },
+        { name: "Bruna Lima", city: "São Paulo, SP", img: "assets/img/foto2.webp" },
+        { name: "Marilia Lima", city: "Belo Horizonte, MG", img: "assets/img/foto3.webp" },
+        { name: "Karina Andrade", city: "Curitiba, PR", img: "assets/img/foto4.webp" },
+        { name: "Bruna Silva", city: "Salvador, BA", img: "assets/img/foto5.webp" },
+        { name: "Kailane Cristina", city: "Fortaleza, CE", img: "assets/img/foto6.webp" },
+        { name: "Mariana Lemos", city: "Porto Alegre, RS", img: "assets/img/foto7.webp" }
     ];
 
     const actions = [
         "Comprou agora mesmo",
         "Acabou de comprar",
-        "Comprou hÃ¡ 2 minutos",
+        "Comprou há 2 minutos",
         "Garantiu a oferta",
         "Comprou 2 unidades"
     ];
@@ -677,11 +586,8 @@
         }, 4000);
     }
 
-    // Sales popup desativado para reduzir risco de reprovação automática e desconfiança do cliente.
-    // Para reativar: troque SALES_POPUP_ENABLED para true.
-    const SALES_POPUP_ENABLED = false;
     // Show popup only once per session, after 15 seconds
-    if (SALES_POPUP_ENABLED && !sessionStorage.getItem('popup_shown')) {
+    if (!sessionStorage.getItem('popup_shown')) {
         setTimeout(() => {
             showSalesPopup();
             sessionStorage.setItem('popup_shown', '1');
@@ -689,3 +595,4 @@
     }
     
   });
+
