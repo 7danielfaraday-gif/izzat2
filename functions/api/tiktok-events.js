@@ -22,12 +22,12 @@ const PROPS_FIELDS = [
 
 function normalizeEventSourceUrl(value) {
   try {
-    const base = value ? new URL(value) : new URL('https://lojaizzat.shop/');
+    const base = value ? new URL(value) : new URL('https://oficial.izzatcasa.shop/');
     base.protocol = 'https:';
-    base.host = 'lojaizzat.shop';
+    base.host = 'oficial.izzatcasa.shop';
     return base.toString();
   } catch {
-    return 'https://lojaizzat.shop/';
+    return 'https://oficial.izzatcasa.shop/';
   }
 }
 
