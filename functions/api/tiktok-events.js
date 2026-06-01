@@ -2,7 +2,7 @@
 // Purpose: TikTok Events API (CAPI) — envia eventos server-side espelhando o browser pixel
 //
 // Variáveis de ambiente necessárias (Cloudflare Pages → Settings → Environment Variables):
-//   TIKTOK_PIXEL_ID      — ID do pixel TikTok (ex: "D6VVDPJC77UANC7P0IT0")
+//   TIKTOK_PIXEL_ID      — ID do pixel TikTok configurado no Events Manager
 //   TIKTOK_ACCESS_TOKEN  — Token gerado no Events Manager → seu pixel → Set Up Web Events → Events API
 //   TIKTOK_TEST_CODE     — (opcional) código de teste para validar sem afetar dados reais
 //
@@ -22,12 +22,12 @@ const PROPS_FIELDS = [
 
 function normalizeEventSourceUrl(value) {
   try {
-    const base = value ? new URL(value) : new URL('https://oficial.izzatcasa.shop/');
+    const base = value ? new URL(value) : new URL('https://izzatcasa.shop/');
     base.protocol = 'https:';
-    base.host = 'oficial.izzatcasa.shop';
+    base.host = 'izzatcasa.shop';
     return base.toString();
   } catch {
-    return 'https://oficial.izzatcasa.shop/';
+    return 'https://izzatcasa.shop/';
   }
 }
 
@@ -35,18 +35,112 @@ function isSha256Hex(value) {
   return typeof value === 'string' && /^[a-f0-9]{64}$/i.test(value.trim());
 }
 
-function buildSafeUser(user) {
+async function sha256Hex(value) {
+  const data = new TextEncoder().encode(value);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash))
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+function hasText(value) {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function normalizeEmail(value) {
+  if (!hasText(value)) return null;
+  return value.trim().toLowerCase();
+}
+
+function normalizePhone(value) {
+  if (!hasText(value)) return null;
+  const raw = String(value).trim().toLowerCase();
+  if (isSha256Hex(raw)) return raw;
+
+  let digits = raw.replace(/\D/g, '');
+  if (digits.startsWith('00')) digits = digits.slice(2);
+  if (digits.startsWith('55') && (digits.length === 12 || digits.length === 13)) {
+    digits = digits.slice(2);
+  } else if (digits.startsWith('0') && (digits.length === 11 || digits.length === 12)) {
+    digits = digits.slice(1);
+  }
+
+  if (digits.length !== 10 && digits.length !== 11) return null;
+  if (/^(\d)\1+$/.test(digits)) return null;
+
+  const ddd = Number.parseInt(digits.slice(0, 2), 10);
+  const number = digits.slice(2);
+  if (ddd < 11 || ddd > 99) return null;
+  if (/^(\d)\1+$/.test(number)) return null;
+  if (digits.length === 11 && number[0] !== '9') return null;
+
+  return `55${digits}`;
+}
+
+function getFallbackContentId(properties) {
+  if (!properties || typeof properties !== 'object') return null;
+
+  if (hasText(properties.content_id)) return properties.content_id.trim();
+
+  if (Array.isArray(properties.contents)) {
+    for (const item of properties.contents) {
+      if (!item || typeof item !== 'object') continue;
+      if (hasText(item.content_id)) return item.content_id.trim();
+      if (hasText(item.id)) return item.id.trim();
+    }
+  }
+
+  if (Array.isArray(properties.content_ids)) {
+    for (const id of properties.content_ids) {
+      if (hasText(id)) return id.trim();
+    }
+  }
+
+  return null;
+}
+
+function getFallbackContentCategory(properties) {
+  if (!properties || typeof properties !== 'object') return null;
+
+  if (hasText(properties.content_category)) return properties.content_category.trim();
+  if (hasText(properties.category)) return properties.category.trim();
+
+  return null;
+}
+
+async function buildSafeUser(user) {
   const raw = pick(user, USER_FIELDS);
   const safe = {};
 
-  if (isSha256Hex(raw.email)) safe.email = raw.email.trim().toLowerCase();
+  if (hasText(raw.email)) {
+    const normalizedEmail = normalizeEmail(raw.email);
+    if (normalizedEmail) {
+      safe.email = isSha256Hex(normalizedEmail)
+        ? normalizedEmail
+        : await sha256Hex(normalizedEmail);
+    }
+  }
 
   // Aceita tanto "phone" quanto "phone_number" do browser,
   // mas envia sempre como "phone" (campo correto da API v1.3)
   const rawPhone = raw.phone || raw.phone_number;
-  if (isSha256Hex(rawPhone)) safe.phone = rawPhone.trim().toLowerCase();
+  if (hasText(rawPhone)) {
+    const normalizedPhone = isSha256Hex(rawPhone)
+      ? rawPhone.trim().toLowerCase()
+      : normalizePhone(rawPhone);
+    if (normalizedPhone) {
+      safe.phone = isSha256Hex(normalizedPhone)
+        ? normalizedPhone
+        : await sha256Hex(normalizedPhone);
+    }
+  }
 
-  if (isSha256Hex(raw.external_id)) safe.external_id = raw.external_id.trim().toLowerCase();
+  if (hasText(raw.external_id)) {
+    const normalizedExternalId = raw.external_id.trim().toLowerCase();
+    safe.external_id = isSha256Hex(normalizedExternalId)
+      ? normalizedExternalId
+      : await sha256Hex(normalizedExternalId);
+  }
   if (raw.ttclid) safe.ttclid = raw.ttclid;
   if (raw.ttp) safe.ttp = raw.ttp;
 
@@ -131,6 +225,11 @@ export async function onRequestPost(context) {
                    || undefined;
     const userAgent = context.request.headers.get('user-agent') || undefined;
 
+    const fallbackContentId = getFallbackContentId(properties);
+    const fallbackContentCategory = getFallbackContentCategory(properties);
+
+    const safeUser = await buildSafeUser(user);
+
     const eventPayload = {
       event:             event,
       event_time:        Math.floor(Date.now() / 1000),
@@ -138,13 +237,8 @@ export async function onRequestPost(context) {
 
       properties: {
         ...pick(properties, PROPS_FIELDS),
-        ...(
-          !properties.content_id &&
-          Array.isArray(properties.contents) &&
-          properties.contents[0]?.content_id
-            ? { content_id: properties.contents[0].content_id }
-            : {}
-        ),
+        ...(!hasText(properties.content_id) && fallbackContentId ? { content_id: fallbackContentId } : {}),
+        ...(!hasText(properties.content_category) && fallbackContentCategory ? { content_category: fallbackContentCategory } : {}),
         event_source_url: normalizeEventSourceUrl(
           context.request.headers.get('referer') ||
           properties.event_source_url ||
@@ -153,7 +247,7 @@ export async function onRequestPost(context) {
       },
 
       user: {
-        ...buildSafeUser(user),
+        ...safeUser,
         ...(ip        && { ip }),
         ...(userAgent && { user_agent: userAgent }),
       },
@@ -192,19 +286,51 @@ export async function onRequestPost(context) {
     let apiJson = null;
     try { apiJson = await apiRes.json(); } catch { apiJson = null; }
 
+    const apiCode = apiJson && Object.prototype.hasOwnProperty.call(apiJson, 'code')
+      ? Number(apiJson.code)
+      : null;
+    const apiMessage = apiJson && apiJson.message ? String(apiJson.message) : null;
+    const requestId = apiJson && apiJson.request_id ? String(apiJson.request_id) : null;
+    const apiOk = apiRes.ok && (apiCode === null || apiCode === 0);
+
     console.log('[tiktok-events]', JSON.stringify({
       event,
       event_id: event_id || null,
       status: apiRes.status,
-      response: apiJson,
+      api_code: apiCode,
+      api_message: apiMessage,
+      request_id: requestId,
+      match_keys: {
+        ip: !!eventPayload.user.ip,
+        user_agent: !!eventPayload.user.user_agent,
+        ttclid: !!eventPayload.user.ttclid,
+        ttp: !!eventPayload.user.ttp,
+        external_id: !!eventPayload.user.external_id,
+        email: !!eventPayload.user.email,
+        phone: !!eventPayload.user.phone,
+      },
     }));
 
-    if (!apiRes.ok) {
-      console.error('[tiktok-events] API error', apiRes.status, JSON.stringify(apiJson));
-      return json({ ok: false, error: 'api_error', status: apiRes.status, detail: apiJson }, 200, context.request);
+    if (!apiOk) {
+      console.error('[tiktok-events] API error', JSON.stringify({
+        event,
+        event_id: event_id || null,
+        status: apiRes.status,
+        api_code: apiCode,
+        api_message: apiMessage,
+        request_id: requestId,
+      }));
+      return json({
+        ok: false,
+        error: 'api_error',
+        status: apiRes.status,
+        api_code: apiCode,
+        api_message: apiMessage,
+        request_id: requestId,
+      }, 200, context.request);
     }
 
-    return json({ ok: true, event, event_id: event_id || null }, 200, context.request);
+    return json({ ok: true, event, event_id: event_id || null, api_code: apiCode, request_id: requestId }, 200, context.request);
 
   } catch (err) {
     console.error('[tiktok-events] Unexpected error:', err);

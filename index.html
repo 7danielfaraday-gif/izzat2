@@ -3,14 +3,116 @@
 <html lang="pt-BR">
 
 <head>
-    <script>window.__TEST_MODE = new URLSearchParams(window.location.search).has('test_mode');</script>
+    <script>
+        (function () {
+            var params = new URLSearchParams(window.location.search);
+            window.__TEST_MODE = params.has('test_mode');
+            window.__LAB_MODE = params.has('lab') || params.get('mode') === 'lab' || /^\/lab(?:\/|$)/i.test(window.location.pathname);
+            window.__buyNowJsReady = false;
+            window.__pendingCheckoutClick = false;
+            window.__pendingCheckoutTarget = '/c/';
+            window.__checkoutEntrySource = /^\/c(?:\/|$)/i.test(window.location.pathname) ? 'direct' : 'lp';
+            window.__currentCheckoutOpenToken = null;
+            window.__prepareLabSession = window.__prepareLabSession || function () {
+                if (!window.__LAB_MODE || window.__labPrepared) return;
+                window.__labPrepared = true;
+                window.__LAB_NONCE = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+
+                function patchStorage(storage) {
+                    if (!storage) return;
+                    try { storage.clear(); } catch (e) { }
+                    try { storage.setItem = function () { }; } catch (e) { }
+                    try { storage.removeItem = function () { }; } catch (e) { }
+                    try { storage.clear = function () { }; } catch (e) { }
+                    try { storage.getItem = function () { return null; }; } catch (e) { }
+                }
+
+                try { patchStorage(window.localStorage); } catch (e) { }
+                try { patchStorage(window.sessionStorage); } catch (e) { }
+
+                try {
+                    document.cookie.split(';').forEach(function (cookie) {
+                        var eq = cookie.indexOf('=');
+                        var name = (eq > -1 ? cookie.slice(0, eq) : cookie).trim();
+                        if (!name) return;
+                        document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax';
+                        document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=' + window.location.hostname + '; SameSite=Lax';
+                        if (window.location.hostname.indexOf('.') > -1) {
+                            document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.' + window.location.hostname.replace(/^www\./, '') + '; SameSite=Lax';
+                        }
+                    });
+                } catch (e) { }
+
+                try {
+                    if (window.caches && typeof window.caches.keys === 'function') {
+                        window.caches.keys().then(function (keys) {
+                            keys.forEach(function (key) { window.caches.delete(key); });
+                        }).catch(function () { });
+                    }
+                } catch (e) { }
+
+                try {
+                    if (window.indexedDB && typeof window.indexedDB.databases === 'function') {
+                        window.indexedDB.databases().then(function (dbs) {
+                            (dbs || []).forEach(function (db) {
+                                if (db && db.name) {
+                                    try { window.indexedDB.deleteDatabase(db.name); } catch (err) { }
+                                }
+                            });
+                        }).catch(function () { });
+                    }
+                } catch (e) { }
+
+                try {
+                    if (navigator.serviceWorker && typeof navigator.serviceWorker.getRegistrations === 'function') {
+                        navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                            registrations.forEach(function (registration) {
+                                try { registration.unregister(); } catch (err) { }
+                            });
+                        }).catch(function () { });
+                    }
+                } catch (e) { }
+
+                try {
+                    var labUrl = new URL(window.location.href);
+                    labUrl.searchParams.set('_lab_nonce', window.__LAB_NONCE);
+                    history.replaceState(history.state, document.title, labUrl.pathname + labUrl.search + labUrl.hash);
+                } catch (e) { }
+            };
+            if (window.__LAB_MODE) window.__prepareLabSession();
+            window.__handleBuyNowClick = function (ev, el) {
+                try {
+                    var btn = el || document.getElementById('buy-now');
+                    var target = (btn && btn.dataset && btn.dataset.checkoutTarget) ? btn.dataset.checkoutTarget : '/c/';
+                    window.__pendingCheckoutTarget = target;
+
+                    // Se o listener principal já foi registrado, deixa o fluxo padrão seguir.
+                    if (window.__buyNowJsReady) return true;
+
+                    if (ev && typeof ev.preventDefault === 'function') ev.preventDefault();
+                    window.__pendingCheckoutClick = true;
+
+                    if (btn && btn.classList) btn.classList.add('is-opening');
+
+                    // Se a SPA já estiver disponível, abre imediatamente.
+                    if (typeof window.spaOpenCheckout === 'function') {
+                        window.__pendingCheckoutClick = false;
+                        window.spaOpenCheckout(target);
+                    }
+                } catch (e) { }
+                return false;
+            };
+        })();
+    </script>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
         name="viewport" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
-        rel="stylesheet" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" as="style" href="/assets/fonts/inter-local.css?v=20260518font1"
+        onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript>
+        <link href="/assets/fonts/inter-local.css?v=20260518font1" rel="stylesheet" />
+    </noscript>
     <link crossorigin="" href="https://analytics.tiktok.com" rel="preconnect" />
     <link href="//analytics.tiktok.com" rel="dns-prefetch" />
     <meta
@@ -19,24 +121,24 @@
     <meta content="Fritadeira Elétrica Forno Oven 12L Mondial - Izzat" property="og:title" />
     <meta content="A Air Fryer AFON-12L-BI da Mondial é 2 em 1. Capacidade de 12 Litros. Compre com desconto!"
         property="og:description" />
-    <meta content="assets/img/01.webp" property="og:image" />
+    <meta content="/assets/img/01.webp" property="og:image" />
     <meta content="product" property="og:type" />
     <meta content="pt_BR" property="og:locale" />
     <meta content="index, follow" name="robots" />
     <meta content="upgrade-insecure-requests; block-all-mixed-content;" http-equiv="Content-Security-Policy" />
     <title>Izzat - Fritadeira Elétrica Forno Oven 12L Mondial</title>
-    <link as="image" href="assets/img/01.webp" rel="preload" />
+    <link as="image" fetchpriority="high" href="/assets/img/01-400.webp"
+        imagesrcset="/assets/img/01-240.webp 240w, /assets/img/01-320.webp 320w, /assets/img/01-400.webp 400w"
+        imagesizes="(max-width: 480px) 100vw, 400px" rel="preload" type="image/webp" />
     <noscript></noscript>
     <script>
-        if (!window.__TEST_MODE) {
+        if (!window.__TEST_MODE && !window.__LAB_MODE) {
             !function (w, d, t) {
                 w.TiktokAnalyticsObject = t; var ttq = w[t] = w[t] || []; ttq.methods = ["page", "track", "identify", "instances", "debug", "on", "off", "once", "ready", "alias", "group", "enableCookie", "disableCookie"], ttq.setAndDefer = function (t, e) { t[e] = function () { t.push([e].concat(Array.prototype.slice.call(arguments, 0))) } }; for (var i = 0; i < ttq.methods.length; i++)ttq.setAndDefer(ttq, ttq.methods[i]); ttq.instance = function (t) { for (var e = ttq._i[t] || [], n = 0; n < ttq.methods.length; n++)ttq.setAndDefer(e, ttq.methods[n]); return e }, ttq.load = function (e, n) {
                     var i = "https://analytics.tiktok.com/i18n/pixel/events.js"; ttq._i = ttq._i || {}, ttq._i[e] = [], ttq._i[e]._u = i, ttq._t = ttq._t || {}, ttq._t[e] = +new Date, ttq._o = ttq._o || {}, ttq._o[e] = n || {};
-                    setTimeout(function () {
-                        var o = document.createElement("script"); o.type = "text/javascript", o.async = !0, o.src = i + "?sdkid=" + e + "&lib=" + t;
-                        var scripts = document.getElementsByTagName("script");
-                        var a = scripts.length > 0 ? scripts[0] : null; if (a && a.parentNode) { a.parentNode.insertBefore(o, a); } else { document.head.appendChild(o); }
-                    }, 2500);
+                    var o = document.createElement("script"); o.type = "text/javascript", o.async = !0, o.src = i + "?sdkid=" + e + "&lib=" + t;
+                    var scripts = document.getElementsByTagName("script");
+                    var a = scripts.length > 0 ? scripts[0] : null; if (a && a.parentNode) { a.parentNode.insertBefore(o, a); } else { document.head.appendChild(o); }
                 };
 
                 ttq.load('D86SK5BC77U97AFNPAP0');
@@ -172,7 +274,7 @@
             transform: translate(-50%, -50%);
             color: #666;
             font-size: 14px;
-            display: block
+            display: none
         }
 
         .image-counter {
@@ -721,6 +823,8 @@
         .buy-btn {
             font-family: 'Inter', sans-serif;
             flex: 1;
+            position: relative;
+            isolation: isolate;
             background: #ff2d55;
             color: white;
             border: none;
@@ -729,7 +833,8 @@
             font-size: 13px;
             font-weight: 600;
             text-align: center;
-            transition: all 0.2s
+            touch-action: manipulation;
+            transition: background-color 0.2s, opacity 0.2s, filter 0.2s
         }
 
         .buy-btn.disabled {
@@ -739,6 +844,12 @@
             background: #e02045;
             box-shadow: none;
             transform: scale(0.98)
+        }
+
+        .buy-btn.is-opening {
+            opacity: 0.92;
+            filter: saturate(0.9);
+            cursor: progress;
         }
 
         @keyframes slideUp {
@@ -751,25 +862,42 @@
             }
         }
 
-        @keyframes pulse-red {
+        @keyframes cta-ring-pulse {
             0% {
                 transform: scale(1);
-                box-shadow: 0 0 0 0 rgba(255, 45, 85, 0.7)
+                opacity: 0.32;
             }
 
             70% {
-                transform: scale(1.05);
-                box-shadow: 0 0 0 10px rgba(255, 45, 85, 0)
+                transform: scale(1.16);
+                opacity: 0;
             }
 
             100% {
-                transform: scale(1);
-                box-shadow: 0 0 0 0 rgba(255, 45, 85, 0)
+                transform: scale(1.16);
+                opacity: 0;
             }
         }
 
         .pulsing-buy-btn {
-            animation: pulse-red 1.5s infinite
+            animation: none;
+        }
+
+        .pulsing-buy-btn::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: #ff2d55;
+            pointer-events: none;
+            z-index: -1;
+            animation: cta-ring-pulse 1.5s ease-out infinite;
+        }
+
+        .pulsing-buy-btn.disabled::after,
+        .pulsing-buy-btn.is-opening::after {
+            animation: none;
+            opacity: 0;
         }
 
         .footer {
@@ -1097,7 +1225,7 @@
             display: inline-block
         }
     </style>
-    <script>if (!window.__TEST_MODE) { !function () { function g() { if (window.__gaLoaded) return; window.__gaLoaded = !0; var s = document.createElement('script'); s.async = !0; s.src = 'https://www.googletagmanager.com/gtag/js?id=G-E373VKT4H4'; document.head.appendChild(s); window.dataLayer = window.dataLayer || []; window.gtag = function () { dataLayer.push(arguments) }; gtag('js', new Date()); gtag('config', 'G-E373VKT4H4', { send_page_view: !1 }); gtag('event', 'page_view') } if ('requestIdleCallback' in window) requestIdleCallback(g, { timeout: 2500 }); else setTimeout(g, 2000) }(); }</script>
+    <script>if (!window.__TEST_MODE && !window.__LAB_MODE) { !function () { var id = 'G-E373VKT4H4', q = [], scheduled = !1; window.dataLayer = window.dataLayer || []; window.gtag = window.gtag || function () { q.push([].slice.call(arguments)); }; function idle(fn) { if ('requestIdleCallback' in window) requestIdleCallback(fn, { timeout: 3000 }); else setTimeout(fn, 0); } function load() { if (window.__gaLoaded) return; window.__gaLoaded = !0; var s = document.createElement('script'); s.async = !0; s.src = 'https://www.googletagmanager.com/gtag/js?id=' + id; document.head.appendChild(s); window.gtag = function () { window.dataLayer.push(arguments); }; gtag('js', new Date()); gtag('config', id, { send_page_view: !1 }); gtag('event', 'page_view'); for (var i = 0; i < q.length; i++) window.dataLayer.push(q[i]); q = []; } function schedule() { if (scheduled || window.__gaLoaded) return; scheduled = !0; setTimeout(function () { idle(load); }, 12000); } ['pointerdown', 'keydown', 'touchstart', 'scroll'].forEach(function (ev) { window.addEventListener(ev, schedule, { once: !0, passive: !0 }); }); setTimeout(function () { idle(load); }, 45000); }(); }</script>
 </head>
 
 <body id="top">
@@ -1105,7 +1233,9 @@
         <section class="product-images">
             <div class="image-container">
                 <img alt="Fritadeira Elétrica Forno Oven 12L Mondial" class="product-main-image" decoding="async"
-                    fetchpriority="high" height="400" id="main-product-image" loading="eager" src="assets/img/01.webp"
+                    fetchpriority="high" height="400" id="main-product-image" loading="eager"
+                    sizes="(max-width: 480px) 100vw, 400px" src="/assets/img/01-400.webp"
+                    srcset="/assets/img/01-240.webp 240w, /assets/img/01-320.webp 320w, /assets/img/01-400.webp 400w"
                     width="400" />
                 <div class="image-loading" id="image-loading">Carregando...</div>
                 <div class="image-counter" id="image-counter">1/8</div>
@@ -1333,7 +1463,7 @@
                 <div style="font-size:15px;font-weight:700;color:#222;margin-bottom:12px;">Variante</div>
                 <div
                     style="display:flex;align-items:center;gap:12px;padding:14px;border:2px solid #00d4aa;border-radius:12px;background:#f0fdfa;">
-                    <img src="assets/img/01.webp" alt="Preto"
+                    <img src="/assets/img/01-160.webp" alt="Preto" loading="lazy" decoding="async" fetchpriority="low"
                         style="width:48px;height:48px;object-fit:contain;border-radius:8px;background:#fff;" />
                     <div style="flex:1;">
                         <div style="font-size:14px;font-weight:700;color:#222;">Preto — 12 Litros</div>
@@ -1395,7 +1525,7 @@
                 </div>
                 <div class="rv" style="padding:14px 0;border-bottom:1px solid #f0f0f0;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-                        <img src="assets/img/foto1.webp" alt=""
+                        <img src="assets/img/foto1.webp" alt="" loading="lazy" decoding="async" fetchpriority="low"
                             style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
                         <span style="font-size:14px;font-weight:700;color:#222;">Fernanda L.</span>
                     </div>
@@ -1407,13 +1537,13 @@
                     <div style="font-size:13px;color:#333;line-height:1.5;">Ela é maravilhosa, lindona! Já fiz a cura
                         dos componentes dela e coloquei meu almoço pra gratinar, já vi q está funcionando e até tenho q
                         por menos tempo ou diminuir a potência dela pq é mto boa. Super indico</div>
-                    <div style="margin-top:8px;"><img src="assets/img/review01.webp" alt=""
+                    <div style="margin-top:8px;"><img src="assets/img/review01.webp" alt="" loading="lazy" decoding="async" fetchpriority="low"
                             style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;"
                             onclick="openLightbox(this.src)" /></div>
                 </div>
                 <div class="rv" style="padding:14px 0;border-bottom:1px solid #f0f0f0;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-                        <img src="assets/img/foto2.webp" alt=""
+                        <img src="assets/img/foto2.webp" alt="" loading="lazy" decoding="async" fetchpriority="low"
                             style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
                         <span style="font-size:14px;font-weight:700;color:#222;">Bruna L.</span>
                     </div>
@@ -1425,13 +1555,13 @@
                     <div style="font-size:13px;color:#333;line-height:1.5;">A fritadeira é ótima, um sonho de consumo
                         rsrs, estou muito satisfeita com a minha compra. Já testei e as batatas fritas ficaram ótimas!
                         Chegou muito rápido e muito bem embalada.</div>
-                    <div style="margin-top:8px;"><img src="assets/img/review02.webp" alt=""
+                    <div style="margin-top:8px;"><img src="assets/img/review02.webp" alt="" loading="lazy" decoding="async" fetchpriority="low"
                             style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;"
                             onclick="openLightbox(this.src)" /></div>
                 </div>
                 <div class="rv" style="padding:14px 0;border-bottom:1px solid #f0f0f0;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-                        <img src="assets/img/foto3.webp" alt=""
+                        <img src="assets/img/foto3.webp" alt="" loading="lazy" decoding="async" fetchpriority="low"
                             style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
                         <span style="font-size:14px;font-weight:700;color:#222;">Marilia L.</span>
                     </div>
@@ -1441,13 +1571,13 @@
                     </div>
                     <div style="font-size:11px;color:#aaa;margin-bottom:8px;">Variação: 12 Litros — Preto</div>
                     <div style="font-size:13px;color:#333;line-height:1.5;">Lindo e eficiente.</div>
-                    <div style="margin-top:8px;"><img src="assets/img/review03.webp" alt=""
+                    <div style="margin-top:8px;"><img src="assets/img/review03.webp" alt="" loading="lazy" decoding="async" fetchpriority="low"
                             style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;"
                             onclick="openLightbox(this.src)" /></div>
                 </div>
                 <div class="rv" style="padding:14px 0;border-bottom:1px solid #f0f0f0;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-                        <img src="assets/img/foto4.webp" alt=""
+                        <img src="assets/img/foto4.webp" alt="" loading="lazy" decoding="async" fetchpriority="low"
                             style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
                         <span style="font-size:14px;font-weight:700;color:#222;">Karina A.</span>
                     </div>
@@ -1458,13 +1588,13 @@
                     <div style="font-size:11px;color:#aaa;margin-bottom:8px;">Variação: 12 Litros — Preto</div>
                     <div style="font-size:13px;color:#333;line-height:1.5;">Ótimo produto conforme anunciado. E chegou
                         antes do previsto. Super recomendo....</div>
-                    <div style="margin-top:8px;"><img src="assets/img/review04.webp" alt=""
+                    <div style="margin-top:8px;"><img src="assets/img/review04.webp" alt="" loading="lazy" decoding="async" fetchpriority="low"
                             style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;"
                             onclick="openLightbox(this.src)" /></div>
                 </div>
                 <div class="rv" style="padding:14px 0;border-bottom:1px solid #f0f0f0;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-                        <img src="assets/img/foto5.webp" alt=""
+                        <img src="assets/img/foto5.webp" alt="" loading="lazy" decoding="async" fetchpriority="low"
                             style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
                         <span style="font-size:14px;font-weight:700;color:#222;">Bruna S.</span>
                     </div>
@@ -1475,13 +1605,13 @@
                     <div style="font-size:11px;color:#aaa;margin-bottom:8px;">Variação: 12 Litros — Preto</div>
                     <div style="font-size:13px;color:#333;line-height:1.5;">Bonita grande e eficiente, nada a reclamar
                         até o momento.</div>
-                    <div style="margin-top:8px;"><img src="assets/img/review05.webp" alt=""
+                    <div style="margin-top:8px;"><img src="assets/img/review05.webp" alt="" loading="lazy" decoding="async" fetchpriority="low"
                             style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;"
                             onclick="openLightbox(this.src)" /></div>
                 </div>
                 <div class="rv" style="padding:14px 0;border-bottom:1px solid #f0f0f0;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-                        <img src="assets/img/foto6.webp" alt=""
+                        <img src="assets/img/foto6.webp" alt="" loading="lazy" decoding="async" fetchpriority="low"
                             style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
                         <span style="font-size:14px;font-weight:700;color:#222;">Kailane C.</span>
                     </div>
@@ -1492,13 +1622,13 @@
                     <div style="font-size:11px;color:#aaa;margin-bottom:8px;">Variação: 12 Litros — Preto</div>
                     <div style="font-size:13px;color:#333;line-height:1.5;">Gente eu ameiii, superou minhas
                         expectativas, lindaaa, ameiii!!!</div>
-                    <div style="margin-top:8px;"><img src="assets/img/review06.webp" alt=""
+                    <div style="margin-top:8px;"><img src="assets/img/review06.webp" alt="" loading="lazy" decoding="async" fetchpriority="low"
                             style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;"
                             onclick="openLightbox(this.src)" /></div>
                 </div>
                 <div class="rv" style="padding:14px 0;border-bottom:1px solid #f0f0f0;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-                        <img src="assets/img/foto7.webp" alt=""
+                        <img src="assets/img/foto7.webp" alt="" loading="lazy" decoding="async" fetchpriority="low"
                             style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
                         <span style="font-size:14px;font-weight:700;color:#222;">Mariana L.</span>
                     </div>
@@ -1509,7 +1639,7 @@
                     <div style="font-size:11px;color:#aaa;margin-bottom:8px;">Variação: 12 Litros — Preto</div>
                     <div style="font-size:13px;color:#333;line-height:1.5;">Simplesmente estou apaixonada, excelente
                         mesmo.</div>
-                    <div style="margin-top:8px;"><img src="assets/img/review07.webp" alt=""
+                    <div style="margin-top:8px;"><img src="assets/img/review07.webp" alt="" loading="lazy" decoding="async" fetchpriority="low"
                             style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;"
                             onclick="openLightbox(this.src)" /></div>
                 </div>
@@ -1737,8 +1867,8 @@
                 <span>Chat</span>
             </a>
             <button class="add-cart-btn">Ver Avaliações</button>
-            <a class="buy-btn pulsing-buy-btn" href="javascript:void(0)"
-                onclick="if(window.spaOpenCheckout) window.spaOpenCheckout();" id="buy-now"
+            <a class="buy-btn pulsing-buy-btn" href="javascript:void(0)" id="buy-now" data-checkout-target="/c/"
+                onclick="return window.__handleBuyNowClick ? window.__handleBuyNowClick(event, this) : false;"
                 style="display: flex; align-items: center; justify-content: center; text-decoration: none; color: white;">Comprar
                 Agora</a>
         </nav>
@@ -1776,10 +1906,33 @@
                 var saved = localStorage.getItem('user_location');
                 if (saved) { var d = JSON.parse(saved); if (d.city && d.state) updateLocation(d.city, d.state); }
             } catch (e) { }
-            fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(5000) })
-                .then(function (r) { return r.json() })
-                .then(function (data) { if (data && data.city && data.region) updateLocation(data.city, data.region); })
-                .catch(function () { });
+            function refreshLocationWhenIdle() {
+                if (refreshLocationWhenIdle.done) return;
+                refreshLocationWhenIdle.done = true;
+                var options = {};
+                try {
+                    if (window.AbortSignal && typeof AbortSignal.timeout === 'function') {
+                        options.signal = AbortSignal.timeout(5000);
+                    }
+                } catch (e) { }
+                fetch('https://ipapi.co/json/', options)
+                    .then(function (r) { return r.json() })
+                    .then(function (data) { if (data && data.city && data.region) updateLocation(data.city, data.region); })
+                    .catch(function () { });
+            }
+            function scheduleLocationRefresh(delay) {
+                setTimeout(function () {
+                    if ('requestIdleCallback' in window) {
+                        requestIdleCallback(refreshLocationWhenIdle, { timeout: 5000 });
+                    } else {
+                        refreshLocationWhenIdle();
+                    }
+                }, delay);
+            }
+            ['pointerdown', 'touchstart', 'keydown', 'scroll'].forEach(function (eventName) {
+                window.addEventListener(eventName, function () { scheduleLocationRefresh(3000); }, { once: true, passive: true });
+            });
+            scheduleLocationRefresh(45000);
 
             // --- Modal helpers: scroll lock + swipe down to close ---
             function openModal(id) {
@@ -2014,7 +2167,7 @@
                     if (sortedImages[i]) {
                         html += '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">';
                         for (var j = 0; j < sortedImages[i].length; j++) {
-                            html += '<img src="assets/img/' + sortedImages[i][j] + '" alt="" style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;" onclick="openLightbox(this.src)"/>';
+                            html += '<img src="assets/img/' + sortedImages[i][j] + '" alt="" loading="lazy" decoding="async" fetchpriority="low" style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;" onclick="openLightbox(this.src)"/>';
                         }
                         html += '</div>';
                     }
@@ -2121,7 +2274,7 @@
             });
         })();
     </script>
-    <script defer="" src="assets/js/index.bundle.js"></script>
+    <script defer="" src="assets/js/index.bundle.js?v=20260527r3"></script>
     <script defer src="assets/js/metrics.ping.js"></script>
 
     <!-- ============================================= -->
@@ -2405,10 +2558,56 @@
                 max-width: 480px;
                 margin: 0 auto
             }
+
+            /* Abertura profissional: evita flash de layout cru antes do React/Tailwind estabilizar */
+            #spa-checkout-wrapper[data-state="opening"] #checkout-root {
+                visibility: hidden;
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            #spa-checkout-wrapper[data-state="ready"] #checkout-root {
+                visibility: visible;
+                opacity: 1;
+                pointer-events: auto;
+                transition: opacity .18s ease;
+            }
+
+            #checkout-opening-overlay {
+                position: absolute;
+                inset: 0;
+                z-index: 10002;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+            }
+
+            #spa-checkout-wrapper[data-state="opening"] #checkout-opening-overlay {
+                display: flex;
+            }
+
+            #skeleton-loader {
+                position: relative;
+                z-index: 10000;
+            }
+
+            #checkout-root {
+                position: relative;
+                z-index: 10001;
+                transition: opacity .18s ease;
+            }
         </style>
 
+        <div id="checkout-opening-overlay" aria-hidden="true">
+            <div style="text-align:center;">
+                <div style="width:26px;height:26px;border:3px solid #dbeafe;border-top-color:#22c55e;border-radius:9999px;animation:spin .8s linear infinite;margin:0 auto 10px;"></div>
+                <div style="font-size:12px;color:#64748b;font-weight:600;letter-spacing:.01em;">Abrindo checkout seguro...</div>
+            </div>
+        </div>
+
         <!-- Skeleton do Checkout -->
-        <div id="skeleton-loader" style="min-height: 100dvh; background: #f8fafc;">
+        <div id="skeleton-loader" style="display:none; min-height: 100dvh; background: #f8fafc;">
             <div class="progress-bar" style="width: 25%;"></div>
             <div class="static-nav">
                 <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="window.spaGoBack()">
@@ -2417,8 +2616,9 @@
                         <path d="M19 12H5M12 19l-7-7 7-7" />
                     </svg>
                 </div>
-                <img alt="Logo" decoding="async" loading="lazy" src="assets/img/logo.webp"
-                    onerror="this.onerror=null; this.src='assets/img/logo.webp'"
+                <img alt="Logo" decoding="async" loading="lazy" sizes="104px" src="/assets/img/logo-small-120.webp"
+                    srcset="/assets/img/logo-small-120.webp 120w, /assets/img/logo-small-180.webp 180w, /assets/img/logo-small.webp 240w"
+                    onerror="this.onerror=null; this.src='/assets/img/logo.webp'"
                     style="height: 32px; width: auto; object-fit: contain;" />
             </div>
             <div class="static-container">
@@ -2426,7 +2626,8 @@
                     <div class="static-card">
                         <div class="static-badge">OFERTA TIKTOK</div>
                         <div class="static-img-box"><img alt="Fritadeira" class="static-img" decoding="async"
-                                height="80" loading="eager" src="assets/img/01.webp" width="80" /></div>
+                                height="80" loading="lazy" fetchpriority="low" sizes="80px" src="/assets/img/01-160.webp"
+                                srcset="/assets/img/01-160.webp 160w, /assets/img/01-240.webp 240w" width="80" /></div>
                         <div class="static-info">
                             <h3 class="static-title">Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI</h3>
                             <div><span class="static-old-price">De R$ 399,90</span><span class="static-new-price">Por R$
@@ -2555,25 +2756,39 @@
             }
 
             if (!window.setupKeyboardDetection) {
-                var INITIAL_H = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                var INITIAL_H = 0;
                 window.setupKeyboardDetection = function () {
+                    if (window.__keyboardDetectionReady) return;
+                    window.__keyboardDetectionReady = true;
                     if (typeof window.visualViewport !== 'undefined') {
                         var vv = window.visualViewport;
+                        INITIAL_H = vv.height || window.innerHeight || 0;
+                        var keyboardRaf = 0;
+                        var lastKeyboardHeight = -1;
+                        var lastKeyboardOpen = false;
                         vv.addEventListener('resize', function () {
-                            var ch = vv.height;
-                            if (ch > INITIAL_H) INITIAL_H = ch;
-                            var d = INITIAL_H - ch;
-                            if (d > 150) {
-                                document.documentElement.style.setProperty('--keyboard-height', d + 'px');
-                                document.body.classList.add('keyboard-open');
-                            } else {
-                                document.body.classList.remove('keyboard-open');
-                                document.documentElement.style.setProperty('--keyboard-height', '0px');
-                            }
+                            if (keyboardRaf) return;
+                            keyboardRaf = requestAnimationFrame(function () {
+                                keyboardRaf = 0;
+                                var ch = vv.height;
+                                if (ch > INITIAL_H) INITIAL_H = ch;
+                                var rawDelta = INITIAL_H - ch;
+                                var d = rawDelta > 150 ? Math.round(rawDelta) : 0;
+                                var isOpen = d > 0;
+
+                                if (d !== lastKeyboardHeight) {
+                                    lastKeyboardHeight = d;
+                                    document.documentElement.style.setProperty('--keyboard-height', d + 'px');
+                                }
+
+                                if (isOpen !== lastKeyboardOpen) {
+                                    lastKeyboardOpen = isOpen;
+                                    document.body.classList.toggle('keyboard-open', isOpen);
+                                }
+                            });
                         });
                     }
                 };
-                try { window.setupKeyboardDetection(); } catch (e) { }
             }
 
             // --- PRODUCTION-GRADE TRACKING SUITE (Sincronizado com c/index.html) ---
@@ -2644,7 +2859,27 @@
 
             function normalizePhone(v) {
                 if (!v) return null;
-                return String(v).replace(/\D/g, '');
+                var raw = String(v).trim().toLowerCase();
+                if (isSha256Hex(raw)) return raw;
+
+                var digits = raw.replace(/\D/g, '');
+                if (digits.indexOf('00') === 0) digits = digits.slice(2);
+                if (digits.indexOf('55') === 0 && (digits.length === 12 || digits.length === 13)) {
+                    digits = digits.slice(2);
+                } else if (digits.charAt(0) === '0' && (digits.length === 11 || digits.length === 12)) {
+                    digits = digits.slice(1);
+                }
+
+                if (digits.length !== 10 && digits.length !== 11) return null;
+                if (/^(\d)\1+$/.test(digits)) return null;
+
+                var ddd = parseInt(digits.slice(0, 2), 10);
+                var number = digits.slice(2);
+                if (ddd < 11 || ddd > 99) return null;
+                if (/^(\d)\1+$/.test(number)) return null;
+                if (digits.length === 11 && number.charAt(0) !== '9') return null;
+
+                return '55' + digits;
             }
 
             async function sha256Hex(input) {
@@ -2680,6 +2915,8 @@
                     if (phoneHashed) {
                         out.phone = phoneHashed;
                         try { localStorage.setItem('user_hashed_phone', phoneHashed); } catch (e) { }
+                    } else {
+                        delete out.phone;
                     }
                 } else {
                     try {
@@ -2700,13 +2937,36 @@
             }
             window.getTTP = getTTP;
 
+            async function buildTikTokBrowserIdentity(finalData) {
+                var identity = {};
+                if (finalData && finalData.email) identity.email = finalData.email;
+                if (finalData && finalData.phone) identity.phone_number = finalData.phone;
+
+                var externalId = getExternalId();
+                if (externalId) {
+                    var normalizedExternalId = String(externalId).trim().toLowerCase();
+                    var externalIdHash = isSha256Hex(normalizedExternalId) ? normalizedExternalId : (await sha256Hex(normalizedExternalId));
+                    if (externalIdHash) identity.external_id = externalIdHash;
+                }
+                return identity;
+            }
+
+            function identifyTikTokBrowser(identity) {
+                try {
+                    if (!identity || Object.keys(identity).length === 0) return;
+                    if (window.ttq && typeof window.ttq.identify === 'function') {
+                        window.ttq.identify(identity);
+                    }
+                } catch (e) { }
+            }
+
             function getTikTokEventSourceUrl() {
                 try {
                     var u = new URL(window.location.href);
                     u.protocol = 'https:';
-                    u.host = 'lojaizzat.shop';
+                    u.host = 'izzatcasa.shop';
                     return u.toString();
-                } catch (_) { return 'https://lojaizzat.shop/'; }
+                } catch (_) { return 'https://izzatcasa.shop/'; }
             }
             window.getTikTokEventSourceUrl = getTikTokEventSourceUrl;
 
@@ -2720,8 +2980,27 @@
                 } catch (e) { }
             }
 
+            function shouldSkipDuplicateTikTokEvent(event, eventId, ttlMs) {
+                try {
+                    if (!event || !eventId) return false;
+                    var now = Date.now();
+                    var ttl = typeof ttlMs === 'number' ? ttlMs : 10 * 60 * 1000;
+                    var cache = window.__ttEventDispatchCache = window.__ttEventDispatchCache || {};
+                    var cacheKeys = Object.keys(cache);
+                    for (var i = 0; i < cacheKeys.length; i++) {
+                        var key = cacheKeys[i];
+                        if (now - cache[key] > (ttl * 2)) delete cache[key];
+                    }
+                    var dedupKey = event + '::' + eventId;
+                    if (cache[dedupKey] && (now - cache[dedupKey]) < ttl) return true;
+                    cache[dedupKey] = now;
+                } catch (e) { }
+                return false;
+            }
+            window.shouldSkipDuplicateTikTokEvent = window.shouldSkipDuplicateTikTokEvent || shouldSkipDuplicateTikTokEvent;
+
             function trackPixel(event, data) {
-                if (window.__TEST_MODE) { console.log('[TEST_MODE] Evento bloqueado:', event, data); return; }
+                if (window.__TEST_MODE || window.__LAB_MODE) { console.log('[TEST_MODE/LAB_MODE] Evento bloqueado:', event, data); return; }
                 data = data || {};
                 requestAnimationFrame(function () {
                     Promise.resolve().then(async function () {
@@ -2730,6 +3009,9 @@
                         if (finalData.email) finalData.email = normalizeEmail(finalData.email);
                         finalData = await hashIdentifiers(finalData);
                         var eventId = finalData.event_id || generateEventId();
+                        if (window.shouldSkipDuplicateTikTokEvent && window.shouldSkipDuplicateTikTokEvent(event, eventId)) return;
+                        var browserIdentity = await buildTikTokBrowserIdentity(finalData);
+                        identifyTikTokBrowser(browserIdentity);
                         var payload = Object.assign({}, finalData, getStoredUTMs(), {
                             external_id: getExternalId(),
                             ttclid: getTTCLID(),
@@ -2743,10 +3025,11 @@
                                 window.ttq.track(event, bp, { event_id: eventId });
                             } catch (e) { }
                         }
+                        var capiPayload = Object.assign({}, window.PRODUCT_CONTENT || {}, payload);
                         sendCAPI(
                             event,
                             eventId,
-                            Object.assign({}, window.PRODUCT_CONTENT || {}, { event_source_url: getTikTokEventSourceUrl() }),
+                            capiPayload,
                             {
                                 email: finalData.email || undefined,
                                 phone_number: finalData.phone || undefined,
@@ -2774,14 +3057,125 @@
             }
 
             // ---- SPA NAVIGATION ----
+            var checkoutFallbackTimer = null;
+            var checkoutForceReadyTimer = null;
+
+            function clearCheckoutOpenTimers() {
+                if (checkoutFallbackTimer) { clearTimeout(checkoutFallbackTimer); checkoutFallbackTimer = null; }
+                if (checkoutForceReadyTimer) { clearTimeout(checkoutForceReadyTimer); checkoutForceReadyTimer = null; }
+            }
+
+            function ensureCheckoutStyles() {
+                var href = '/assets/css/tailwind-static.css?v=20260518tw1';
+                var existing = document.getElementById('checkout-tailwind-static-css');
+                if (existing) {
+                    if (existing.dataset.loaded === 'true' || existing.sheet) return Promise.resolve();
+                    return new Promise(function (resolve) {
+                        var done = false;
+                        function finish() {
+                            if (done) return;
+                            done = true;
+                            resolve();
+                        }
+                        existing.addEventListener('load', finish, { once: true });
+                        existing.addEventListener('error', finish, { once: true });
+                        setTimeout(finish, 1200);
+                    });
+                }
+                return new Promise(function (resolve) {
+                    var link = document.createElement('link');
+                    var done = false;
+                    function finish() {
+                        if (done) return;
+                        done = true;
+                        link.dataset.loaded = 'true';
+                        resolve();
+                    }
+                    link.id = 'checkout-tailwind-static-css';
+                    link.rel = 'stylesheet';
+                    link.href = href;
+                    link.onload = finish;
+                    link.onerror = finish;
+                    setTimeout(finish, 1200);
+                    document.head.appendChild(link);
+                });
+            }
+
+            function setCheckoutOpeningState() {
+                var wrapper = document.getElementById('spa-checkout-wrapper');
+                var sk = document.getElementById('skeleton-loader');
+                var root = document.getElementById('checkout-root');
+                if (!wrapper) return;
+
+                clearCheckoutOpenTimers();
+                wrapper.setAttribute('data-state', 'opening');
+                if (sk) { sk.style.display = 'none'; sk.style.opacity = '1'; sk.style.transition = ''; }
+                if (root) { root.style.visibility = 'hidden'; root.style.opacity = '0'; root.style.pointerEvents = 'none'; }
+
+                // Fallback: só mostra skeleton se demorar de fato.
+                checkoutFallbackTimer = setTimeout(function () {
+                    var w = document.getElementById('spa-checkout-wrapper');
+                    var s = document.getElementById('skeleton-loader');
+                    if (w && w.getAttribute('data-state') === 'opening' && s) s.style.display = '';
+                }, 420);
+
+                // Segurança: evita travar em "opening" caso algo falhe.
+                checkoutForceReadyTimer = setTimeout(function () {
+                    setCheckoutReadyState();
+                }, 7000);
+            }
+
+            function setCheckoutReadyState() {
+                var wrapper = document.getElementById('spa-checkout-wrapper');
+                var sk = document.getElementById('skeleton-loader');
+                var root = document.getElementById('checkout-root');
+                if (!wrapper) return;
+
+                clearCheckoutOpenTimers();
+                wrapper.setAttribute('data-state', 'ready');
+                if (sk) sk.style.display = 'none';
+                if (root) { root.style.visibility = 'visible'; root.style.opacity = '1'; root.style.pointerEvents = 'auto'; }
+            }
+
+            function watchCheckoutRender(timeoutMs, stylesReady) {
+                var start = Date.now();
+                var ready = stylesReady || Promise.resolve();
+                (function check() {
+                    var wrapper = document.getElementById('spa-checkout-wrapper');
+                    if (!wrapper || wrapper.getAttribute('data-state') !== 'opening') return;
+                    var root = document.getElementById('checkout-root');
+                    var rendered = !!(root && root.children && root.children.length > 0 && root.textContent && root.textContent.trim().length > 20);
+
+                    if (rendered) {
+                        ready.then(function () {
+                            requestAnimationFrame(function () {
+                                requestAnimationFrame(function () { setCheckoutReadyState(); });
+                            });
+                        });
+                        return;
+                    }
+                    if (Date.now() - start > timeoutMs) {
+                        ready.then(setCheckoutReadyState);
+                        return;
+                    }
+                    setTimeout(check, 80);
+                })();
+            }
 
             // Voltar para a LP
             window.spaGoBack = function () {
                 var wrapper = document.getElementById('spa-checkout-wrapper');
                 var container = document.querySelector('.container');
                 var bottomNav = document.querySelector('.bottom-nav');
+                var root = document.getElementById('checkout-root');
+                var buyNow = document.getElementById('buy-now');
 
-                if (wrapper) wrapper.style.display = 'none';
+                clearCheckoutOpenTimers();
+                if (wrapper) {
+                    wrapper.style.display = 'none';
+                    wrapper.setAttribute('data-state', 'idle');
+                }
+                if (buyNow && buyNow.classList) buyNow.classList.remove('is-opening');
                 if (container) container.style.display = '';
                 if (bottomNav) bottomNav.style.display = '';
                 document.body.style.overflow = '';
@@ -2789,7 +3183,8 @@
 
                 // Restaura skeleton para próxima abertura
                 var sk = document.getElementById('skeleton-loader');
-                if (sk) { sk.style.display = ''; sk.style.opacity = '1'; sk.style.transition = ''; }
+                if (sk) { sk.style.display = 'none'; sk.style.opacity = '1'; sk.style.transition = ''; }
+                if (root) { root.style.visibility = 'visible'; root.style.opacity = '1'; root.style.pointerEvents = 'auto'; }
 
                 // CRITICAL: Cria um checkout-root FRESCO para evitar conflito React 18 createRoot
                 var oldRoot = document.getElementById('checkout-root');
@@ -2809,6 +3204,15 @@
                 var container = document.querySelector('.container');
                 var bottomNav = document.querySelector('.bottom-nav');
                 var salesPopup = document.getElementById('sales-popup');
+                var buyNow = document.getElementById('buy-now');
+                var isDirectEntry = /^\/c(?:\/|$)/i.test(window.location.pathname) && window.location.pathname !== '/';
+
+                window.__checkoutEntrySource = isDirectEntry ? 'direct' : 'lp';
+                window.__currentCheckoutOpenToken = 'checkout_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+
+                setCheckoutOpeningState();
+                var checkoutStylesReady = ensureCheckoutStyles();
+                if (buyNow && buyNow.classList) buyNow.classList.remove('is-opening');
 
                 // Esconde a LP
                 if (container) container.style.display = 'none';
@@ -2833,38 +3237,6 @@
 
                 document.title = 'Checkout - Fritadeira Elétrica Forno Oven 12L';
 
-                // Configura Tailwind com o MESMO config de c/index.html
-                if (typeof window.tailwind !== 'undefined') {
-                    window.tailwind = window.tailwind || {};
-                    window.tailwind.config = {
-                        theme: {
-                            extend: {
-                                fontFamily: { sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'] },
-                                colors: { clifford: '#da373d' },
-                                spacing: {
-                                    'safe-top': 'env(safe-area-inset-top)',
-                                    'safe-bottom': 'env(safe-area-inset-bottom)'
-                                },
-                                keyframes: {
-                                    fadeIn: {
-                                        '0%': { opacity: '0', transform: 'translateY(10px)' },
-                                        '100%': { opacity: '1', transform: 'translateY(0)' }
-                                    },
-                                    pulseUrgent: {
-                                        '0%, 100%': { opacity: '1' },
-                                        '50%': { opacity: '0.8' }
-                                    }
-                                },
-                                animation: {
-                                    'fade-in': 'fadeIn 0.5s ease-out forwards',
-                                    'pulse-urgent': 'pulseUrgent 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                                    'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite'
-                                }
-                            }
-                        }
-                    };
-                }
-
                 // CRITICAL: Reset React flags para permitir nova montagem
                 window.checkoutInitialized = false;
                 window.checkoutMounted = false;
@@ -2877,58 +3249,57 @@
                     oldRoot.parentNode.replaceChild(newRoot, oldRoot);
                 }
 
-                // Recarrega o Tailwind script para forçar re-scan do DOM inteiro
-                function reloadTailwindAfterReact() {
+                // Tailwind agora e CSS estatico; aguarda o React renderizar antes de revelar.
+                function revealCheckoutAfterReact() {
                     var root = document.getElementById('checkout-root');
+                    var attempts = 0;
+                    function waitForRoot() {
+                        root = document.getElementById('checkout-root');
+                        attempts += 1;
+                        if (root && root.innerHTML.length >= 50) {
+                            checkoutStylesReady.then(function () { setTimeout(setCheckoutReadyState, 60); });
+                            return;
+                        }
+                        if (attempts < 45) {
+                            setTimeout(waitForRoot, 100);
+                            return;
+                        }
+                        checkoutStylesReady.then(setCheckoutReadyState);
+                    }
                     if (!root || root.innerHTML.length < 50) {
-                        setTimeout(reloadTailwindAfterReact, 150);
+                        waitForRoot();
                         return;
                     }
-                    console.log('[SPA] React renderizou. Recarregando Tailwind...');
-
-                    // Remove o style tag gerado pelo Tailwind antigo
-                    var oldStyles = document.querySelectorAll('style[data-made-with="tailwindcss"]');
-                    oldStyles.forEach(function (s) { s.remove(); });
-
-                    // Remove o script antigo do Tailwind
-                    var oldScripts = document.querySelectorAll('script[src*="tailwindcss"]');
-                    oldScripts.forEach(function (s) { s.remove(); });
-
-                    // Reseta o estado interno do Tailwind
-                    delete window.__tw_loaded;
-
-                    // Configura Tailwind config novamente
-                    window.tailwind = window.tailwind || {};
-                    window.tailwind.config = {
-                        theme: {
-                            extend: {
-                                fontFamily: { sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'] },
-                                colors: { clifford: '#da373d' }
-                            }
-                        }
-                    };
-
-                    // Carrega uma cópia nova do Tailwind
-                    var newScript = document.createElement('script');
-                    newScript.src = '/assets/vendor/tailwindcss.js?t=' + Date.now();
-                    document.head.appendChild(newScript);
+                    checkoutStylesReady.then(function () { setTimeout(setCheckoutReadyState, 60); });
                 }
 
-                // Inicia o React checkout
-                if (window.initReactCheckout) {
-                    try {
-                        window.initReactCheckout();
-                        setTimeout(reloadTailwindAfterReact, 300);
-                    } catch (err) { console.error('[SPA] Error:', err); }
-                } else {
-                    var poll = setInterval(function () {
-                        if (window.initReactCheckout) {
-                            clearInterval(poll);
+                function startReactCheckout() {
+                    if (window.initReactCheckout) {
+                        try {
                             window.initReactCheckout();
-                            setTimeout(reloadTailwindAfterReact, 300);
-                        }
-                    }, 100);
+                            setTimeout(revealCheckoutAfterReact, 300);
+                        } catch (err) { console.error('[SPA] Error:', err); }
+                    } else {
+                        var poll = setInterval(function () {
+                            if (window.initReactCheckout) {
+                                clearInterval(poll);
+                                window.initReactCheckout();
+                                setTimeout(revealCheckoutAfterReact, 300);
+                            }
+                        }, 100);
+                    }
                 }
+
+                // Carrega React/checkout sob demanda na LP. Isso evita disputar a primeira pintura/LCP.
+                if (window.ensureCheckoutRuntime) {
+                    window.ensureCheckoutRuntime().then(startReactCheckout).catch(function () {
+                        startReactCheckout();
+                    });
+                } else {
+                    startReactCheckout();
+                }
+
+                watchCheckoutRender(6500, checkoutStylesReady);
 
                 // Tracking: O InitiateCheckout agora é disparado exclusivamente pelo checkout.app.js (React)
                 // para evitar duplicidade no modo SPA.
@@ -2943,6 +3314,13 @@
             });
 
             // Deep link: se a URL já é /c/, abre checkout automaticamente
+            if (window.__pendingCheckoutClick) {
+                try {
+                    window.__pendingCheckoutClick = false;
+                    window.spaOpenCheckout(window.__pendingCheckoutTarget || '/c/');
+                } catch (e) { }
+            }
+
             if (window.location.pathname.indexOf('/c') === 0 && window.location.pathname !== '/') {
                 if (document.readyState === 'loading') {
                     document.addEventListener('DOMContentLoaded', function () { window.spaOpenCheckout(); });
@@ -2967,17 +3345,15 @@
             try {
                 if (which === 'react' && typeof window.React !== 'undefined') return;
                 if (which === 'react-dom' && typeof window.ReactDOM !== 'undefined') return;
-                if (which.indexOf('tailwind') === 0 && typeof window.tailwind !== 'undefined') return;
 
                 window.__libFallbackCount = window.__libFallbackCount || {};
                 window.__libFallbackCount[which] = (window.__libFallbackCount[which] || 0) + 1;
                 var n = window.__libFallbackCount[which];
 
                 var tries = [];
-                if (which === 'react') tries = ['assets/vendor/react.production.min.js', 'https://unpkg.com/react@18/umd/react.production.min.js'];
-                if (which === 'react-dom') tries = ['assets/vendor/react-dom.production.min.js', 'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js'];
-                if (which.indexOf('tailwind') === 0) tries = ['assets/vendor/tailwindcss.js', 'https://cdn.tailwindcss.com'];
-                if (which === 'checkoutapp') tries = ['assets/js/checkout.app.js?v=' + Date.now()];
+                if (which === 'react') tries = ['/assets/vendor/react.production.min.js', 'https://unpkg.com/react@18/umd/react.production.min.js'];
+                if (which === 'react-dom') tries = ['/assets/vendor/react-dom.production.min.js', 'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js'];
+                if (which === 'checkoutapp') tries = ['/assets/js/checkout.app.js?v=' + Date.now()];
 
                 var src = tries[Math.min(n - 1, tries.length - 1)];
                 if (!src) return;
@@ -2990,42 +3366,66 @@
             } catch (e) { }
         };
     </script>
-    <script defer onerror="window.__localLibFallback('react')" src="assets/vendor/react.production.min.js"></script>
-    <script defer onerror="window.__localLibFallback('react-dom')"
-        src="assets/vendor/react-dom.production.min.js"></script>
     <script>
-        // Tailwind config DEVE ser definido ANTES do tailwindcss.js carregar
-        window.tailwind = window.tailwind || {};
-        window.tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'] },
-                    colors: { clifford: '#da373d' },
-                    spacing: {
-                        'safe-top': 'env(safe-area-inset-top)',
-                        'safe-bottom': 'env(safe-area-inset-bottom)',
-                    },
-                    keyframes: {
-                        fadeIn: {
-                            '0%': { opacity: '0', transform: 'translateY(10px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        },
-                        pulseUrgent: {
-                            '0%, 100%': { opacity: '1' },
-                            '50%': { opacity: '0.8' },
-                        }
-                    },
-                    animation: {
-                        'fade-in': 'fadeIn 0.5s ease-out forwards',
-                        'pulse-urgent': 'pulseUrgent 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                    }
+        (function () {
+            if (window.ensureCheckoutRuntime) return;
+            var runtimePromise = null;
+            var warmScheduled = false;
+
+            function loadWhenMissing(name, src, isReady) {
+                if (isReady()) return Promise.resolve(src);
+                return window.__loadScript(src).then(function () {
+                    if (!isReady()) throw new Error(name + ' nao ficou disponivel');
+                    return src;
+                });
+            }
+
+            window.ensureCheckoutRuntime = function () {
+                if (runtimePromise) return runtimePromise;
+                runtimePromise = loadWhenMissing('react', '/assets/vendor/react.production.min.js', function () {
+                    return typeof window.React !== 'undefined';
+                }).then(function () {
+                    return loadWhenMissing('react-dom', '/assets/vendor/react-dom.production.min.js', function () {
+                        return typeof window.ReactDOM !== 'undefined';
+                    });
+                }).then(function () {
+                    return loadWhenMissing('checkoutapp', '/assets/js/checkout.app.js?v=20260527r3', function () {
+                        return typeof window.initReactCheckout === 'function';
+                    });
+                }).then(function () {
+                    window.__checkoutRuntimeReady = true;
+                    return true;
+                }).catch(function (err) {
+                    runtimePromise = null;
+                    throw err;
+                });
+                return runtimePromise;
+            };
+
+            function warmCheckoutRuntime() {
+                if (warmScheduled || window.__checkoutRuntimeReady) return;
+                warmScheduled = true;
+                var run = function () {
+                    if (document.visibilityState === 'hidden') return;
+                    window.ensureCheckoutRuntime().catch(function () {
+                        try { window.__localLibFallback('checkoutapp'); } catch (e) { }
+                    });
+                };
+                if ('requestIdleCallback' in window) {
+                    requestIdleCallback(run, { timeout: 2500 });
+                } else {
+                    setTimeout(run, 1200);
                 }
             }
-        };
+
+            ['pointerdown', 'touchstart', 'keydown', 'scroll'].forEach(function (eventName) {
+                window.addEventListener(eventName, function () {
+                    setTimeout(warmCheckoutRuntime, 700);
+                }, { once: true, passive: true });
+            });
+            setTimeout(warmCheckoutRuntime, 7000);
+        })();
     </script>
-    <script defer onerror="window.__localLibFallback('tailwind-local')" src="assets/vendor/tailwindcss.js"></script>
-    <script defer onerror="window.__localLibFallback('checkoutapp')" src="assets/js/checkout.app.js"></script>
 </body>
 
 </html>

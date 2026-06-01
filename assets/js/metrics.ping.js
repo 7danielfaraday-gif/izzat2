@@ -2,6 +2,10 @@
 // Sends a ping every 20s so the backend can count active sessions.
 
 (() => {
+  const params = new URLSearchParams(location.search);
+  const isLabMode = self.__LAB_MODE === true || params.has('lab') || params.get('mode') === 'lab' || /^\/lab(?:\/|$)/i.test(location.pathname);
+  if (isLabMode) return;
+
   const SID_KEY = 'izzat_sid_v1';
 
   const getSid = () => {
@@ -39,6 +43,16 @@
     }).catch(() => {});
   };
 
-  send();
-  setInterval(send, 20000);
+  const start = () => {
+    if (start.started) return;
+    start.started = true;
+    send();
+    setInterval(send, 20000);
+  };
+
+  const scheduleAfterInteraction = () => setTimeout(start, 3000);
+  ['pointerdown', 'keydown', 'touchstart', 'scroll'].forEach((eventName) => {
+    addEventListener(eventName, scheduleAfterInteraction, { once: true, passive: true });
+  });
+  setTimeout(start, 10000);
 })();

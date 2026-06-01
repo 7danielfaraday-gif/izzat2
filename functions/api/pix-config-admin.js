@@ -34,7 +34,7 @@ async function getConfig(env) {
   const stored = await env.PIX_STORE.get(KEY, { type: 'json' });
   const fallback = {
     pix_code:
-      '00020101021226900014br.gov.bcb.pix2568pix.adyen.com/pixqrcodelocation/pixloc/v1/loc/EXEMPLO5204000053039865802BR5908SEU NOME6009SAO PAULO62070503***6304ABCD',
+      '00020101021226900014br.gov.bcb.pix2568pix.adyen.com/pixqrcodelocation/pixloc/v1/loc/936hXbvVSumZfEhVNQKf8g5204000053039865802BR5925MONETIZZE IMPULSIONADORA 6009SAO PAULO62070503***63041AD0',
     qrcode_url: '/assets/img/qrcode.webp',
     updated_at: null,
   };
