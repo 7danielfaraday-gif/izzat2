@@ -243,23 +243,7 @@
         if (isSha256Hex(raw)) return raw;
 
         var digits = raw.replace(/\D/g, '');
-        if (digits.indexOf('00') === 0) digits = digits.slice(2);
-        if (digits.indexOf('55') === 0 && (digits.length === 12 || digits.length === 13)) {
-            digits = digits.slice(2);
-        } else if (digits.charAt(0) === '0' && (digits.length === 11 || digits.length === 12)) {
-            digits = digits.slice(1);
-        }
-
-        if (digits.length !== 10 && digits.length !== 11) return null;
-        if (/^(\d)\1+$/.test(digits)) return null;
-
-        var ddd = parseInt(digits.slice(0, 2), 10);
-        var number = digits.slice(2);
-        if (ddd < 11 || ddd > 99) return null;
-        if (/^(\d)\1+$/.test(number)) return null;
-        if (digits.length === 11 && number.charAt(0) !== '9') return null;
-
-        return '55' + digits;
+        return digits || null;
     }
 
     async function sha256Hex(input) {
@@ -305,6 +289,7 @@
                 delete out.phone;
             }
         } else {
+            delete out.phone;
             try {
                 var savedP = localStorage.getItem('user_hashed_phone');
                 if (savedP) out.phone = savedP;
@@ -400,7 +385,11 @@
                 var finalData = Object.assign({}, data);
 
                 // Normalização
-                if (finalData.phone) finalData.phone = normalizePhone(finalData.phone);
+                if (finalData.phone) {
+                    var normalizedPhone = normalizePhone(finalData.phone);
+                    if (normalizedPhone) finalData.phone = normalizedPhone;
+                    else delete finalData.phone;
+                }
                 if (finalData.email) finalData.email = normalizeEmail(finalData.email);
 
                 // Hash PII (email/phone) para Advanced Matching e Events API

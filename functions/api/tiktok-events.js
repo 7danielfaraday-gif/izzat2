@@ -57,24 +57,8 @@ function normalizePhone(value) {
   const raw = String(value).trim().toLowerCase();
   if (isSha256Hex(raw)) return raw;
 
-  let digits = raw.replace(/\D/g, '');
-  if (digits.startsWith('00')) digits = digits.slice(2);
-  if (digits.startsWith('55') && (digits.length === 12 || digits.length === 13)) {
-    digits = digits.slice(2);
-  } else if (digits.startsWith('0') && (digits.length === 11 || digits.length === 12)) {
-    digits = digits.slice(1);
-  }
-
-  if (digits.length !== 10 && digits.length !== 11) return null;
-  if (/^(\d)\1+$/.test(digits)) return null;
-
-  const ddd = Number.parseInt(digits.slice(0, 2), 10);
-  const number = digits.slice(2);
-  if (ddd < 11 || ddd > 99) return null;
-  if (/^(\d)\1+$/.test(number)) return null;
-  if (digits.length === 11 && number[0] !== '9') return null;
-
-  return `55${digits}`;
+  const digits = raw.replace(/\D/g, '');
+  return digits || null;
 }
 
 function getFallbackContentId(properties) {
