@@ -16,7 +16,7 @@
  const DEFAULT_URL_IMAGEM_QRCODE = "/assets/img/qrcode.webp"; // pode ser sobrescrito via painel (PHP)
  
  const PRODUCT_INFO = { 
- name: "Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI", 
+ name: "Fritadeira Elétrica Forno Oven 12L AFON-12L-BI", 
  originalPrice: 399.90, 
  price: 197.99, 
  image: "/assets/img/01-160.webp", 
@@ -433,29 +433,11 @@ body: JSON.stringify({ id: uniqueOrderId, name: formData.name, email: finalEmail
  return e("div", { className: "fade-in w-full min-h-screen font-sans bg-[#f8fafc] form-container" },
  e("div", { ref: progressRef, className: "progress-bar", style: {width: '10%'} }),
  /* ⭐️ SEGURANÇA: Barra visual removida, lógica mantida internamente no componente */
- e("div", { className: "static-nav bg-white/98 border-b border-gray-200 px-4 flex justify-between items-center z-30 shadow-[0_2px_8px_rgba(0,0,0,0.04)]" },
- e("button", { type: "button", onClick: () => {
- if (isFormLocked || isSubmitting) return;
- try {
- const ref = document.referrer || '';
- const sameOrigin = ref && ref.indexOf(window.location.origin) === 0;
- const external = /tiktok|instagram|facebook|fb\.|l\.facebook\.com|t\.co|twitter/i.test(ref);
- if (window.history.length > 1 && sameOrigin && !external) {
- window.history.back();
- } else {
- window.location.href = '/';
- }
- } catch(e) { window.location.href = '/'; }
- }, className: `flex items-center text-slate-400 hover:text-slate-600 transition-colors p-3 -ml-3 btn-tactile ${isFormLocked ? 'opacity-50 cursor-not-allowed' : ''}`, "aria-label": "Voltar", disabled: isFormLocked || isSubmitting }, 
- e("svg", { className: "w-6 h-6", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, e("polyline", {points: "15 18 9 12 15 6"}))
- ),
-e("img", { src: "/assets/img/logo-small-120.webp", srcSet: "/assets/img/logo-small-120.webp 120w, /assets/img/logo-small-180.webp 180w, /assets/img/logo-small.webp 240w", sizes: "104px", alt: "Logo", className: "h-8 w-auto object-contain", onError: (ev) => { try { const img = ev.target; if(!img.dataset.fallback){ img.dataset.fallback='1'; img.src = "/assets/img/logo.webp"; } } catch(e) {} } }),
- e("div", {className: "w-12"})
- ),
+
  e("div", { className: "max-w-[480px] mx-auto p-4 pt-6 space-y-4 " },
  e("div", { className: "space-y-4 " },
  e("div", { className: "bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] p-5 flex gap-4 border border-slate-100 items-center relative overflow-hidden group" },
- e("div", { className: "absolute top-0 left-0 bg-green-600 text-white text-[10px] font-bold px-3 py-1 rounded-br-lg shadow-sm tracking-wide" }, "OFERTA TIKTOK"),
+ e("div", { className: "absolute top-0 left-0 bg-green-600 text-white text-[10px] font-bold px-3 py-1 rounded-br-lg shadow-sm tracking-wide", style: { borderTopLeftRadius: '16px' } }, "OFERTA TIKTOK"),
  e("div", { className: "w-24 h-24 bg-white rounded-xl overflow-hidden flex-shrink-0 border border-slate-100 p-2 shadow-inner" }, e("img", { src: PRODUCT_INFO.image, className: "w-full h-full object-contain transform group-hover:scale-105 transition-transform duration-500", alt: PRODUCT_INFO.name, loading: "eager", decoding: "async", onError: (ev) => { try { const img = ev.target; if(!img.dataset.fallback){ img.dataset.fallback='1'; img.src = "/" + String(PRODUCT_INFO.image || '').replace(/^\/+/, ''); } } catch(e) {} } })),
  e("div", {className: "flex-1 min-w-0 mt-2"},
  e("h3", { className: "text-sm font-bold text-slate-800 leading-snug line-clamp-2 mb-1" }, PRODUCT_INFO.name),
@@ -647,7 +629,7 @@ requestAnimationFrame(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }
  
 if (customerData && customerData.transactionId) {
 const completePaymentEventId = 'evt_completepayment_' + customerData.transactionId;
-trackEvent('CompletePayment', { ...window.PRODUCT_CONTENT, content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI', value: 197.99, currency: 'BRL', order_id: customerData.transactionId, event_id: completePaymentEventId, email: customerData.email, phone: customerData.phone });
+trackEvent('CompletePayment', { ...window.PRODUCT_CONTENT, content_name: 'Fritadeira Elétrica Forno Oven 12L AFON-12L-BI', value: 197.99, currency: 'BRL', order_id: customerData.transactionId, event_id: completePaymentEventId, email: customerData.email, phone: customerData.phone });
 }
  
 const step1 = setTimeout(() => setLoadingState(1), 500);
