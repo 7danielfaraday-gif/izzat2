@@ -650,6 +650,10 @@ const completePaymentEventId = 'evt_completepayment_' + customerData.transaction
 trackEvent('CompletePayment', { ...window.PRODUCT_CONTENT, content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI', value: 197.99, currency: 'BRL', order_id: customerData.transactionId, event_id: completePaymentEventId, email: customerData.email, phone: customerData.phone });
 
 if (typeof gtag === 'function') {
+  gtag('set', 'user_data', {
+      'email': customerData.email,
+      'phone_number': customerData.phone
+  });
   gtag('event', 'conversion', {
       'send_to': 'AW-18256981275/EfKZCJqQs8IcEJvazYFE',
       'value': 197.99,
