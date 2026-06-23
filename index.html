@@ -1211,6 +1211,23 @@
             display: inline-block
         }
     </style>
+    <!-- Facebook Pixel Code -->
+    <script>
+      !function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)}(window, document,'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', '1477467864082559');
+      fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+      src="https://www.facebook.com/tr?id=1477467864082559&ev=PageView&noscript=1"
+    /></noscript>
+    <!-- End Facebook Pixel Code -->
     <script>if (!window.__TEST_MODE && !window.__LAB_MODE) { !function () { var id = 'G-E373VKT4H4', q = [], scheduled = !1; window.dataLayer = window.dataLayer || []; window.gtag = window.gtag || function () { q.push([].slice.call(arguments)); }; function idle(fn) { if ('requestIdleCallback' in window) requestIdleCallback(fn, { timeout: 3000 }); else setTimeout(fn, 0); } function load() { if (window.__gaLoaded) return; window.__gaLoaded = !0; var s = document.createElement('script'); s.async = !0; s.src = 'https://www.googletagmanager.com/gtag/js?id=' + id; document.head.appendChild(s); window.gtag = function () { window.dataLayer.push(arguments); }; gtag('js', new Date()); gtag('config', id, { send_page_view: !1 }); gtag('config', 'AW-18256981275'); gtag('event', 'page_view'); for (var i = 0; i < q.length; i++) window.dataLayer.push(q[i]); q = []; } function schedule() { if (scheduled || window.__gaLoaded) return; scheduled = !0; setTimeout(function () { idle(load); }, 12000); } ['pointerdown', 'keydown', 'touchstart', 'scroll'].forEach(function (ev) { window.addEventListener(ev, schedule, { once: !0, passive: !0 }); }); setTimeout(function () { idle(load); }, 45000); }(); }</script>
 </head>
 
@@ -2903,6 +2920,16 @@
             }
             window.generateEventId = generateEventId;
 
+            async function sendFBCAPI(event, eventId, properties, user) {
+                try {
+                    await fetch('/api/fb-events', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ event: event, event_id: eventId, properties: properties, user: user })
+                    });
+                } catch (e) { }
+            }
+
             function trackPixel(event, data) {
                 if (window.__TEST_MODE || window.__LAB_MODE) { console.log('[TEST_MODE/LAB_MODE] Evento bloqueado:', event, data); return; }
                 data = data || {};
@@ -2924,6 +2951,33 @@
                         });
                         
                         if (typeof gtag === 'function') { try { gtag('event', event, payload); } catch (e) { } }
+
+                        // --- Meta Pixel & CAPI ---
+                        var fbEventName = event;
+                        if (event === 'CompletePayment' || event === 'Pix_Copy_Click') fbEventName = 'Purchase';
+
+                        if (typeof fbq === 'function') {
+                            try {
+                                var fbPayload = Object.assign({}, payload);
+                                delete fbPayload.event_id;
+                                fbq('track', fbEventName, fbPayload, { eventID: eventId });
+                            } catch (e) {}
+                        }
+
+                        // Get FB cookies
+                        var fbp = (document.cookie.match(/(?:^|;\s*)_fbp=([^;]*)/) || [])[1] || undefined;
+                        var fbc = (document.cookie.match(/(?:^|;\s*)_fbc=([^;]*)/) || [])[1] || undefined;
+                        
+                        var capiProperties = Object.assign({}, window.PRODUCT_CONTENT || {}, payload);
+                        var capiUser = {
+                            email: finalData.email || undefined,
+                            phone_number: finalData.phone || undefined,
+                            external_id: getExternalId(),
+                            fbp: fbp,
+                            fbc: fbc
+                        };
+                        sendFBCAPI(fbEventName, eventId, capiProperties, capiUser);
+
                     }).catch(function (error) { if (DEBUG_MODE) console.error('[trackPixel]', error); });
                 });
             }
