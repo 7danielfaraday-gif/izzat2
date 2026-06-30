@@ -14,22 +14,20 @@ export async function onRequest(context) {
     if (url.pathname === '/verify_human') {
         try {
             const body = await request.json();
-            const requestId = body.requestId;
+            const eventId = body.eventId; // Na v4 usamos event_id
 
-            if (!requestId) {
+            if (!eventId) {
                 return new Response('ERRO', { status: 400 });
             }
 
-            // Consulta a API do Fingerprint no Backend (Server-to-Server)
-            // CORREÇÃO: O cabeçalho correto é 'Auth-API-Key'
-            const fpResponse = await fetch('https://api.fpjs.io/events/' + requestId, {
+            // Consulta a API do Fingerprint V4 no Backend
+            const fpResponse = await fetch('https://api.fpjs.io/events/' + eventId, {
                 headers: { 
                     'Auth-API-Key': FP_SERVER_API_KEY,
                     'Content-Type': 'application/json'
                 }
             });
 
-            // Se a API rejeitar a chave ou der erro, bloqueia
             if (!fpResponse.ok) {
                 return new Response('BOT_DETECTADO', { status: 403 });
             }
@@ -40,17 +38,15 @@ export async function onRequest(context) {
             const isBot = fpData?.products?.bot_detection?.data?.bot;
 
             if (isBot === true) {
-                // A IA do Fingerprint detectou que é bot
                 return new Response('BOT_DETECTADO', { status: 403 });
             } else {
-                // É humano confirmado! Libera o crachá (Cookie)
+                // É humano! Libera o crachá (Cookie)
                 const headers = new Headers();
                 headers.append('Set-Cookie', `is_human=true; Path=/; HttpOnly; Secure; SameSite=Lax`);
                 headers.append('Content-Type', 'text/plain');
                 return new Response('HUMANO_OK', { status: 200, headers: headers });
             }
         } catch (e) {
-            // Se a API falhar, não libera (Fail-closed para segurança)
             return new Response('ERRO_API', { status: 500 });
         }
     }
@@ -64,7 +60,7 @@ export async function onRequest(context) {
     }
 
     // ==========================================
-    // 3. A TRIAGEM DO SEGURANÇA (FASE 1 - CLOUDFLARE)
+    // 3. A TRIAGEM DO SEGURANÇA (FASE 1)
     // ==========================================
     const userAgent = request.headers.get('User-Agent') || '';
     const cf = request.cf || {}; 
@@ -72,15 +68,12 @@ export async function onRequest(context) {
     const isBrazil = cf.country === 'BR';
     const isBotUA = /bot|crawl|spider|facebookexternalhit|HeadlessChrome|tiktok/i.test(userAgent) || userAgent === '';
     
-    // ASNs de Datacenter (AWS, Google, Azure, ByteDance)
     const datacenterASNs = [14618, 15169, 16509, 36459, 8075];
     const isDatacenter = datacenterASNs.includes(cf.asn);
 
     if (!isBrazil || isDatacenter || isBotUA) {
-        // É Bot/Revisor. Mostra a Safe Page
         return new Response(SAFE_PAGE_HTML, { headers: { 'Content-Type': 'text/html' } });
     } else {
-        // Passou na Fase 1. Mostra a página de Interrogatório
         return new Response(BUFFER_PAGE_HTML, { headers: { 'Content-Type': 'text/html' } });
     }
 }
@@ -115,40 +108,39 @@ const BUFFER_PAGE_HTML = `
         (function() {
             const fpPublicApiKey = '${FP_PUBLIC_API_KEY}'; 
 
-            const script = document.createElement('script');
-            script.onload = function() {
-                const fpPromise = FingerprintJS.load({ apiKey: fpPublicApiKey });
-                fpPromise
-                    .then(fp => fp.get())
-                    .then(result => {
-                        const requestId = result.requestId;
-                        
-                        fetch('/verify_human', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ requestId: requestId })
-                        })
-                        .then(res => res.text())
-                        .then(text => {
-                            if (text === 'HUMANO_OK') {
-                                window.location.reload();
-                            } else {
-                                document.body.innerHTML = "<h1>Erro 404 - Página não encontrada</h1>";
-                            }
-                        })
-                        .catch(() => {
-                            document.body.innerHTML = "<h1>Erro 404 - Página não encontrada</h1>";
-                        });
-                    })
-                    .catch(() => {
+            // Código nativo da V4 do Fingerprint
+            const fpPromise = import('https://fpjscdn.net/v4/' + fpPublicApiKey)
+              .then(Fingerprint => Fingerprint.start({
+                region: "ap" // Região configurada no seu painel
+              }));
+
+            fpPromise
+              .then(fp => fp.get())
+              .then(result => {
+                // Na v4, pegamos o event_id
+                const eventId = result.event_id;
+                
+                // Envia o ID para o nosso Worker validar no backend
+                fetch('/verify_human', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ eventId: eventId })
+                })
+                .then(res => res.text())
+                .then(text => {
+                    if (text === 'HUMANO_OK') {
+                        window.location.reload();
+                    } else {
                         document.body.innerHTML = "<h1>Erro 404 - Página não encontrada</h1>";
-                    });
-            };
-            script.onerror = function() {
-                document.body.innerHTML = "<h1>Erro 404 - Página não encontrada</h1>";
-            };
-            script.src = "https://fpjscdn.net/v3/" + fpPublicApiKey;
-            document.body.appendChild(script);
+                    }
+                })
+                .catch(() => {
+                    document.body.innerHTML = "<h1>Erro 404 - Página não encontrada</h1>";
+                });
+              })
+              .catch(() => {
+                  document.body.innerHTML = "<h1>Erro 404 - Página não encontrada</h1>";
+              });
         })();
     </script>
 </body>
