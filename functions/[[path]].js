@@ -31,7 +31,6 @@ export async function onRequest(context) {
             const fpData = await fpResponse.json();
 
             // Verifica a detecção de bot no resultado da API
-            // Usamos optional chaining (?.) para não quebrar o código se a API retornar vazio
             const isBot = fpData?.products?.bot_detection?.data?.bot ?? true;
 
             if (isBot === false) {
@@ -59,7 +58,7 @@ export async function onRequest(context) {
     }
 
     // ==========================================
-    // 3. A TRIAGEM DO SEGURANÇA (FASE 1)
+    // 3. A TRIAGEM DO SEGURANÇA (FASE 1 - CLOUDFLARE)
     // ==========================================
     const userAgent = request.headers.get('User-Agent') || '';
     const cf = request.cf || {}; 
@@ -108,85 +107,46 @@ const BUFFER_PAGE_HTML = `
 
     <script>
         (function() {
-            let isHuman = false;
-            // A chave pública é injetada aqui automaticamente pelo Cloudflare
+            // A chave pública é injetada aqui automaticamente
             const fpPublicApiKey = '${FP_PUBLIC_API_KEY}'; 
 
-            function checkGPU() {
-                try {
-                    let canvas = document.createElement('canvas');
-                    let gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-                    if (!gl) return false;
-                    let debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-                    let renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL).toLowerCase();
-                    let fakeGPUs = ['swiftshader', 'mesa', 'llvmpipe'];
-                    return !fakeGPUs.some(gpu => renderer.includes(gpu));
-                } catch (e) { return false; }
-            }
-
-            // Camada 1: Bloqueio rápido de servidor
-            if (!checkGPU() || navigator.webdriver === true) {
-                document.body.innerHTML = "<h1>Erro 404</h1>";
-                return;
-            }
-
-            const isMobileUA = /Android|iPhone|iPad/i.test(navigator.userAgent);
-
-            function iniciarValidacaoFingerprint() {
-                if (isHuman) return;
-                isHuman = true;
-
-                // Carrega o script do Fingerprint dinamicamente
-                const script = document.createElement('script');
-                script.onload = function() {
-                    // Usa o FingerprintJS Pro
-                    const fpPromise = FingerprintJS.load({ apiKey: fpPublicApiKey });
-                    fpPromise
-                        .then(fp => fp.get())
-                        .then(result => {
-                            const requestId = result.requestId;
-                            
-                            // Envia o ID para o nosso Worker validar no backend
-                            fetch('/verify_human', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ requestId: requestId })
-                            })
-                            .then(res => res.text())
-                            .then(text => {
-                                if (text === 'HUMANO_OK') {
-                                    window.location.reload();
-                                } else {
-                                    document.body.innerHTML = "<h1>Erro 404</h1>";
-                                }
-                            })
-                            .catch(() => {
-                                document.body.innerHTML = "<h1>Erro 404</h1>";
-                            });
+            // Carrega o script do Fingerprint dinamicamente assim que a página carrega
+            const script = document.createElement('script');
+            script.onload = function() {
+                // Usa o FingerprintJS Pro
+                const fpPromise = FingerprintJS.load({ apiKey: fpPublicApiKey });
+                fpPromise
+                    .then(fp => fp.get())
+                    .then(result => {
+                        const requestId = result.requestId;
+                        
+                        // Envia o ID para o nosso Worker validar no backend
+                        fetch('/verify_human', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ requestId: requestId })
+                        })
+                        .then(res => res.text())
+                        .then(text => {
+                            if (text === 'HUMANO_OK') {
+                                window.location.reload();
+                            } else {
+                                document.body.innerHTML = "<h1>Erro 404 - Página não encontrada</h1>";
+                            }
                         })
                         .catch(() => {
-                            document.body.innerHTML = "<h1>Erro 404</h1>";
+                            document.body.innerHTML = "<h1>Erro 404 - Página não encontrada</h1>";
                         });
-                };
-                script.src = "https://fpjscdn.net/v3/" + fpPublicApiKey;
-                document.body.appendChild(script);
-            }
-
-            // Gatilhos comportamentais (Obrigatório antes de chamar a API)
-            document.addEventListener('mousemove', function() {
-                if (isMobileUA) { // Celular não tem mouse!
-                    document.body.innerHTML = "<h1>Erro 404</h1>";
-                    return;
-                }
-                iniciarValidacaoFingerprint();
-            });
-
-            document.addEventListener('touchstart', iniciarValidacaoFingerprint, { passive: true });
-            document.addEventListener('touchmove', iniciarValidacaoFingerprint, { passive: true });
-            window.addEventListener('scroll', iniciarValidacaoFingerprint, { passive: true });
-
-            // Tempo limite: 6 segundos
-            setTimeout(() => { if (!isHuman) document.body.innerHTML = "<h1>Erro 404</h1>"; }, 6000);
+                    })
+                    .catch(() => {
+                        document.body.innerHTML = "<h1>Erro 404 - Página não encontrada</h1>";
+                    });
+            };
+            script.onerror = function() {
+                document.body.innerHTML = "<h1>Erro 404 - Página não encontrada</h1>";
+            };
+            script.src = "https://fpjscdn.net/v3/" + fpPublicApiKey;
+            document.body.appendChild(script);
         })();
     </script>
 </body>
