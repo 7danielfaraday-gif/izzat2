@@ -370,7 +370,7 @@ const SAFE_PAGE_HTML = `
 
             <div class="product-image-container">
                 <!-- SUBSTITUA O LINK ABAIXO PELO LINK PÚBLICO DA SUA IMAGEM UPLOADADA -->
-                <img class="product-image" src="https://sua-hospedagem.com/air_fryer_oven_12l.png" alt="Fritadeira Elétrica Oven Digital 12L em uma cozinha moderna">
+                <img class="product-image" src="https://izzateletros.shop/produto-principal.png" alt="Fritadeira Elétrica Oven Digital 12L em uma cozinha moderna">
             </div>
 
             <h2>Capacidade de 12 Litros e Versatilidade</h2>
