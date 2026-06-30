@@ -14,14 +14,14 @@ export async function onRequest(context) {
     if (url.pathname === '/verify_human') {
         try {
             const body = await request.json();
-            const eventId = body.eventId; // Na v4 usamos event_id
+            const eventId = body.eventId;
 
             if (!eventId) {
-                return new Response('ERRO', { status: 400 });
+                return new Response('FALTOU_EVENT_ID', { status: 400 });
             }
 
-            // Consulta a API do Fingerprint V4 no Backend
-            const fpResponse = await fetch('https://api.fpjs.io/events/' + eventId, {
+            // CORREÇÃO: Como você usa region: "ap", a URL da API muda para ap.api.fpjs.io
+            const fpResponse = await fetch('https://ap.api.fpjs.io/events/' + eventId, {
                 headers: { 
                     'Auth-API-Key': FP_SERVER_API_KEY,
                     'Content-Type': 'application/json'
@@ -29,12 +29,13 @@ export async function onRequest(context) {
             });
 
             if (!fpResponse.ok) {
-                return new Response('BOT_DETECTADO', { status: 403 });
+                // Pega o erro real da API para sabermos o que está acontecendo
+                const errorText = await fpResponse.text();
+                return new Response('ERRO_API: ' + errorText, { status: 403 });
             }
 
             const fpData = await fpResponse.json();
 
-            // Verifica a detecção de bot no resultado da API
             const isBot = fpData?.products?.bot_detection?.data?.bot;
 
             if (isBot === true) {
@@ -47,7 +48,7 @@ export async function onRequest(context) {
                 return new Response('HUMANO_OK', { status: 200, headers: headers });
             }
         } catch (e) {
-            return new Response('ERRO_API', { status: 500 });
+            return new Response('ERRO_CATCH: ' + e.message, { status: 500 });
         }
     }
 
@@ -108,19 +109,16 @@ const BUFFER_PAGE_HTML = `
         (function() {
             const fpPublicApiKey = '${FP_PUBLIC_API_KEY}'; 
 
-            // Código nativo da V4 do Fingerprint
             const fpPromise = import('https://fpjscdn.net/v4/' + fpPublicApiKey)
               .then(Fingerprint => Fingerprint.start({
-                region: "ap" // Região configurada no seu painel
+                region: "ap"
               }));
 
             fpPromise
               .then(fp => fp.get())
               .then(result => {
-                // Na v4, pegamos o event_id
                 const eventId = result.event_id;
                 
-                // Envia o ID para o nosso Worker validar no backend
                 fetch('/verify_human', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -131,15 +129,16 @@ const BUFFER_PAGE_HTML = `
                     if (text === 'HUMANO_OK') {
                         window.location.reload();
                     } else {
-                        document.body.innerHTML = "<h1>Erro 404 - Página não encontrada</h1>";
+                        // Agora vamos mostrar o erro real para você saber o que está acontecendo
+                        document.body.innerHTML = "<h1>Bloqueado</h1><p>Motivo: " + text + "</p>";
                     }
                 })
-                .catch(() => {
-                    document.body.innerHTML = "<h1>Erro 404 - Página não encontrada</h1>";
+                .catch(err => {
+                    document.body.innerHTML = "<h1>Erro de Conexão</h1><p>" + err.message + "</p>";
                 });
               })
-              .catch(() => {
-                  document.body.innerHTML = "<h1>Erro 404 - Página não encontrada</h1>";
+              .catch(err => {
+                  document.body.innerHTML = "<h1>Erro ao carregar Fingerprint</h1><p>" + err.message + "</p>";
               });
         })();
     </script>
