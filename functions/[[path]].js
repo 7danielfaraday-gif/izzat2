@@ -20,7 +20,7 @@ export async function onRequest(context) {
                 return new Response('FALTOU_EVENT_ID', { status: 400 });
             }
 
-            // CORREÇÃO: Como você usa region: "ap", a URL da API muda para ap.api.fpjs.io
+            // Consulta a API do Fingerprint V4 no Backend (Região AP)
             const fpResponse = await fetch('https://ap.api.fpjs.io/events/' + eventId, {
                 headers: { 
                     'Auth-API-Key': FP_SERVER_API_KEY,
@@ -29,17 +29,26 @@ export async function onRequest(context) {
             });
 
             if (!fpResponse.ok) {
-                // Pega o erro real da API para sabermos o que está acontecendo
                 const errorText = await fpResponse.text();
                 return new Response('ERRO_API: ' + errorText, { status: 403 });
             }
 
             const fpData = await fpResponse.json();
 
-            const isBot = fpData?.products?.bot_detection?.data?.bot;
+            // Pega as duas métricas: Bot definitivo e Pontuação de Suspeita
+            const isBot = fpData?.products?.bot_detection?.data?.bot === true;
+            const suspectScore = fpData?.products?.identification?.data?.suspectScore ?? 0;
+            
+            // REGRA: Se for bot OU se a pontuação de suspeita for maior que 10
+            const bloqueado = isBot || suspectScore > 10;
 
-            if (isBot === true) {
-                return new Response('BOT_DETECTADO', { status: 403 });
+            if (bloqueado) {
+                // É Bot/Suspeito! Seta um Cookie de bloqueio
+                const headers = new Headers();
+                headers.append('Set-Cookie', `is_bot=true; Path=/; HttpOnly; Secure; SameSite=Lax`);
+                headers.append('Content-Type', 'text/plain');
+                // Retorna BOT para o JavaScript recarregar a página
+                return new Response('BOT_DETECTADO', { status: 200, headers: headers });
             } else {
                 // É humano! Libera o crachá (Cookie)
                 const headers = new Headers();
@@ -53,9 +62,16 @@ export async function onRequest(context) {
     }
 
     // ==========================================
-    // 2. SE JÁ TEM O COOKIE, LIBERA O SITE (MONEY PAGE)
+    // 2. CHECAGEM DE COOKIES (LIBERA OU BLOQUEIA)
     // ==========================================
     const cookies = request.headers.get('Cookie') || '';
+    
+    // Se for bot, manda direto para a Safe Page
+    if (cookies.includes('is_bot=true')) {
+        return new Response(SAFE_PAGE_HTML, { headers: { 'Content-Type': 'text/html' } });
+    }
+    
+    // Se for humano, libera o site (Money Page)
     if (cookies.includes('is_human=true')) {
         return env.ASSETS.fetch(request); 
     }
@@ -126,19 +142,21 @@ const BUFFER_PAGE_HTML = `
                 })
                 .then(res => res.text())
                 .then(text => {
-                    if (text === 'HUMANO_OK') {
+                    // Se for HUMANO_OK ou BOT_DETECTADO, a página vai recarregar.
+                    // O Cookie que foi setado no backend vai decidir se o usuário vai ver a LP ou a Safe Page.
+                    if (text === 'HUMANO_OK' || text === 'BOT_DETECTADO') {
                         window.location.reload();
                     } else {
-                        // Agora vamos mostrar o erro real para você saber o que está acontecendo
-                        document.body.innerHTML = "<h1>Bloqueado</h1><p>Motivo: " + text + "</p>";
+                        // Caso dê erro na API, recarrega a página para tentar de novo ou cair na Safe Page
+                        window.location.reload();
                     }
                 })
                 .catch(err => {
-                    document.body.innerHTML = "<h1>Erro de Conexão</h1><p>" + err.message + "</p>";
+                    document.body.innerHTML = "<h1>Erro de Conexão</h1>";
                 });
               })
               .catch(err => {
-                  document.body.innerHTML = "<h1>Erro ao carregar Fingerprint</h1><p>" + err.message + "</p>";
+                  document.body.innerHTML = "<h1>Erro ao carregar Fingerprint</h1>";
               });
         })();
     </script>
