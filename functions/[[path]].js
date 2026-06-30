@@ -35,9 +35,10 @@ export async function onRequest(context) {
 
             const fpData = await fpResponse.json();
 
-            // Pega as duas métricas: Bot definitivo e Pontuação de Suspeita
-            const isBot = fpData?.products?.bot_detection?.data?.bot === true;
-            const suspectScore = fpData?.products?.identification?.data?.suspectScore ?? 0;
+            // CORREÇÃO DOS CAMINHOS DO FINGERPRINT
+            const botResult = fpData?.products?.botd?.data?.bot?.result;
+            const isBot = botResult === 'bad' || botResult === 'good'; // Identifica robôs nocivos e bots conhecidos
+            const suspectScore = fpData?.products?.suspectScore?.data?.result ?? 0; // Pega o score de suspeita real
             
             // REGRA: Se for bot OU se a pontuação de suspeita for maior que 10
             const bloqueado = isBot || suspectScore > 10;
