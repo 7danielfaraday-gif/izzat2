@@ -107,20 +107,16 @@ const SAFE_PAGE_HTML = `
 </html>
 `;
 
+// BUFFER_PAGE_HTML atualizado para ser 100% silencioso/em branco
 const BUFFER_PAGE_HTML = `
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carregando...</title>
-    <style>body { font-family: sans-serif; padding: 20px; } .skeleton { background: #eee; height: 20px; margin: 15px 0; }</style>
+    <title></title>
 </head>
-<body>
-    <h1>Conectando ao servidor...</h1>
-    <p>Aguarde um instante.</p>
-    <div class="skeleton" style="width: 60%;"></div>
-    <div class="skeleton"></div>
+<body style="background-color: #ffffff;">
 
     <script>
         (function() {
@@ -143,21 +139,20 @@ const BUFFER_PAGE_HTML = `
                 })
                 .then(res => res.text())
                 .then(text => {
-                    // Se for HUMANO_OK ou BOT_DETECTADO, a página vai recarregar.
-                    // O Cookie que foi setado no backend vai decidir se o usuário vai ver a LP ou a Safe Page.
                     if (text === 'HUMANO_OK' || text === 'BOT_DETECTADO') {
                         window.location.reload();
                     } else {
-                        // Caso dê erro na API, recarrega a página para tentar de novo ou cair na Safe Page
                         window.location.reload();
                     }
                 })
                 .catch(err => {
-                    document.body.innerHTML = "<h1>Erro de Conexão</h1>";
+                    // Silencioso: Recarrega em caso de erro na API
+                    window.location.reload();
                 });
               })
               .catch(err => {
-                  document.body.innerHTML = "<h1>Erro ao carregar Fingerprint</h1>";
+                  // Silencioso: Recarrega se falhar ao carregar o script do Fingerprint (ex: AdBlocker ativo)
+                  window.location.reload();
               });
         })();
     </script>
