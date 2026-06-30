@@ -368,11 +368,6 @@ const SAFE_PAGE_HTML = `
 
             <p>Se você busca praticidade na cozinha sem abrir mão de refeições saudáveis, as fritadeiras sem óleo já fazem parte da sua lista de desejos. No entanto, a nova geração desse eletrodoméstico trouxe o formato <strong>Oven</strong> (tipo forno), que promete ir além das versões tradicionais de cesto. Analisamos a <strong>Fritadeira Elétrica Oven Digital 12L</strong> para entender se ela cumpre o que promete.</p>
 
-            <div class="product-image-container">
-                <!-- BUSCA A IMAGEM LOCAL NA MESMA PASTA DO HTML -->
-                <img class="product-image" src="air_fryer_oven_12l.png" alt="Fritadeira Elétrica Oven Digital 12L em uma cozinha moderna">
-            </div>
-
             <h2>Capacidade de 12 Litros e Versatilidade</h2>
             <p>A principal vantagem deste modelo é a sua capacidade interna de 12 litros aliada ao design de prateleiras. Diferente das fritadeiras comuns de gaveta única, onde os alimentos precisam ser empilhados, o formato tipo forno permite assar, grelhar e desidratar alimentos em múltiplas camadas.</p>
             <p>Você pode preparar um frango inteiro no espeto giratório ou utilizar as assadeiras perfuradas para preparar legumes na bandeja inferior enquanto grelha carnes na bandeja superior de forma simultânea.</p>
