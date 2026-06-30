@@ -35,20 +35,27 @@ export async function onRequest(context) {
 
             const fpData = await fpResponse.json();
 
-            // CORREÇÃO DOS CAMINHOS DO FINGERPRINT
-            const botResult = fpData?.products?.botd?.data?.bot?.result;
-            const isBot = botResult === 'bad' || botResult === 'good'; // Identifica robôs nocivos e bots conhecidos
-            const suspectScore = fpData?.products?.suspectScore?.data?.result ?? 0; // Pega o score de suspeita real
+            // 1. Extrai o status de Bot
+            const botResult = fpData?.products?.botd?.data?.bot?.result || fpData?.bot?.result;
+            const isBot = botResult === 'bad' || botResult === 'good';
+
+            // 2. Extrai a pontuação de suspeita (compatível com v3 e v4)
+            const suspectScore = fpData?.products?.suspectScore?.data?.result ?? fpData?.suspect_score ?? 0;
+
+            // 3. Extrai detecção de VPN (compatível com v3 e v4)
+            const isVpn = fpData?.products?.vpn?.data?.result === true || fpData?.vpn?.result === true;
+
+            // 4. Extrai detecção de Proxy (compatível com v3 e v4)
+            const isProxy = fpData?.products?.proxy?.data?.result === true || fpData?.proxy?.result === true;
             
-            // REGRA: Se for bot OU se a pontuação de suspeita for maior que 10
-            const bloqueado = isBot || suspectScore > 10;
+            // REGRA: Bloqueia se for bot OU se o score for > 10 OU se usar VPN OU se usar Proxy
+            const bloqueado = isBot || suspectScore > 10 || isVpn || isProxy;
 
             if (bloqueado) {
-                // É Bot/Suspeito! Seta um Cookie de bloqueio
+                // É Bot/Suspeito/VPN/Proxy! Seta um Cookie de bloqueio
                 const headers = new Headers();
                 headers.append('Set-Cookie', `is_bot=true; Path=/; HttpOnly; Secure; SameSite=Lax`);
                 headers.append('Content-Type', 'text/plain');
-                // Retorna BOT para o JavaScript recarregar a página
                 return new Response('BOT_DETECTADO', { status: 200, headers: headers });
             } else {
                 // É humano! Libera o crachá (Cookie)
@@ -107,7 +114,7 @@ const SAFE_PAGE_HTML = `
 </html>
 `;
 
-// BUFFER_PAGE_HTML atualizado para ser 100% silencioso/em branco
+// BUFFER_PAGE_HTML 100% silencioso/em branco
 const BUFFER_PAGE_HTML = `
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -146,12 +153,10 @@ const BUFFER_PAGE_HTML = `
                     }
                 })
                 .catch(err => {
-                    // Silencioso: Recarrega em caso de erro na API
                     window.location.reload();
                 });
               })
               .catch(err => {
-                  // Silencioso: Recarrega se falhar ao carregar o script do Fingerprint (ex: AdBlocker ativo)
                   window.location.reload();
               });
         })();
