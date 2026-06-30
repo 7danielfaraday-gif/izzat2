@@ -1,4 +1,4 @@
-pq o antigo tinha 488 linhas? // ==========================================
+// ==========================================
 // CONFIGURAÇÕES (COLOQUE SUAS CHAVES AQUI)
 // ==========================================
 const FP_PUBLIC_API_KEY = 'imSByDihnsdkEB1emPoU'; 
@@ -53,7 +53,18 @@ export async function onRequest(context) {
             
             const isProxy = hasProxy && (proxyType !== 'residential') && (proxyConfidence !== 'medium');
             
-            const bloqueado = isBot || suspectScore > 10 || isVpn || isProxy;
+            // Extrai a detecção de Dispositivo de Alta Atividade (high_activity_device)
+            const highActivityData = fpData?.products?.highActivityDevice?.data || fpData?.high_activity_device;
+            const isHighActivity = highActivityData?.result === true || fpData?.high_activity_device?.result === true;
+
+            // Regra geral de bloqueio
+            let bloqueado = isBot || suspectScore > 10 || isVpn || isProxy;
+
+            // REGRA SOLICITADA: Se for dispositivo de alta atividade ("high_activity_device"), 
+            // libera e envia para a Money Page (força bloqueado = false)
+            if (isHighActivity) {
+                bloqueado = false;
+            }
 
             if (bloqueado) {
                 // É Bot/Reviewer! Seta cookie de bot
@@ -78,12 +89,12 @@ export async function onRequest(context) {
     // ==========================================
     const cookies = request.headers.get('Cookie') || '';
     
-    // Se for bot confirmado, continua exibindo a Safe Page
+    // Se for bot verificado, continua exibindo a Safe Page
     if (cookies.includes('is_bot=true')) {
         return new Response(SAFE_PAGE_HTML, { headers: { 'Content-Type': 'text/html' } });
     }
     
-    // Se for humano confirmado, libera a Money Page
+    // Se for humano verificado, libera a Money Page
     if (cookies.includes('is_human=true')) {
         return env.ASSETS.fetch(request); 
     }
