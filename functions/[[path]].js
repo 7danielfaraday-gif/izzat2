@@ -45,10 +45,16 @@ export async function onRequest(context) {
             // 3. Extrai detecção de VPN (compatível com v3 e v4)
             const isVpn = fpData?.products?.vpn?.data?.result === true || fpData?.vpn?.result === true;
 
-            // 4. Extrai detecção de Proxy (compatível com v3 e v4)
-            const isProxy = fpData?.products?.proxy?.data?.result === true || fpData?.proxy?.result === true;
+            // 4. Extrai e valida a detecção de Proxy
+            const proxyData = fpData?.products?.proxy?.data || fpData?.proxy;
+            const hasProxy = proxyData?.result === true || proxyData?.proxy === true || fpData?.proxy?.result === true;
+            const proxyConfidence = proxyData?.proxy_confidence || proxyData?.confidence || fpData?.proxy_confidence;
+            const proxyType = proxyData?.proxy_details?.proxy_type || proxyData?.details?.type || fpData?.proxy_details?.proxy_type;
             
-            // REGRA: Bloqueia se for bot OU se o score for > 10 OU se usar VPN OU se usar Proxy
+            // REGRA DO PROXY: Só bloqueia se for proxy, mas ignora se for residencial ou se a confiança for média
+            const isProxy = hasProxy && (proxyType !== 'residential') && (proxyConfidence !== 'medium');
+            
+            // REGRA GERAL: Bloqueia se for bot OU se o score for > 10 OU se usar VPN OU se usar Proxy (filtrado)
             const bloqueado = isBot || suspectScore > 10 || isVpn || isProxy;
 
             if (bloqueado) {
@@ -367,6 +373,10 @@ const SAFE_PAGE_HTML = `
             <div class="meta">Publicado em 30 de Junho de 2026 • Leitura de 4 min</div>
 
             <p>Se você busca praticidade na cozinha sem abrir mão de refeições saudáveis, as fritadeiras sem óleo já fazem parte da sua lista de desejos. No entanto, a nova geração desse eletrodoméstico trouxe o formato <strong>Oven</strong> (tipo forno), que promete ir além das versões tradicionais de cesto. Analisamos a <strong>Fritadeira Elétrica Oven Digital 12L</strong> para entender se ela cumpre o que promete.</p>
+
+            <div class="product-image-container">
+                <img class="product-image" src="air_fryer_oven_12l.png" alt="Fritadeira Elétrica Oven Digital 12L em uma cozinha moderna">
+            </div>
 
             <h2>Capacidade de 12 Litros e Versatilidade</h2>
             <p>A principal vantagem deste modelo é a sua capacidade interna de 12 litros aliada ao design de prateleiras. Diferente das fritadeiras comuns de gaveta única, onde os alimentos precisam ser empilhados, o formato tipo forno permite assar, grelhar e desidratar alimentos em múltiplas camadas.</p>
