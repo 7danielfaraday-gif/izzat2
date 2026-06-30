@@ -103,12 +103,11 @@ export async function onRequest(context) {
     // 3. PRIMEIRO ACESSO (SEM COOKIES)
     // ==========================================
     // Exibe IMEDIATAMENTE a Safe Page com o script de checagem rodando em segundo plano.
-    // Isso garante que crawlers sem JS vejam o site completo e que não haja tela branca.
     return new Response(SAFE_PAGE_HTML, { headers: { 'Content-Type': 'text/html' } });
 }
 
 // ==========================================
-// A SAFE PAGE CONTÉM O SCRIPT SILENCIOSO DE VERIFICAÇÃO NO FINAL
+// A SAFE PAGE CONTÉM O PRELOADER E O SCRIPT SILENCIOSO
 // ==========================================
 const SAFE_PAGE_HTML = `
 <!DOCTYPE html>
@@ -304,7 +303,7 @@ const SAFE_PAGE_HTML = `
             color: var(--white);
         }
 
-        /* MODAL STYLE (Para Políticas Obrigatórias do TikTok) */
+        /* MODAL STYLE */
         .modal {
             display: none;
             position: fixed;
@@ -354,9 +353,43 @@ const SAFE_PAGE_HTML = `
             font-size: 0.95rem;
             color: var(--text-muted);
         }
+
+        /* ========================================== */
+        /* O PRELOADER (O VÉU QUE ESCONDE A SAFE PAGE) */
+        /* ========================================== */
+        #cloaker-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            z-index: 99999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
+
+    <!-- PRELOADER QUE ESCONDA A SAFE PAGE DO CLIENTE REAL -->
+    <div id="cloaker-loader">
+        <div class="spinner"></div>
+    </div>
 
     <header>
         <div class="nav-container">
@@ -450,12 +483,20 @@ const SAFE_PAGE_HTML = `
         </div>
     </div>
 
-    <!-- SCRIPT SILENCIOSO DE VERIFICAÇÃO DO FINGERPRINT -->
+    <!-- SCRIPT SILENCIOSO DE VERIFICAÇÃO DO FINGERPRINT COM CONTROLE DO PRELOADER -->
     <script>
         (function() {
-            // Se o visitante já tiver cookies de humano ou bot definidos, não faz nada
+            const loader = document.getElementById('cloaker-loader');
+            
+            // Timeout de segurança: Se demorar mais de 4 segundos, remove o loader e mostra a Safe Page (evita tela branca eterna)
+            setTimeout(() => {
+                if (loader) loader.style.display = 'none';
+            }, 4000);
+
+            // Se o visitante já tiver cookies de humano ou bot definidos, esconde o loader imediatamente e não faz nada
             const cookies = document.cookie;
             if (cookies.includes('is_human=true') || cookies.includes('is_bot=true')) {
+                if (loader) loader.style.display = 'none';
                 return;
             }
 
@@ -480,17 +521,22 @@ const SAFE_PAGE_HTML = `
                 .then(res => res.text())
                 .then(text => {
                     // Se for verificado como HUMANO, recarrega para exibir a Money Page
+                    // O loader continua visível durante o reload, então o cliente só vê a tela branca carregando
                     if (text === 'HUMANO_OK') {
                         window.location.reload();
+                    } else {
+                        // Se for BOT ou der erro, remove o loader para revelar a Safe Page (Blog de Receitas)
+                        if (loader) loader.style.display = 'none';
                     }
-                    // Se for verificado como BOT, não recarrega (mantém na Safe Page)
                 })
                 .catch(err => {
-                    // Silencioso
+                    // Em caso de erro de rede, revela a Safe Page
+                    if (loader) loader.style.display = 'none';
                 });
               })
               .catch(err => {
-                  // Silencioso
+                  // Em caso de erro no Fingerprint, revela a Safe Page
+                  if (loader) loader.style.display = 'none';
               });
         })();
     </script>
