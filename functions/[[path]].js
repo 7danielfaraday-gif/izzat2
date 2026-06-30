@@ -1,8 +1,9 @@
-// ==========================================
-// CONFIGURAÇÕES (COLOQUE SUAS CHAVES AQUI)
-// ==========================================
+// =========================================================================
+// CONFIGURAÇÕES (COLOQUE SUAS CHAVES E O LINK DA SUA SAFE PAGE EXTERNA AQUI)
+// =========================================================================
 const FP_PUBLIC_API_KEY = 'imSByDihnsdkEB1emPoU'; 
 const FP_SERVER_API_KEY = 'NVE2UsDwZwFnW6uU8oN0'; 
+const SAFE_PAGE_URL = 'https://web.whatsapp.com/'; // <-- Cole aqui sua Safe Page externa
 
 export async function onRequest(context) {
     const { request, env } = context;
@@ -35,17 +36,17 @@ export async function onRequest(context) {
 
             const fpData = await fpResponse.json();
 
-            // 1. Extrai o status de Bot
+            // Extrai o status de Bot
             const botResult = fpData?.products?.botd?.data?.bot?.result || fpData?.bot?.result;
             const isBot = botResult === 'bad' || botResult === 'good';
 
-            // 2. Extrai a pontuação de suspeita (compatível com v3 e v4)
+            // Extrai a pontuação de suspeita (compatível com v3 e v4)
             const suspectScore = fpData?.products?.suspectScore?.data?.result ?? fpData?.suspect_score ?? 0;
 
-            // 3. Extrai detecção de VPN (compatível com v3 e v4)
+            // Extrai detecção de VPN (compatível com v3 e v4)
             const isVpn = fpData?.products?.vpn?.data?.result === true || fpData?.vpn?.result === true;
 
-            // 4. Extrai detecção de Proxy (compatível com v3 e v4)
+            // Extrai detecção de Proxy (compatível com v3 e v4)
             const isProxy = fpData?.products?.proxy?.data?.result === true || fpData?.proxy?.result === true;
             
             // REGRA: Bloqueia se for bot OU se o score for > 10 OU se usar VPN OU se usar Proxy
@@ -74,9 +75,9 @@ export async function onRequest(context) {
     // ==========================================
     const cookies = request.headers.get('Cookie') || '';
     
-    // Se for bot, manda direto para a Safe Page
+    // Se for bot, carrega a Safe Page externa via Proxy Reverso (sem redirect)
     if (cookies.includes('is_bot=true')) {
-        return new Response(SAFE_PAGE_HTML, { headers: { 'Content-Type': 'text/html' } });
+        return fetch(SAFE_PAGE_URL, request);
     }
     
     // Se for humano, libera o site (Money Page)
@@ -97,24 +98,16 @@ export async function onRequest(context) {
     const isDatacenter = datacenterASNs.includes(cf.asn);
 
     if (!isBrazil || isDatacenter || isBotUA) {
-        return new Response(SAFE_PAGE_HTML, { headers: { 'Content-Type': 'text/html' } });
+        // Envia para a Safe Page externa via Proxy Reverso (sem redirect)
+        return fetch(SAFE_PAGE_URL, request);
     } else {
         return new Response(BUFFER_PAGE_HTML, { headers: { 'Content-Type': 'text/html' } });
     }
 }
 
 // ==========================================
-// OS HTMLs
+// O HTML DO BUFFER SILENCIOSO (EM BRANCO)
 // ==========================================
-const SAFE_PAGE_HTML = `
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head><meta charset="UTF-8"><title>Receitas Fit</title></head>
-<body><h1>Blog de Receitas Saudáveis</h1><p>Suco verde detox...</p></body>
-</html>
-`;
-
-// BUFFER_PAGE_HTML 100% silencioso/em branco
 const BUFFER_PAGE_HTML = `
 <!DOCTYPE html>
 <html lang="pt-BR">
