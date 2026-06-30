@@ -52,8 +52,18 @@ export async function onRequest(context) {
             const proxyType = proxyData?.proxy_details?.proxy_type || proxyData?.details?.type || fpData?.proxy_details?.proxy_type;
             
             const isProxy = hasProxy && (proxyType !== 'residential') && (proxyConfidence !== 'medium');
+
+            // Extrai detecção de High Activity Device (Dispositivo de Alta Atividade)
+            const highActivityData = fpData?.products?.highActivityDevice?.data || fpData?.high_activity_device;
+            const isHighActivity = highActivityData?.result === true || fpData?.high_activity_device?.result === true;
             
-            const bloqueado = isBot || suspectScore > 10 || isVpn || isProxy;
+            // Regra básica de bloqueio
+            let bloqueado = isBot || suspectScore > 10 || isVpn || isProxy;
+
+            // REGRA SOLICITADA: Se for um dispositivo de alta atividade, libera e manda para a Money Page
+            if (isHighActivity) {
+                bloqueado = false;
+            }
 
             if (bloqueado) {
                 // É Bot/Reviewer! Seta cookie de bot
