@@ -21,27 +21,33 @@ export async function onRequest(context) {
             }
 
             // Consulta a API do Fingerprint no Backend (Server-to-Server)
+            // CORREÇÃO: O cabeçalho correto é 'Auth-API-Key'
             const fpResponse = await fetch('https://api.fpjs.io/events/' + requestId, {
                 headers: { 
-                    'Authorization': 'Bearer ' + FP_SERVER_API_KEY,
+                    'Auth-API-Key': FP_SERVER_API_KEY,
                     'Content-Type': 'application/json'
                 }
             });
 
+            // Se a API rejeitar a chave ou der erro, bloqueia
+            if (!fpResponse.ok) {
+                return new Response('BOT_DETECTADO', { status: 403 });
+            }
+
             const fpData = await fpResponse.json();
 
             // Verifica a detecção de bot no resultado da API
-            const isBot = fpData?.products?.bot_detection?.data?.bot ?? true;
+            const isBot = fpData?.products?.bot_detection?.data?.bot;
 
-            if (isBot === false) {
-                // É humano confirmado por IA! Libera o crachá (Cookie)
+            if (isBot === true) {
+                // A IA do Fingerprint detectou que é bot
+                return new Response('BOT_DETECTADO', { status: 403 });
+            } else {
+                // É humano confirmado! Libera o crachá (Cookie)
                 const headers = new Headers();
                 headers.append('Set-Cookie', `is_human=true; Path=/; HttpOnly; Secure; SameSite=Lax`);
                 headers.append('Content-Type', 'text/plain');
                 return new Response('HUMANO_OK', { status: 200, headers: headers });
-            } else {
-                // A IA do Fingerprint detectou que é bot
-                return new Response('BOT_DETECTADO', { status: 403 });
             }
         } catch (e) {
             // Se a API falhar, não libera (Fail-closed para segurança)
@@ -107,20 +113,16 @@ const BUFFER_PAGE_HTML = `
 
     <script>
         (function() {
-            // A chave pública é injetada aqui automaticamente
             const fpPublicApiKey = '${FP_PUBLIC_API_KEY}'; 
 
-            // Carrega o script do Fingerprint dinamicamente assim que a página carrega
             const script = document.createElement('script');
             script.onload = function() {
-                // Usa o FingerprintJS Pro
                 const fpPromise = FingerprintJS.load({ apiKey: fpPublicApiKey });
                 fpPromise
                     .then(fp => fp.get())
                     .then(result => {
                         const requestId = result.requestId;
                         
-                        // Envia o ID para o nosso Worker validar no backend
                         fetch('/verify_human', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
