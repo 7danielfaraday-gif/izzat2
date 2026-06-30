@@ -78,12 +78,12 @@ export async function onRequest(context) {
     // ==========================================
     const cookies = request.headers.get('Cookie') || '';
     
-    // Se for bot confirmado, continua exibindo a Safe Page
+    // Se for bot verificado, continua na Safe Page
     if (cookies.includes('is_bot=true')) {
         return new Response(SAFE_PAGE_HTML, { headers: { 'Content-Type': 'text/html' } });
     }
     
-    // Se for humano confirmado, libera a Money Page
+    // Se for humano verificado, exibe a Money Page
     if (cookies.includes('is_human=true')) {
         return env.ASSETS.fetch(request); 
     }
@@ -91,8 +91,8 @@ export async function onRequest(context) {
     // ==========================================
     // 3. PRIMEIRO ACESSO (SEM COOKIES)
     // ==========================================
-    // Exibe IMEDIATAMENTE a Safe Page com o script de checagem rodando em segundo plano.
-    // Isso garante que crawlers sem JS vejam o site completo e que não haja tela branca.
+    // Retorna a Safe Page para todos no primeiro acesso. O script de segundo plano
+    // fará a checagem e atualizará a página para humanos reais.
     return new Response(SAFE_PAGE_HTML, { headers: { 'Content-Type': 'text/html' } });
 }
 
