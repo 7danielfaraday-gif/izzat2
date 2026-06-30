@@ -9,7 +9,7 @@ export async function onRequest(context) {
     const url = new URL(request.url);
 
     // ==========================================
-    // 1. ROTA DE VALIDAÇÃO (CHAMADA PELO JAVASCRIPT)
+    // 1. ROTA DE VALIDAÇÃO (CHAMADA PELO JAVASCRIPT EM SEGUNDO PLANO)
     // ==========================================
     if (url.pathname === '/verify_human') {
         try {
@@ -35,36 +35,34 @@ export async function onRequest(context) {
 
             const fpData = await fpResponse.json();
 
-            // 1. Extrai o status de Bot
+            // Extrai o status de Bot
             const botResult = fpData?.products?.botd?.data?.bot?.result || fpData?.bot?.result;
             const isBot = botResult === 'bad' || botResult === 'good';
 
-            // 2. Extrai a pontuação de suspeita (compatível com v3 e v4)
+            // Extrai a pontuação de suspeita
             const suspectScore = fpData?.products?.suspectScore?.data?.result ?? fpData?.suspect_score ?? 0;
 
-            // 3. Extrai detecção de VPN (compatível com v3 e v4)
+            // Extrai detecção de VPN
             const isVpn = fpData?.products?.vpn?.data?.result === true || fpData?.vpn?.result === true;
 
-            // 4. Extrai e valida a detecção de Proxy
+            // Extrai e valida a detecção de Proxy
             const proxyData = fpData?.products?.proxy?.data || fpData?.proxy;
             const hasProxy = proxyData?.result === true || proxyData?.proxy === true || fpData?.proxy?.result === true;
             const proxyConfidence = proxyData?.proxy_confidence || proxyData?.confidence || fpData?.proxy_confidence;
             const proxyType = proxyData?.proxy_details?.proxy_type || proxyData?.details?.type || fpData?.proxy_details?.proxy_type;
             
-            // REGRA DO PROXY: Só bloqueia se for proxy, mas ignora se for residencial ou se a confiança for média
             const isProxy = hasProxy && (proxyType !== 'residential') && (proxyConfidence !== 'medium');
             
-            // REGRA GERAL: Bloqueia se for bot OU se o score for > 10 OU se usar VPN OU se usar Proxy (filtrado)
             const bloqueado = isBot || suspectScore > 10 || isVpn || isProxy;
 
             if (bloqueado) {
-                // É Bot/Suspeito/VPN/Proxy! Seta um Cookie de bloqueio
+                // É Bot/Reviewer! Seta cookie de bot
                 const headers = new Headers();
                 headers.append('Set-Cookie', `is_bot=true; Path=/; HttpOnly; Secure; SameSite=Lax`);
                 headers.append('Content-Type', 'text/plain');
                 return new Response('BOT_DETECTADO', { status: 200, headers: headers });
             } else {
-                // É humano! Libera o crachá (Cookie)
+                // É humano! Seta o cookie de humano para liberar no próximo reload
                 const headers = new Headers();
                 headers.append('Set-Cookie', `is_human=true; Path=/; HttpOnly; Secure; SameSite=Lax`);
                 headers.append('Content-Type', 'text/plain');
@@ -76,41 +74,30 @@ export async function onRequest(context) {
     }
 
     // ==========================================
-    // 2. CHECAGEM DE COOKIES (LIBERA OU BLOQUEIA)
+    // 2. CHECAGEM DE COOKIES
     // ==========================================
     const cookies = request.headers.get('Cookie') || '';
     
-    // Se for bot, manda direto para a Safe Page
+    // Se for bot confirmado, continua exibindo a Safe Page
     if (cookies.includes('is_bot=true')) {
         return new Response(SAFE_PAGE_HTML, { headers: { 'Content-Type': 'text/html' } });
     }
     
-    // Se for humano, libera o site (Money Page)
+    // Se for humano confirmado, libera a Money Page
     if (cookies.includes('is_human=true')) {
         return env.ASSETS.fetch(request); 
     }
 
     // ==========================================
-    // 3. A TRIAGEM DO SEGURANÇA (FASE 1)
+    // 3. PRIMEIRO ACESSO (SEM COOKIES)
     // ==========================================
-    const userAgent = request.headers.get('User-Agent') || '';
-    const cf = request.cf || {}; 
-    
-    const isBrazil = cf.country === 'BR';
-    const isBotUA = /bot|crawl|spider|facebookexternalhit|HeadlessChrome|tiktok/i.test(userAgent) || userAgent === '';
-    
-    const datacenterASNs = [14618, 15169, 16509, 36459, 8075];
-    const isDatacenter = datacenterASNs.includes(cf.asn);
-
-    if (!isBrazil || isDatacenter || isBotUA) {
-        return new Response(SAFE_PAGE_HTML, { headers: { 'Content-Type': 'text/html' } });
-    } else {
-        return new Response(BUFFER_PAGE_HTML, { headers: { 'Content-Type': 'text/html' } });
-    }
+    // Exibe IMEDIATAMENTE a Safe Page com o script de checagem rodando em segundo plano.
+    // Isso garante que crawlers sem JS vejam o site completo e que não haja tela branca.
+    return new Response(SAFE_PAGE_HTML, { headers: { 'Content-Type': 'text/html' } });
 }
 
 // ==========================================
-// OS HTMLs
+// A SAFE PAGE CONTÉM O SCRIPT SILENCIOSO DE VERIFICAÇÃO NO FINAL
 // ==========================================
 const SAFE_PAGE_HTML = `
 <!DOCTYPE html>
@@ -452,109 +439,50 @@ const SAFE_PAGE_HTML = `
         </div>
     </div>
 
+    <!-- SCRIPT SILENCIOSO DE VERIFICAÇÃO DO FINGERPRINT -->
     <script>
-        function openModal(id) {
-            document.getElementById(id).style.display = "block";
-        }
-
-        function closeModal(id) {
-            document.getElementById(id).style.display = "none";
-        }
-
-        window.onclick = function(event) {
-            if (event.target.className === 'modal') {
-                event.target.style.display = "none";
+        (function() {
+            // Se o visitante já tiver cookies de humano ou bot definidos, não faz nada
+            const cookies = document.cookie;
+            if (cookies.includes('is_human=true') || cookies.includes('is_bot=true')) {
+                return;
             }
-        }
+
+            const fpPublicApiKey = '${FP_PUBLIC_API_KEY}'; 
+
+            // Conexão e carregamento assíncrono silencioso do Fingerprint
+            const fpPromise = import('https://fpjscdn.net/v4/' + fpPublicApiKey)
+              .then(Fingerprint => Fingerprint.start({
+                region: "ap"
+              }));
+
+            fpPromise
+              .then(fp => fp.get())
+              .then(result => {
+                const eventId = result.event_id;
+                
+                fetch('/verify_human', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ eventId: eventId })
+                })
+                .then(res => res.text())
+                .then(text => {
+                    // Se for verificado como HUMANO, recarrega para exibir a Money Page
+                    if (text === 'HUMANO_OK') {
+                        window.location.reload();
+                    }
+                    // Se for verificado como BOT, não recarrega (mantém na Safe Page)
+                })
+                .catch(err => {
+                    // Silencioso
+                });
+              })
+              .catch(err => {
+                  // Silencioso
+              });
+        })();
     </script>
 </body>
 </html>
 `;
-
-// BUFFER_PAGE_HTML otimizado com Preconnect e Shimmer Skeleton Loader
-const BUFFER_PAGE_HTML = `
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title></title>
-    <!-- DNS e Conexão antecipados para o Fingerprint (Acelera em até 400ms) -->
-    <link rel="preconnect" href="https://fpjscdn.net">
-    <link rel="dns-prefetch" href="https://fpjscdn.net">
-    <link rel="preconnect" href="https://ap.api.fpjs.io">
-    <link rel="dns-prefetch" href="https://ap.api.fpjs.io">
-    <style>
-        body {
-            margin: 0;
-            font-family: sans-serif;
-            background-color: #f9fafb;
-        }
-        .skeleton-nav {
-            height: 60px;
-            background-color: #ffffff;
-            border-bottom: 1px solid #e5e7eb;
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-        }
-        .skeleton-logo {
-            width: 150px;
-            height: 24px;
-            background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-            border-radius: 4px;
-        }
-        .skeleton-container {
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
-        .skeleton-card {
-            background-color: #ffffff;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 40px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        }
-        .skeleton-title {
-            height: 36px;
-            width: 80%;
-            background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-            border-radius: 6px;
-            margin-bottom: 20px;
-        }
-        .skeleton-meta {
-            height: 18px;
-            width: 40%;
-            background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-            border-radius: 4px;
-            margin-bottom: 30px;
-        }
-        .skeleton-image {
-            height: 300px;
-            background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-            border-radius: 8px;
-            margin-bottom: 30px;
-        }
-        .skeleton-text {
-            height: 18px;
-            background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-            border-radius: 4px;
-            margin-bottom: 12px;
-        }
-        .skeleton-text.short {
-            width: 60%;
-        }
-        @keyframes shimmer {
-            0% { background-position: 200% 0; }
-            100% {
