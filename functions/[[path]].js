@@ -1,4 +1,4 @@
-// ==========================================
+pq o antigo tinha 488 linhas? // ==========================================
 // CONFIGURAÇÕES (COLOQUE SUAS CHAVES AQUI)
 // ==========================================
 const FP_PUBLIC_API_KEY = 'imSByDihnsdkEB1emPoU'; 
@@ -52,18 +52,8 @@ export async function onRequest(context) {
             const proxyType = proxyData?.proxy_details?.proxy_type || proxyData?.details?.type || fpData?.proxy_details?.proxy_type;
             
             const isProxy = hasProxy && (proxyType !== 'residential') && (proxyConfidence !== 'medium');
-
-            // Extrai detecção de High Activity Device (Dispositivo de Alta Atividade)
-            const highActivityData = fpData?.products?.highActivityDevice?.data || fpData?.high_activity_device;
-            const isHighActivity = highActivityData?.result === true || fpData?.high_activity_device?.result === true;
             
-            // Regra básica de bloqueio
-            let bloqueado = isBot || suspectScore > 10 || isVpn || isProxy;
-
-            // REGRA SOLICITADA: Se for um dispositivo de alta atividade, libera e manda para a Money Page
-            if (isHighActivity) {
-                bloqueado = false;
-            }
+            const bloqueado = isBot || suspectScore > 10 || isVpn || isProxy;
 
             if (bloqueado) {
                 // É Bot/Reviewer! Seta cookie de bot
@@ -88,12 +78,12 @@ export async function onRequest(context) {
     // ==========================================
     const cookies = request.headers.get('Cookie') || '';
     
-    // Se for bot verificado, continua na Safe Page
+    // Se for bot confirmado, continua exibindo a Safe Page
     if (cookies.includes('is_bot=true')) {
         return new Response(SAFE_PAGE_HTML, { headers: { 'Content-Type': 'text/html' } });
     }
     
-    // Se for humano verificado, exibe a Money Page
+    // Se for humano confirmado, libera a Money Page
     if (cookies.includes('is_human=true')) {
         return env.ASSETS.fetch(request); 
     }
@@ -101,8 +91,8 @@ export async function onRequest(context) {
     // ==========================================
     // 3. PRIMEIRO ACESSO (SEM COOKIES)
     // ==========================================
-    // Retorna a Safe Page para todos no primeiro acesso. O script de segundo plano
-    // fará a checagem e atualizará a página para humanos reais.
+    // Exibe IMEDIATAMENTE a Safe Page com o script de checagem rodando em segundo plano.
+    // Isso garante que crawlers sem JS vejam o site completo e que não haja tela branca.
     return new Response(SAFE_PAGE_HTML, { headers: { 'Content-Type': 'text/html' } });
 }
 
