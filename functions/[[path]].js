@@ -471,7 +471,7 @@ const SAFE_PAGE_HTML = `
 </html>
 `;
 
-// BUFFER_PAGE_HTML 100% silencioso/em branco
+// BUFFER_PAGE_HTML otimizado com Preconnect e Shimmer Skeleton Loader
 const BUFFER_PAGE_HTML = `
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -479,45 +479,82 @@ const BUFFER_PAGE_HTML = `
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title></title>
-</head>
-<body style="background-color: #ffffff;">
-
-    <script>
-        (function() {
-            const fpPublicApiKey = '${FP_PUBLIC_API_KEY}'; 
-
-            const fpPromise = import('https://fpjscdn.net/v4/' + fpPublicApiKey)
-              .then(Fingerprint => Fingerprint.start({
-                region: "ap"
-              }));
-
-            fpPromise
-              .then(fp => fp.get())
-              .then(result => {
-                const eventId = result.event_id;
-                
-                fetch('/verify_human', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ eventId: eventId })
-                })
-                .then(res => res.text())
-                .then(text => {
-                    if (text === 'HUMANO_OK' || text === 'BOT_DETECTADO') {
-                        window.location.reload();
-                    } else {
-                        window.location.reload();
-                    }
-                })
-                .catch(err => {
-                    window.location.reload();
-                });
-              })
-              .catch(err => {
-                  window.location.reload();
-              });
-        })();
-    </script>
-</body>
-</html>
-`;
+    <!-- DNS e Conexão antecipados para o Fingerprint (Acelera em até 400ms) -->
+    <link rel="preconnect" href="https://fpjscdn.net">
+    <link rel="dns-prefetch" href="https://fpjscdn.net">
+    <link rel="preconnect" href="https://ap.api.fpjs.io">
+    <link rel="dns-prefetch" href="https://ap.api.fpjs.io">
+    <style>
+        body {
+            margin: 0;
+            font-family: sans-serif;
+            background-color: #f9fafb;
+        }
+        .skeleton-nav {
+            height: 60px;
+            background-color: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+        }
+        .skeleton-logo {
+            width: 150px;
+            height: 24px;
+            background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 4px;
+        }
+        .skeleton-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .skeleton-card {
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        .skeleton-title {
+            height: 36px;
+            width: 80%;
+            background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        .skeleton-meta {
+            height: 18px;
+            width: 40%;
+            background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 4px;
+            margin-bottom: 30px;
+        }
+        .skeleton-image {
+            height: 300px;
+            background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .skeleton-text {
+            height: 18px;
+            background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 4px;
+            margin-bottom: 12px;
+        }
+        .skeleton-text.short {
+            width: 60%;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% {
