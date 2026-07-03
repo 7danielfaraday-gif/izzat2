@@ -66,17 +66,18 @@ export async function onRequest(context) {
                 bloqueado = false;
             }
 
+            // Headers anti-cache para a resposta da API
+            const headers = new Headers();
+            headers.append('Cache-Control', 'no-store, no-cache, must-revalidate');
+            headers.append('Content-Type', 'text/plain');
+
             if (bloqueado) {
-                // É Bot/Reviewer! Seta cookie de bot
-                const headers = new Headers();
-                headers.append('Set-Cookie', `is_bot=true; Path=/; HttpOnly; Secure; SameSite=Lax`);
-                headers.append('Content-Type', 'text/plain');
+                // É Bot/Reviewer! Seta cookie de bot (Removido HttpOnly para o JS conseguir ler)
+                headers.append('Set-Cookie', `is_bot=true; Path=/; Secure; SameSite=Lax`);
                 return new Response('BOT_DETECTADO', { status: 200, headers: headers });
             } else {
-                // É humano! Seta o cookie de humano para liberar no próximo reload
-                const headers = new Headers();
-                headers.append('Set-Cookie', `is_human=true; Path=/; HttpOnly; Secure; SameSite=Lax`);
-                headers.append('Content-Type', 'text/plain');
+                // É humano! Seta o cookie de humano (Removido HttpOnly para o JS conseguir ler)
+                headers.append('Set-Cookie', `is_human=true; Path=/; Secure; SameSite=Lax`);
                 return new Response('HUMANO_OK', { status: 200, headers: headers });
             }
         } catch (e) {
@@ -91,7 +92,7 @@ export async function onRequest(context) {
     
     // Se for bot verificado, continua exibindo a Safe Page
     if (cookies.includes('is_bot=true')) {
-        return new Response(SAFE_PAGE_HTML, { headers: { 'Content-Type': 'text/html' } });
+        return new Response(SAFE_PAGE_HTML, { headers: { 'Content-Type': 'text/html', 'Cache-Control': 'no-store' } });
     }
     
     // Se for humano verificado, libera a Money Page
@@ -103,7 +104,7 @@ export async function onRequest(context) {
     // 3. PRIMEIRO ACESSO (SEM COOKIES)
     // ==========================================
     // Exibe IMEDIATAMENTE a Safe Page com o script de checagem rodando em segundo plano.
-    return new Response(SAFE_PAGE_HTML, { headers: { 'Content-Type': 'text/html' } });
+    return new Response(SAFE_PAGE_HTML, { headers: { 'Content-Type': 'text/html', 'Cache-Control': 'no-store' } });
 }
 
 // ==========================================
@@ -369,6 +370,8 @@ const SAFE_PAGE_HTML = `
             justify-content: center;
             align-items: center;
             flex-direction: column;
+            /* SEGURANÇA CONTRA LOOP: Se o JS quebrar, o CSS some em 4 segundos */
+            animation: cssHideLoader 0s 4s forwards; 
         }
         .spinner {
             border: 4px solid rgba(0, 0, 0, 0.1);
@@ -381,6 +384,9 @@ const SAFE_PAGE_HTML = `
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+        @keyframes cssHideLoader {
+            to { visibility: hidden; opacity: 0; }
         }
     </style>
 </head>
@@ -488,12 +494,8 @@ const SAFE_PAGE_HTML = `
         (function() {
             const loader = document.getElementById('cloaker-loader');
             
-            // Timeout de segurança: Se demorar mais de 4 segundos, remove o loader e mostra a Safe Page (evita tela branca eterna)
-            setTimeout(() => {
-                if (loader) loader.style.display = 'none';
-            }, 4000);
-
-            // Se o visitante já tiver cookies de humano ou bot definidos, esconde o loader imediatamente e não faz nada
+            // Se o visitante já tiver cookies definidos, esconde o loader imediatamente e não faz nada
+            // (Agora conseguimos ler porque removemos o HttpOnly do cabeçalho Set-Cookie no Worker)
             const cookies = document.cookie;
             if (cookies.includes('is_human=true') || cookies.includes('is_bot=true')) {
                 if (loader) loader.style.display = 'none';
@@ -521,21 +523,18 @@ const SAFE_PAGE_HTML = `
                 .then(res => res.text())
                 .then(text => {
                     // Se for verificado como HUMANO, recarrega para exibir a Money Page
-                    // O loader continua visível durante o reload, então o cliente só vê a tela branca carregando
                     if (text === 'HUMANO_OK') {
                         window.location.reload();
                     } else {
-                        // Se for BOT ou der erro, remove o loader para revelar a Safe Page (Blog de Receitas)
+                        // Se for BOT ou der erro, remove o loader para revelar a Safe Page
                         if (loader) loader.style.display = 'none';
                     }
                 })
                 .catch(err => {
-                    // Em caso de erro de rede, revela a Safe Page
                     if (loader) loader.style.display = 'none';
                 });
               })
               .catch(err => {
-                  // Em caso de erro no Fingerprint, revela a Safe Page
                   if (loader) loader.style.display = 'none';
               });
         })();
