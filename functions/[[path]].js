@@ -9,11 +9,27 @@ export async function onRequest(context) {
     const url = new URL(request.url);
 
     // ==========================================
-    // LIBERAR ARQUIVOS ESTÁTICOS (IMAGENS, CSS, JS)
+    // LIBERAR ARQUIVOS ESTÁTICOS (COM BLINDAGEM)
     // ==========================================
-    // Se a requisição for de um arquivo com extensão, manda direto pro ASSETS sem cloaker
     if (url.pathname.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|map)$/i)) {
-        return env.ASSETS.fetch(request);
+        
+        // 1. Libera APENAS os arquivos usados pela Safe Page para todo mundo (Bots inclus)
+        // Adicione aqui as imagens que você referencia no HTML da Safe Page.
+        const safePageAssets = ['air_fryer_oven_12l.png'];
+        const fileName = url.pathname.split('/').pop();
+        
+        if (safePageAssets.includes(fileName)) {
+            return env.ASSETS.fetch(request);
+        }
+
+        // 2. Para QUALQUER OUTRO arquivo estático (CSS/JS/Imagens da Money Page), exige cookie de Humano
+        const cookiesCheck = request.headers.get('Cookie') || '';
+        if (cookiesCheck.includes('is_human=true')) {
+            return env.ASSETS.fetch(request);
+        }
+
+        // 3. Se for Bot ou curioso tentando bisbilhotar, retorna 404 Not Found
+        return new Response('Not Found', { status: 404 });
     }
 
     // ==========================================
@@ -47,7 +63,7 @@ export async function onRequest(context) {
             const botResult = fpData?.products?.botd?.data?.bot?.result || fpData?.bot?.result;
             const isBot = botResult === 'bad' || botResult === 'good';
 
-            // Extrai a pontuação de suspeita (Rigor > 1)
+            // Extrai a pontuação de suspeita (Rigor > 10)
             const suspectScore = fpData?.products?.suspectScore?.data?.result ?? fpData?.suspect_score ?? 0;
 
             // Extrai detecção de VPN
