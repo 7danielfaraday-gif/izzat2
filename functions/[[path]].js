@@ -9,6 +9,14 @@ export async function onRequest(context) {
     const url = new URL(request.url);
 
     // ==========================================
+    // LIBERAR ARQUIVOS ESTÁTICOS (IMAGENS, CSS, JS)
+    // ==========================================
+    // Se a requisição for de um arquivo com extensão, manda direto pro ASSETS sem cloaker
+    if (url.pathname.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|map)$/i)) {
+        return env.ASSETS.fetch(request);
+    }
+
+    // ==========================================
     // 1. ROTA DE VALIDAÇÃO (CHAMADA PELO JAVASCRIPT EM SEGUNDO PLANO)
     // ==========================================
     if (url.pathname === '/verify_human') {
@@ -54,7 +62,7 @@ export async function onRequest(context) {
             const isProxy = hasProxy && (proxyType !== 'residential') && (proxyConfidence !== 'medium');
 
             // Regra geral de bloqueio
-            let bloqueado = isBot || suspectScore > 1 || isVpn || isProxy;
+            let bloqueado = isBot || suspectScore > 10 || isVpn || isProxy;
 
             // Headers anti-cache
             const headers = new Headers();
@@ -68,7 +76,7 @@ export async function onRequest(context) {
                 return new Response('BOT_DETECTADO', { status: 200, headers: headers });
             } else {
                 // É HUMANO! 
-                // A MAGIA ACONTECE AQUI: Puxamos o HTML da Money Page internamente no Cloudflare
+                // A MAGICA ACONTECE AQUI: Puxamos o HTML da Money Page internamente no Cloudflare
                 const moneyReq = new Request(url.origin + '/', { method: 'GET' });
                 const moneyPageResponse = await env.ASSETS.fetch(moneyReq);
                 const moneyPageHtml = await moneyPageResponse.text();
