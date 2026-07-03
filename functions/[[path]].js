@@ -13,7 +13,6 @@ export async function onRequest(context) {
     // ==========================================
     if (url.pathname.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|map)$/i)) {
         
-        // 1. Libera APENAS os arquivos usados pela Safe Page para todo mundo (Bots inclus)
         const safePageAssets = ['air_fryer_oven_12l.png'];
         const fileName = url.pathname.split('/').pop();
         
@@ -21,18 +20,16 @@ export async function onRequest(context) {
             return env.ASSETS.fetch(request);
         }
 
-        // 2. Para QUALQUER OUTRO arquivo estático (CSS/JS/Imagens da Money Page), exige cookie de Humano
         const cookiesCheck = request.headers.get('Cookie') || '';
         if (cookiesCheck.includes('is_human=true')) {
             return env.ASSETS.fetch(request);
         }
 
-        // 3. Se for Bot ou curioso tentando bisbilhotar, retorna 404 Not Found
         return new Response('Not Found', { status: 404 });
     }
 
     // ==========================================
-    // 1. ROTA DE VALIDAÇÃO (CHAMADA PELO JAVASCRIPT EM SEGUNDO PLANO)
+    // 1. ROTA DE VALIDAÇÃO (APENAS SETA COOKIES)
     // ==========================================
     if (url.pathname === '/verify_human') {
         try {
@@ -43,7 +40,6 @@ export async function onRequest(context) {
                 return new Response('FALTOU_EVENT_ID', { status: 400 });
             }
 
-            // Consulta a API do Fingerprint V4 no Backend (Região AP)
             const fpResponse = await fetch('https://ap.api.fpjs.io/events/' + eventId, {
                 headers: { 
                     'Auth-API-Key': FP_SERVER_API_KEY,
@@ -58,17 +54,12 @@ export async function onRequest(context) {
 
             const fpData = await fpResponse.json();
 
-            // Extrai o status de Bot
             const botResult = fpData?.products?.botd?.data?.bot?.result || fpData?.bot?.result;
             const isBot = botResult === 'bad' || botResult === 'good';
 
-            // Extrai a pontuação de suspeita (Rigor > 1)
             const suspectScore = fpData?.products?.suspectScore?.data?.result ?? fpData?.suspect_score ?? 0;
-
-            // Extrai detecção de VPN
             const isVpn = fpData?.products?.vpn?.data?.result === true || fpData?.vpn?.result === true;
 
-            // Extrai e valida a detecção de Proxy
             const proxyData = fpData?.products?.proxy?.data || fpData?.proxy;
             const hasProxy = proxyData?.result === true || proxyData?.proxy === true || fpData?.proxy?.result === true;
             const proxyConfidence = proxyData?.proxy_confidence || proxyData?.confidence || fpData?.proxy_confidence;
@@ -76,32 +67,20 @@ export async function onRequest(context) {
             
             const isProxy = hasProxy && (proxyType !== 'residential') && (proxyConfidence !== 'medium');
 
-            // Regra geral de bloqueio
             let bloqueado = isBot || suspectScore > 1 || isVpn || isProxy;
 
-            // Headers anti-cache
             const headers = new Headers();
             headers.append('Cache-Control', 'no-store, no-cache, must-revalidate');
+            headers.append('Content-Type', 'text/plain');
             
             if (bloqueado) {
-                // É Bot/Reviewer! Seta cookie de bot
-                headers.append('Content-Type', 'text/plain');
                 headers.append('Set-Cookie', `is_human=true; Path=/; Max-Age=0; Secure; SameSite=Lax`);
                 headers.append('Set-Cookie', `is_bot=true; Path=/; Secure; SameSite=Lax`);
                 return new Response('BOT_DETECTADO', { status: 200, headers: headers });
             } else {
-                // É HUMANO! 
-                // Puxamos o HTML da Money Page internamente no Cloudflare
-                const moneyReq = new Request(url.origin + '/', { method: 'GET' });
-                const moneyPageResponse = await env.ASSETS.fetch(moneyReq);
-                const moneyPageHtml = await moneyPageResponse.text();
-
-                // Seta o cookie de humano e devolve o HTML da Money Page
-                headers.append('Content-Type', 'text/html; charset=UTF-8');
                 headers.append('Set-Cookie', `is_bot=true; Path=/; Max-Age=0; Secure; SameSite=Lax`);
                 headers.append('Set-Cookie', `is_human=true; Path=/; Secure; SameSite=Lax`);
-                
-                return new Response(moneyPageHtml, { status: 200, headers: headers });
+                return new Response('HUMANO_OK', { status: 200, headers: headers });
             }
         } catch (e) {
             return new Response('ERRO_CATCH: ' + e.message, { status: 500 });
@@ -109,29 +88,30 @@ export async function onRequest(context) {
     }
 
     // ==========================================
-    // 2. CHECAGEM DE COOKIES E ROTEAMENTO (PARA ACESSOS DIRETOS)
+    // 2. CHECAGEM DE COOKIES E ROTEAMENTO
     // ==========================================
     const cookies = request.headers.get('Cookie') || '';
     const isAuthRequest = url.searchParams.get('auth') === '1';
     const referer = request.headers.get('Referer') || '';
 
-    // ROTA DA MONEY PAGE: Só acessa se tiver o parâmetro ?auth=1
     if (isAuthRequest) {
         if (cookies.includes('is_bot=true')) {
             return Response.redirect(url.origin + url.pathname, 302);
         }
+        if (cookies.includes('is_human=true')) {
+            return env.ASSETS.fetch(request); 
+        }
+        // Fallback para AdBlockers (Botão clicado manualmente)
         if (referer.includes(url.origin)) {
             return env.ASSETS.fetch(request);
         }
         return Response.redirect(url.origin + url.pathname, 302);
     }
 
-    // Se for humano verificado acessando a raiz, serve a Money Page
     if (cookies.includes('is_human=true')) {
         return env.ASSETS.fetch(request); 
     }
     
-    // Se for bot verificado, exibe a Safe Page
     if (cookies.includes('is_bot=true')) {
         return new Response(SAFE_PAGE_HTML, { headers: { 'Content-Type': 'text/html', 'Cache-Control': 'no-store' } });
     }
@@ -143,7 +123,7 @@ export async function onRequest(context) {
 }
 
 // ==========================================
-// A SAFE PAGE (IZZAT ELETROS - BLOG DE ANÁLISE TÉCNICA)
+// A SAFE PAGE (IZZA ELETROS - BLOG DE ANÁLISE TÉCNICA)
 // ==========================================
 const SAFE_PAGE_HTML = `
 <!DOCTYPE html>
@@ -151,7 +131,7 @@ const SAFE_PAGE_HTML = `
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Análise Izzat Eletros: Fritadeira Oven Digital 12L - Vale a Pena?</title>
+    <title>Análise Izza Eletros: Fritadeira Oven Digital 12L - Vale a Pena?</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -240,7 +220,6 @@ const SAFE_PAGE_HTML = `
         }
         .highlight-box p { margin-bottom: 0; font-style: normal; color: var(--text-muted); font-weight: 500; }
         
-        /* BOTÃO DE OFERTA NATIVO (FALLBACK) */
         .offer-cta-container { text-align: left; margin: 50px 0; padding: 30px; background: #f9fafb; border: 1px solid var(--border); border-radius: 8px; }
         .offer-cta {
             background-color: var(--primary); color: white; padding: 16px 32px;
@@ -250,7 +229,6 @@ const SAFE_PAGE_HTML = `
         .offer-cta:hover { background-color: var(--primary-dark); }
         .offer-cta-sub { font-size: 0.85rem; color: var(--text-light); margin-top: 12px; }
 
-        /* RODAPÉ E INFORMAÇÕES DA EMPRESA */
         footer { background-color: #111827; color: #9ca3af; padding: 60px 20px 30px; margin-top: 80px; font-size: 0.9rem; }
         .footer-content { max-width: 800px; margin: 0 auto; }
         .footer-cols { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 40px; margin-bottom: 40px; }
@@ -270,7 +248,6 @@ const SAFE_PAGE_HTML = `
         .modal h2 { margin-top: 0; margin-bottom: 20px; font-size: 1.5rem; color: #111827; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
         .modal-body p { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 15px; line-height: 1.6; }
 
-        /* PRELOADER LARANJA */
         #cloaker-loader {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: #ffffff; z-index: 99999; display: flex;
@@ -289,7 +266,6 @@ const SAFE_PAGE_HTML = `
 </head>
 <body>
 
-    <!-- PRELOADER -->
     <div id="cloaker-loader">
         <div class="shop-spinner"></div>
         <p class="loader-text">Carregando conteúdo...</p>
@@ -297,7 +273,7 @@ const SAFE_PAGE_HTML = `
 
     <header>
         <div class="nav-container">
-            <div class="logo">Izzat<span>Eletros</span></div>
+            <div class="logo">Izza<span>Eletros</span></div>
         </div>
     </header>
 
@@ -306,7 +282,7 @@ const SAFE_PAGE_HTML = `
             <span class="tag">Análise de Eletrodomésticos</span>
             <h1>Fritadeira Oven Digital 12L: Análise Completa e Veredito</h1>
             <div class="meta">
-                <span class="meta-author">Redação Izzat Eletros</span> • 
+                <span class="meta-author">Redação Izza Eletros</span> • 
                 <span>Atualizado em Junho de 2026</span> • 
                 <span>Leitura de 5 min</span>
             </div>
@@ -325,7 +301,6 @@ const SAFE_PAGE_HTML = `
                 <p>A distribuição do fluxo de ar quente em 360° é a tecnologia central deste modelo, responsável por criar uma crosta externa crocante enquanto mantém a umidade interna dos alimentos.</p>
             </div>
 
-            <!-- BOTÃO ORGÂNICO DE FALLBACK -->
             <div class="offer-cta-container">
                 <p style="margin-bottom: 15px; font-size: 1rem; color: var(--text-main);"><strong>Disponibilidade e Preços Atualizados</strong></p>
                 <a href="?auth=1" class="offer-cta">Ver Disponibilidade e Ofertas</a>
@@ -339,7 +314,7 @@ const SAFE_PAGE_HTML = `
             <ul class="features-list">
                 <li>Funcionamento duplo: atua como fritadeira sem óleo de alta velocidade e como forno elétrico.</li>
                 <li>Porta de vidro temperado duplo com luz interna LED para monitoramento visual sem perda de temperatura.</li>
-                <li>Acessórios inclusos: espeto giratório, cesto de fritura e bandejas antiaderentes removíveis.</li>
+                <li>Acessórios inclusos: espeto giratório, cesto de fritura e bandejas antiaderentes removível.</li>
                 <li>Estrutura pensada para fácil higienização, com peças compatíveis com lava-louças.</li>
             </ul>
             
@@ -352,7 +327,7 @@ const SAFE_PAGE_HTML = `
         <div class="footer-content">
             <div class="footer-cols">
                 <div class="footer-col">
-                    <h4>Izzat Eletros</h4>
+                    <h4>Izza Eletros</h4>
                     <p>Portal especializado em análises e reviews de eletrodomésticos e tecnologia para o lar.</p>
                 </div>
                 <div class="footer-col">
@@ -377,19 +352,18 @@ const SAFE_PAGE_HTML = `
                     <a onclick="openModal('modal-termos')">Termos</a>
                     <a onclick="openModal('modal-contato')">Contato</a>
                 </div>
-                <p>&copy; 2026 Izzat Eletros. Todos os direitos reservados. CNPJ 67.738.953/0001-22.</p>
+                <p>&copy; 2026 Izza Eletros. Todos os direitos reservados. CNPJ 67.738.953/0001-22.</p>
                 <p style="margin-top: 10px; font-size: 0.75rem; color: #6b7280;">Aviso de Transparência: O Izza Eletros pode participar de programas de afiliados, podendo receber comissões por compras realizadas através dos links divulgados. Isso não altera o preço final para o consumidor.</p>
             </div>
         </div>
     </footer>
 
-    <!-- MODAIS LEGAIS -->
     <div id="modal-privacidade" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal('modal-privacidade')">&times;</span>
             <h2>Política de Privacidade</h2>
             <div class="modal-body">
-                <p>A Izzat Eletros valoriza a privacidade de seus visitantes. Esta política descreve como coletamos e utilizamos seus dados.</p>
+                <p>A Izza Eletros valoriza a privacidade de seus visitantes. Esta política descreve como coletamos e utilizamos seus dados.</p>
                 <p><strong>Coleta de Dados:</strong> Utilizamos cookies e tecnologias semelhantes para melhorar a experiência de navegação, analisar o tráfego do site e personalizar o conteúdo. Os cookies podem ser gerenciados nas configurações do seu navegador.</p>
                 <p><strong>Dados Pessoais:</strong> Não solicitamos dados pessoais diretamente neste portal. Caso entre em contato via e-mail, seus dados serão utilizados apenas para resposta à sua solicitação.</p>
                 <p><strong>Links Externos:</strong> Este site contém links para sites de terceiros. Não nos responsabilizamos pelas práticas de privacidade de sites externos. Recomendamos ler as políticas dos referidos sites.</p>
@@ -403,10 +377,10 @@ const SAFE_PAGE_HTML = `
             <span class="close" onclick="closeModal('modal-termos')">&times;</span>
             <h2>Termos de Uso</h2>
             <div class="modal-body">
-                <p>Ao acessar e navegar no portal Izzat Eletros, você concorda com os termos e condições estabelecidos abaixo.</p>
+                <p>Ao acessar e navegar no portal Izza Eletros, você concorda com os termos e condições estabelecidos abaixo.</p>
                 <p><strong>Natureza do Conteúdo:</strong> Todo o material publicado neste site, incluindo análises, reviews e artigos, tem caráter meramente informativo e de entretenimento. As opiniões expressas são baseadas em avaliações técnicas no momento da publicação.</p>
-                <p><strong>Programa de Afiliados:</strong> O Izzat Eletros participa de programas de afiliados. Podemos receber uma comissão caso você efetue uma compra através dos links disponíveis em nosso site. Isso não gera nenhum custo adicional a você.</p>
-                <p><strong>Propriedade Intelectual:</strong> Todo o conteúdo original produzido pela redação do Izzat Eletros é protegido por direitos autorais. A reprodução não autorizada é proibida.</p>
+                <p><strong>Programa de Afiliados:</strong> O Izza Eletros participa de programas de afiliados. Podemos receber uma comissão caso você efetue uma compra através dos links disponíveis em nosso site. Isso não gera nenhum custo adicional a você.</p>
+                <p><strong>Propriedade Intelectual:</strong> Todo o conteúdo original produzido pela redação do Izza Eletros é protegido por direitos autorais. A reprodução não autorizada é proibida.</p>
                 <p><strong>Alterações:</strong> Reservamo-nos o direito de modificar estes termos a qualquer momento. Recomendamos revisões periódicas desta página.</p>
             </div>
         </div>
@@ -468,13 +442,16 @@ const SAFE_PAGE_HTML = `
                     body: JSON.stringify({ eventId: eventId })
                 })
                 .then(res => res.text())
-                .then(payload => {
-                    if (payload.includes('BOT_DETECTADO') || payload.startsWith('ERRO') || payload === 'FALTOU_EVENT_ID') {
-                        if (loader) loader.style.display = 'none';
+                .then(text => {
+                    if (text === 'HUMANO_OK') {
+                        // É HUMANO! Mantém o "Carregando conteúdo..." na tela e navega para a rota da Money Page.
+                        // O cookie já foi setado no header da resposta, então a próxima requisição vai liberar a loja nativamente.
+                        setTimeout(() => {
+                            window.location.href = window.location.pathname + '?auth=1';
+                        }, 100); // Pequeno delay para garantir o registro do cookie no navegador
                     } else {
-                        document.open();
-                        document.write(payload);
-                        document.close();
+                        // BOT ou Erro: Revela a Safe Page
+                        if (loader) loader.style.display = 'none';
                     }
                 })
                 .catch(err => {
