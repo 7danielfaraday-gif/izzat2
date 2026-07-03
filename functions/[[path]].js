@@ -136,18 +136,19 @@ const SAFE_PAGE_HTML = `
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Review Completo: Fritadeira Oven Digital 12L - Vale a Pena?</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Análise Izza Eletros: Fritadeira Oven Digital 12L - Vale a Pena?</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #10b981;
-            --primary-dark: #059669;
-            --background: #f9fafb;
+            --primary: #f97316;
+            --primary-dark: #ea580c;
+            --primary-light: #fff7ed;
+            --background: #ffffff;
             --text-main: #1f2937;
             --text-muted: #4b5563;
+            --text-light: #9ca3af;
             --white: #ffffff;
             --border: #e5e7eb;
-            --tiktok-red: #fe2c55;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -156,7 +157,7 @@ const SAFE_PAGE_HTML = `
             font-family: 'Inter', sans-serif;
             background-color: var(--background);
             color: var(--text-main);
-            line-height: 1.6;
+            line-height: 1.7;
             -webkit-font-smoothing: antialiased;
         }
 
@@ -167,62 +168,87 @@ const SAFE_PAGE_HTML = `
         }
 
         .nav-container {
-            max-width: 1100px; margin: 0 auto; padding: 15px 20px;
+            max-width: 1100px; margin: 0 auto; padding: 18px 20px;
             display: flex; justify-content: space-between; align-items: center;
         }
 
-        .logo { font-weight: 700; font-size: 1.2rem; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
+        .logo { 
+            font-weight: 800; font-size: 1.4rem; color: var(--text-main); 
+            display: flex; align-items: center; gap: 8px; text-transform: uppercase;
+            letter-spacing: -0.5px;
+        }
         .logo span { color: var(--primary); }
 
-        .container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
+        .container { max-width: 800px; margin: 50px auto; padding: 0 20px; }
 
-        article {
-            background-color: var(--white); border: 1px solid var(--border);
-            border-radius: 12px; padding: 40px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        }
+        article { background-color: var(--white); }
 
         .tag {
-            display: inline-block; background-color: #ecfdf5; color: var(--primary-dark);
-            font-size: 0.8rem; font-weight: 600; padding: 4px 12px; border-radius: 9999px;
-            margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.05em;
+            display: inline-block; background-color: var(--primary-light); color: var(--primary-dark);
+            font-size: 0.8rem; font-weight: 600; padding: 6px 14px; border-radius: 4px;
+            margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0.05em;
         }
 
-        h1 { font-size: 2.2rem; font-weight: 800; line-height: 1.25; margin-bottom: 15px; color: #111827; }
-        .meta { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
-        .product-image-container { width: 100%; margin: 30px 0; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); background-color: #f3f4f6; }
-        .product-image { width: 100%; height: auto; display: block; object-fit: cover; }
-        p { margin-bottom: 20px; font-size: 1.05rem; color: #374151; }
-        h2 { font-size: 1.5rem; font-weight: 700; margin: 35px 0 15px; color: #111827; }
-        .features-list { margin: 20px 0; padding-left: 20px; }
-        .features-list li { margin-bottom: 10px; font-size: 1.05rem; color: #374151; }
-        .highlight-box { background-color: #f9fafb; border-left: 4px solid var(--primary); padding: 20px; border-radius: 0 8px 8px 0; margin: 30px 0; }
-        .highlight-box p { margin-bottom: 0; font-style: italic; color: var(--text-muted); }
+        h1 { font-size: 2.4rem; font-weight: 800; line-height: 1.2; margin-bottom: 15px; color: #111827; letter-spacing: -1px; }
         
-        /* BOTÃO DE OFERTA (FALLBACK PARA ADBLOCKERS) */
-        .offer-cta-container { text-align: center; margin: 40px 0; }
-        .offer-cta {
-            background-color: var(--tiktok-red); color: white; padding: 15px 40px;
-            text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 1.2rem;
-            display: inline-block; box-shadow: 0 4px 6px rgba(254, 44, 85, 0.3);
-            transition: transform 0.2s;
+        .meta { 
+            font-size: 0.9rem; color: var(--text-light); margin-bottom: 40px; 
+            border-bottom: 1px solid var(--border); padding-bottom: 20px;
+            display: flex; align-items: center; gap: 10px;
         }
-        .offer-cta:hover { transform: scale(1.05); }
-        .offer-cta-sub { font-size: 0.85rem; color: #6b7280; margin-top: 10px; }
+        .meta-author { font-weight: 600; color: var(--text-muted); }
 
-        footer { background-color: #111827; color: #9ca3af; padding: 40px 20px; margin-top: 80px; font-size: 0.9rem; border-top: 1px solid #1f2937; }
-        .footer-content { max-width: 800px; margin: 0 auto; text-align: center; }
-        .footer-links { display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
-        .footer-links a { color: #9ca3af; text-decoration: none; cursor: pointer; transition: color 0.2s; }
-        .footer-links a:hover { color: var(--white); }
+        .product-image-container { width: 100%; margin: 40px 0; border-radius: 4px; overflow: hidden; }
+        .product-image { width: 100%; height: auto; display: block; object-fit: cover; }
 
-        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); }
-        .modal-content { background-color: var(--white); margin: 10% auto; padding: 30px; border: 1px solid var(--border); width: 80%; max-width: 600px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
-        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        p { margin-bottom: 24px; font-size: 1.1rem; color: #374151; }
+
+        h2 { font-size: 1.8rem; font-weight: 700; margin: 50px 0 20px; color: #111827; letter-spacing: -0.5px; }
+
+        .features-list { margin: 20px 0 40px; padding-left: 0; list-style: none; }
+        .features-list li { 
+            margin-bottom: 15px; font-size: 1.05rem; color: #374151; 
+            padding-left: 30px; position: relative;
+        }
+        .features-list li::before {
+            content: "✓"; color: var(--primary); font-weight: 800;
+            position: absolute; left: 0; top: 0;
+        }
+
+        .highlight-box { 
+            background-color: var(--primary-light); border-left: 4px solid var(--primary); 
+            padding: 25px; border-radius: 0 4px 4px 0; margin: 40px 0; 
+        }
+        .highlight-box p { margin-bottom: 0; font-style: normal; color: var(--text-muted); font-weight: 500; }
+        
+        .offer-cta-container { text-align: left; margin: 50px 0; padding: 30px; background: #f9fafb; border: 1px solid var(--border); border-radius: 8px; }
+        .offer-cta {
+            background-color: var(--primary); color: white; padding: 16px 32px;
+            text-decoration: none; border-radius: 4px; font-weight: 600; font-size: 1.1rem;
+            display: inline-block; transition: background-color 0.2s;
+        }
+        .offer-cta:hover { background-color: var(--primary-dark); }
+        .offer-cta-sub { font-size: 0.85rem; color: var(--text-light); margin-top: 12px; }
+
+        footer { background-color: #111827; color: #9ca3af; padding: 60px 20px 30px; margin-top: 80px; font-size: 0.9rem; }
+        .footer-content { max-width: 800px; margin: 0 auto; }
+        .footer-cols { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 40px; margin-bottom: 40px; }
+        .footer-col h4 { color: white; font-size: 1rem; margin-bottom: 15px; font-weight: 600; }
+        .footer-col p, .footer-col a { color: #9ca3af; text-decoration: none; margin-bottom: 8px; display: block; font-size: 0.85rem; line-height: 1.5; }
+        .footer-col a:hover { color: var(--primary); }
+        
+        .footer-bottom { border-top: 1px solid #374151; padding-top: 20px; text-align: center; font-size: 0.8rem; color: #6b7280; }
+        .footer-links-nav { display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
+        .footer-links-nav a { color: #d1d5db; text-decoration: none; cursor: pointer; font-size: 0.9rem; }
+        .footer-links-nav a:hover { color: var(--primary); }
+
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); }
+        .modal-content { background-color: var(--white); margin: 5% auto; padding: 40px; border: 1px solid var(--border); width: 90%; max-width: 600px; border-radius: 8px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; line-height: 1; }
         .close:hover { color: #000; }
-        .modal h2 { margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-        .modal-body { max-height: 400px; overflow-y: auto; margin-top: 15px; font-size: 0.95rem; color: var(--text-muted); }
+        .modal h2 { margin-top: 0; margin-bottom: 20px; font-size: 1.5rem; color: #111827; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
+        .modal-body p { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 15px; line-height: 1.6; }
 
-        /* PRELOADER ESTILO TIKTOK SHOP */
         #cloaker-loader {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: #ffffff; z-index: 99999; display: flex;
@@ -230,79 +256,168 @@ const SAFE_PAGE_HTML = `
         }
         .shop-spinner {
             width: 50px; height: 50px; border: 5px solid #f3f3f3;
-            border-top-color: var(--tiktok-red); border-radius: 50%;
+            border-top-color: var(--primary); border-radius: 50%;
             animation: spin 1s linear infinite;
         }
         .loader-text {
-            font-family: 'Inter', sans-serif; color: #888; margin-top: 15px; font-size: 14px;
+            font-family: 'Inter', sans-serif; color: var(--text-muted); margin-top: 20px; font-size: 14px; font-weight: 500;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <!-- PRELOADER DE E-COMMERCE -->
     <div id="cloaker-loader">
         <div class="shop-spinner"></div>
-        <p class="loader-text">Carregando oferta...</p>
+        <p class="loader-text">Carregando conteúdo...</p>
     </div>
 
     <header>
-        <div class="nav-container"><div class="logo">Guia<span>Gastronomia</span></div></div>
+        <div class="nav-container">
+            <div class="logo">Izza<span>Eletros</span></div>
+        </div>
     </header>
 
     <div class="container">
         <article>
-            <span class="tag">Análise de Tecnologia</span>
-            <h1>Review: Fritadeira Elétrica Oven Digital 12L vale a pena para a sua cozinha?</h1>
-            <div class="meta">Publicado em 30 de Junho de 2026 • Leitura de 4 min</div>
-            <p>Se você busca praticidade na cozinha sem abrir mão de refeições saudáveis, as fritadeiras sem óleo já fazem parte da sua lista de desejos. No entanto, a nova geração desse eletrodoméstico trouxe o formato <strong>Oven</strong> (tipo forno), que promete ir além das versões tradicionais de cesto. Analisamos a <strong>Fritadeira Elétrica Oven Digital 12L</strong> para entender se ela cumpre o que promete.</p>
-            
-            <div class="product-image-container"><img class="product-image" src="air_fryer_oven_12l.png" alt="Fritadeira Elétrica Oven Digital 12L"></div>
-            
-            <h2>Capacidade de 12 Litros e Versatilidade</h2>
-            <p>A principal vantagem deste modelo é a sua capacidade interna de 12 litros aliada ao design de prateleiras. Diferente das fritadeiras comuns de gaveta única, onde os alimentos precisam ser empilhados, o formato tipo forno permite assar, grelhar e desidratar alimentos em múltiplas camadas.</p>
-            <p>Você pode preparar um frango inteiro no espeto giratório ou utilizar as assadeiras perfuradas para preparar legumes na bandeja inferior enquanto grelha carnes na bandeja superior de forma simultânea.</p>
-            
-            <div class="highlight-box"><p>"A distribuição do fluxo de ar quente em 360° garante que os alimentos fiquem crocantes por fora e macios por dentro sem a necessidade de adicionar óleo."</p></div>
-
-            <!-- BOTÃO DE OFERTA ORGÂNICO (Fallback caso o JS falhe) -->
-            <div class="offer-cta-container">
-                <a href="?auth=1" class="offer-cta">QUERO APROVEITAR OS 50% DE DESCONTO</a>
-                <p class="offer-cta-sub">*Oferta válida apenas para leitores do blog hoje.</p>
+            <span class="tag">Análise de Eletrodomésticos</span>
+            <h1>Fritadeira Oven Digital 12L: Análise Completa e Veredito</h1>
+            <div class="meta">
+                <span class="meta-author">Redação Izza Eletros</span> • 
+                <span>Atualizado em Junho de 2026</span> • 
+                <span>Leitura de 5 min</span>
             </div>
 
-            <h2>Painel Digital e Funções Pré-Programadas</h2>
-            <p>O controle digital por toque simplifica o processo. O modelo conta com funções pré-definidas para os alimentos mais comuns no dia a dia, como batatas fritas, carnes, peixes, pão de queijo e até mesmo bolos. O ajuste manual de temperatura varia de 80°C a 200°C, acompanhado de um timer sonoro de até 90 minutos com desligamento automático.</p>
+            <p>O mercado de eletrodomésticos tem visto uma rápida evolução nas fritadeiras sem óleo. Se antes o padrão era o formato de gaveta, agora os modelos "Oven" (estilo forno) ganharam destaque. Nesta análise, avaliamos a <strong>Fritadeira Oven Digital 12L</strong> para verificar se o design e a capacidade justificam a aquisição para a sua cozinha.</p>
             
-            <h2>Principais Vantagens do Modelo</h2>
+            <div class="product-image-container">
+                <img class="product-image" src="air_fryer_oven_12l.png" alt="Fritadeira Oven Digital 12L em ambiente de cozinha">
+            </div>
+            
+            <h2>Design e Capacidade de 12 Litros</h2>
+            <p>A principal diferença deste modelo em relação às fritadeiras convencionais é o formato cilíndrico de forno e a capacidade interna de 12 litros. Esse espaço extra é ideal para famílias maiores, permitindo o uso de múltiplas prateleiras simultaneamente. É possível assar proteínas na grelha superior enquanto legumes são preparados na bandeja inferior, otimizando o tempo de preparo das refeições.</p>
+            <p>Outro ponto de destaque é o espeto giratório para carnes inteiras, como frangos de aproximadamente 1,5kg, garantindo um assamento mais homogêneo sem a necessidade de intervenção manual constante.</p>
+            
+            <div class="highlight-box">
+                <p>A distribuição do fluxo de ar quente em 360° é a tecnologia central deste modelo, responsável por criar uma crosta externa crocante enquanto mantém a umidade interna dos alimentos.</p>
+            </div>
+
+            <div class="offer-cta-container">
+                <p style="margin-bottom: 15px; font-size: 1rem; color: var(--text-main);"><strong>Disponibilidade e Preços Atualizados</strong></p>
+                <a href="?auth=1" class="offer-cta">Ver Disponibilidade e Ofertas</a>
+                <p class="offer-cta-sub">Os preços e estoques são atualizados diariamente pelos parceiros.</p>
+            </div>
+
+            <h2>Painel Digital e Funcionalidades</h2>
+            <p>O painel de controle digital por toque oferece predefinições de tempo e temperatura para os alimentos mais comuns do dia a dia. O usuário também possui a opção de ajuste manual, com variação de temperatura entre 80°C e 200°C. O timer integrado suporta até 90 minutos e desliga o aparelho automaticamente ao final do ciclo, adicionando uma camada de segurança contra superaquecimento.</p>
+            
+            <h2>Principais Características Técnicas</h2>
             <ul class="features-list">
-                <li><strong>2 em 1:</strong> Funciona tanto como fritadeira sem óleo de alta velocidade quanto como forno elétrico compacto.</li>
-                <li><strong>Visualização Interna:</strong> Porta de vidro temperado e luz interna para acompanhar o ponto exato da receita sem abrir o aparelho.</li>
-                <li><strong>Facilidade de Limpeza:</strong> A porta é removível e as grelhas antiaderentes facilitam a higienização.</li>
+                <li>Funcionamento duplo: atua como fritadeira sem óleo de alta velocidade e como forno elétrico.</li>
+                <li>Porta de vidro temperado duplo com luz interna LED para monitoramento visual sem perda de temperatura.</li>
+                <li>Acessórios inclusos: espeto giratório, cesto de fritura e bandejas antiaderentes removível.</li>
+                <li>Estrutura pensada para fácil higienização, com peças compatíveis com lava-louças.</li>
             </ul>
             
-            <h2>Veredito Final</h2>
-            <p>A Fritadeira Elétrica Oven Digital 12L é uma excelente aquisição para famílias de 3 a 5 pessoas que necessitam de mais espaço e variedade no preparo diário. Ela une a velocidade de uma airfryer com o espaço útil e o acabamento estético de um pequeno forno digital.</p>
+            <h2>Veredito da Redação</h2>
+            <p>Após a análise técnica, concluímos que a Fritadeira Oven Digital 12L se mostra um equipamento robusto para quem busca versatilidade no preparo de alimentos. A substituição do formato de gaveta pelo formato forno resolve o problema de espaço para famílias de 3 a 5 pessoas. É uma opção viável para quem deseja unir as funções de airfryer e forno em um único eletrodoméstico na bancada da cozinha.</p>
         </article>
     </div>
 
     <footer>
         <div class="footer-content">
-            <div class="footer-links">
-                <a onclick="openModal('modal-privacidade')">Política de Privacidade</a>
-                <a onclick="openModal('modal-termos')">Termos de Uso</a>
-                <a onclick="openModal('modal-contato')">Contato</a>
+            <div class="footer-cols">
+                <div class="footer-col">
+                    <h4>Izza Eletros</h4>
+                    <p>Portal especializado em análises e reviews de eletrodomésticos e tecnologia para o lar.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Dados da Empresa</h4>
+                    <p><strong>67.738.953 LUAN TONON MAIA</strong></p>
+                    <p>CNPJ: 67.738.953/0001-22</p>
+                    <p>Rua Caminho do Guaramar, 199</p>
+                    <p>Praia Grande, São Paulo, BR</p>
+                    <p>E-mail: luantononmaia1@hotmail.com</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Navegação</h4>
+                    <a onclick="openModal('modal-privacidade')">Política de Privacidade</a>
+                    <a onclick="openModal('modal-termos')">Termos de Uso</a>
+                    <a onclick="openModal('modal-contato')">Fale Conosco</a>
+                </div>
             </div>
-            <p>&copy; 2026 Guia Gastronomia. Todos os direitos reservados.</p>
+            
+            <div class="footer-bottom">
+                <div class="footer-links-nav">
+                    <a onclick="openModal('modal-privacidade')">Privacidade</a>
+                    <a onclick="openModal('modal-termos')">Termos</a>
+                    <a onclick="openModal('modal-contato')">Contato</a>
+                </div>
+                <p>&copy; 2026 Izza Eletros. Todos os direitos reservados. CNPJ 67.738.953/0001-22.</p>
+                <p style="margin-top: 10px; font-size: 0.75rem; color: #6b7280;">Aviso de Transparência: O Izza Eletros pode participar de programas de afiliados, podendo receber comissões por compras realizadas através dos links divulgados. Isso não altera o preço final para o consumidor.</p>
+            </div>
         </div>
     </footer>
 
-    <div id="modal-privacidade" class="modal"><div class="modal-content"><span class="close" onclick="closeModal('modal-privacidade')">&times;</span><h2>Política de Privacidade</h2><div class="modal-body"><p>Nós valorizamos a privacidade dos nossos visitantes.</p></div></div></div>
-    <div id="modal-termos" class="modal"><div class="modal-content"><span class="close" onclick="closeModal('modal-termos')">&times;</span><h2>Termos de Uso</h2><div class="modal-body"><p>Bem-vindo ao nosso portal.</p></div></div></div>
-    <div id="modal-contato" class="modal"><div class="modal-content"><span class="close" onclick="closeModal('modal-contato')">&times;</span><h2>Contato</h2><div class="modal-body"><p>E-mail: contato@guiagastronomia.shop</p></div></div></div>
+    <div id="modal-privacidade" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-privacidade')">&times;</span>
+            <h2>Política de Privacidade</h2>
+            <div class="modal-body">
+                <p>A Izza Eletros valoriza a privacidade de seus visitantes. Esta política descreve como coletamos e utilizamos seus dados.</p>
+                <p><strong>Coleta de Dados:</strong> Utilizamos cookies e tecnologias semelhantes para melhorar a experiência de navegação, analisar o tráfego do site e personalizar o conteúdo. Os cookies podem ser gerenciados nas configurações do seu navegador.</p>
+                <p><strong>Dados Pessoais:</strong> Não solicitamos dados pessoais diretamente neste portal. Caso entre em contato via e-mail, seus dados serão utilizados apenas para resposta à sua solicitação.</p>
+                <p><strong>Links Externos:</strong> Este site contém links para sites de terceiros. Não nos responsabilizamos pelas práticas de privacidade de sites externos. Recomendamos ler as políticas dos referidos sites.</p>
+                <p><strong>Contato:</strong> Para dúvidas sobre esta política, contato através do e-mail: luantononmaia1@hotmail.com</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-termos" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-termos')">&times;</span>
+            <h2>Termos de Uso</h2>
+            <div class="modal-body">
+                <p>Ao acessar e navegar no portal Izza Eletros, você concorda com os termos e condições estabelecidos abaixo.</p>
+                <p><strong>Natureza do Conteúdo:</strong> Todo o material publicado neste site, incluindo análises, reviews e artigos, tem caráter meramente informativo e de entretenimento. As opiniões expressas são baseadas em avaliações técnicas no momento da publicação.</p>
+                <p><strong>Programa de Afiliados:</strong> O Izza Eletros participa de programas de afiliados. Podemos receber uma comissão caso você efetue uma compra através dos links disponíveis em nosso site. Isso não gera nenhum custo adicional a você.</p>
+                <p><strong>Propriedade Intelectual:</strong> Todo o conteúdo original produzido pela redação do Izza Eletros é protegido por direitos autorais. A reprodução não autorizada é proibida.</p>
+                <p><strong>Alterações:</strong> Reservamo-nos o direito de modificar estes termos a qualquer momento. Recomendamos revisões periódicas desta página.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-contato" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-contato')">&times;</span>
+            <h2>Fale Conosco</h2>
+            <div class="modal-body">
+                <p>Possui alguma dúvida, sugestão de pauta ou necessidade de suporte em relação às nossas análises?</p>
+                <p>Estamos à disposição através dos canais oficiais da nossa empresa:</p>
+                <p><strong>E-mail:</strong> luantononmaia1@hotmail.com</p>
+                <p><strong>Endereço:</strong> Rua Caminho do Guaramar, 199, Praia Grande, São Paulo, BR</p>
+                <p><strong>Razão Social:</strong> 67.738.953 LUAN TONON MAIA</p>
+                <p>O prazo médio de resposta é de até 48 horas em dias úteis.</p>
+            </div>
+        </div>
+    </div>
 
     <script>
+        function openModal(id) {
+            document.getElementById(id).style.display = 'block';
+        }
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+        window.onclick = function(event) {
+            const modals = document.getElementsByClassName('modal');
+            for (let i = 0; i < modals.length; i++) {
+                if (event.target == modals[i]) {
+                    modals[i].style.display = 'none';
+                }
+            }
+        }
+
         (function() {
             const loader = document.getElementById('cloaker-loader');
             
