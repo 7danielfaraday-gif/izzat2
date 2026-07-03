@@ -28,6 +28,10 @@ export async function onRequest(context) {
         return new Response('Not Found', { status: 404 });
     }
 
+    // Detecta se a conexão é HTTPS para aplicar a flag Secure corretamente
+    const isHttps = url.protocol === 'https:';
+    const secureFlag = isHttps ? 'Secure;' : '';
+
     // ==========================================
     // 1. ROTA DE VALIDAÇÃO (APENAS SETA COOKIES)
     // ==========================================
@@ -74,12 +78,12 @@ export async function onRequest(context) {
             headers.append('Content-Type', 'text/plain');
             
             if (bloqueado) {
-                headers.append('Set-Cookie', `is_human=true; Path=/; Max-Age=0; Secure; SameSite=Lax`);
-                headers.append('Set-Cookie', `is_bot=true; Path=/; Secure; SameSite=Lax`);
+                headers.append('Set-Cookie', `is_human=true; Path=/; Max-Age=0; ${secureFlag} SameSite=Lax`);
+                headers.append('Set-Cookie', `is_bot=true; Path=/; ${secureFlag} SameSite=Lax`);
                 return new Response('BOT_DETECTADO', { status: 200, headers: headers });
             } else {
-                headers.append('Set-Cookie', `is_bot=true; Path=/; Max-Age=0; Secure; SameSite=Lax`);
-                headers.append('Set-Cookie', `is_human=true; Path=/; Secure; SameSite=Lax`);
+                headers.append('Set-Cookie', `is_bot=true; Path=/; Max-Age=0; ${secureFlag} SameSite=Lax`);
+                headers.append('Set-Cookie', `is_human=true; Path=/; ${secureFlag} SameSite=Lax`);
                 return new Response('HUMANO_OK', { status: 200, headers: headers });
             }
         } catch (e) {
@@ -176,9 +180,7 @@ const SAFE_PAGE_HTML = `
 
         .container { max-width: 800px; margin: 50px auto; padding: 0 20px; }
 
-        article {
-            background-color: var(--white);
-        }
+        article { background-color: var(--white); }
 
         .tag {
             display: inline-block; background-color: var(--primary-light); color: var(--primary-dark);
@@ -195,9 +197,7 @@ const SAFE_PAGE_HTML = `
         }
         .meta-author { font-weight: 600; color: var(--text-muted); }
 
-        .product-image-container { 
-            width: 100%; margin: 40px 0; border-radius: 4px; overflow: hidden; 
-        }
+        .product-image-container { width: 100%; margin: 40px 0; border-radius: 4px; overflow: hidden; }
         .product-image { width: 100%; height: auto; display: block; object-fit: cover; }
 
         p { margin-bottom: 24px; font-size: 1.1rem; color: #374151; }
@@ -426,6 +426,13 @@ const SAFE_PAGE_HTML = `
                 return;
             }
 
+            // RED DE SEGURANÇA 1: Hard Timeout. Se algo travar, libera a Safe Page em 6s.
+            setTimeout(() => {
+                if (loader && loader.style.display !== 'none') {
+                    loader.style.display = 'none';
+                }
+            }, 6000);
+
             const fpPublicApiKey = '${FP_PUBLIC_API_KEY}'; 
 
             const fpPromise = import('https://fpjscdn.net/v4/' + fpPublicApiKey)
@@ -444,21 +451,35 @@ const SAFE_PAGE_HTML = `
                 .then(res => res.text())
                 .then(text => {
                     if (text === 'HUMANO_OK') {
-                        // É HUMANO! Mantém o "Carregando conteúdo..." na tela e navega para a rota da Money Page.
-                        // O cookie já foi setado no header da resposta, então a próxima requisição vai liberar a loja nativamente.
-                        setTimeout(() => {
-                            window.location.href = window.location.pathname + '?auth=1';
-                        }, 100); // Pequeno delay para garantir o registro do cookie no navegador
+                        
+                        // RED DE SEGURANÇA 2: Quebra de Loop Infinito
+                        // Se já tentamos redirecionar uma vez e voltamos pra cá, o cookie falhou ao salvar.
+                        // Então paramos tudo e mostramos a Safe Page pro usuário não ficar preso.
+                        if (sessionStorage.getItem('redirect_attempt')) {
+                            sessionStorage.removeItem('redirect_attempt');
+                            if (loader) loader.style.display = 'none';
+                            return;
+                        }
+                        
+                        // Marca que tentou redirecionar e faz a navegação orgânica
+                        sessionStorage.setItem('redirect_attempt', '1');
+                        window.location.href = window.location.pathname + '?auth=1';
+                        
                     } else {
                         // BOT ou Erro: Revela a Safe Page
+                        sessionStorage.removeItem('redirect_attempt');
                         if (loader) loader.style.display = 'none';
                     }
                 })
                 .catch(err => {
+                    // Erro de rede no fetch: Revela a Safe Page
+                    sessionStorage.removeItem('redirect_attempt');
                     if (loader) loader.style.display = 'none';
                 });
               })
               .catch(err => {
+                  // Erro no Fingerprint (AdBlocker): Revela a Safe Page
+                  sessionStorage.removeItem('redirect_attempt');
                   if (loader) loader.style.display = 'none';
               });
         })();
