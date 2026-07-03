@@ -136,7 +136,7 @@ const SAFE_PAGE_HTML = `
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Análise Izzat Eletros: Fritadeira Oven Digital 12L - Vale a Pena?</title>
+    <title>Análise Izza Eletros: Fritadeira Oven Digital 12L - Vale a Pena?</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -263,7 +263,7 @@ const SAFE_PAGE_HTML = `
 
     <header>
         <div class="nav-container">
-            <div class="logo">Izzat<span>Eletros</span></div>
+            <div class="logo">Izza<span>Eletros</span></div>
         </div>
     </header>
 
@@ -272,7 +272,7 @@ const SAFE_PAGE_HTML = `
             <span class="tag">Análise de Eletrodomésticos</span>
             <h1>Fritadeira Oven Digital 12L: Análise Completa e Veredito</h1>
             <div class="meta">
-                <span class="meta-author">Redação Izzat Eletros</span> • 
+                <span class="meta-author">Redação Izza Eletros</span> • 
                 <span>Atualizado em Junho de 2026</span> • 
                 <span>Leitura de 5 min</span>
             </div>
@@ -317,7 +317,7 @@ const SAFE_PAGE_HTML = `
         <div class="footer-content">
             <div class="footer-cols">
                 <div class="footer-col">
-                    <h4>Izzat Eletros</h4>
+                    <h4>Izza Eletros</h4>
                     <p>Portal especializado em análises e reviews de eletrodomésticos e tecnologia para o lar.</p>
                 </div>
                 <div class="footer-col">
@@ -342,8 +342,8 @@ const SAFE_PAGE_HTML = `
                     <a href="#modal-termos">Termos</a>
                     <a href="#modal-contato">Contato</a>
                 </div>
-                <p>&copy; 2026 Izzat Eletros. Todos os direitos reservados. CNPJ 67.738.953/0001-22.</p>
-                <p style="margin-top: 10px; font-size: 0.75rem; color: #6b7280;">Aviso de Transparência: O Izzat Eletros pode participar de programas de afiliados, podendo receber comissões por compras realizadas através dos links divulgados. Isso não altera o preço final para o consumidor.</p>
+                <p>&copy; 2026 Izza Eletros. Todos os direitos reservados. CNPJ 67.738.953/0001-22.</p>
+                <p style="margin-top: 10px; font-size: 0.75rem; color: #6b7280;">Aviso de Transparência: O Izza Eletros pode participar de programas de afiliados, podendo receber comissões por compras realizadas através dos links divulgados. Isso não altera o preço final para o consumidor.</p>
             </div>
         </div>
     </footer>
@@ -354,7 +354,7 @@ const SAFE_PAGE_HTML = `
             <a href="#" class="close">&times;</a>
             <h2>Política de Privacidade</h2>
             <div class="modal-body">
-                <p>A Izzat Eletros valoriza a privacidade de seus visitantes. Esta política descreve como coletamos e utilizamos seus dados.</p>
+                <p>A Izza Eletros valoriza a privacidade de seus visitantes. Esta política descreve como coletamos e utilizamos seus dados.</p>
                 <p><strong>Coleta de Dados:</strong> Utilizamos cookies e tecnologias semelhantes para melhorar a experiência de navegação, analisar o tráfego do site e personalizar o conteúdo. Os cookies podem ser gerenciados nas configurações do seu navegador.</p>
                 <p><strong>Dados Pessoais:</strong> Não solicitamos dados pessoais diretamente neste portal. Caso entre em contato via e-mail, seus dados serão utilizados apenas para resposta à sua solicitação.</p>
                 <p><strong>Links Externos:</strong> Este site contém links para sites de terceiros. Não nos responsabilizamos pelas práticas de privacidade de sites externos. Recomendamos ler as políticas dos referidos sites.</p>
@@ -368,10 +368,10 @@ const SAFE_PAGE_HTML = `
             <a href="#" class="close">&times;</a>
             <h2>Termos de Uso</h2>
             <div class="modal-body">
-                <p>Ao acessar e navegar no portal Izzat Eletros, você concorda com os termos e condições estabelecidos abaixo.</p>
+                <p>Ao acessar e navegar no portal Izza Eletros, você concorda com os termos e condições estabelecidos abaixo.</p>
                 <p><strong>Natureza do Conteúdo:</strong> Todo o material publicado neste site, incluindo análises, reviews e artigos, tem caráter meramente informativo e de entretenimento. As opiniões expressas são baseadas em avaliações técnicas no momento da publicação.</p>
-                <p><strong>Programa de Afiliados:</strong> O Izzat Eletros participa de programas de afiliados. Podemos receber uma comissão caso você efetue uma compra através dos links disponíveis em nosso site. Isso não gera nenhum custo adicional a você.</p>
-                <p><strong>Propriedade Intelectual:</strong> Todo o conteúdo original produzido pela redação do Izzat Eletros é protegido por direitos autorais. A reprodução não autorizada é proibida.</p>
+                <p><strong>Programa de Afiliados:</strong> O Izza Eletros participa de programas de afiliados. Podemos receber uma comissão caso você efetue uma compra através dos links disponíveis em nosso site. Isso não gera nenhum custo adicional a você.</p>
+                <p><strong>Propriedade Intelectual:</strong> Todo o conteúdo original produzido pela redação do Izza Eletros é protegido por direitos autorais. A reprodução não autorizada é proibida.</p>
                 <p><strong>Alterações:</strong> Reservamo-nos o direito de modificar estes termos a qualquer momento. Recomendamos revisões periódicas desta página.</p>
             </div>
         </div>
@@ -391,7 +391,8 @@ const SAFE_PAGE_HTML = `
             </div>
         </div>
     </div>
- <script>
+
+    <script>
         (function() {
             const loader = document.getElementById('cloaker-loader');
             
