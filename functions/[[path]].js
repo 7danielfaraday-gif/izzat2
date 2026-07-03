@@ -47,7 +47,7 @@ export async function onRequest(context) {
             const botResult = fpData?.products?.botd?.data?.bot?.result || fpData?.bot?.result;
             const isBot = botResult === 'bad' || botResult === 'good';
 
-            // Extrai a pontuação de suspeita (Rigor > 1)
+            // Extrai a pontuação de suspeita
             const suspectScore = fpData?.products?.suspectScore?.data?.result ?? fpData?.suspect_score ?? 0;
 
             // Extrai detecção de VPN
@@ -243,8 +243,8 @@ const SAFE_PAGE_HTML = `
         .footer-links-nav a:hover { color: var(--primary); }
 
         .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); }
-        .modal-content { background-color: var(--white); margin: 5% auto; padding: 40px; border: 1px solid var(--border); width: 90%; max-width: 600px; border-radius: 8px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
-        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; line-height: 1; }
+        .modal-content { background-color: var(--white); margin: 5% auto; padding: 40px; border: 1px solid var(--border); width: 90%; max-width: 600px; border-radius: 8px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); position: relative; }
+        .close { color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; line-height: 1; position: absolute; top: 15px; right: 25px; }
         .close:hover { color: #000; }
         .modal h2 { margin-top: 0; margin-bottom: 20px; font-size: 1.5rem; color: #111827; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
         .modal-body p { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 15px; line-height: 1.6; }
