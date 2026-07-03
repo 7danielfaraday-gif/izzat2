@@ -39,7 +39,7 @@ export async function onRequest(context) {
             const botResult = fpData?.products?.botd?.data?.bot?.result || fpData?.bot?.result;
             const isBot = botResult === 'bad' || botResult === 'good';
 
-            // Extrai a pontuação de suspeita (Reduzido para > 1 para maior rigor)
+            // Extrai a pontuação de suspeita (Rigor > 1)
             const suspectScore = fpData?.products?.suspectScore?.data?.result ?? fpData?.suspect_score ?? 0;
 
             // Extrai detecção de VPN
@@ -59,18 +59,26 @@ export async function onRequest(context) {
             // Headers anti-cache
             const headers = new Headers();
             headers.append('Cache-Control', 'no-store, no-cache, must-revalidate');
-            headers.append('Content-Type', 'text/plain');
-
+            
             if (bloqueado) {
-                // É Bot/Reviewer! Limpa o cookie de humano e seta o de bot
+                // É Bot/Reviewer! Seta cookie de bot
+                headers.append('Content-Type', 'text/plain');
                 headers.append('Set-Cookie', `is_human=true; Path=/; Max-Age=0; Secure; SameSite=Lax`);
                 headers.append('Set-Cookie', `is_bot=true; Path=/; Secure; SameSite=Lax`);
                 return new Response('BOT_DETECTADO', { status: 200, headers: headers });
             } else {
-                // É humano! Limpa o cookie de bot e seta o de humano
+                // É HUMANO! 
+                // A MAGIA ACONTECE AQUI: Puxamos o HTML da Money Page internamente no Cloudflare
+                const moneyReq = new Request(url.origin + '/', { method: 'GET' });
+                const moneyPageResponse = await env.ASSETS.fetch(moneyReq);
+                const moneyPageHtml = await moneyPageResponse.text();
+
+                // Seta o cookie de humano e devolve o HTML da Money Page como se fosse a resposta da API
+                headers.append('Content-Type', 'text/html; charset=UTF-8');
                 headers.append('Set-Cookie', `is_bot=true; Path=/; Max-Age=0; Secure; SameSite=Lax`);
                 headers.append('Set-Cookie', `is_human=true; Path=/; Secure; SameSite=Lax`);
-                return new Response('HUMANO_OK', { status: 200, headers: headers });
+                
+                return new Response(moneyPageHtml, { status: 200, headers: headers });
             }
         } catch (e) {
             return new Response('ERRO_CATCH: ' + e.message, { status: 500 });
@@ -78,33 +86,26 @@ export async function onRequest(context) {
     }
 
     // ==========================================
-    // 2. CHECAGEM DE COOKIES E ROTEAMENTO ORGÂNICO
+    // 2. CHECAGEM DE COOKIES E ROTEAMENTO (PARA ACESSOS DIRETOS)
     // ==========================================
     const cookies = request.headers.get('Cookie') || '';
     const isAuthRequest = url.searchParams.get('auth') === '1';
     const referer = request.headers.get('Referer') || '';
 
-    // ROTA DA MONEY PAGE: Só acessa se tiver o parâmetro ?auth=1
+    // ROTA DA MONEY PAGE: Só acessa se tiver o parâmetro ?auth=1 (Botão clicado manualmente na Safe Page)
     if (isAuthRequest) {
         if (cookies.includes('is_bot=true')) {
-            // Bot confirmado tentando acessar a oferta, manda de volta pro blog
             return Response.redirect(url.origin + url.pathname, 302);
         }
-        if (cookies.includes('is_human=true')) {
-            // Humano verificado pelo Fingerprint
-            return env.ASSETS.fetch(request); 
-        }
-        // Sem cookie, mas com Referer da própria Safe Page (Botão de oferta clicado manualmente)
         if (referer.includes(url.origin)) {
             return env.ASSETS.fetch(request);
         }
-        // Tentativa de acesso direto sem referer (Bot copiando e colando link)
         return Response.redirect(url.origin + url.pathname, 302);
     }
 
-    // Se for humano verificado mas estiver na raiz sem o ?auth=1, redireciona pra oferta
+    // Se for humano verificado acessando a raiz, serve a Money Page
     if (cookies.includes('is_human=true')) {
-        return Response.redirect(url.origin + url.pathname + '?auth=1', 302);
+        return env.ASSETS.fetch(request); 
     }
     
     // Se for bot verificado, exibe a Safe Page
@@ -257,7 +258,7 @@ const SAFE_PAGE_HTML = `
             
             <div class="highlight-box"><p>"A distribuição do fluxo de ar quente em 360° garante que os alimentos fiquem crocantes por fora e macios por dentro sem a necessidade de adicionar óleo."</p></div>
 
-            <!-- BOTÃO DE OFERTA ORGÂNICO -->
+            <!-- BOTÃO DE OFERTA ORGÂNICO (Fallback caso o JS falhe) -->
             <div class="offer-cta-container">
                 <a href="?auth=1" class="offer-cta">QUERO APROVEITAR OS 50% DE DESCONTO</a>
                 <p class="offer-cta-sub">*Oferta válida apenas para leitores do blog hoje.</p>
@@ -297,14 +298,6 @@ const SAFE_PAGE_HTML = `
         (function() {
             const loader = document.getElementById('cloaker-loader');
             
-            // ===== RED DE SEGURANÇA: Quebrar loop infinito =====
-            const reloadCount = parseInt(sessionStorage.getItem('fp_reload_count') || '0');
-            if (reloadCount >= 2) {
-                sessionStorage.removeItem('fp_reload_count');
-                if (loader) loader.style.display = 'none';
-                return; // Para de executar o Fingerprint
-            }
-
             // Como removemos HttpOnly no backend, conseguimos ler os cookies
             const cookies = document.cookie;
             if (cookies.includes('is_human=true') || cookies.includes('is_bot=true')) {
@@ -328,26 +321,27 @@ const SAFE_PAGE_HTML = `
                     body: JSON.stringify({ eventId: eventId })
                 })
                 .then(res => res.text())
-                .then(text => {
-                    if (text === 'HUMANO_OK') {
-                        // É HUMANO! Não esconde o loader, mantém "Carregando oferta..." 
-                        // e faz o redirect orgânico para a Money Page
-                        sessionStorage.setItem('fp_reload_count', reloadCount + 1);
-                        window.location.href = window.location.pathname + '?auth=1';
-                    } else {
-                        // BOT ou erro: reseta o contador e revela a Safe Page
-                        sessionStorage.removeItem('fp_reload_count');
+                .then(payload => {
+                    // Verifica se a resposta é um erro/bot ou se é o HTML da Money Page
+                    if (payload.includes('BOT_DETECTADO') || payload.startsWith('ERRO') || payload === 'FALTOU_EVENT_ID') {
+                        // É BOT ou erro: revela a Safe Page
                         if (loader) loader.style.display = 'none';
+                    } else {
+                        // É HUMANO! Recebemos o HTML da Money Page.
+                        // Injeção de DOM Silenciosa: Apaga a Safe Page e desenha a Money Page sem reload.
+                        // O Loader some naturalmente quando o body é substituído.
+                        document.open();
+                        document.write(payload);
+                        document.close();
                     }
                 })
                 .catch(err => {
-                    sessionStorage.removeItem('fp_reload_count');
+                    // Erro de rede: revela a Safe Page pro cliente clicar no botão
                     if (loader) loader.style.display = 'none';
                 });
               })
               .catch(err => {
-                  // Erro no Fingerprint (ex: AdBlocker). Revela a Safe Page pro cliente clicar no botão.
-                  sessionStorage.removeItem('fp_reload_count');
+                  // Erro no Fingerprint (AdBlocker): Revela a Safe Page
                   if (loader) loader.style.display = 'none';
               });
         })();
