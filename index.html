@@ -113,8 +113,8 @@
     <noscript>
         <link href="/assets/fonts/inter-local.css?v=20260518font1" rel="stylesheet" />
     </noscript>
-    <link crossorigin="" href="https://analytics.tiktok.com" rel="preconnect" />
-    <link href="//analytics.tiktok.com" rel="dns-prefetch" />
+    <link crossorigin="" href="https://www.googletagmanager.com" rel="preconnect" />
+    <link href="//www.googletagmanager.com" rel="dns-prefetch" />
     <meta
         content="Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI. 2 em 1: Air Fryer + Forno. Economize 71% hoje. Frete Grátis e Envio Imediato."
         name="description" />
@@ -131,19 +131,14 @@
         imagesrcset="/assets/img/01-240.webp 240w, /assets/img/01-320.webp 320w, /assets/img/01-400.webp 400w"
         imagesizes="(max-width: 480px) 100vw, 400px" rel="preload" type="image/webp" />
     <noscript></noscript>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18305665723"></script>
     <script>
         if (!window.__TEST_MODE && !window.__LAB_MODE) {
-            !function (w, d, t) {
-                w.TiktokAnalyticsObject = t; var ttq = w[t] = w[t] || []; ttq.methods = ["page", "track", "identify", "instances", "debug", "on", "off", "once", "ready", "alias", "group", "enableCookie", "disableCookie"], ttq.setAndDefer = function (t, e) { t[e] = function () { t.push([e].concat(Array.prototype.slice.call(arguments, 0))) } }; for (var i = 0; i < ttq.methods.length; i++)ttq.setAndDefer(ttq, ttq.methods[i]); ttq.instance = function (t) { for (var e = ttq._i[t] || [], n = 0; n < ttq.methods.length; n++)ttq.setAndDefer(e, ttq.methods[n]); return e }, ttq.load = function (e, n) {
-                    var i = "https://analytics.tiktok.com/i18n/pixel/events.js"; ttq._i = ttq._i || {}, ttq._i[e] = [], ttq._i[e]._u = i, ttq._t = ttq._t || {}, ttq._t[e] = +new Date, ttq._o = ttq._o || {}, ttq._o[e] = n || {};
-                    var o = document.createElement("script"); o.type = "text/javascript", o.async = !0, o.src = i + "?sdkid=" + e + "&lib=" + t;
-                    var scripts = document.getElementsByTagName("script");
-                    var a = scripts.length > 0 ? scripts[0] : null; if (a && a.parentNode) { a.parentNode.insertBefore(o, a); } else { document.head.appendChild(o); }
-                };
-
-                ttq.load('D937JI3C77UB3EFMUNMG');
-                ttq.page();
-            }(window, document, 'ttq');
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){window.dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'AW-18305665723');
         }
     </script>
     <style>
@@ -2917,118 +2912,16 @@
             }
             window.generateEventId = generateEventId;
 
-            function getTTP() {
-                return (document.cookie.match(/(?:^|;\s*)_ttp=([^;]*)/) || [])[1] || undefined;
-            }
-            window.getTTP = getTTP;
-
-            async function buildTikTokBrowserIdentity(finalData) {
-                var identity = {};
-                if (finalData && finalData.email) identity.email = finalData.email;
-                if (finalData && finalData.phone) identity.phone_number = finalData.phone;
-
-                var externalId = getExternalId();
-                if (externalId) {
-                    var normalizedExternalId = String(externalId).trim().toLowerCase();
-                    var externalIdHash = isSha256Hex(normalizedExternalId) ? normalizedExternalId : (await sha256Hex(normalizedExternalId));
-                    if (externalIdHash) identity.external_id = externalIdHash;
-                }
-                return identity;
-            }
-
-            function identifyTikTokBrowser(identity) {
-                try {
-                    if (!identity || Object.keys(identity).length === 0) return;
-                    if (window.ttq && typeof window.ttq.identify === 'function') {
-                        window.ttq.identify(identity);
-                    }
-                } catch (e) { }
-            }
-
-            function getTikTokEventSourceUrl() {
-                try {
-                    var u = new URL(window.location.href);
-                    u.protocol = 'https:';
-                    u.host = 'izzatcasa.shop';
-                    return u.toString();
-                } catch (_) { return 'https://izzatcasa.shop/'; }
-            }
-            window.getTikTokEventSourceUrl = getTikTokEventSourceUrl;
-
-            async function sendCAPI(event, eventId, properties, user) {
-                try {
-                    await fetch('/api/tiktok-events', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ event: event, event_id: eventId, properties: properties, user: user })
-                    });
-                } catch (e) { }
-            }
-
-            function shouldSkipDuplicateTikTokEvent(event, eventId, ttlMs) {
-                try {
-                    if (!event || !eventId) return false;
-                    var now = Date.now();
-                    var ttl = typeof ttlMs === 'number' ? ttlMs : 10 * 60 * 1000;
-                    var cache = window.__ttEventDispatchCache = window.__ttEventDispatchCache || {};
-                    var cacheKeys = Object.keys(cache);
-                    for (var i = 0; i < cacheKeys.length; i++) {
-                        var key = cacheKeys[i];
-                        if (now - cache[key] > (ttl * 2)) delete cache[key];
-                    }
-                    var dedupKey = event + '::' + eventId;
-                    if (cache[dedupKey] && (now - cache[dedupKey]) < ttl) return true;
-                    cache[dedupKey] = now;
-                } catch (e) { }
-                return false;
-            }
-            window.shouldSkipDuplicateTikTokEvent = window.shouldSkipDuplicateTikTokEvent || shouldSkipDuplicateTikTokEvent;
-
             function trackPixel(event, data) {
                 if (window.__TEST_MODE || window.__LAB_MODE) { console.log('[TEST_MODE/LAB_MODE] Evento bloqueado:', event, data); return; }
                 data = data || {};
                 requestAnimationFrame(function () {
-                    Promise.resolve().then(async function () {
-                        var finalData = Object.assign({}, data);
-                        if (finalData.phone) {
-                            var normalizedPhone = normalizePhone(finalData.phone);
-                            if (normalizedPhone) finalData.phone = normalizedPhone;
-                            else delete finalData.phone;
-                        }
-                        if (finalData.email) finalData.email = normalizeEmail(finalData.email);
-                        finalData = await hashIdentifiers(finalData);
-                        var eventId = finalData.event_id || generateEventId();
-                        if (window.shouldSkipDuplicateTikTokEvent && window.shouldSkipDuplicateTikTokEvent(event, eventId)) return;
-                        var browserIdentity = await buildTikTokBrowserIdentity(finalData);
-                        identifyTikTokBrowser(browserIdentity);
-                        var payload = Object.assign({}, finalData, getStoredUTMs(), {
-                            external_id: getExternalId(),
-                            ttclid: getTTCLID(),
-                            event_source_url: getTikTokEventSourceUrl(),
-                            event_time: Math.floor(Date.now() / 1000)
-                        });
-                        if (window.ttq && typeof window.ttq.track === 'function') {
-                            try {
-                                var bp = Object.assign({}, payload);
-                                delete bp.event_id;
-                                window.ttq.track(event, bp, { event_id: eventId });
-                            } catch (e) { }
-                        }
-                        var capiPayload = Object.assign({}, window.PRODUCT_CONTENT || {}, payload);
-                        sendCAPI(
-                            event,
-                            eventId,
-                            capiPayload,
-                            {
-                                email: finalData.email || undefined,
-                                phone_number: finalData.phone || undefined,
-                                external_id: getExternalId(),
-                                ttclid: getTTCLID(),
-                                ttp: getTTP()
-                            }
-                        );
-                        if (typeof gtag === 'function') { try { gtag('event', event, payload); } catch (e) { } }
-                    }).catch(function (error) { if (DEBUG_MODE) console.error('[trackPixel]', error); });
+                    var payload = Object.assign({}, data, getStoredUTMs(), {
+                        event_time: Math.floor(Date.now() / 1000)
+                    });
+                    if (typeof gtag === 'function') { 
+                        try { gtag('event', event, payload); } catch (e) { } 
+                    }
                 });
             }
             window.trackPixel = trackPixel;

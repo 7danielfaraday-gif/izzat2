@@ -1,4 +1,4 @@
-﻿// ==================================================
+// ==================================================
     // 1. TRACKING TIKTOK TURBO (BEACON + FINGERPRINT)
     // ==================================================
     
@@ -68,6 +68,8 @@
         if (clickId) {
             setCookie('ttclid', clickId, 90);
             localStorage.setItem('ttclid', clickId);
+            setCookie('ttclid', clickId, 90);
+            localStorage.setItem('ttclid', clickId);
         } else {
             clickId = localStorage.getItem('ttclid') || getCookie('ttclid');
         }
@@ -111,31 +113,7 @@
         };
     }
 
-    // --- FUNÃ‡ÃƒO DE DISPARO HÃBRIDA (Browser Pixel + CAPI) ---
-    // Leitura do cookie _ttp (TikTok Pixel cookie)
-    function getTTP() {
-        return (document.cookie.match(/(?:^|;\s*)_ttp=([^;]*)/) || [])[1] || undefined;
-    }
-
-    function getTikTokEventSourceUrl() {
-        try {
-            var u = new URL(window.location.href);
-            u.protocol = 'https:';
-            u.host = 'izzatcasa.shop';
-            return u.toString();
-        } catch(_) { return 'https://izzatcasa.shop/'; }
-    }
-
-    async function sendCAPI(event, eventId, properties, user) {
-        try {
-            await fetch('/api/tiktok-events', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ event: event, event_id: eventId, properties: properties, user: user })
-            });
-        } catch(e) {}
-    }
-
+    // --- FUNÇÕES DE DISPARO DE MÉTricas ---
     function trackViaZaraz(event, data = {}) {
         if (window.trackPixel) {
             window.trackPixel(event, data);
@@ -143,67 +121,16 @@
         }
         if (window.__TEST_MODE || window.__LAB_MODE) { console.log('[TEST_MODE/LAB_MODE] Evento bloqueado:', event, data); return; }
         try {
-            const savedEmail = localStorage.getItem('user_hashed_email');
-            const savedPhone = localStorage.getItem('user_hashed_phone');
-
             let payload = {
                 ...data,
                 ...getContext(),
                 external_id: getExternalId(),
-                ttclid: getTTCLID(),
                 ...getStoredUTMs()
             };
-
             payload.event_time = payload.timestamp || Math.floor(Date.now() / 1000);
-            payload.event_source_url = getTikTokEventSourceUrl();
-
-            if (savedEmail && !payload.email) payload.email = savedEmail;
-            if (savedPhone && !payload.phone) payload.phone = savedPhone;
-
-            var eventId = payload.event_id || window.generateEventId();
-            if (window.shouldSkipDuplicateTikTokEvent && window.shouldSkipDuplicateTikTokEvent(event, eventId)) return;
-
-            // 1. Browser Pixel (com event_id para deduplicaÃ§Ã£o)
-            if (window.ttq && typeof window.ttq.track === 'function') {
-                if (event !== 'PageView') {
-                    try {
-                        var bp = Object.assign({}, payload);
-                        delete bp.event_id;
-                        window.ttq.track(event, bp, { event_id: eventId });
-                    } catch(e) {}
-                }
+            if (typeof gtag === 'function') {
+                try { gtag('event', event, payload); } catch(e) {}
             }
-
-            // 2. CAPI server-side (dupla camada â€” mesmo event_id para deduplicaÃ§Ã£o)
-            var requiresCatalogContent = (event === 'ViewContent' || event === 'AddToCart');
-            var capiProperties = Object.assign(
-                {},
-                requiresCatalogContent ? PRODUCT_CONTENT : {},
-                data || {},
-                { event_source_url: getTikTokEventSourceUrl() }
-            );
-
-            if (!capiProperties.content_id) {
-                if (Array.isArray(capiProperties.contents) && capiProperties.contents[0] && capiProperties.contents[0].content_id) {
-                    capiProperties.content_id = capiProperties.contents[0].content_id;
-                } else if (Array.isArray(capiProperties.content_ids) && capiProperties.content_ids[0]) {
-                    capiProperties.content_id = capiProperties.content_ids[0];
-                }
-            }
-
-            sendCAPI(
-                event,
-                eventId,
-                capiProperties,
-                {
-                    email:       payload.email || undefined,
-                    phone_number: payload.phone || undefined,
-                    external_id: getExternalId(),
-                    ttclid:      getTTCLID(),
-                    ttp:         getTTP()
-                }
-            );
-
         } catch (error) {
             console.error('Tracking Error:', error);
         }
