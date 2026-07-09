@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+    <meta
+      name="description"
+      content="FP Scan — interface em pt-BR sobre o motor real de detecção CreepJS. Score, mentiras e evidências."
+    />
+    <title>FP Scan — CreepJS (pt-BR)</title>
+    <link rel="stylesheet" href="css/styles.css?v=7" />
+    <!-- Motor oficial CreepJS (MIT) — expõe window.Fingerprint e window.Creep -->
+    <script src="vendor/creepjs/creep.js" defer></script>
+  </head>
+  <body>
+    <!-- Host oculto: o CreepJS preenche #fingerprint-data (patch no DOM). UI amigável fica fora. -->
+    <div id="creepjs-host" class="creepjs-host" aria-hidden="true">
+      <div id="fingerprint-data">
+        <div class="fingerprint-header-container">
+          <div class="fingerprint-header">
+            <div id="creep-fingerprint" class="ellipsis-all">FP ID: Computing...</div>
+            <div id="fuzzy-fingerprint">
+              <div class="ellipsis-all fuzzy-fp">Fuzzy: <span class="blurred">…</span></div>
+            </div>
+            <div><span class="time">0 ms</span></div>
+          </div>
+        </div>
+        <div id="webrtc-connection"></div>
+        <div id="status-info"></div>
+      </div>
+    </div>
+
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">
+          <div class="logo" aria-hidden="true">
+            <svg viewBox="0 0 32 32" width="32" height="32">
+              <circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="2" />
+              <circle cx="16" cy="16" r="6" fill="currentColor" />
+              <path d="M16 2v4M16 26v4M2 16h4M26 16h4" stroke="currentColor" stroke-width="2" />
+            </svg>
+          </div>
+          <div>
+            <h1>FP Scan</h1>
+            <p class="tagline">
+              Interface amigável · <strong>motor CreepJS real</strong> · score e mentiras em pt-BR
+            </p>
+          </div>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn primary" id="btn-run">Iniciar análise</button>
+          <button type="button" class="btn" id="btn-export" disabled>Exportar JSON</button>
+          <button type="button" class="btn" id="btn-copy" disabled>Copiar resumo</button>
+        </div>
+      </header>
+
+      <div id="boot-error" class="boot-error" hidden></div>
+
+      <div class="progress-wrap" id="progress-wrap" hidden>
+        <div class="progress-track">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div class="progress-label" id="progress-label">Aguardando CreepJS...</div>
+      </div>
+
+      <div id="results" hidden>
+        <section class="hero" aria-label="Pontuação de autenticidade">
+          <div class="hero-score">
+            <div class="score-circle">
+              <svg viewBox="0 0 120 120" aria-hidden="true">
+                <circle class="score-bg" cx="60" cy="60" r="54" />
+                <circle
+                  class="score-ring grade-trusted"
+                  id="score-ring"
+                  cx="60"
+                  cy="60"
+                  r="54"
+                  stroke-dasharray="339.292"
+                  stroke-dashoffset="339.292"
+                />
+              </svg>
+              <div class="score-center">
+                <div id="score-value">—</div>
+                <span class="sub">autenticidade</span>
+              </div>
+            </div>
+            <div class="hero-meta">
+              <span class="hero-kicker">Score baseado nas mentiras do CreepJS</span>
+              <div class="grade-badge grade-trusted" id="grade-label">—</div>
+              <p id="grade-desc">Aguardando motor...</p>
+              <p id="avg-confidence" class="conf-line"></p>
+              <div class="tags" id="tags"></div>
+            </div>
+          </div>
+          <div class="hero-stats" id="hero-stats"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>Visão geral do navegador</h2>
+            <span class="panel-hint">Dados do window.Fingerprint (CreepJS)</span>
+          </div>
+          <div class="snapshot-grid" id="snapshot-grid"></div>
+        </section>
+
+        <section class="panel panel-lies" id="lies-panel">
+          <div class="panel-head">
+            <h2><span class="icon-warn" aria-hidden="true">⚠</span> Mentiras e inconsistências</h2>
+            <span class="panel-hint" id="lies-count">—</span>
+          </div>
+          <div id="lies-list" class="lies-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>Alertas (tags)</h2>
+            <span class="panel-hint">Derivadas dos achados reais do CreepJS</span>
+          </div>
+          <div id="tag-reasons" class="tag-reasons"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>Clusters de risco</h2>
+          </div>
+          <div id="clusters" class="clusters"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>Módulos CreepJS</h2>
+            <span class="panel-hint">OK ou LIED por seção do fingerprint</span>
+          </div>
+          <div class="category-grid" id="category-grid"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>Todos os achados</h2>
+          </div>
+          <div id="findings-cards" class="findings-cards"></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Severidade</th>
+                  <th>Categoria</th>
+                  <th>Verificação</th>
+                  <th>Evidência</th>
+                  <th>Conf.</th>
+                  <th>Impacto</th>
+                </tr>
+              </thead>
+              <tbody id="findings-body"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>Resumo textual</h2>
+          </div>
+          <div class="summary-box">
+            <pre id="summary-pre"></pre>
+          </div>
+        </section>
+
+        <section class="panel panel-dev">
+          <div class="panel-head">
+            <h2>Console / debug</h2>
+            <span class="panel-hint">Objetos oficiais do CreepJS</span>
+          </div>
+          <p class="dev-note">
+            No DevTools: <code>window.Fingerprint</code>, <code>window.Creep</code>,
+            <code>window.FPScan.last</code>
+          </p>
+        </section>
+      </div>
+
+      <footer>
+        <p>
+          <strong>Motor de detecção:</strong> código de
+          <a href="https://github.com/abrahamjuliot/creepjs" rel="noopener noreferrer" target="_blank"
+            >abrahamjuliot/creepjs</a
+          >
+          (MIT), arquivo <code>vendor/creepjs/creep.js</code>.
+        </p>
+        <p>
+          A marca <strong>CreepJS</strong> é do autor original — este site é uma interface própria (FP Scan) e
+          <strong>não</strong> é o projeto oficial.
+        </p>
+        <p class="footer-note">
+          Score alto = poucas mentiras. Score baixo = prototype lies, trash, headless ou seções com lied.
+        </p>
+      </footer>
+    </div>
+
+    <script type="module" src="js/ui.js?v=7"></script>
+  </body>
+</html>

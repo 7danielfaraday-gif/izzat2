@@ -1,8 +1,20 @@
-node_modules
-.breakpoints
-package-lock.json
-public/creep.js
-public/creep.js.map
-public/creepworker.js
-public/style.prefix.css
-notes.md
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# Logs / env
+*.log
+.env
+.env.*
+
+# Dependencies (if added later)
+node_modules/
+dist/
+.cache/

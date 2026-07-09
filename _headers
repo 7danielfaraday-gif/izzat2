@@ -1,0 +1,14 @@
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  Permissions-Policy: interest-cohort=()
+
+/*.js
+  Content-Type: text/javascript; charset=utf-8
+  Cache-Control: no-cache
+
+/*.css
+  Cache-Control: no-cache
+
+/index.html
+  Cache-Control: no-cache
