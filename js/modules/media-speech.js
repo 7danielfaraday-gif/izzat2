@@ -1,6 +1,6 @@
 /** mediaDevices + speechSynthesis voices */
 
-import { finding, finalizeResult, parseUserAgent, withTimeout } from '../utils.js?v3';
+import { finding, finalizeResult, parseUserAgent, withTimeout } from '../utils.js?v5';
 
 async function getDevices() {
   if (!navigator.mediaDevices?.enumerateDevices) return { error: 'no-api' };
@@ -75,7 +75,7 @@ export async function run() {
         'Nenhum media device',
         'enumerateDevices retornou lista vazia.',
         -7,
-        ['HEADLESS']
+        ['SEM_INTERFACE']
       )
     );
   }
@@ -96,7 +96,7 @@ export async function run() {
         'Nenhuma voz speechSynthesis',
         'Pode ser headless ou OS sem TTS.',
         -3,
-        ['HEADLESS']
+        ['SEM_INTERFACE']
       )
     );
   }
@@ -117,7 +117,7 @@ export async function run() {
             .map((v) => v.name)
             .join(', '),
           -14,
-          ['BAD_FP']
+          ['FP_RUIM']
         )
       );
     }
@@ -136,7 +136,7 @@ export async function run() {
             .map((v) => v.name)
             .join(', '),
           -8,
-          ['BAD_FP']
+          ['FP_RUIM']
         )
       );
     }

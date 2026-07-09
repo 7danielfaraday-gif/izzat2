@@ -1,6 +1,6 @@
 /** Detecção de fontes instaladas vs OS declarado */
 
-import { finding, finalizeResult, parseUserAgent, platformOs } from '../utils.js?v3';
+import { finding, finalizeResult, parseUserAgent, platformOs } from '../utils.js?v5';
 
 const FONT_SETS = {
   windows: [
@@ -100,7 +100,7 @@ export async function run() {
         'UA mobile com fontes Windows',
         `Detectadas: ${detected.filter((f) => FONT_SETS.windows.includes(f)).join(', ')}`,
         -16,
-        ['BAD_FP', 'ANTIDETECT_LIKELY']
+        ['FP_RUIM', 'ANTIDETECT_PROVAVEL']
       )
     );
   }
@@ -114,7 +114,7 @@ export async function run() {
         'UA Windows com fontes macOS, sem fontes Windows',
         `mac hits=${raw.counts.macos}, win hits=0`,
         -15,
-        ['BAD_FP']
+        ['FP_RUIM']
       )
     );
   }
@@ -128,7 +128,7 @@ export async function run() {
         'UA macOS com fontes Windows dominantes',
         `win hits=${raw.counts.windows}, mac hits=0`,
         -15,
-        ['BAD_FP']
+        ['FP_RUIM']
       )
     );
   }
@@ -142,7 +142,7 @@ export async function run() {
         'Nenhuma fonte extra detectada',
         'Ambiente mínimo, headless ou bloqueio de medição.',
         -3,
-        ['HEADLESS']
+        ['SEM_INTERFACE']
       )
     );
   }
@@ -156,7 +156,7 @@ export async function run() {
         'Fontes do OS declarado ausentes',
         `OS=${os}, hits esperados=0, outras fontes=${detected.length}`,
         -9,
-        ['BAD_FP']
+        ['FP_RUIM']
       )
     );
   }

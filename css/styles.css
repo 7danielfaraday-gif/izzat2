@@ -141,6 +141,113 @@ td.conf {
   font-size: 0.8rem;
 }
 
+.glossary {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.glossary-item {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.glossary-item strong {
+  color: var(--text);
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+}
+
+.tag[title] {
+  cursor: help;
+}
+
+.tag-click {
+  cursor: pointer;
+}
+
+.tag-click:hover {
+  filter: brightness(1.15);
+}
+
+.section-hint {
+  margin: -0.4rem 0 0.85rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.tag-reasons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.tag-reason-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+}
+
+.tag-reason-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.tag-code {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--muted);
+  background: var(--bg3);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+}
+
+.tag-reason-desc {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.tag-reason-why {
+  font-size: 0.8rem;
+  margin-bottom: 0.35rem;
+}
+
+.motivo-list {
+  margin: 0;
+  padding-left: 1.15rem;
+  font-size: 0.8rem;
+  color: var(--text);
+  line-height: 1.45;
+}
+
+.motivo-list li {
+  margin-bottom: 0.3rem;
+  color: var(--muted);
+}
+
+.motivo-list li::marker {
+  color: var(--bad);
+}
+
+.motivo-vazio {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-style: italic;
+}
+
 .brand p {
   margin: 0.25rem 0 0;
   color: var(--muted);

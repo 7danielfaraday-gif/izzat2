@@ -1,6 +1,6 @@
 /** Math / JS engine fingerprint - UA mentindo engine */
 
-import { finding, finalizeResult, hashString, parseUserAgent } from '../utils.js?v3';
+import { finding, finalizeResult, hashString, parseUserAgent } from '../utils.js?v5';
 
 function mathSnapshot() {
   const vals = [
@@ -52,7 +52,7 @@ export async function run() {
           'Aritmetica float anomala',
           `0.1+0.2=${snap[10]}`,
           -14,
-          ['BAD_FP'],
+          ['FP_RUIM'],
           0.85
         )
       );
@@ -68,7 +68,7 @@ export async function run() {
         'MAX_SAFE_INTEGER inesperado',
         String(Number.MAX_SAFE_INTEGER),
         -8,
-        ['BAD_FP'],
+        ['FP_RUIM'],
         0.9
       )
     );
@@ -86,7 +86,7 @@ export async function run() {
           'Math.tan nao nativo',
           s.slice(0, 60),
           -16,
-          ['PROTOTYPE_LIE', 'ANTIDETECT_LIKELY'],
+          ['API_FALSIFICADA', 'ANTIDETECT_PROVAVEL'],
           0.95
         )
       );
@@ -100,7 +100,7 @@ export async function run() {
   const r2 = Math.random();
   if (r1 === r2 && r1 === 0) {
     findings.push(
-      finding('math-random-zero', 'medium', 'Math.random suspeito', 'valores iguais/zero', -8, ['BAD_FP'], 0.7)
+      finding('math-random-zero', 'medium', 'Math.random suspeito', 'valores iguais/zero', -8, ['FP_RUIM'], 0.7)
     );
   }
 

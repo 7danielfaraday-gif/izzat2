@@ -1,6 +1,6 @@
 /** WebGL vendor/renderer, software GL, extensions, hash de render */
 
-import { finding, finalizeResult, hashString, parseUserAgent, safe } from '../utils.js?v3';
+import { finding, finalizeResult, hashString, parseUserAgent, safe } from '../utils.js?v5';
 
 const SOFTWARE_GL = [
   /swiftshader/i,
@@ -115,7 +115,7 @@ export async function run() {
         'WebGL indisponível',
         'Desabilitado ou bloqueado ??" suspeito em desktop moderno, comum em privacy.',
         -6,
-        ['PRIVACY']
+        ['PRIVACIDADE']
       )
     );
     return finalizeResult('webgl', 'WebGL', findings, raw);
@@ -135,7 +135,7 @@ export async function run() {
           'GPU software / VM detectada',
           `renderer="${renderer}" ??" típico de headless, VM ou server-side browser.`,
           -18,
-          ['HEADLESS', 'BAD_FP', 'ANTIDETECT_LIKELY']
+          ['SEM_INTERFACE', 'FP_RUIM', 'ANTIDETECT_PROVAVEL']
         )
       );
       break;
@@ -154,7 +154,7 @@ export async function run() {
         'WebGL renderer vazio',
         'Spoof incompleto de getParameter.',
         -14,
-        ['BAD_FP', 'PROTOTYPE_LIE']
+        ['FP_RUIM', 'API_FALSIFICADA']
       )
     );
   }
@@ -168,7 +168,7 @@ export async function run() {
         'Poucas extensões WebGL',
         `Apenas ${gl1.extensionCount} extensões ??" headless/restrito.`,
         -7,
-        ['HEADLESS']
+        ['SEM_INTERFACE']
       )
     );
   }
@@ -182,7 +182,7 @@ export async function run() {
         'UA iOS com GPU desktop',
         `renderer="${renderer}"`,
         -25,
-        ['BAD_FP', 'ANTIDETECT_LIKELY']
+        ['FP_RUIM', 'ANTIDETECT_PROVAVEL']
       )
     );
   }
@@ -196,7 +196,7 @@ export async function run() {
         'UA Android com GPU desktop PC',
         renderer,
         -16,
-        ['BAD_FP']
+        ['FP_RUIM']
       )
     );
   }
@@ -210,7 +210,7 @@ export async function run() {
         'UA Windows com Apple GPU',
         renderer,
         -25,
-        ['BAD_FP', 'ANTIDETECT_LIKELY']
+        ['FP_RUIM', 'ANTIDETECT_PROVAVEL']
       )
     );
   }
@@ -253,7 +253,7 @@ export async function run() {
         'MAX_TEXTURE_SIZE atípico',
         String(mts),
         -6,
-        ['BAD_FP']
+        ['FP_RUIM']
       )
     );
   }
@@ -270,7 +270,7 @@ export async function run() {
         'WebGL getParameter hookado',
         'Função não nativa ??" spoof de vendor/renderer.',
         -16,
-        ['PROTOTYPE_LIE', 'ANTIDETECT_LIKELY']
+        ['API_FALSIFICADA', 'ANTIDETECT_PROVAVEL']
       )
     );
   }

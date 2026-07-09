@@ -1,6 +1,6 @@
 /** Worker vs main thread ??" mismatch forte indica spoof no window apenas */
 
-import { finding, finalizeResult, withTimeout } from '../utils.js?v3';
+import { finding, finalizeResult, withTimeout } from '../utils.js?v5';
 
 function spawnWorkerSnapshot() {
   return new Promise((resolve) => {
@@ -162,7 +162,7 @@ export async function run() {
         'Worker ??? Main em múltiplas propriedades',
         `Mismatch em: ${raw.mismatches.map((m) => m.key).join(', ')}. Spoof típico de antidetect incompleto.`,
         -28,
-        ['WORKER_MISMATCH', 'ANTIDETECT_LIKELY', 'BAD_FP']
+        ['WORKER_DIVERGENTE', 'ANTIDETECT_PROVAVEL', 'FP_RUIM']
       )
     );
   } else if (raw.mismatches.length === 1) {
@@ -175,7 +175,7 @@ export async function run() {
         `Worker ??? Main: ${m.key}`,
         `main="${m.main}" worker="${m.worker}"`,
         sev === 'critical' ? -22 : -15,
-        ['WORKER_MISMATCH', 'ANTIDETECT_LIKELY']
+        ['WORKER_DIVERGENTE', 'ANTIDETECT_PROVAVEL']
       )
     );
   }
@@ -190,7 +190,7 @@ export async function run() {
           'webdriver divergente main/worker',
           `main=${main.webdriver} worker=${worker.webdriver}`,
           -25,
-          ['WORKER_MISMATCH', 'AUTOMATION'],
+          ['WORKER_DIVERGENTE', 'AUTOMACAO'],
           0.95
         )
       );
@@ -230,7 +230,7 @@ export async function run() {
           'userAgentData.brands main != worker',
           '',
           -14,
-          ['WORKER_MISMATCH', 'BAD_FP'],
+          ['WORKER_DIVERGENTE', 'FP_RUIM'],
           0.88
         )
       );

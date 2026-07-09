@@ -1,33 +1,33 @@
 /**
  * Browser Integrity Guard v2 - orquestracao e UI
  */
-import { computeScore } from './scorer.js?v3';
-import { buildSummaryText, exportJSON, severityLabel } from './report.js?v3';
-import { run as runAutomation } from './modules/automation.js?v3';
-import { run as runPrototypeLies } from './modules/prototype-lies.js?v3';
-import { run as runWorkers } from './modules/workers.js?v3';
-import { run as runNavigator } from './modules/navigator-check.js?v3';
-import { run as runChrome } from './modules/chrome-runtime.js?v3';
-import { run as runCanvas } from './modules/canvas.js?v3';
-import { run as runWebgl } from './modules/webgl.js?v3';
-import { run as runAudio } from './modules/audio.js?v3';
-import { run as runFonts } from './modules/fonts.js?v3';
-import { run as runScreen } from './modules/screen.js?v3';
-import { run as runClientRects } from './modules/client-rects.js?v3';
-import { run as runWebrtc } from './modules/webrtc.js?v3';
-import { run as runMediaSpeech } from './modules/media-speech.js?v3';
-import { run as runTimezone } from './modules/timezone-locale.js?v3';
-import { run as runPermissions } from './modules/permissions.js?v3';
-import { run as runTiming } from './modules/timing.js?v3';
-import { run as runConsistency } from './modules/consistency.js?v3';
-import { run as runMatchMedia } from './modules/matchmedia.js?v3';
-import { run as runIframeLab } from './modules/iframe-lab.js?v3';
-import { run as runMathEngine } from './modules/math-engine.js?v3';
-import { run as runWebgpu } from './modules/webgpu.js?v3';
-import { run as runStorageHeap } from './modules/storage-heap.js?v3';
-import { run as runCssDom } from './modules/css-dom.js?v3';
-import { run as runBatterySensors } from './modules/battery-sensors.js?v3';
-import { run as runBehavior } from './modules/behavior.js?v3';
+import { computeScore, TAG_INFO } from './scorer.js?v5';
+import { buildSummaryText, exportJSON, severityLabel } from './report.js?v5';
+import { run as runAutomation } from './modules/automation.js?v5';
+import { run as runPrototypeLies } from './modules/prototype-lies.js?v5';
+import { run as runWorkers } from './modules/workers.js?v5';
+import { run as runNavigator } from './modules/navigator-check.js?v5';
+import { run as runChrome } from './modules/chrome-runtime.js?v5';
+import { run as runCanvas } from './modules/canvas.js?v5';
+import { run as runWebgl } from './modules/webgl.js?v5';
+import { run as runAudio } from './modules/audio.js?v5';
+import { run as runFonts } from './modules/fonts.js?v5';
+import { run as runScreen } from './modules/screen.js?v5';
+import { run as runClientRects } from './modules/client-rects.js?v5';
+import { run as runWebrtc } from './modules/webrtc.js?v5';
+import { run as runMediaSpeech } from './modules/media-speech.js?v5';
+import { run as runTimezone } from './modules/timezone-locale.js?v5';
+import { run as runPermissions } from './modules/permissions.js?v5';
+import { run as runTiming } from './modules/timing.js?v5';
+import { run as runConsistency } from './modules/consistency.js?v5';
+import { run as runMatchMedia } from './modules/matchmedia.js?v5';
+import { run as runIframeLab } from './modules/iframe-lab.js?v5';
+import { run as runMathEngine } from './modules/math-engine.js?v5';
+import { run as runWebgpu } from './modules/webgpu.js?v5';
+import { run as runStorageHeap } from './modules/storage-heap.js?v5';
+import { run as runCssDom } from './modules/css-dom.js?v5';
+import { run as runBatterySensors } from './modules/battery-sensors.js?v5';
+import { run as runBehavior } from './modules/behavior.js?v5';
 
 const PHASE_A = [
   { id: 'automation', label: 'Automacao & CDP', run: runAutomation },
@@ -95,9 +95,10 @@ function renderScore(result) {
   scoreEl.textContent = result.score;
   gradeEl.textContent = result.grade.label;
   gradeEl.className = `grade-badge ${gradeClass(result.grade.id)}`;
+  const modoPt = result.mode === 'balanced' ? 'equilibrado' : 'estrito';
   descEl.textContent =
     result.grade.description +
-    ` | modo ${result.mode}` +
+    ` | modo ${modoPt}` +
     (result.correlationDelta ? ` | correlacao ${result.correlationDelta}` : '');
 
   if (confEl) {
@@ -112,17 +113,67 @@ function renderScore(result) {
 
   tagsEl.innerHTML = '';
   if (!result.tags.length) {
-    tagsEl.innerHTML = '<span class="tag tag-ok">LIMPO</span>';
+    tagsEl.innerHTML = '<span class="tag tag-ok" title="Nenhum sinal de risco relevante">SEM ALERTAS</span>';
   } else {
     for (const t of result.tags) {
+      const info = TAG_INFO[t] || result.tagDetails?.[t];
       const span = document.createElement('span');
-      span.className = 'tag';
-      span.textContent = t;
+      span.className = 'tag tag-click';
+      span.textContent = info?.titulo || t;
+      span.title = 'Clique para ver os motivos';
+      span.dataset.tag = t;
+      span.addEventListener('click', () => {
+        const el = document.getElementById(`tag-detail-${t}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
       tagsEl.appendChild(span);
     }
   }
 
+  renderTagReasons(result);
   renderClusters(result.clusters || []);
+}
+
+function renderTagReasons(result) {
+  const box = $('#tag-reasons');
+  if (!box) return;
+  box.innerHTML = '';
+  const details = result.tagDetails || {};
+  const tags = result.tags || [];
+  if (!tags.length) {
+    box.innerHTML =
+      '<div class="cluster-empty">Nenhuma tag ativa — fingerprint sem alertas relevantes.</div>';
+    return;
+  }
+
+  for (const t of tags) {
+    const d = details[t] || {
+      id: t,
+      titulo: TAG_INFO[t]?.titulo || t,
+      descricao: TAG_INFO[t]?.desc || '',
+      motivos: [],
+    };
+    const card = document.createElement('div');
+    card.className = 'tag-reason-card';
+    card.id = `tag-detail-${t}`;
+
+    const motivos = d.motivos?.length
+      ? `<ul class="motivo-list">${d.motivos
+          .map((m) => `<li>${escapeHtml(m)}</li>`)
+          .join('')}</ul>`
+      : '<p class="motivo-vazio">Nenhum detalhe tecnico anexado (tag derivada de regra geral).</p>';
+
+    card.innerHTML = `
+      <div class="tag-reason-head">
+        <span class="tag">${escapeHtml(d.titulo || t)}</span>
+        <code class="tag-code">${escapeHtml(t)}</code>
+      </div>
+      <p class="tag-reason-desc">${escapeHtml(d.descricao || '')}</p>
+      <div class="tag-reason-why"><strong>Por que esta tag foi ativada:</strong></div>
+      ${motivos}
+    `;
+    box.appendChild(card);
+  }
 }
 
 function renderClusters(clusters) {

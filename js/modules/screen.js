@@ -1,6 +1,6 @@
 /** Screen, viewport, DPR + visualViewport + matchMedia cross-check (v2) */
 
-import { finding, finalizeResult, parseUserAgent, safe } from '../utils.js?v3';
+import { finding, finalizeResult, parseUserAgent, safe } from '../utils.js?v5';
 
 function mm(q) {
   return safe(() => window.matchMedia(q).matches);
@@ -58,7 +58,7 @@ export async function run() {
         'outerWidth/outerHeight = 0',
         'Padrao classico de Chrome headless.',
         -16,
-        ['HEADLESS', 'AUTOMATION'],
+        ['SEM_INTERFACE', 'AUTOMACAO'],
         0.95
       )
     );
@@ -72,7 +72,7 @@ export async function run() {
         'Resolucao headless / invalida',
         `${raw.width}x${raw.height}`,
         -14,
-        ['HEADLESS'],
+        ['SEM_INTERFACE'],
         0.9
       )
     );
@@ -86,7 +86,7 @@ export async function run() {
         'avail* maior que screen*',
         `screen=${raw.width}x${raw.height} avail=${raw.availWidth}x${raw.availHeight}`,
         -14,
-        ['BAD_FP', 'SCREEN_SPOOF'],
+        ['FP_RUIM', 'SPOOF_TELA'],
         0.95
       )
     );
@@ -94,7 +94,7 @@ export async function run() {
 
   if (![1, 4, 8, 15, 16, 24, 32, 48].includes(raw.colorDepth)) {
     findings.push(
-      finding('screen-colordepth', 'medium', 'colorDepth atipico', String(raw.colorDepth), -7, ['BAD_FP'], 0.8)
+      finding('screen-colordepth', 'medium', 'colorDepth atipico', String(raw.colorDepth), -7, ['FP_RUIM'], 0.8)
     );
   }
 
@@ -106,7 +106,7 @@ export async function run() {
         'colorDepth != pixelDepth',
         `${raw.colorDepth} vs ${raw.pixelDepth}`,
         -3,
-        ['BAD_FP'],
+        ['FP_RUIM'],
         0.7
       )
     );
@@ -120,7 +120,7 @@ export async function run() {
         'UA mobile com resolucao desktop e DPR<=1',
         `${raw.width}x${raw.height} @${dpr}`,
         -14,
-        ['BAD_FP'],
+        ['FP_RUIM'],
         0.9
       )
     );
@@ -134,7 +134,7 @@ export async function run() {
         'UA desktop com tela de smartphone',
         `${raw.width}x${raw.height} @${dpr} - DevTools device mode?`,
         -8,
-        ['BAD_FP'],
+        ['FP_RUIM'],
         0.75
       )
     );
@@ -142,7 +142,7 @@ export async function run() {
 
   if (dpr < 0.5 || dpr > 5) {
     findings.push(
-      finding('screen-dpr-absurd', 'medium', 'devicePixelRatio absurdo', String(dpr), -8, ['BAD_FP'], 0.85)
+      finding('screen-dpr-absurd', 'medium', 'devicePixelRatio absurdo', String(dpr), -8, ['FP_RUIM'], 0.85)
     );
   }
 
@@ -164,7 +164,7 @@ export async function run() {
             (vv ? ` vv=${Math.round(vv.width)}x${Math.round(vv.height)}` : '') +
             ` - spoof tipico de antidetect`,
           -14,
-          ['BAD_FP', 'SCREEN_SPOOF', 'ANTIDETECT_LIKELY'],
+          ['FP_RUIM', 'SPOOF_TELA', 'ANTIDETECT_PROVAVEL'],
           0.92
         )
       );
@@ -176,7 +176,7 @@ export async function run() {
           'inner* maior que screen*',
           `inner=${raw.innerWidth}x${raw.innerHeight} screen=${raw.width}x${raw.height}`,
           -7,
-          ['BAD_FP', 'SCREEN_SPOOF'],
+          ['FP_RUIM', 'SPOOF_TELA'],
           0.75
         )
       );
@@ -192,7 +192,7 @@ export async function run() {
         'devicePixelRatio != matchMedia resolution',
         `dpr=${dpr} mas CSS resolution nao confirma - spoof de DPR`,
         -12,
-        ['BAD_FP', 'SCREEN_SPOOF'],
+        ['FP_RUIM', 'SPOOF_TELA'],
         0.88
       )
     );
@@ -207,7 +207,7 @@ export async function run() {
         'outer* maior que screen*',
         `outer=${raw.outerWidth}x${raw.outerHeight} screen=${raw.width}x${raw.height}`,
         -12,
-        ['BAD_FP', 'SCREEN_SPOOF'],
+        ['FP_RUIM', 'SPOOF_TELA'],
         0.9
       )
     );
@@ -222,7 +222,7 @@ export async function run() {
         'UA mobile com pointer:fine (desktop)',
         'matchMedia indica mouse, nao touch primario',
         -14,
-        ['BAD_FP', 'ANTIDETECT_LIKELY'],
+        ['FP_RUIM', 'ANTIDETECT_PROVAVEL'],
         0.9
       )
     );

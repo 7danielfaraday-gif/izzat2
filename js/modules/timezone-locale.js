@@ -1,6 +1,6 @@
 /** Timezone, locale e coerencia com language */
 
-import { finding, finalizeResult } from '../utils.js?v3';
+import { finding, finalizeResult } from '../utils.js?v5';
 
 /** Rough language primary tag -> plausible timezone regions (soft check) */
 const LANG_TZ_HINTS = {
@@ -52,7 +52,7 @@ export async function run() {
 
   if (!raw.timeZone) {
     findings.push(
-      finding('tz-missing', 'medium', 'Timezone ausente', '', -6, ['BAD_FP'])
+      finding('tz-missing', 'medium', 'Timezone ausente', '', -6, ['FP_RUIM'])
     );
   }
 
@@ -65,7 +65,7 @@ export async function run() {
         'Timezone UTC',
         'Comum em servidores/headless; legitimo para alguns usuarios.',
         -2,
-        ['HEADLESS']
+        ['SEM_INTERFACE']
       )
     );
   }
@@ -91,7 +91,7 @@ export async function run() {
         'Idioma vs timezone incomum',
         `language=${lang}, timeZone=${raw.timeZone}`,
         strong ? -6 : -2,
-        ['BAD_FP']
+        ['FP_RUIM']
       )
     );
   }
@@ -108,7 +108,7 @@ export async function run() {
           'Intl locale â‰  navigator.language',
           `locale=${resolved.locale}, language=${lang}`,
           -3,
-          ['BAD_FP']
+          ['FP_RUIM']
         )
       );
     }

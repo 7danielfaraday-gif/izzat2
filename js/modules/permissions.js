@@ -1,6 +1,6 @@
 /** Permission API patterns */
 
-import { finding, finalizeResult, withTimeout } from '../utils.js?v3';
+import { finding, finalizeResult, withTimeout } from '../utils.js?v5';
 
 async function queryPerm(name) {
   if (!navigator.permissions?.query) return { name, state: 'no-api' };
@@ -46,7 +46,7 @@ export async function run() {
           'Notification.permission â‰  permissions.query',
           `Notification=${Notification.permission}, query=${results.notifications.state}`,
           -8,
-          ['BAD_FP']
+          ['FP_RUIM']
         )
       );
     }

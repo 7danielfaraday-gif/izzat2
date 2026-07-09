@@ -1,6 +1,6 @@
 /** Captura curta de comportamento (mouse/scroll/focus) - bots lineares / sem input */
 
-import { finding, finalizeResult } from '../utils.js?v3';
+import { finding, finalizeResult } from '../utils.js?v5';
 
 const DEFAULT_MS = 3200;
 
@@ -96,7 +96,7 @@ export async function run(opts = {}) {
           'Movimento de mouse robotico (linear)',
           `var~${varV}`,
           -14,
-          ['AUTOMATION', 'ANTIDETECT_LIKELY'],
+          ['AUTOMACAO', 'ANTIDETECT_PROVAVEL'],
           0.8
         )
       );
@@ -149,7 +149,7 @@ export async function run(opts = {}) {
           'Saltos de cursor nao-humanos',
           `${bigJumps} jumps grandes em dt<8ms`,
           -9,
-          ['AUTOMATION'],
+          ['AUTOMACAO'],
           0.75
         )
       );

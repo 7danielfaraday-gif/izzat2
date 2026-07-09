@@ -1,6 +1,6 @@
 /** Matriz de consistência cross-API ??" cérebro estilo ads/banco */
 
-import { finding, finalizeResult, parseUserAgent, platformOs, safe } from '../utils.js?v3';
+import { finding, finalizeResult, parseUserAgent, platformOs, safe } from '../utils.js?v5';
 
 function getWebGLRenderer() {
   try {
@@ -55,7 +55,7 @@ export async function run(shared = {}) {
           'OS do UA ??? navigator.platform',
           `UA OS=${ua.os}, platform="${plat}" (${platOs})`,
           -25,
-          ['BAD_FP', 'ANTIDETECT_LIKELY']
+          ['FP_RUIM', 'ANTIDETECT_PROVAVEL']
         )
       );
     } else if (ipadDesktop) {
@@ -81,7 +81,7 @@ export async function run(shared = {}) {
         'UA mobile sem suporte a touch',
         'maxTouchPoints=0 e sem ontouchstart ??" spoof de UA mobile em desktop.',
         -18,
-        ['BAD_FP', 'ANTIDETECT_LIKELY']
+        ['FP_RUIM', 'ANTIDETECT_PROVAVEL']
       )
     );
   }
@@ -95,7 +95,7 @@ export async function run(shared = {}) {
         'UA iPhone sem maxTouchPoints',
         'iPhone real tem touch points > 0.',
         -22,
-        ['BAD_FP']
+        ['FP_RUIM']
       )
     );
   }
@@ -109,7 +109,7 @@ export async function run(shared = {}) {
         'userAgentData.mobile sem touch',
         'Client Hints diz mobile mas não há touch.',
         -15,
-        ['BAD_FP']
+        ['FP_RUIM']
       )
     );
   }
@@ -121,7 +121,7 @@ export async function run(shared = {}) {
         'UA mobile mas userAgentData.mobile=false',
         '',
         -15,
-        ['BAD_FP']
+        ['FP_RUIM']
       )
     );
   }
@@ -136,7 +136,7 @@ export async function run(shared = {}) {
         'iOS + GPU PC (ANGLE/NVIDIA/AMD)',
         gl.renderer || r,
         -28,
-        ['BAD_FP', 'ANTIDETECT_LIKELY']
+        ['FP_RUIM', 'ANTIDETECT_PROVAVEL']
       )
     );
   }
@@ -148,7 +148,7 @@ export async function run(shared = {}) {
         'Windows + Apple GPU',
         gl.renderer || r,
         -26,
-        ['BAD_FP']
+        ['FP_RUIM']
       )
     );
   }
@@ -160,7 +160,7 @@ export async function run(shared = {}) {
         'macOS + Direct3D',
         gl.renderer || r,
         -26,
-        ['BAD_FP']
+        ['FP_RUIM']
       )
     );
   }
@@ -172,7 +172,7 @@ export async function run(shared = {}) {
         'Linux + Direct3D',
         gl.renderer || r,
         -14,
-        ['BAD_FP']
+        ['FP_RUIM']
       )
     );
   }
@@ -186,7 +186,7 @@ export async function run(shared = {}) {
         'Mobile UA + tela larga DPR=1',
         `${screen.width}x${screen.height}`,
         -12,
-        ['BAD_FP']
+        ['FP_RUIM']
       )
     );
   }
@@ -200,7 +200,7 @@ export async function run(shared = {}) {
         'Chrome desktop UA em platform iOS',
         'iOS usa CriOS, não Chrome/',
         -16,
-        ['BAD_FP']
+        ['FP_RUIM']
       )
     );
   }
@@ -214,7 +214,7 @@ export async function run(shared = {}) {
         'Firefox UA com window.chrome',
         '',
         -8,
-        ['BAD_FP']
+        ['FP_RUIM']
       )
     );
   }
@@ -228,7 +228,7 @@ export async function run(shared = {}) {
         'Safari UA em Windows',
         'Safari não roda nativamente no Windows (desde 2012).',
         -30,
-        ['BAD_FP', 'ANTIDETECT_LIKELY']
+        ['FP_RUIM', 'ANTIDETECT_PROVAVEL']
       )
     );
   }
@@ -242,7 +242,7 @@ export async function run(shared = {}) {
         'Mobile com muitos cores',
         `hardwareConcurrency=${navigator.hardwareConcurrency}`,
         -6,
-        ['BAD_FP']
+        ['FP_RUIM']
       )
     );
   }
@@ -256,7 +256,7 @@ export async function run(shared = {}) {
         'Canvas noise ja reportado',
         'Correlacionado com modulo Canvas.',
         0,
-        ['CANVAS_NOISE'],
+        ['CANVAS_RUIDO'],
         1
       )
     );
@@ -278,7 +278,7 @@ export async function run(shared = {}) {
           'UA mobile com pointer:fine + hover',
           'Perfil de mouse desktop sob UA mobile',
           -15,
-          ['BAD_FP', 'ANTIDETECT_LIKELY'],
+          ['FP_RUIM', 'ANTIDETECT_PROVAVEL'],
           0.9
         )
       );
@@ -291,7 +291,7 @@ export async function run(shared = {}) {
           'UA desktop com pointer coarse de telefone',
           '',
           -7,
-          ['BAD_FP'],
+          ['FP_RUIM'],
           0.7
         )
       );
@@ -310,7 +310,7 @@ export async function run(shared = {}) {
           'color-gamut p3 com colorDepth baixo',
           `colorDepth=${screen.colorDepth}`,
           -6,
-          ['BAD_FP'],
+          ['FP_RUIM'],
           0.75
         )
       );
@@ -329,7 +329,7 @@ export async function run(shared = {}) {
         'GPU software com muita RAM reportada',
         rSoft,
         -7,
-        ['HEADLESS', 'BAD_FP'],
+        ['SEM_INTERFACE', 'FP_RUIM'],
         0.75
       )
     );

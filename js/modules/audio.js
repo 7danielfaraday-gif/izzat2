@@ -1,6 +1,6 @@
 /** OfflineAudioContext fingerprint + estabilidade */
 
-import { finding, finalizeResult, hashString, safe, withTimeout } from '../utils.js?v3';
+import { finding, finalizeResult, hashString, safe, withTimeout } from '../utils.js?v5';
 
 function collectAudioFingerprint() {
   return new Promise((resolve) => {
@@ -56,7 +56,7 @@ export async function run() {
 
   if (r1.error === 'no-api') {
     findings.push(
-      finding('audio-no-api', 'low', 'OfflineAudioContext indisponível', '', -2, ['PRIVACY'])
+      finding('audio-no-api', 'low', 'OfflineAudioContext indisponível', '', -2, ['PRIVACIDADE'])
     );
     return finalizeResult('audio', 'Audio', findings, raw);
   }
@@ -76,7 +76,7 @@ export async function run() {
         'Audio fingerprint instável',
         'Noise entre medições ??" spoof de AudioContext.',
         -14,
-        ['ANTIDETECT_LIKELY', 'BAD_FP']
+        ['ANTIDETECT_PROVAVEL', 'FP_RUIM']
       )
     );
   }
@@ -93,7 +93,7 @@ export async function run() {
         'AudioBuffer.getChannelData hookado',
         'Função não nativa.',
         -15,
-        ['PROTOTYPE_LIE', 'ANTIDETECT_LIKELY']
+        ['API_FALSIFICADA', 'ANTIDETECT_PROVAVEL']
       )
     );
   }
@@ -107,7 +107,7 @@ export async function run() {
         'Audio fingerprint silencioso',
         'Output ~0 ??" bloqueio ou spoof.',
         -6,
-        ['PRIVACY']
+        ['PRIVACIDADE']
       )
     );
   }

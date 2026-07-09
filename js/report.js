@@ -5,17 +5,31 @@ export function buildSummaryText(result) {
     '=== Browser Integrity Guard v2 ===',
     `Score: ${result.score}/100`,
     `Grade: ${result.grade.label} (${result.grade.id})`,
-    `Mode: ${result.mode || 'strict'} (x${result.modeFactor || 1})`,
-    `Avg confidence: ${result.avgConfidence ?? '-'}`,
-    `Correlation delta: ${result.correlationDelta ?? 0}`,
+    `Modo: ${result.mode === 'balanced' ? 'equilibrado' : 'estrito'} (x${result.modeFactor || 1})`,
+    `Confianca media: ${result.avgConfidence ?? '-'}`,
+    `Delta de correlacao: ${result.correlationDelta ?? 0}`,
     `Tags: ${result.tags.length ? result.tags.join(', ') : 'nenhuma'}`,
     `Findings: ${result.findings.length}`,
-    `Timestamp: ${result.timestamp}`,
+    `Data/hora: ${result.timestamp}`,
     '',
   ];
 
+  if (result.tagDetails && Object.keys(result.tagDetails).length) {
+    lines.push('--- Motivos das tags ---');
+    for (const t of result.tags || []) {
+      const d = result.tagDetails[t];
+      if (!d) continue;
+      lines.push(`[${t}] ${d.titulo || t}`);
+      lines.push(`  O que e: ${d.descricao || ''}`);
+      if (d.motivos?.length) {
+        for (const m of d.motivos) lines.push(`  - ${m}`);
+      }
+      lines.push('');
+    }
+  }
+
   if (result.clusters?.length) {
-    lines.push('--- Clusters ---');
+    lines.push('--- Clusters de risco ---');
     for (const c of result.clusters) {
       lines.push(`[${c.id}] ${c.label} (${c.delta}) - ${c.detail || ''}`);
     }
@@ -28,7 +42,7 @@ export function buildSummaryText(result) {
       const conf = f.confidence != null ? ` conf=${Math.round(f.confidence * 100)}%` : '';
       const d = f.weightedDelta != null ? f.weightedDelta : f.delta;
       lines.push(
-        `[${(f.severity || '').toUpperCase()}] ${f.title} (${d}${conf}) - ${f.detail}`
+        `[${severityLabel(f.severity).toUpperCase()}] ${f.title} (${d}${conf}) - ${f.detail}`
       );
     }
   } else {
@@ -48,6 +62,7 @@ export function exportJSON(result) {
       avgConfidence: result.avgConfidence,
       correlationDelta: result.correlationDelta,
       tags: result.tags,
+      tagDetails: result.tagDetails,
       clusters: result.clusters,
       totalDelta: result.totalDelta,
       timestamp: result.timestamp,

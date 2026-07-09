@@ -1,6 +1,6 @@
 /** Timing / precisao de performance + drift Date vs performance */
 
-import { finding, finalizeResult } from '../utils.js?v3';
+import { finding, finalizeResult } from '../utils.js?v5';
 
 function measureNowPrecision() {
   const samples = [];
@@ -59,7 +59,7 @@ export async function run() {
         'Timers grosseiros (privacidade)',
         `minStep~${prec.minStep}ms - comum em resistFingerprinting`,
         0,
-        ['PRIVACY'],
+        ['PRIVACIDADE'],
         0.9
       )
     );
@@ -71,7 +71,7 @@ export async function run() {
         'Precisao de timer reduzida',
         `minStep~${prec.minStep}ms`,
         0,
-        ['PRIVACY'],
+        ['PRIVACIDADE'],
         0.7
       )
     );
@@ -85,7 +85,7 @@ export async function run() {
         'performance.now congelado',
         'Ambiente anomalo ou mock de timer',
         -8,
-        ['BAD_FP'],
+        ['FP_RUIM'],
         0.85
       )
     );
@@ -100,7 +100,7 @@ export async function run() {
         'Drift Date.now vs performance.now',
         `ratio medio=${drift.avgRatio.toFixed(3)}`,
         -7,
-        ['BAD_FP'],
+        ['FP_RUIM'],
         0.7
       )
     );
@@ -115,7 +115,7 @@ export async function run() {
         'Timer clamped ~100ms',
         'Padrao de privacy.resistFingerprinting',
         -2,
-        ['PRIVACY'],
+        ['PRIVACIDADE'],
         0.8
       )
     );

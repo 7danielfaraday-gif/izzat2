@@ -1,6 +1,6 @@
 /** WebRTC ICE candidates ??" IPs e mDNS */
 
-import { finding, finalizeResult, withTimeout } from '../utils.js?v3';
+import { finding, finalizeResult, withTimeout } from '../utils.js?v5';
 
 function gatherIce(timeoutMs = 3500) {
   return new Promise((resolve) => {
@@ -99,7 +99,7 @@ export async function run() {
 
   if (result.error === 'no-api') {
     findings.push(
-      finding('webrtc-no-api', 'info', 'WebRTC indisponível', '', 0, ['PRIVACY'])
+      finding('webrtc-no-api', 'info', 'WebRTC indisponível', '', 0, ['PRIVACIDADE'])
     );
     return finalizeResult('webrtc', 'WebRTC', findings, raw, 'partial');
   }
@@ -112,7 +112,7 @@ export async function run() {
         'WebRTC sem candidates / bloqueado',
         'Comum com extensões de privacidade ??" não indica antidetect sozinho.',
         0,
-        ['PRIVACY']
+        ['PRIVACIDADE']
       )
     );
     return finalizeResult('webrtc', 'WebRTC', findings, raw, 'partial');

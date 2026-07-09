@@ -1,6 +1,6 @@
 /** Detecção de automação: WebDriver, CDP, Selenium, Puppeteer, Playwright */
 
-import { finding, finalizeResult, safe } from '../utils.js?v3';
+import { finding, finalizeResult, safe } from '../utils.js?v5';
 
 const KNOWN_GLOBAL_MARKERS = [
   '__webdriver_evaluate',
@@ -95,7 +95,7 @@ export async function run() {
         'navigator.webdriver = true',
         'O navegador anuncia controle por WebDriver (Selenium/CDP).',
         -35,
-        ['AUTOMATION']
+        ['AUTOMACAO']
       )
     );
   }
@@ -111,7 +111,7 @@ export async function run() {
         'Atributo webdriver no HTML',
         `documentElement.webdriver="${wdAttr}"`,
         -30,
-        ['AUTOMATION']
+        ['AUTOMACAO']
       )
     );
   }
@@ -142,7 +142,7 @@ export async function run() {
         'Marcadores de automação no window/document',
         `Detectado: ${allMarkers.slice(0, 8).join(', ')}${allMarkers.length > 8 ? '???' : ''}`,
         -40,
-        ['AUTOMATION']
+        ['AUTOMACAO']
       )
     );
   }
@@ -158,7 +158,7 @@ export async function run() {
         'Propriedades CDP no document',
         docKeys.join(', '),
         -35,
-        ['AUTOMATION']
+        ['AUTOMACAO']
       )
     );
   }
@@ -174,7 +174,7 @@ export async function run() {
         'Stack trace com ferramenta de automação',
         'Error stack menciona puppeteer/playwright/selenium/webdriver.',
         -18,
-        ['AUTOMATION']
+        ['AUTOMACAO']
       )
     );
   }
@@ -190,7 +190,7 @@ export async function run() {
         'User-Agent HeadlessChrome',
         'UA contém HeadlessChrome ??" navegador headless explícito.',
         -40,
-        ['AUTOMATION', 'HEADLESS']
+        ['AUTOMACAO', 'SEM_INTERFACE']
       )
     );
   }
@@ -208,7 +208,7 @@ export async function run() {
             'Error.prepareStackTrace customizado',
             'Pode ser instrumentation/automacao',
             -6,
-            ['AUTOMATION'],
+            ['AUTOMACAO'],
             0.55
           )
         );
@@ -233,7 +233,7 @@ export async function run() {
             'webdriver true no prototype, false no instance',
             'Spoof classico de stealth plugin',
             -30,
-            ['AUTOMATION', 'PROTOTYPE_LIE', 'ANTIDETECT_LIKELY'],
+            ['AUTOMACAO', 'API_FALSIFICADA', 'ANTIDETECT_PROVAVEL'],
             0.95
           )
         );
@@ -257,7 +257,7 @@ export async function run() {
         'Residuos CDP no window',
         cdpBind.slice(0, 6).join(', '),
         -32,
-        ['AUTOMATION'],
+        ['AUTOMACAO'],
         0.9
       )
     );

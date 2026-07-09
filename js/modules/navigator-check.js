@@ -1,6 +1,6 @@
 /** Navigator, Client Hints e combinações de hardware */
 
-import { finding, finalizeResult, parseUserAgent, safe } from '../utils.js?v3';
+import { finding, finalizeResult, parseUserAgent, safe } from '../utils.js?v5';
 
 export async function run() {
   const findings = [];
@@ -56,7 +56,7 @@ export async function run() {
         'navigator.languages vazio',
         'Browsers reais quase sempre expõem ao menos um idioma.',
         -8,
-        ['BAD_FP']
+        ['FP_RUIM']
       )
     );
   }
@@ -65,7 +65,7 @@ export async function run() {
   const hc = raw.hardwareConcurrency;
   if (hc === 0 || hc === undefined || hc === null) {
     findings.push(
-      finding('nav-hc-missing', 'medium', 'hardwareConcurrency ausente/zero', String(hc), -6, ['BAD_FP'])
+      finding('nav-hc-missing', 'medium', 'hardwareConcurrency ausente/zero', String(hc), -6, ['FP_RUIM'])
     );
   } else if (hc > 128 || (typeof hc === 'number' && hc % 1 !== 0)) {
     findings.push(
@@ -75,7 +75,7 @@ export async function run() {
         'hardwareConcurrency absurdo',
         `Valor: ${hc}`,
         -14,
-        ['BAD_FP']
+        ['FP_RUIM']
       )
     );
   }
@@ -93,7 +93,7 @@ export async function run() {
           'deviceMemory fora do bucket típico',
           `deviceMemory=${dm} (Chrome costuma limitar a 8)`,
           -3,
-          ['BAD_FP']
+          ['FP_RUIM']
         )
       );
     }
@@ -106,7 +106,7 @@ export async function run() {
           'CPU/RAM inconsistentes',
           `${hc} cores com ${dm} GB ??" combinação implausível.`,
           -16,
-          ['BAD_FP', 'ANTIDETECT_LIKELY']
+          ['FP_RUIM', 'ANTIDETECT_PROVAVEL']
         )
       );
     }
@@ -118,7 +118,7 @@ export async function run() {
           '1 core com muita RAM',
           `${hc} core(s), ${dm} GB`,
           -7,
-          ['BAD_FP']
+          ['FP_RUIM']
         )
       );
     }
@@ -134,7 +134,7 @@ export async function run() {
           'productSub inesperado',
           `productSub=${raw.productSub} (esperado 20030107 em Chrome/Safari)`,
           -8,
-          ['BAD_FP']
+          ['FP_RUIM']
         )
       );
     }
@@ -151,7 +151,7 @@ export async function run() {
           'vendor atípico para Chromium',
           `vendor="${raw.vendor}"`,
           -4,
-          ['BAD_FP']
+          ['FP_RUIM']
         )
       );
     }
@@ -167,7 +167,7 @@ export async function run() {
           'userAgentData.mobile ??? UA mobile',
           `Client Hints mobile=${raw.userAgentData.mobile}, UA mobile=${uaInfo.isMobile}`,
           -15,
-          ['BAD_FP', 'ANTIDETECT_LIKELY']
+          ['FP_RUIM', 'ANTIDETECT_PROVAVEL']
         )
       );
     }
@@ -189,7 +189,7 @@ export async function run() {
             'userAgentData.platform ??? OS do UA',
             `platform="${raw.userAgentData.platform}" vs OS UA="${os}"`,
             -14,
-            ['BAD_FP']
+            ['FP_RUIM']
           )
         );
       }
@@ -204,7 +204,7 @@ export async function run() {
           'Client Hints sem brands',
           'Chromium moderno expõe brands; ausência é suspeita.',
           -8,
-          ['BAD_FP']
+          ['FP_RUIM']
         )
       );
     }
@@ -216,7 +216,7 @@ export async function run() {
         'userAgentData ausente em Chrome moderno',
         'Chrome 90+ normalmente expõe navigator.userAgentData.',
         -7,
-        ['BAD_FP']
+        ['FP_RUIM']
       )
     );
   }
@@ -240,7 +240,7 @@ export async function run() {
             'appVersion OS ??? userAgent OS',
             `appVersion tem "${avOs[0]}", UA tem "${uaOs[0]}"`,
             -14,
-            ['BAD_FP']
+            ['FP_RUIM']
           )
         );
       }

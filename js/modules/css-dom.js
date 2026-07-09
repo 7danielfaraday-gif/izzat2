@@ -1,6 +1,6 @@
 /** CSS computed styles + document.fonts */
 
-import { finding, finalizeResult, parseUserAgent, platformOs, safe } from '../utils.js?v3';
+import { finding, finalizeResult, parseUserAgent, platformOs, safe } from '../utils.js?v5';
 
 export async function run() {
   const findings = [];
@@ -52,7 +52,7 @@ export async function run() {
         'font-family computada nao parece Windows',
         raw.fontFamily,
         -8,
-        ['BAD_FP'],
+        ['FP_RUIM'],
         0.7
       )
     );
@@ -65,7 +65,7 @@ export async function run() {
         'font-family computada parece Windows em macOS',
         raw.fontFamily,
         -8,
-        ['BAD_FP'],
+        ['FP_RUIM'],
         0.7
       )
     );
@@ -81,7 +81,7 @@ export async function run() {
         'getComputedStyle nao nativo',
         '',
         -15,
-        ['PROTOTYPE_LIE', 'ANTIDETECT_LIKELY'],
+        ['API_FALSIFICADA', 'ANTIDETECT_PROVAVEL'],
         0.95
       )
     );
@@ -101,7 +101,7 @@ export async function run() {
         'Sem chrome de janela aparente',
         'outer~inner e scrollbar 0 - pode ser kiosk/headless/fullscreen',
         0,
-        ['HEADLESS'],
+        ['SEM_INTERFACE'],
         0.4
       )
     );

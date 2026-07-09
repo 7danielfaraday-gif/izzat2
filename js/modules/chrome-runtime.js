@@ -1,6 +1,6 @@
 /** window.chrome, plugins, mimeTypes ??" headless e spoof fraco */
 
-import { finding, finalizeResult, parseUserAgent, safe } from '../utils.js?v3';
+import { finding, finalizeResult, parseUserAgent, safe } from '../utils.js?v5';
 
 export async function run() {
   const findings = [];
@@ -43,7 +43,7 @@ export async function run() {
           'window.chrome ausente',
           'Chromium real expõe window.chrome. Headless/spoof costuma omitir ou fabricar.',
           -14,
-          ['BAD_FP', 'HEADLESS']
+          ['FP_RUIM', 'SEM_INTERFACE']
         )
       );
     } else {
@@ -61,7 +61,7 @@ export async function run() {
             'window.chrome vazio',
             'Objeto chrome sem propriedades ??" spoof comum de stealth plugins.',
             -16,
-            ['ANTIDETECT_LIKELY', 'BAD_FP']
+            ['ANTIDETECT_PROVAVEL', 'FP_RUIM']
           )
         );
       }
@@ -76,7 +76,7 @@ export async function run() {
           'plugins e mimeTypes vazios',
           'Headless Chrome clássico. Chrome recente também pode ter lista vazia ??" peso médio.',
           -6,
-          ['HEADLESS']
+          ['SEM_INTERFACE']
         )
       );
     }
@@ -102,7 +102,7 @@ export async function run() {
             'navigator.plugins.refresh não nativo',
             'PluginArray fabricado por antidetect.',
             -15,
-            ['PROTOTYPE_LIE', 'ANTIDETECT_LIKELY']
+            ['API_FALSIFICADA', 'ANTIDETECT_PROVAVEL']
           )
         );
       }
@@ -116,7 +116,7 @@ export async function run() {
             'Plugins com nomes duplicados',
             names,
             -8,
-            ['BAD_FP']
+            ['FP_RUIM']
           )
         );
       }
@@ -128,7 +128,7 @@ export async function run() {
             'Estrutura de plugins suspeita',
             'Lista de plugins com campos vazios/incompletos.',
             -4,
-            ['BAD_FP']
+            ['FP_RUIM']
           )
         );
       }
@@ -144,7 +144,7 @@ export async function run() {
         'window.chrome presente no Firefox',
         'Incomum ??" possível spoof de UA ou polyfill.',
         -8,
-        ['BAD_FP']
+        ['FP_RUIM']
       )
     );
   }

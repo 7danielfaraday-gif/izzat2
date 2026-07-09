@@ -1,6 +1,6 @@
 /** Battery API + sensores vs UA mobile */
 
-import { finding, finalizeResult, parseUserAgent, withTimeout } from '../utils.js?v3';
+import { finding, finalizeResult, parseUserAgent, withTimeout } from '../utils.js?v5';
 
 async function readBattery() {
   if (!navigator.getBattery) return { available: false };
@@ -49,7 +49,7 @@ export async function run() {
           'Battery "perfeita" (mock comum)',
           `level=${battery.level} charging=${battery.charging}`,
           -7,
-          ['HEADLESS', 'BAD_FP'],
+          ['SEM_INTERFACE', 'FP_RUIM'],
           0.65
         )
       );
@@ -63,7 +63,7 @@ export async function run() {
           'Battery.level invalido',
           String(battery.level),
           -12,
-          ['BAD_FP'],
+          ['FP_RUIM'],
           0.95
         )
       );
@@ -79,7 +79,7 @@ export async function run() {
         'UA mobile sem DeviceMotion/Orientation',
         'Telefone real geralmente expoe essas APIs (mesmo sem permissao)',
         -8,
-        ['BAD_FP'],
+        ['FP_RUIM'],
         0.7
       )
     );
@@ -97,7 +97,7 @@ export async function run() {
             'getBattery nao nativo',
             '',
             -14,
-            ['PROTOTYPE_LIE'],
+            ['API_FALSIFICADA'],
             0.9
           )
         );

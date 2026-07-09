@@ -1,6 +1,6 @@
 /** WebGPU adapter vs WebGL / OS */
 
-import { finding, finalizeResult, parseUserAgent, safe, withTimeout } from '../utils.js?v3';
+import { finding, finalizeResult, parseUserAgent, safe, withTimeout } from '../utils.js?v5';
 
 function getWebGLRenderer() {
   try {
@@ -91,7 +91,7 @@ export async function run() {
         'WebGPU fallback adapter',
         'Adapter de fallback - GPU limitada/software',
         -8,
-        ['HEADLESS'],
+        ['SEM_INTERFACE'],
         0.8
       )
     );
@@ -109,7 +109,7 @@ export async function run() {
         'GPU software no WebGPU/WebGL',
         desc || glr,
         -16,
-        ['HEADLESS', 'BAD_FP'],
+        ['SEM_INTERFACE', 'FP_RUIM'],
         0.9
       )
     );
@@ -124,7 +124,7 @@ export async function run() {
         'UA iOS com GPU desktop (WebGPU)',
         desc,
         -24,
-        ['BAD_FP', 'ANTIDETECT_LIKELY'],
+        ['FP_RUIM', 'ANTIDETECT_PROVAVEL'],
         0.92
       )
     );
@@ -146,7 +146,7 @@ export async function run() {
           'WebGPU vendor != WebGL renderer',
           `WebGL=${gl.renderer} WebGPU=${desc}`,
           -15,
-          ['BAD_FP', 'ANTIDETECT_LIKELY'],
+          ['FP_RUIM', 'ANTIDETECT_PROVAVEL'],
           0.88
         )
       );

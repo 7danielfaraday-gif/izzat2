@@ -1,6 +1,6 @@
 /** Prototype lies ??" detecta getters sobrescritos / spoof incompleto (estilo CreepJS) */
 
-import { finding, finalizeResult, getDescriptor, isNativeFunction, safe } from '../utils.js?v3';
+import { finding, finalizeResult, getDescriptor, isNativeFunction, safe } from '../utils.js?v5';
 
 const NAV_PROPS = [
   'userAgent',
@@ -173,7 +173,7 @@ export async function run() {
           .map((l) => l.name || l.prop)
           .join(', ')}`,
         -Math.min(20, 8 + realLies.length * 2),
-        ['PROTOTYPE_LIE', 'ANTIDETECT_LIKELY']
+        ['API_FALSIFICADA', 'ANTIDETECT_PROVAVEL']
       )
     );
   }
@@ -188,7 +188,7 @@ export async function run() {
         'Propriedades próprias em navigator',
         `navigator tem own properties suspeitas: ${raw.ownProps.join(', ')}. Antidetect costuma redefinir getters no objeto.`,
         -15,
-        ['PROTOTYPE_LIE']
+        ['API_FALSIFICADA']
       )
     );
   } else if (raw.ownProps.length > 0) {
@@ -199,7 +199,7 @@ export async function run() {
         'Own property em navigator',
         raw.ownProps.join(', '),
         -3,
-        ['PROTOTYPE_LIE']
+        ['API_FALSIFICADA']
       )
     );
   }
@@ -229,7 +229,7 @@ export async function run() {
           'navigator main ??? iframe',
           `Diferenças: ${raw.mismatches.map((m) => m.key).join(', ')}. Spoof aplicado só na janela principal.`,
           -25,
-          ['PROTOTYPE_LIE', 'ANTIDETECT_LIKELY', 'BAD_FP']
+          ['API_FALSIFICADA', 'ANTIDETECT_PROVAVEL', 'FP_RUIM']
         )
       );
     }
@@ -244,7 +244,7 @@ export async function run() {
         'Function.prototype.toString patchado',
         'Tecnica classica de antidetect para esconder hooks.',
         -30,
-        ['PROTOTYPE_LIE', 'ANTIDETECT_LIKELY'],
+        ['API_FALSIFICADA', 'ANTIDETECT_PROVAVEL'],
         0.98
       )
     );
@@ -267,7 +267,7 @@ export async function run() {
               'srcdoc iframe userAgent diverge',
               `${sn.userAgent?.slice(0, 40)}...`,
               -24,
-              ['PROTOTYPE_LIE', 'ANTIDETECT_LIKELY'],
+              ['API_FALSIFICADA', 'ANTIDETECT_PROVAVEL'],
               0.93
             )
           );
@@ -280,7 +280,7 @@ export async function run() {
               'srcdoc iframe platform diverge',
               `${sn.platform} vs ${navigator.platform}`,
               -24,
-              ['PROTOTYPE_LIE', 'ANTIDETECT_LIKELY'],
+              ['API_FALSIFICADA', 'ANTIDETECT_PROVAVEL'],
               0.93
             )
           );

@@ -1,6 +1,6 @@
 /** ClientRects / emoji geometry ??" varia por OS e fonte do sistema */
 
-import { finding, finalizeResult, parseUserAgent, platformOs } from '../utils.js?v3';
+import { finding, finalizeResult, parseUserAgent, platformOs } from '../utils.js?v5';
 
 function measureEmoji() {
   const el = document.createElement('div');
@@ -62,7 +62,7 @@ export async function run() {
         'getBoundingClientRect instável',
         `${rectNoise.unique} valores em 5 leituras ??" noise de antidetect.`,
         -15,
-        ['ANTIDETECT_LIKELY', 'BAD_FP']
+        ['ANTIDETECT_PROVAVEL', 'FP_RUIM']
       )
     );
   }
@@ -76,7 +76,7 @@ export async function run() {
         'Medição de texto com tamanho zero',
         'Ambiente de render anômalo.',
         -7,
-        ['HEADLESS']
+        ['SEM_INTERFACE']
       )
     );
   }

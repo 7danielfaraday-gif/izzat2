@@ -1,6 +1,6 @@
 /** Canvas fingerprint: estabilidade, noise antidetect, OffscreenCanvas */
 
-import { finding, finalizeResult, hashString, safe } from '../utils.js?v3';
+import { finding, finalizeResult, hashString, safe } from '../utils.js?v5';
 
 function drawScene(canvas) {
   const ctx = canvas.getContext('2d');
@@ -121,7 +121,7 @@ export async function run() {
         'Canvas em branco / bloqueado',
         'Possível proteção de privacidade (Tor) ou falha de render.',
         -5,
-        ['PRIVACY']
+        ['PRIVACIDADE']
       )
     );
   }
@@ -134,7 +134,7 @@ export async function run() {
         'getImageData bloqueado',
         'Canvas tainted ou política de privacidade.',
         -2,
-        ['PRIVACY']
+        ['PRIVACIDADE']
       )
     );
   }
@@ -148,7 +148,7 @@ export async function run() {
         'Canvas instável (noise entre leituras)',
         `${unique.size} hashes diferentes em 5 leituras. Antidetect com noise aleatório.`,
         -18,
-        ['CANVAS_NOISE', 'ANTIDETECT_LIKELY', 'BAD_FP']
+        ['CANVAS_RUIDO', 'ANTIDETECT_PROVAVEL', 'FP_RUIM']
       )
     );
   }
@@ -162,7 +162,7 @@ export async function run() {
         'Canvas difere entre instâncias',
         'Noise por canvas/session ??" comum em AdsPower/Multilogin.',
         -14,
-        ['CANVAS_NOISE', 'ANTIDETECT_LIKELY']
+        ['CANVAS_RUIDO', 'ANTIDETECT_PROVAVEL']
       )
     );
   }

@@ -1,6 +1,6 @@
 /** matchMedia vs screen/inner/DPR - antidetect costuma spoofar screen e esquecer CSS MQ */
 
-import { finding, finalizeResult, parseUserAgent, safe } from '../utils.js?v3';
+import { finding, finalizeResult, parseUserAgent, safe } from '../utils.js?v5';
 
 function mq(q) {
   try {
@@ -73,7 +73,7 @@ export async function run() {
           'matchMedia device-width != screen.width',
           `screen.width=${sw} mas (device-width: ${sw}px)=false - spoof de screen incompleto`,
           -14,
-          ['SCREEN_SPOOF', 'BAD_FP', 'ANTIDETECT_LIKELY'],
+          ['SPOOF_TELA', 'FP_RUIM', 'ANTIDETECT_PROVAVEL'],
           0.9
         )
       );
@@ -88,7 +88,7 @@ export async function run() {
         'matchMedia resolution != devicePixelRatio',
         `dpr=${dpr} nao confirmado por CSS resolution`,
         -12,
-        ['SCREEN_SPOOF', 'BAD_FP'],
+        ['SPOOF_TELA', 'FP_RUIM'],
         0.88
       )
     );
@@ -103,7 +103,7 @@ export async function run() {
         'matchMedia min-width != innerWidth',
         `innerWidth=${iw}`,
         -6,
-        ['BAD_FP'],
+        ['FP_RUIM'],
         0.7
       )
     );
@@ -120,7 +120,7 @@ export async function run() {
           'Mobile UA + pointer fine sem touch',
           '',
           -15,
-          ['BAD_FP', 'ANTIDETECT_LIKELY'],
+          ['FP_RUIM', 'ANTIDETECT_PROVAVEL'],
           0.92
         )
       );
@@ -148,7 +148,7 @@ export async function run() {
         'color-gamut p3 com colorDepth baixo',
         `colorDepth=${screen.colorDepth}`,
         -6,
-        ['BAD_FP'],
+        ['FP_RUIM'],
         0.75
       )
     );

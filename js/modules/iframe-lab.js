@@ -1,6 +1,6 @@
 /** Multi-iframe lab: main vs blank vs srcdoc vs sandboxed */
 
-import { finding, finalizeResult, safe } from '../utils.js?v3';
+import { finding, finalizeResult, safe } from '../utils.js?v5';
 
 function navSnap(nav) {
   if (!nav) return null;
@@ -103,7 +103,7 @@ export async function run() {
           .map((m) => `${m.frame}.${m.key}`)
           .join(', '),
         -26,
-        ['PROTOTYPE_LIE', 'ANTIDETECT_LIKELY', 'BAD_FP'],
+        ['API_FALSIFICADA', 'ANTIDETECT_PROVAVEL', 'FP_RUIM'],
         0.95
       )
     );
@@ -116,7 +116,7 @@ export async function run() {
         `iframe != main: ${m.key}`,
         `${m.frame}: main=${m.main} iframe=${m.frameVal}`,
         m.key === 'webdriver' ? -24 : -16,
-        ['PROTOTYPE_LIE', 'ANTIDETECT_LIKELY'],
+        ['API_FALSIFICADA', 'ANTIDETECT_PROVAVEL'],
         0.92
       )
     );
@@ -134,7 +134,7 @@ export async function run() {
           'screen diverge no iframe',
           `${key}: ${s.width}x${s.height} vs main ${mainScreen.width}x${mainScreen.height}`,
           -22,
-          ['SCREEN_SPOOF', 'PROTOTYPE_LIE', 'ANTIDETECT_LIKELY'],
+          ['SPOOF_TELA', 'API_FALSIFICADA', 'ANTIDETECT_PROVAVEL'],
           0.93
         )
       );
@@ -147,7 +147,7 @@ export async function run() {
           'devicePixelRatio diverge no iframe',
           `${key}: ${s.devicePixelRatio} vs ${mainScreen.devicePixelRatio}`,
           -14,
-          ['SCREEN_SPOOF', 'PROTOTYPE_LIE'],
+          ['SPOOF_TELA', 'API_FALSIFICADA'],
           0.9
         )
       );
@@ -170,7 +170,7 @@ export async function run() {
           'window.chrome diverge main/iframe',
           `main=${hasChromeMain} iframe=${hasChromeIframe}`,
           -14,
-          ['PROTOTYPE_LIE', 'BAD_FP'],
+          ['API_FALSIFICADA', 'FP_RUIM'],
           0.88
         )
       );

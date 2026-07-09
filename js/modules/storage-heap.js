@@ -1,6 +1,6 @@
 /** Storage quota + JS heap - containers/headless anomalias */
 
-import { finding, finalizeResult, parseUserAgent, withTimeout } from '../utils.js?v3';
+import { finding, finalizeResult, parseUserAgent, withTimeout } from '../utils.js?v5';
 
 export async function run() {
   const findings = [];
@@ -27,7 +27,7 @@ export async function run() {
           'jsHeapSizeLimit muito baixo',
           String(raw.memory.jsHeapSizeLimit),
           -8,
-          ['HEADLESS', 'BAD_FP'],
+          ['SEM_INTERFACE', 'FP_RUIM'],
           0.75
         )
       );
@@ -52,7 +52,7 @@ export async function run() {
               'Quota de storage muito baixa',
               `${raw.storage.quotaGB} GB`,
               -7,
-              ['HEADLESS'],
+              ['SEM_INTERFACE'],
               0.7
             )
           );
@@ -66,7 +66,7 @@ export async function run() {
               'deviceMemory baixo com quota enorme',
               `mem=${navigator.deviceMemory} quotaGB=${raw.storage.quotaGB}`,
               -3,
-              ['BAD_FP'],
+              ['FP_RUIM'],
               0.55
             )
           );
