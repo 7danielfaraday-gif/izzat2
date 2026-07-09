@@ -1,6 +1,6 @@
 /** Detecção de automação: WebDriver, CDP, Selenium, Puppeteer, Playwright */
 
-import { finding, finalizeResult, safe } from '../utils.js';
+import { finding, finalizeResult, safe } from '../utils.js?v2';
 
 const KNOWN_GLOBAL_MARKERS = [
   '__webdriver_evaluate',
@@ -107,7 +107,7 @@ export async function run() {
     );
   }
 
-  // Known globals (own property or defined value — evita false positive de herança)
+  // Known globals (own property or defined value ??" evita false positive de herança)
   const presentGlobals = [];
   for (const name of KNOWN_GLOBAL_MARKERS) {
     const hit = safe(() => {
@@ -131,7 +131,7 @@ export async function run() {
         'auto-markers',
         'critical',
         'Marcadores de automação no window/document',
-        `Detectado: ${allMarkers.slice(0, 8).join(', ')}${allMarkers.length > 8 ? '…' : ''}`,
+        `Detectado: ${allMarkers.slice(0, 8).join(', ')}${allMarkers.length > 8 ? '???' : ''}`,
         -40,
         ['AUTOMATION']
       )
@@ -179,7 +179,7 @@ export async function run() {
         'auto-headless-ua',
         'critical',
         'User-Agent HeadlessChrome',
-        'UA contém HeadlessChrome — navegador headless explícito.',
+        'UA contém HeadlessChrome ??" navegador headless explícito.',
         -40,
         ['AUTOMATION', 'HEADLESS']
       )
@@ -189,7 +189,7 @@ export async function run() {
   // Permissions quirk: Notification in headless often "denied" + empty plugins combo handled elsewhere
   // chrome.app / runtime already in chrome-runtime module
 
-  // navigator.webdriver getter overridden to false still may leave prototype true in some cases — checked in prototype-lies
+  // navigator.webdriver getter overridden to false still may leave prototype true in some cases ??" checked in prototype-lies
 
   return finalizeResult('automation', 'Automação & CDP', findings, raw);
 }

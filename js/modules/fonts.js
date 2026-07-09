@@ -1,6 +1,6 @@
 /** Detecção de fontes instaladas vs OS declarado */
 
-import { finding, finalizeResult, parseUserAgent, platformOs } from '../utils.js';
+import { finding, finalizeResult, parseUserAgent, platformOs } from '../utils.js?v2';
 
 const FONT_SETS = {
   windows: [
@@ -133,7 +133,7 @@ export async function run() {
     );
   }
 
-  // No fonts detected at all beyond base — privacy or headless
+  // No fonts detected at all beyond base ??" privacy or headless
   if (detected.length === 0) {
     findings.push(
       finding(

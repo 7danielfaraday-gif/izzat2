@@ -1,6 +1,6 @@
-/** WebRTC ICE candidates — IPs e mDNS */
+/** WebRTC ICE candidates ??" IPs e mDNS */
 
-import { finding, finalizeResult, withTimeout } from '../utils.js';
+import { finding, finalizeResult, withTimeout } from '../utils.js?v2';
 
 function gatherIce(timeoutMs = 3500) {
   return new Promise((resolve) => {
@@ -110,7 +110,7 @@ export async function run() {
         'webrtc-blocked',
         'info',
         'WebRTC sem candidates / bloqueado',
-        'Comum com extensões de privacidade — não indica antidetect sozinho.',
+        'Comum com extensões de privacidade ??" não indica antidetect sozinho.',
         0,
         ['PRIVACY']
       )
@@ -118,7 +118,7 @@ export async function run() {
     return finalizeResult('webrtc', 'WebRTC', findings, raw, 'partial');
   }
 
-  // Many public IPs can indicate leak through multiple interfaces — info only
+  // Many public IPs can indicate leak through multiple interfaces ??" info only
   if (raw.publicIps.length > 1) {
     findings.push(
       finding(
@@ -132,7 +132,7 @@ export async function run() {
     );
   }
 
-  // Host candidates with private IP while "privacy" profile — informational
+  // Host candidates with private IP while "privacy" profile ??" informational
   if (raw.privateIps.length && raw.publicIps.length) {
     raw.leakHint = true;
     findings.push(

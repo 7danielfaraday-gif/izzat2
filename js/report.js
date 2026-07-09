@@ -15,7 +15,7 @@ export function buildSummaryText(result) {
     lines.push('--- Findings ---');
     for (const f of result.findings) {
       lines.push(
-        `[${(f.severity || '').toUpperCase()}] ${f.title} (${f.delta}) — ${f.detail}`
+        `[${(f.severity || '').toUpperCase()}] ${f.title} (${f.delta}) - ${f.detail}`
       );
     }
   } else {

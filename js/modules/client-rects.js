@@ -1,12 +1,12 @@
-/** ClientRects / emoji geometry — varia por OS e fonte do sistema */
+/** ClientRects / emoji geometry ??" varia por OS e fonte do sistema */
 
-import { finding, finalizeResult, parseUserAgent, platformOs } from '../utils.js';
+import { finding, finalizeResult, parseUserAgent, platformOs } from '../utils.js?v2';
 
 function measureEmoji() {
   const el = document.createElement('div');
   el.style.cssText =
     'position:absolute;left:-9999px;top:0;font-size:64px;line-height:normal;font-family:sans-serif;';
-  el.textContent = '😀🌐中';
+  el.textContent = 'AaWw 中 ا';
   document.body.appendChild(el);
   const rects = el.getClientRects();
   const br = el.getBoundingClientRect();
@@ -19,7 +19,7 @@ function measureEmoji() {
   };
   // Individual char widths
   el.textContent = '';
-  const chars = ['a', 'W', '😀', '中', 'ا'];
+  const chars = ['a', 'W', '中', 'ا', 'g'];
   result.chars = {};
   for (const ch of chars) {
     el.textContent = ch;
@@ -60,7 +60,7 @@ export async function run() {
         'rects-noise',
         'high',
         'getBoundingClientRect instável',
-        `${rectNoise.unique} valores em 5 leituras — noise de antidetect.`,
+        `${rectNoise.unique} valores em 5 leituras ??" noise de antidetect.`,
         -15,
         ['ANTIDETECT_LIKELY', 'BAD_FP']
       )
@@ -82,14 +82,14 @@ export async function run() {
   }
 
   // Emoji width often ~64-80+ depending on OS; identical perfect integers can be spoofed
-  const ew = emoji.chars?.['😀']?.w;
+  const ew = emoji.chars?.['中']?.w;
   if (ew === 0) {
     findings.push(
       finding(
-        'rects-emoji-zero',
+        'rects-cjk-zero',
         'low',
-        'Emoji com largura zero',
-        'Fonte emoji ausente ou bloqueada.',
+        'Caractere CJK com largura zero',
+        'Fonte do sistema ausente ou bloqueada.',
         -3,
         []
       )

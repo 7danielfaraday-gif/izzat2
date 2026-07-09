@@ -1,6 +1,6 @@
 /** OfflineAudioContext fingerprint + estabilidade */
 
-import { finding, finalizeResult, hashString, safe, withTimeout } from '../utils.js';
+import { finding, finalizeResult, hashString, safe, withTimeout } from '../utils.js?v2';
 
 function collectAudioFingerprint() {
   return new Promise((resolve) => {
@@ -74,7 +74,7 @@ export async function run() {
         'audio-noise',
         'high',
         'Audio fingerprint instável',
-        'Noise entre medições — spoof de AudioContext.',
+        'Noise entre medições ??" spoof de AudioContext.',
         -14,
         ['ANTIDETECT_LIKELY', 'BAD_FP']
       )
@@ -105,7 +105,7 @@ export async function run() {
         'audio-silent',
         'medium',
         'Audio fingerprint silencioso',
-        'Output ~0 — bloqueio ou spoof.',
+        'Output ~0 ??" bloqueio ou spoof.',
         -6,
         ['PRIVACY']
       )

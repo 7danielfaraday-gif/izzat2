@@ -3,9 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
     <meta name="description" content="Browser Integrity Guard — detecção avançada de spoofing, antidetect e automação" />
     <title>Browser Integrity Guard</title>
-    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/styles.css?v=2" />
   </head>
   <body>
     <div class="container">
@@ -89,11 +91,12 @@
         Sistema client-side de auditoria de fingerprint. Não substitui sinais de rede (TLS JA3,
         HTTP/2) usados em stacks bancárias completas.
         <br />
-        Preferível servir via HTTP local:
-        <code>python -m http.server 8080</code>
-        na pasta do projeto.
+        Se o botão não reagir em guia normal, force atualização:
+        <code>Ctrl+Shift+R</code>
+        (cache do navegador). URL:
+        <code>http://localhost:8081/</code>
       </footer>
     </div>
-    <script type="module" src="js/app.js"></script>
+    <script type="module" src="js/app.js?v=2"></script>
   </body>
 </html>

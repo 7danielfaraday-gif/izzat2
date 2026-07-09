@@ -1,6 +1,6 @@
 /** WebGL vendor/renderer, software GL, extensions, hash de render */
 
-import { finding, finalizeResult, hashString, parseUserAgent, safe } from '../utils.js';
+import { finding, finalizeResult, hashString, parseUserAgent, safe } from '../utils.js?v2';
 
 const SOFTWARE_GL = [
   /swiftshader/i,
@@ -113,7 +113,7 @@ export async function run() {
         'webgl-disabled',
         'medium',
         'WebGL indisponível',
-        'Desabilitado ou bloqueado — suspeito em desktop moderno, comum em privacy.',
+        'Desabilitado ou bloqueado ??" suspeito em desktop moderno, comum em privacy.',
         -6,
         ['PRIVACY']
       )
@@ -133,7 +133,7 @@ export async function run() {
           'webgl-software',
           'high',
           'GPU software / VM detectada',
-          `renderer="${renderer}" — típico de headless, VM ou server-side browser.`,
+          `renderer="${renderer}" ??" típico de headless, VM ou server-side browser.`,
           -18,
           ['HEADLESS', 'BAD_FP', 'ANTIDETECT_LIKELY']
         )
@@ -166,7 +166,7 @@ export async function run() {
         'webgl-few-ext',
         'medium',
         'Poucas extensões WebGL',
-        `Apenas ${gl1.extensionCount} extensões — headless/restrito.`,
+        `Apenas ${gl1.extensionCount} extensões ??" headless/restrito.`,
         -7,
         ['HEADLESS']
       )
@@ -187,7 +187,7 @@ export async function run() {
     );
   }
 
-  // Android UA with desktop discrete GPU names sometimes ok (some devices) — NVIDIA on Android exists (Shield)
+  // Android UA with desktop discrete GPU names sometimes ok (some devices) ??" NVIDIA on Android exists (Shield)
   if (ua.os === 'android' && /geforce gtx|radeon rx|intel iris/i.test(combo)) {
     findings.push(
       finding(
@@ -268,7 +268,7 @@ export async function run() {
         'webgl-getparameter-hook',
         'high',
         'WebGL getParameter hookado',
-        'Função não nativa — spoof de vendor/renderer.',
+        'Função não nativa ??" spoof de vendor/renderer.',
         -16,
         ['PROTOTYPE_LIE', 'ANTIDETECT_LIKELY']
       )

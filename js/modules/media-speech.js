@@ -1,6 +1,6 @@
 /** mediaDevices + speechSynthesis voices */
 
-import { finding, finalizeResult, parseUserAgent, withTimeout } from '../utils.js';
+import { finding, finalizeResult, parseUserAgent, withTimeout } from '../utils.js?v2';
 
 async function getDevices() {
   if (!navigator.mediaDevices?.enumerateDevices) return { error: 'no-api' };
@@ -84,7 +84,7 @@ export async function run() {
   const labeled = raw.devices.filter((d) => d.label);
   if (labeled.length && raw.devices.length) {
     raw.hasLabelsWithoutGesture = true;
-    // Not necessarily bad — if permission already granted
+    // Not necessarily bad - if permission already granted
   }
 
   // Voices: desktop usually has some
@@ -130,7 +130,7 @@ export async function run() {
         finding(
           'speech-win-apple-voices',
           'medium',
-          'UA Windows só com vozes estilo Apple',
+          'UA Windows so com vozes estilo Apple',
           appleVoices
             .slice(0, 3)
             .map((v) => v.name)

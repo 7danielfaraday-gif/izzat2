@@ -1,6 +1,6 @@
-/** Matriz de consistência cross-API — cérebro estilo ads/banco */
+/** Matriz de consistência cross-API ??" cérebro estilo ads/banco */
 
-import { finding, finalizeResult, parseUserAgent, platformOs, safe } from '../utils.js';
+import { finding, finalizeResult, parseUserAgent, platformOs, safe } from '../utils.js?v2';
 
 function getWebGLRenderer() {
   try {
@@ -44,7 +44,7 @@ export async function run(shared = {}) {
 
   // --- UA OS vs platform ---
   if (ua.os !== 'unknown' && platOs !== 'unknown' && ua.os !== platOs) {
-    // ios/mac both MacIntel historically for iPad desktop mode — special case
+    // ios/mac both MacIntel historically for iPad desktop mode ??" special case
     const ipadDesktop = ua.os === 'ios' && platOs === 'macos';
     const androidLinux = ua.os === 'android' && platOs === 'linux';
     if (!ipadDesktop && !androidLinux) {
@@ -52,7 +52,7 @@ export async function run(shared = {}) {
         finding(
           'cons-ua-platform',
           'critical',
-          'OS do UA ≠ navigator.platform',
+          'OS do UA ??? navigator.platform',
           `UA OS=${ua.os}, platform="${plat}" (${platOs})`,
           -25,
           ['BAD_FP', 'ANTIDETECT_LIKELY']
@@ -64,7 +64,7 @@ export async function run(shared = {}) {
           'cons-ipad-desktop',
           'info',
           'iPad com platform MacIntel',
-          'Pode ser Request Desktop Website — legítimo.',
+          'Pode ser Request Desktop Website ??" legítimo.',
           0,
           []
         )
@@ -79,7 +79,7 @@ export async function run(shared = {}) {
         'cons-mobile-no-touch',
         'high',
         'UA mobile sem suporte a touch',
-        'maxTouchPoints=0 e sem ontouchstart — spoof de UA mobile em desktop.',
+        'maxTouchPoints=0 e sem ontouchstart ??" spoof de UA mobile em desktop.',
         -18,
         ['BAD_FP', 'ANTIDETECT_LIKELY']
       )

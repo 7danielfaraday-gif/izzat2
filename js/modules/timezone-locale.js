@@ -1,8 +1,8 @@
-/** Timezone, locale e coerência com language */
+/** Timezone, locale e coerencia com language */
 
-import { finding, finalizeResult } from '../utils.js';
+import { finding, finalizeResult } from '../utils.js?v2';
 
-/** Rough language primary tag → plausible timezone regions (soft check) */
+/** Rough language primary tag -> plausible timezone regions (soft check) */
 const LANG_TZ_HINTS = {
   'pt-BR': ['America/Sao_Paulo', 'America/Fortaleza', 'America/Manaus', 'America/Recife', 'America/Bahia', 'America/Belem', 'America/Cuiaba', 'America/Porto_Velho', 'America/Noronha'],
   'pt-PT': ['Europe/Lisbon', 'Atlantic/Azores', 'Atlantic/Madeira'],
@@ -63,7 +63,7 @@ export async function run() {
         'tz-utc',
         'low',
         'Timezone UTC',
-        'Comum em servidores/headless; legítimo para alguns usuários.',
+        'Comum em servidores/headless; legitimo para alguns usuarios.',
         -2,
         ['HEADLESS']
       )
@@ -74,7 +74,7 @@ export async function run() {
   const primary = lang;
   const short = lang.split('-')[0];
   let hints = LANG_TZ_HINTS[primary] || LANG_TZ_HINTS[short];
-  // en is too global — skip
+  // en is too global - skip
   if (short === 'en') hints = null;
 
   if (hints && raw.timeZone && !hints.includes(raw.timeZone)) {
@@ -105,7 +105,7 @@ export async function run() {
         finding(
           'tz-locale-lang',
           'low',
-          'Intl locale ≠ navigator.language',
+          'Intl locale â‰  navigator.language',
           `locale=${resolved.locale}, language=${lang}`,
           -3,
           ['BAD_FP']

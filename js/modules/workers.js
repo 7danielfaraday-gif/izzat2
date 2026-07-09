@@ -1,6 +1,6 @@
-/** Worker vs main thread — mismatch forte indica spoof no window apenas */
+/** Worker vs main thread ??" mismatch forte indica spoof no window apenas */
 
-import { finding, finalizeResult, withTimeout } from '../utils.js';
+import { finding, finalizeResult, withTimeout } from '../utils.js?v2';
 
 function spawnWorkerSnapshot() {
   return new Promise((resolve) => {
@@ -133,7 +133,7 @@ export async function run() {
       finding(
         'worker-multi-mismatch',
         'critical',
-        'Worker ≠ Main em múltiplas propriedades',
+        'Worker ??? Main em múltiplas propriedades',
         `Mismatch em: ${raw.mismatches.map((m) => m.key).join(', ')}. Spoof típico de antidetect incompleto.`,
         -28,
         ['WORKER_MISMATCH', 'ANTIDETECT_LIKELY', 'BAD_FP']
@@ -146,7 +146,7 @@ export async function run() {
       finding(
         'worker-mismatch',
         sev,
-        `Worker ≠ Main: ${m.key}`,
+        `Worker ??? Main: ${m.key}`,
         `main="${m.main}" worker="${m.worker}"`,
         sev === 'critical' ? -22 : -15,
         ['WORKER_MISMATCH', 'ANTIDETECT_LIKELY']

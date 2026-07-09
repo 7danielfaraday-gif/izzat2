@@ -1,9 +1,9 @@
-/** Motor de Trust Score 0–100 */
+/** Motor de Trust Score 0??"100 */
 
-import { clamp } from './utils.js';
+import { clamp } from './utils.js?v2';
 
 export const GRADES = [
-  { min: 90, id: 'trusted', label: 'Trusted', description: 'Fingerprint coerente — navegador real' },
+  { min: 90, id: 'trusted', label: 'Trusted', description: 'Fingerprint coerente ??" navegador real' },
   { min: 70, id: 'low', label: 'Low Risk', description: 'Sinais menores ou proteções de privacidade' },
   { min: 45, id: 'suspicious', label: 'Suspicious', description: 'Inconsistências típicas de spoof fraco' },
   { min: 20, id: 'high', label: 'High Risk', description: 'Padrão antidetect / automação' },
@@ -33,7 +33,7 @@ export function computeScore(moduleResults) {
       allFindings.push({ ...f, module: mod.id, moduleLabel: mod.label });
       (f.tags || []).forEach((t) => tags.add(t));
     }
-    // Category integrity 0–100 per module
+    // Category integrity 0??"100 per module
     const modPenalty = Math.abs(Math.min(0, delta));
     categoryScores[mod.id] = {
       label: mod.label,

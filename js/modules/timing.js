@@ -1,6 +1,6 @@
 /** Timing / precisão de performance */
 
-import { finding, finalizeResult } from '../utils.js';
+import { finding, finalizeResult } from '../utils.js?v2';
 
 function measureNowPrecision() {
   const samples = [];
@@ -32,26 +32,26 @@ export async function run() {
     sharedArrayBuffer: typeof SharedArrayBuffer !== 'undefined',
   };
 
-  // Coarse timers (privacy) — Firefox resistFingerprinting rounds to 100ms etc.
+  // Coarse timers (privacy) ??" Firefox resistFingerprinting rounds to 100ms etc.
   if (prec.minStep >= 100) {
     findings.push(
       finding(
         'timing-coarse',
         'info',
         'Timers grosseiros (privacidade)',
-        `minStep≈${prec.minStep}ms — comum em resistFingerprinting.`,
+        `minStep??^${prec.minStep}ms ??" comum em resistFingerprinting.`,
         0,
         ['PRIVACY']
       )
     );
   } else if (prec.minStep >= 2 && prec.minStep < 100) {
-    // Slightly reduced precision — low signal
+    // Slightly reduced precision ??" low signal
     findings.push(
       finding(
         'timing-reduced',
         'info',
         'Precisão de timer reduzida',
-        `minStep≈${prec.minStep}ms`,
+        `minStep??^${prec.minStep}ms`,
         0,
         ['PRIVACY']
       )

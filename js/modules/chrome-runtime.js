@@ -1,6 +1,6 @@
-/** window.chrome, plugins, mimeTypes — headless e spoof fraco */
+/** window.chrome, plugins, mimeTypes ??" headless e spoof fraco */
 
-import { finding, finalizeResult, parseUserAgent, safe } from '../utils.js';
+import { finding, finalizeResult, parseUserAgent, safe } from '../utils.js?v2';
 
 export async function run() {
   const findings = [];
@@ -59,7 +59,7 @@ export async function run() {
             'chrome-empty',
             'high',
             'window.chrome vazio',
-            'Objeto chrome sem propriedades — spoof comum de stealth plugins.',
+            'Objeto chrome sem propriedades ??" spoof comum de stealth plugins.',
             -16,
             ['ANTIDETECT_LIKELY', 'BAD_FP']
           )
@@ -74,7 +74,7 @@ export async function run() {
           'chrome-no-plugins',
           'medium',
           'plugins e mimeTypes vazios',
-          'Headless Chrome clássico. Chrome recente também pode ter lista vazia — peso médio.',
+          'Headless Chrome clássico. Chrome recente também pode ter lista vazia ??" peso médio.',
           -6,
           ['HEADLESS']
         )
@@ -142,7 +142,7 @@ export async function run() {
         'chrome-on-firefox',
         'medium',
         'window.chrome presente no Firefox',
-        'Incomum — possível spoof de UA ou polyfill.',
+        'Incomum ??" possível spoof de UA ou polyfill.',
         -8,
         ['BAD_FP']
       )

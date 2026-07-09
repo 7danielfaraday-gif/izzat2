@@ -1,25 +1,25 @@
 /**
- * Browser Integrity Guard — orquestração e UI
+ * Browser Integrity Guard - orquestracao e UI
  */
-import { computeScore } from './scorer.js';
-import { buildSummaryText, exportJSON, severityLabel } from './report.js';
-import { run as runAutomation } from './modules/automation.js';
-import { run as runPrototypeLies } from './modules/prototype-lies.js';
-import { run as runWorkers } from './modules/workers.js';
-import { run as runNavigator } from './modules/navigator-check.js';
-import { run as runChrome } from './modules/chrome-runtime.js';
-import { run as runCanvas } from './modules/canvas.js';
-import { run as runWebgl } from './modules/webgl.js';
-import { run as runAudio } from './modules/audio.js';
-import { run as runFonts } from './modules/fonts.js';
-import { run as runScreen } from './modules/screen.js';
-import { run as runClientRects } from './modules/client-rects.js';
-import { run as runWebrtc } from './modules/webrtc.js';
-import { run as runMediaSpeech } from './modules/media-speech.js';
-import { run as runTimezone } from './modules/timezone-locale.js';
-import { run as runPermissions } from './modules/permissions.js';
-import { run as runTiming } from './modules/timing.js';
-import { run as runConsistency } from './modules/consistency.js';
+import { computeScore } from './scorer.js?v2';
+import { buildSummaryText, exportJSON, severityLabel } from './report.js?v2';
+import { run as runAutomation } from './modules/automation.js?v2';
+import { run as runPrototypeLies } from './modules/prototype-lies.js?v2';
+import { run as runWorkers } from './modules/workers.js?v2';
+import { run as runNavigator } from './modules/navigator-check.js?v2';
+import { run as runChrome } from './modules/chrome-runtime.js?v2';
+import { run as runCanvas } from './modules/canvas.js?v2';
+import { run as runWebgl } from './modules/webgl.js?v2';
+import { run as runAudio } from './modules/audio.js?v2';
+import { run as runFonts } from './modules/fonts.js?v2';
+import { run as runScreen } from './modules/screen.js?v2';
+import { run as runClientRects } from './modules/client-rects.js?v2';
+import { run as runWebrtc } from './modules/webrtc.js?v2';
+import { run as runMediaSpeech } from './modules/media-speech.js?v2';
+import { run as runTimezone } from './modules/timezone-locale.js?v2';
+import { run as runPermissions } from './modules/permissions.js?v2';
+import { run as runTiming } from './modules/timing.js?v2';
+import { run as runConsistency } from './modules/consistency.js?v2';
 
 const MODULES = [
   { id: 'automation', label: 'Automação & CDP', run: runAutomation },
@@ -72,7 +72,7 @@ function renderScore(result) {
   const offset = circ - (result.score / 100) * circ;
   ring.style.strokeDasharray = `${circ}`;
   ring.style.strokeDashoffset = `${offset}`;
-  // SVGElement.className is SVGAnimatedString — use setAttribute
+  // SVGElement.className is SVGAnimatedString ??" use setAttribute
   ring.setAttribute('class', `score-ring ${gradeClass(result.grade.id)}`);
 
   tagsEl.innerHTML = '';
@@ -103,7 +103,7 @@ function renderCategories(result) {
         <span class="cat-score ${color}">${cat.score}</span>
       </div>
       <div class="cat-bar"><div class="cat-bar-fill ${color}" style="width:${cat.score}%"></div></div>
-      <div class="cat-meta">${cat.findingCount} finding(s) · Δ ${cat.delta}</div>
+      <div class="cat-meta">${cat.findingCount} finding(s) - ?" ${cat.delta}</div>
     `;
     grid.appendChild(card);
   }
@@ -179,10 +179,10 @@ async function runAnalysis() {
     bootErr.textContent = '';
   }
   btn.disabled = true;
-  btn.textContent = 'Analisando…';
+  btn.textContent = 'Analisando???';
   $('#progress-wrap').hidden = false;
   resultsPanel.hidden = true;
-  setProgress(0, 'Iniciando…');
+  setProgress(0, 'Iniciando???');
 
   try {
     const moduleResults = [];
@@ -195,7 +195,7 @@ async function runAnalysis() {
       const done = moduleResults.length;
       setProgress(
         Math.round((done / total) * 100),
-        `${done}/${total} — ${batch.map((b) => b.label).join(', ')}`
+        `${done}/${total} ??" ${batch.map((b) => b.label).join(', ')}`
       );
     }
 

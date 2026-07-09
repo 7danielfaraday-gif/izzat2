@@ -1,6 +1,6 @@
 /** Canvas fingerprint: estabilidade, noise antidetect, OffscreenCanvas */
 
-import { finding, finalizeResult, hashString, safe } from '../utils.js';
+import { finding, finalizeResult, hashString, safe } from '../utils.js?v2';
 
 function drawScene(canvas) {
   const ctx = canvas.getContext('2d');
@@ -12,10 +12,10 @@ function drawScene(canvas) {
   ctx.fillRect(10, 10, 120, 50);
   ctx.fillStyle = '#069';
   ctx.font = '16px Arial';
-  ctx.fillText('BrowserIntegrity Cwm fjordbank 😃', 4, 30);
+  ctx.fillText('BrowserIntegrity Cwm fjordbank smile', 4, 30);
   ctx.fillStyle = 'rgba(102, 204, 0, 0.7)';
   ctx.font = '18px Times New Roman';
-  ctx.fillText('glyph-π-♫-∞ 0.123456789', 4, 55);
+  ctx.fillText('glyph-pi-music-inf 0.123456789', 4, 55);
   ctx.beginPath();
   ctx.arc(220, 40, 25, 0, Math.PI * 2);
   ctx.strokeStyle = '#c0f';
@@ -75,10 +75,10 @@ export async function run() {
         ctx.fillRect(10, 10, 120, 50);
         ctx.fillStyle = '#069';
         ctx.font = '16px Arial';
-        ctx.fillText('BrowserIntegrity Cwm fjordbank 😃', 4, 30);
+        ctx.fillText('BrowserIntegrity Cwm fjordbank smile', 4, 30);
         ctx.fillStyle = 'rgba(102, 204, 0, 0.7)';
         ctx.font = '18px Times New Roman';
-        ctx.fillText('glyph-π-♫-∞ 0.123456789', 4, 55);
+        ctx.fillText('glyph-pi-music-inf 0.123456789', 4, 55);
         if (typeof oc.convertToBlob === 'function') {
           const blob = await oc.convertToBlob({ type: 'image/png' });
           offscreenData = `blob:${blob.size}`;
@@ -97,7 +97,7 @@ export async function run() {
     }
   }
 
-  // Second independent canvas same draw — must match if no random noise
+  // Second independent canvas same draw ??" must match if no random noise
   const canvasB = document.createElement('canvas');
   drawScene(canvasB);
   const readB = readDataURL(canvasB);
@@ -154,13 +154,13 @@ export async function run() {
   }
 
   if (!crossMatch && unique.size === 1) {
-    // stable per canvas instance but different instances differ — session noise
+    // stable per canvas instance but different instances differ ??" session noise
     findings.push(
       finding(
         'canvas-instance-noise',
         'high',
         'Canvas difere entre instâncias',
-        'Noise por canvas/session — comum em AdsPower/Multilogin.',
+        'Noise por canvas/session ??" comum em AdsPower/Multilogin.',
         -14,
         ['CANVAS_NOISE', 'ANTIDETECT_LIKELY']
       )

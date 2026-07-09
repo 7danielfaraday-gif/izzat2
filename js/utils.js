@@ -1,4 +1,4 @@
-/** Utilitários compartilhados — Browser Integrity Guard */
+/** Utilitários compartilhados - Browser Integrity Guard */
 
 export function clamp(n, min, max) {
   return Math.min(max, Math.max(min, n));

@@ -1,6 +1,6 @@
-/** Prototype lies — detecta getters sobrescritos / spoof incompleto (estilo CreepJS) */
+/** Prototype lies ??" detecta getters sobrescritos / spoof incompleto (estilo CreepJS) */
 
-import { finding, finalizeResult, getDescriptor, isNativeFunction, safe } from '../utils.js';
+import { finding, finalizeResult, getDescriptor, isNativeFunction, safe } from '../utils.js?v2';
 
 const NAV_PROPS = [
   'userAgent',
@@ -39,7 +39,7 @@ function checkPropOnPrototype(proto, prop, protoName) {
   const issues = [];
   const desc = getDescriptor(proto, prop);
   if (!desc) {
-    // Some props only on instance in older browsers — soft signal
+    // Some props only on instance in older browsers ??" soft signal
     issues.push({ prop, proto: protoName, issue: 'missing-descriptor' });
     return issues;
   }
@@ -193,7 +193,7 @@ export async function run() {
         finding(
           'proto-iframe-mismatch',
           'critical',
-          'navigator main ≠ iframe',
+          'navigator main ??? iframe',
           `Diferenças: ${raw.mismatches.map((m) => m.key).join(', ')}. Spoof aplicado só na janela principal.`,
           -25,
           ['PROTOTYPE_LIE', 'ANTIDETECT_LIKELY', 'BAD_FP']

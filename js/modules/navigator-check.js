@@ -1,6 +1,6 @@
 /** Navigator, Client Hints e combinações de hardware */
 
-import { finding, finalizeResult, parseUserAgent, safe } from '../utils.js';
+import { finding, finalizeResult, parseUserAgent, safe } from '../utils.js?v2';
 
 export async function run() {
   const findings = [];
@@ -104,7 +104,7 @@ export async function run() {
           'nav-hc-dm-impossible',
           'high',
           'CPU/RAM inconsistentes',
-          `${hc} cores com ${dm} GB — combinação implausível.`,
+          `${hc} cores com ${dm} GB ??" combinação implausível.`,
           -16,
           ['BAD_FP', 'ANTIDETECT_LIKELY']
         )
@@ -164,7 +164,7 @@ export async function run() {
         finding(
           'nav-uad-mobile-mismatch',
           'high',
-          'userAgentData.mobile ≠ UA mobile',
+          'userAgentData.mobile ??? UA mobile',
           `Client Hints mobile=${raw.userAgentData.mobile}, UA mobile=${uaInfo.isMobile}`,
           -15,
           ['BAD_FP', 'ANTIDETECT_LIKELY']
@@ -186,7 +186,7 @@ export async function run() {
           finding(
             'nav-uad-platform',
             'high',
-            'userAgentData.platform ≠ OS do UA',
+            'userAgentData.platform ??? OS do UA',
             `platform="${raw.userAgentData.platform}" vs OS UA="${os}"`,
             -14,
             ['BAD_FP']
@@ -237,7 +237,7 @@ export async function run() {
           finding(
             'nav-appversion-os',
             'high',
-            'appVersion OS ≠ userAgent OS',
+            'appVersion OS ??? userAgent OS',
             `appVersion tem "${avOs[0]}", UA tem "${uaOs[0]}"`,
             -14,
             ['BAD_FP']

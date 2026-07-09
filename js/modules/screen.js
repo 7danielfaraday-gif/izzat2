@@ -1,6 +1,6 @@
 /** Screen, viewport, DPR */
 
-import { finding, finalizeResult, parseUserAgent } from '../utils.js';
+import { finding, finalizeResult, parseUserAgent } from '../utils.js?v2';
 
 export async function run() {
   const findings = [];
@@ -43,7 +43,7 @@ export async function run() {
         'screen-headless-res',
         'high',
         'Resolução headless / inválida',
-        `${raw.width}×${raw.height}`,
+        `${raw.width}?-${raw.height}`,
         -14,
         ['HEADLESS']
       )
@@ -83,7 +83,7 @@ export async function run() {
       finding(
         'screen-depth-mismatch',
         'low',
-        'colorDepth ≠ pixelDepth',
+        'colorDepth ??? pixelDepth',
         `${raw.colorDepth} vs ${raw.pixelDepth}`,
         -3,
         ['BAD_FP']
@@ -97,8 +97,8 @@ export async function run() {
       finding(
         'screen-mobile-desktop-res',
         'high',
-        'UA mobile com resolução desktop e DPR≤1',
-        `${raw.width}×${raw.height} @${raw.devicePixelRatio}`,
+        'UA mobile com resolução desktop e DPR???1',
+        `${raw.width}?-${raw.height} @${raw.devicePixelRatio}`,
         -14,
         ['BAD_FP']
       )
@@ -112,7 +112,7 @@ export async function run() {
         'screen-desktop-phone',
         'medium',
         'UA desktop com tela de smartphone',
-        `${raw.width}×${raw.height} @${raw.devicePixelRatio} — DevTools device mode?`,
+        `${raw.width}?-${raw.height} @${raw.devicePixelRatio} ??" DevTools device mode?`,
         -8,
         ['BAD_FP']
       )
