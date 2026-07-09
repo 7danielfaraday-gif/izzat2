@@ -1,10 +1,17 @@
-/** Screen, viewport, DPR */
+/** Screen, viewport, DPR + visualViewport + matchMedia cross-check (v2) */
 
-import { finding, finalizeResult, parseUserAgent } from '../utils.js?v2';
+import { finding, finalizeResult, parseUserAgent, safe } from '../utils.js?v3';
+
+function mm(q) {
+  return safe(() => window.matchMedia(q).matches);
+}
 
 export async function run() {
   const findings = [];
   const ua = parseUserAgent();
+
+  const vv = window.visualViewport;
+  const dpr = window.devicePixelRatio || 1;
 
   const raw = {
     width: screen.width,
@@ -14,13 +21,32 @@ export async function run() {
     colorDepth: screen.colorDepth,
     pixelDepth: screen.pixelDepth,
     orientation: screen.orientation ? screen.orientation.type : null,
-    devicePixelRatio: window.devicePixelRatio,
+    devicePixelRatio: dpr,
     innerWidth: window.innerWidth,
     innerHeight: window.innerHeight,
     outerWidth: window.outerWidth,
     outerHeight: window.outerHeight,
     screenX: window.screenX,
     screenY: window.screenY,
+    visualViewport: vv
+      ? {
+          width: vv.width,
+          height: vv.height,
+          scale: vv.scale,
+          offsetLeft: vv.offsetLeft,
+          offsetTop: vv.offsetTop,
+        }
+      : null,
+    matchMedia: {
+      deviceWidth: mm(`(device-width: ${screen.width}px)`),
+      deviceWidthLoose: mm(`(max-device-width: ${screen.width + 50}px) and (min-device-width: ${Math.max(0, screen.width - 50)}px)`),
+      resolutionDpr: mm(`(resolution: ${dpr}dppx)`),
+      resolutionApprox: mm(`(min-resolution: ${Math.max(0.5, dpr - 0.15)}dppx) and (max-resolution: ${dpr + 0.15}dppx)`),
+      pointerFine: mm('(pointer: fine)'),
+      pointerCoarse: mm('(pointer: coarse)'),
+      hoverHover: mm('(hover: hover)'),
+      hoverNone: mm('(hover: none)'),
+    },
   };
 
   // Headless classic
@@ -30,27 +56,28 @@ export async function run() {
         'screen-outer-zero',
         'high',
         'outerWidth/outerHeight = 0',
-        'Padrão clássico de Chrome headless.',
+        'Padrao classico de Chrome headless.',
         -16,
-        ['HEADLESS', 'AUTOMATION']
+        ['HEADLESS', 'AUTOMATION'],
+        0.95
       )
     );
   }
 
-  if ((raw.width === 800 && raw.height === 600) || (raw.width === 0 || raw.height === 0)) {
+  if ((raw.width === 800 && raw.height === 600) || raw.width === 0 || raw.height === 0) {
     findings.push(
       finding(
         'screen-headless-res',
         'high',
-        'Resolução headless / inválida',
-        `${raw.width}?-${raw.height}`,
+        'Resolucao headless / invalida',
+        `${raw.width}x${raw.height}`,
         -14,
-        ['HEADLESS']
+        ['HEADLESS'],
+        0.9
       )
     );
   }
 
-  // avail > screen (impossible)
   if (raw.availWidth > raw.width + 1 || raw.availHeight > raw.height + 1) {
     findings.push(
       finding(
@@ -59,22 +86,15 @@ export async function run() {
         'avail* maior que screen*',
         `screen=${raw.width}x${raw.height} avail=${raw.availWidth}x${raw.availHeight}`,
         -14,
-        ['BAD_FP']
+        ['BAD_FP', 'SCREEN_SPOOF'],
+        0.95
       )
     );
   }
 
-  // colorDepth
   if (![1, 4, 8, 15, 16, 24, 32, 48].includes(raw.colorDepth)) {
     findings.push(
-      finding(
-        'screen-colordepth',
-        'medium',
-        'colorDepth atípico',
-        String(raw.colorDepth),
-        -7,
-        ['BAD_FP']
-      )
+      finding('screen-colordepth', 'medium', 'colorDepth atipico', String(raw.colorDepth), -7, ['BAD_FP'], 0.8)
     );
   }
 
@@ -83,66 +103,127 @@ export async function run() {
       finding(
         'screen-depth-mismatch',
         'low',
-        'colorDepth ??? pixelDepth',
+        'colorDepth != pixelDepth',
         `${raw.colorDepth} vs ${raw.pixelDepth}`,
         -3,
-        ['BAD_FP']
+        ['BAD_FP'],
+        0.7
       )
     );
   }
 
-  // Mobile UA with huge desktop resolution without high DPR nuance
-  if (ua.isMobile && raw.width >= 1920 && raw.devicePixelRatio <= 1) {
+  if (ua.isMobile && raw.width >= 1920 && dpr <= 1) {
     findings.push(
       finding(
         'screen-mobile-desktop-res',
         'high',
-        'UA mobile com resolução desktop e DPR???1',
-        `${raw.width}?-${raw.height} @${raw.devicePixelRatio}`,
+        'UA mobile com resolucao desktop e DPR<=1',
+        `${raw.width}x${raw.height} @${dpr}`,
         -14,
-        ['BAD_FP']
+        ['BAD_FP'],
+        0.9
       )
     );
   }
 
-  // Desktop UA with phone-like CSS resolution and high DPR can be ok (device mode)
-  if (!ua.isMobile && raw.width <= 480 && raw.height <= 900 && raw.devicePixelRatio >= 2) {
+  if (!ua.isMobile && raw.width <= 480 && raw.height <= 900 && dpr >= 2) {
     findings.push(
       finding(
         'screen-desktop-phone',
         'medium',
         'UA desktop com tela de smartphone',
-        `${raw.width}?-${raw.height} @${raw.devicePixelRatio} ??" DevTools device mode?`,
+        `${raw.width}x${raw.height} @${dpr} - DevTools device mode?`,
         -8,
-        ['BAD_FP']
+        ['BAD_FP'],
+        0.75
       )
     );
   }
 
-  // DPR absurd
-  if (raw.devicePixelRatio < 0.5 || raw.devicePixelRatio > 5) {
+  if (dpr < 0.5 || dpr > 5) {
+    findings.push(
+      finding('screen-dpr-absurd', 'medium', 'devicePixelRatio absurdo', String(dpr), -8, ['BAD_FP'], 0.85)
+    );
+  }
+
+  // --- inner > screen: severity depends on confirmation ---
+  const innerGtW = raw.innerWidth > raw.width + 100;
+  const innerGtH = raw.innerHeight > raw.height + 100;
+  if (innerGtW || innerGtH) {
+    const vvWider = vv && (vv.width > raw.width + 50 || vv.height > raw.height + 50);
+    const outerWider = raw.outerWidth > raw.width + 50 || raw.outerHeight > raw.height + 50;
+    const confirmed = vvWider || outerWider || raw.matchMedia.deviceWidth === false;
+
+    if (confirmed) {
+      findings.push(
+        finding(
+          'screen-inner-gt',
+          'high',
+          'inner* maior que screen* (confirmado)',
+          `inner=${raw.innerWidth}x${raw.innerHeight} screen=${raw.width}x${raw.height}` +
+            (vv ? ` vv=${Math.round(vv.width)}x${Math.round(vv.height)}` : '') +
+            ` - spoof tipico de antidetect`,
+          -14,
+          ['BAD_FP', 'SCREEN_SPOOF', 'ANTIDETECT_LIKELY'],
+          0.92
+        )
+      );
+    } else {
+      findings.push(
+        finding(
+          'screen-inner-gt',
+          'medium',
+          'inner* maior que screen*',
+          `inner=${raw.innerWidth}x${raw.innerHeight} screen=${raw.width}x${raw.height}`,
+          -7,
+          ['BAD_FP', 'SCREEN_SPOOF'],
+          0.75
+        )
+      );
+    }
+  }
+
+  // DPR vs matchMedia resolution
+  if (raw.matchMedia.resolutionApprox === false && raw.matchMedia.resolutionDpr === false) {
     findings.push(
       finding(
-        'screen-dpr-absurd',
-        'medium',
-        'devicePixelRatio absurdo',
-        String(raw.devicePixelRatio),
-        -8,
-        ['BAD_FP']
+        'screen-dpr-mm',
+        'high',
+        'devicePixelRatio != matchMedia resolution',
+        `dpr=${dpr} mas CSS resolution nao confirma - spoof de DPR`,
+        -12,
+        ['BAD_FP', 'SCREEN_SPOOF'],
+        0.88
       )
     );
   }
 
-  // inner > screen significantly
-  if (raw.innerWidth > raw.width + 100 || raw.innerHeight > raw.height + 100) {
+  // outer much larger than screen
+  if (raw.outerWidth > raw.width + 120 || raw.outerHeight > raw.height + 120) {
     findings.push(
       finding(
-        'screen-inner-gt',
-        'medium',
-        'inner* maior que screen*',
-        `inner=${raw.innerWidth}x${raw.innerHeight} screen=${raw.width}x${raw.height}`,
-        -7,
-        ['BAD_FP']
+        'screen-outer-gt',
+        'high',
+        'outer* maior que screen*',
+        `outer=${raw.outerWidth}x${raw.outerHeight} screen=${raw.width}x${raw.height}`,
+        -12,
+        ['BAD_FP', 'SCREEN_SPOOF'],
+        0.9
+      )
+    );
+  }
+
+  // Mobile UA but pointer fine + hover (desktop)
+  if (ua.isMobile && raw.matchMedia.pointerFine && raw.matchMedia.hoverHover && !raw.matchMedia.pointerCoarse) {
+    findings.push(
+      finding(
+        'screen-mobile-pointer-fine',
+        'high',
+        'UA mobile com pointer:fine (desktop)',
+        'matchMedia indica mouse, nao touch primario',
+        -14,
+        ['BAD_FP', 'ANTIDETECT_LIKELY'],
+        0.9
       )
     );
   }

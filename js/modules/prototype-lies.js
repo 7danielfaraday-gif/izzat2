@@ -1,6 +1,6 @@
 /** Prototype lies ??" detecta getters sobrescritos / spoof incompleto (estilo CreepJS) */
 
-import { finding, finalizeResult, getDescriptor, isNativeFunction, safe } from '../utils.js?v2';
+import { finding, finalizeResult, getDescriptor, isNativeFunction, safe } from '../utils.js?v3';
 
 const NAV_PROPS = [
   'userAgent',
@@ -116,16 +116,49 @@ export async function run() {
   // Common API methods that spoofers hook
   const apiChecks = [
     ['HTMLCanvasElement.prototype.toDataURL', safe(() => HTMLCanvasElement.prototype.toDataURL)],
+    ['HTMLCanvasElement.prototype.toBlob', safe(() => HTMLCanvasElement.prototype.toBlob)],
     ['HTMLCanvasElement.prototype.getContext', safe(() => HTMLCanvasElement.prototype.getContext)],
+    ['CanvasRenderingContext2D.prototype.getImageData', safe(() => CanvasRenderingContext2D?.prototype?.getImageData)],
+    ['CanvasRenderingContext2D.prototype.measureText', safe(() => CanvasRenderingContext2D?.prototype?.measureText)],
     ['WebGLRenderingContext.prototype.getParameter', safe(() => WebGLRenderingContext?.prototype?.getParameter)],
+    ['WebGLRenderingContext.prototype.readPixels', safe(() => WebGLRenderingContext?.prototype?.readPixels)],
     ['AudioBuffer.prototype.getChannelData', safe(() => AudioBuffer?.prototype?.getChannelData)],
     ['Navigator.prototype.getBattery', safe(() => Navigator.prototype.getBattery)],
+    ['Navigator.prototype.permissions', safe(() => {
+      const d = Object.getOwnPropertyDescriptor(Navigator.prototype, 'permissions');
+      return d && d.get;
+    })],
+    ['RTCPeerConnection', safe(() => window.RTCPeerConnection)],
+    ['OffscreenCanvas.prototype.getContext', safe(() => OffscreenCanvas?.prototype?.getContext)],
+    ['window.matchMedia', safe(() => window.matchMedia)],
+    ['window.getComputedStyle', safe(() => window.getComputedStyle)],
   ];
   for (const [name, fn] of apiChecks) {
     if (fn) {
       const lie = checkNativeToString(fn, name);
       if (lie) raw.lies.push(lie);
     }
+  }
+
+  // Proxy detection: navigator instanceof or invariant broken
+  raw.proxyHints = [];
+  try {
+    const n = navigator;
+    if (typeof Proxy !== 'undefined') {
+      // Calling Reflect on navigator props
+      const ua1 = Reflect.get(n, 'userAgent');
+      const ua2 = n.userAgent;
+      if (ua1 !== ua2) raw.proxyHints.push('reflect-userAgent');
+    }
+    // Illegal constructor patterns
+    try {
+      // eslint-disable-next-line no-new
+      new (n.constructor)();
+    } catch {
+      /* expected */
+    }
+  } catch (e) {
+    raw.proxyHints.push(String(e.message || e));
   }
 
   const realLies = raw.lies.filter((l) => l.issue === 'not-native' || l.issue === 'tostring-threw' || l.issue === 'suspicious-tostring');
@@ -209,11 +242,68 @@ export async function run() {
         'proto-tostring-patched',
         'critical',
         'Function.prototype.toString patchado',
-        'Técnica clássica de antidetect para esconder hooks.',
+        'Tecnica classica de antidetect para esconder hooks.',
         -30,
-        ['PROTOTYPE_LIE', 'ANTIDETECT_LIKELY']
+        ['PROTOTYPE_LIE', 'ANTIDETECT_LIKELY'],
+        0.98
       )
     );
+  }
+
+  // srcdoc iframe extra context
+  try {
+    const f = document.createElement('iframe');
+    f.style.cssText = 'position:absolute;width:0;height:0;border:0;left:-9999px';
+    f.srcdoc = '<!doctype html><body></body>';
+    document.body.appendChild(f);
+    const done = () => {
+      try {
+        const sn = f.contentWindow?.navigator;
+        if (sn && sn.userAgent !== navigator.userAgent) {
+          findings.push(
+            finding(
+              'proto-srcdoc-ua',
+              'critical',
+              'srcdoc iframe userAgent diverge',
+              `${sn.userAgent?.slice(0, 40)}...`,
+              -24,
+              ['PROTOTYPE_LIE', 'ANTIDETECT_LIKELY'],
+              0.93
+            )
+          );
+        }
+        if (sn && sn.platform !== navigator.platform) {
+          findings.push(
+            finding(
+              'proto-srcdoc-platform',
+              'critical',
+              'srcdoc iframe platform diverge',
+              `${sn.platform} vs ${navigator.platform}`,
+              -24,
+              ['PROTOTYPE_LIE', 'ANTIDETECT_LIKELY'],
+              0.93
+            )
+          );
+        }
+      } finally {
+        document.body.removeChild(f);
+      }
+    };
+    if (f.contentDocument?.readyState === 'complete') done();
+    else {
+      await new Promise((r) => {
+        f.onload = () => {
+          done();
+          r();
+        };
+        setTimeout(() => {
+          done();
+          r();
+        }, 400);
+      });
+    }
+  } catch {
+    /* ignore */
   }
 
   return finalizeResult('prototype-lies', 'Prototype Lies', findings, raw);

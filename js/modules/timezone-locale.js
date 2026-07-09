@@ -1,6 +1,6 @@
 /** Timezone, locale e coerencia com language */
 
-import { finding, finalizeResult } from '../utils.js?v2';
+import { finding, finalizeResult } from '../utils.js?v3';
 
 /** Rough language primary tag -> plausible timezone regions (soft check) */
 const LANG_TZ_HINTS = {

@@ -1,111 +1,50 @@
-# Browser Integrity Guard
+# Browser Integrity Guard v2
 
-Sistema **client-side** (HTML/CSS/JS) para auditar a integridade do fingerprint do navegador e detectar sinais de:
+Sistema **client-side** avancado para auditar fingerprint e detectar:
 
-- **Antidetect** (AdsPower, Multilogin, GoLogin, etc.) com spoof incompleto
-- **Automação** (Selenium, Puppeteer, Playwright, CDP)
-- **Fingerprint inconsistente** (UA vs GPU vs OS vs fontes vs touch)
-- Técnicas no estilo de plataformas de ads e anti-fraude
+- Antidetect (AdsPower, Multilogin, GoLogin, etc.)
+- Automacao (Selenium, Puppeteer, Playwright, CDP)
+- Spoof inconsistente (screen, matchMedia, worker, iframe, WebGL/WebGPU)
+- Clusters de risco por **correlacao** entre sinais
 
 ## Como rodar
 
-### Opção recomendada (HTTP local)
-
-```bash
-cd browser-integrity-guard
-python -m http.server 8080
+```text
+http://localhost:8081/?v=3
 ```
 
-Abra `http://localhost:8080` no navegador a testar.
+Se o botao nao reagir: **Ctrl+Shift+R** (cache).
 
-### file://
+## Novidades v2
 
-Pode funcionar na maioria dos módulos. Alguns browsers restringem Workers, `crypto.subtle` ou WebRTC em `file://` — use HTTP local se algo falhar.
+| Recurso | Descricao |
+|---------|-----------|
+| **Strict / Balanced** | Strict multiplica penalidades x1.15 |
+| **Confidence** | Cada finding tem confianca 0-1 no peso |
+| **Clusters** | MULTI_SIGNAL, ANTIDETECT_CONFIRMED, SCREEN_SPOOF, AUTOMATION |
+| **matchMedia** | CSS device-width/resolution vs screen/DPR |
+| **Iframe Lab** | main vs blank/srcdoc/sandbox |
+| **WebGPU** | adapter vs WebGL/OS |
+| **Math engine** | quirks de float/native Math |
+| **Storage/Heap** | quota e jsHeapSizeLimit |
+| **Battery/Sensors** | mock de bateria e sensores mobile |
+| **Behavior 3s** | mouse linear / idle (opcional) |
+| **Screen reforcado** | visualViewport + matchMedia; inner>screen sobe para HIGH se confirmado |
 
-**Zero dependências npm.** ES modules nativos.
+## Score
 
-## Trust Score
+| Score | Grade |
+|------:|-------|
+| 90-100 | Trusted |
+| 70-89 | Low Risk |
+| 45-69 | Suspicious |
+| 20-44 | High Risk |
+| 0-19 | Critical |
 
-| Score  | Grade       | Significado                                      |
-|-------:|------------|--------------------------------------------------|
-| 90–100 | Trusted    | Fingerprint coerente                             |
-| 70–89  | Low Risk   | Sinais leves / privacidade                       |
-| 45–69  | Suspicious | Inconsistências de spoof fraco                   |
-| 20–44  | High Risk  | Padrão antidetect / automação                    |
-| 0–19   | Critical   | Spoof óbvio, headless, CDP                       |
+## Limites
 
-Score = `clamp(100 + soma dos deltas dos findings, 0, 100)`.
+TLS JA3/JA4, ordem de headers HTTP/2 e fingerprint de rede **exigem backend**.
 
-## Módulos
+## Etica
 
-| Módulo | O que analisa |
-|--------|----------------|
-| Automação & CDP | `webdriver`, markers Selenium/CDP, HeadlessChrome |
-| Prototype Lies | getters não nativos, iframe ≠ main, `toString` patch |
-| Workers | WorkerNavigator ≠ main (spoof só no window) |
-| Navigator & Hints | Client Hints, CPU/RAM, productSub |
-| Chrome & Plugins | `window.chrome`, PluginArray fake |
-| Canvas | estabilidade / noise entre leituras |
-| WebGL | SwiftShader, GPU vs OS, hooks |
-| Audio | OfflineAudioContext + noise |
-| Fontes | fontes instaladas vs OS do UA |
-| Screen | outer=0, resoluções headless, DPR |
-| ClientRects | noise em geometria DOM |
-| WebRTC | ICE / IPs (informativo) |
-| Media & Speech | devices e vozes vs OS |
-| Timezone & Locale | idioma vs fuso (peso baixo) |
-| Permissions | inconsistências Notification API |
-| Timing | timers / privacidade |
-| Consistência | matriz cruzada UA↔platform↔GPU↔touch |
-
-## Tags frequentes
-
-- `AUTOMATION` — controle por WebDriver/CDP
-- `ANTIDETECT_LIKELY` — padrão de browser antidetect
-- `BAD_FP` — fingerprint internamente inconsistente
-- `WORKER_MISMATCH` — main thread spoofado, worker não
-- `PROTOTYPE_LIE` — APIs nativas reescritas
-- `CANVAS_NOISE` — canvas com noise aleatório
-- `HEADLESS` — sinais de headless/VM
-- `PRIVACY` — proteção de privacidade (não necessariamente fraude)
-
-## Export
-
-- **Exportar JSON** — relatório completo com raw data por módulo
-- **Copiar resumo** — texto para colar em tickets/notas
-
-## Limites (honestidade “nível bancário”)
-
-Este projeto cobre o que **JavaScript no browser** consegue medir com alta qualidade (integridade + consistência).
-
-Stacks bancárias / TikTok Ads em produção **também** usam sinais de rede que **exigem servidor**:
-
-| Sinal | Client-side? |
-|-------|--------------|
-| Canvas / WebGL / Audio / Fonts | Sim |
-| Prototype lies / Workers | Sim |
-| Consistência UA↔GPU↔OS | Sim |
-| TLS JA3 / JA4 | Não (edge/server) |
-| Ordem de headers HTTP/2 | Não |
-| Fingerprint de TCP/IP | Não |
-| Biometria comportamental longa | Fase 2 |
-
-## Uso ético
-
-Ferramenta de **detecção e auditoria** (QA de segurança, pesquisa de fraude, validar se um perfil vaza). Não inclui guias para burlar plataformas.
-
-## Estrutura
-
-```
-browser-integrity-guard/
-├── index.html
-├── css/styles.css
-├── js/
-│   ├── app.js
-│   ├── scorer.js
-│   ├── report.js
-│   ├── utils.js
-│   └── modules/
-│       └── *.js
-└── README.md
-```
+Ferramenta de **deteccao/auditoria**. Nao inclui guias para burlar plataformas.

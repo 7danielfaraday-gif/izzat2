@@ -1,47 +1,67 @@
 /**
- * Browser Integrity Guard - orquestracao e UI
+ * Browser Integrity Guard v2 - orquestracao e UI
  */
-import { computeScore } from './scorer.js?v2';
-import { buildSummaryText, exportJSON, severityLabel } from './report.js?v2';
-import { run as runAutomation } from './modules/automation.js?v2';
-import { run as runPrototypeLies } from './modules/prototype-lies.js?v2';
-import { run as runWorkers } from './modules/workers.js?v2';
-import { run as runNavigator } from './modules/navigator-check.js?v2';
-import { run as runChrome } from './modules/chrome-runtime.js?v2';
-import { run as runCanvas } from './modules/canvas.js?v2';
-import { run as runWebgl } from './modules/webgl.js?v2';
-import { run as runAudio } from './modules/audio.js?v2';
-import { run as runFonts } from './modules/fonts.js?v2';
-import { run as runScreen } from './modules/screen.js?v2';
-import { run as runClientRects } from './modules/client-rects.js?v2';
-import { run as runWebrtc } from './modules/webrtc.js?v2';
-import { run as runMediaSpeech } from './modules/media-speech.js?v2';
-import { run as runTimezone } from './modules/timezone-locale.js?v2';
-import { run as runPermissions } from './modules/permissions.js?v2';
-import { run as runTiming } from './modules/timing.js?v2';
-import { run as runConsistency } from './modules/consistency.js?v2';
+import { computeScore } from './scorer.js?v3';
+import { buildSummaryText, exportJSON, severityLabel } from './report.js?v3';
+import { run as runAutomation } from './modules/automation.js?v3';
+import { run as runPrototypeLies } from './modules/prototype-lies.js?v3';
+import { run as runWorkers } from './modules/workers.js?v3';
+import { run as runNavigator } from './modules/navigator-check.js?v3';
+import { run as runChrome } from './modules/chrome-runtime.js?v3';
+import { run as runCanvas } from './modules/canvas.js?v3';
+import { run as runWebgl } from './modules/webgl.js?v3';
+import { run as runAudio } from './modules/audio.js?v3';
+import { run as runFonts } from './modules/fonts.js?v3';
+import { run as runScreen } from './modules/screen.js?v3';
+import { run as runClientRects } from './modules/client-rects.js?v3';
+import { run as runWebrtc } from './modules/webrtc.js?v3';
+import { run as runMediaSpeech } from './modules/media-speech.js?v3';
+import { run as runTimezone } from './modules/timezone-locale.js?v3';
+import { run as runPermissions } from './modules/permissions.js?v3';
+import { run as runTiming } from './modules/timing.js?v3';
+import { run as runConsistency } from './modules/consistency.js?v3';
+import { run as runMatchMedia } from './modules/matchmedia.js?v3';
+import { run as runIframeLab } from './modules/iframe-lab.js?v3';
+import { run as runMathEngine } from './modules/math-engine.js?v3';
+import { run as runWebgpu } from './modules/webgpu.js?v3';
+import { run as runStorageHeap } from './modules/storage-heap.js?v3';
+import { run as runCssDom } from './modules/css-dom.js?v3';
+import { run as runBatterySensors } from './modules/battery-sensors.js?v3';
+import { run as runBehavior } from './modules/behavior.js?v3';
 
-const MODULES = [
-  { id: 'automation', label: 'Automação & CDP', run: runAutomation },
+const PHASE_A = [
+  { id: 'automation', label: 'Automacao & CDP', run: runAutomation },
   { id: 'prototype-lies', label: 'Prototype Lies', run: runPrototypeLies },
-  { id: 'workers', label: 'Workers', run: runWorkers },
   { id: 'navigator', label: 'Navigator & Hints', run: runNavigator },
   { id: 'chrome-runtime', label: 'Chrome & Plugins', run: runChrome },
+  { id: 'screen', label: 'Screen & Viewport', run: runScreen },
+  { id: 'matchmedia', label: 'MatchMedia CSS', run: runMatchMedia },
+  { id: 'math-engine', label: 'Math Engine', run: runMathEngine },
+  { id: 'timing', label: 'Timing', run: runTiming },
+  { id: 'permissions', label: 'Permissions', run: runPermissions },
+  { id: 'timezone-locale', label: 'Timezone & Locale', run: runTimezone },
+  { id: 'css-dom', label: 'CSS & DOM', run: runCssDom },
+  { id: 'storage-heap', label: 'Storage & Heap', run: runStorageHeap },
+  { id: 'consistency', label: 'Consistencia Cross-API', run: runConsistency },
+];
+
+const PHASE_B = [
+  { id: 'workers', label: 'Workers', run: runWorkers },
+  { id: 'iframe-lab', label: 'Iframe Lab', run: runIframeLab },
   { id: 'canvas', label: 'Canvas', run: runCanvas },
   { id: 'webgl', label: 'WebGL', run: runWebgl },
+  { id: 'webgpu', label: 'WebGPU', run: runWebgpu },
   { id: 'audio', label: 'Audio', run: runAudio },
   { id: 'fonts', label: 'Fontes', run: runFonts },
-  { id: 'screen', label: 'Screen & Viewport', run: runScreen },
   { id: 'client-rects', label: 'ClientRects', run: runClientRects },
   { id: 'webrtc', label: 'WebRTC', run: runWebrtc },
   { id: 'media-speech', label: 'Media & Speech', run: runMediaSpeech },
-  { id: 'timezone-locale', label: 'Timezone & Locale', run: runTimezone },
-  { id: 'permissions', label: 'Permissions', run: runPermissions },
-  { id: 'timing', label: 'Timing', run: runTiming },
-  { id: 'consistency', label: 'Consistência Cross-API', run: runConsistency },
+  { id: 'battery-sensors', label: 'Battery & Sensors', run: runBatterySensors },
 ];
 
 let lastResult = null;
+let scoreMode = 'strict';
+let behaviorEnabled = true;
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -56,23 +76,38 @@ function gradeClass(id) {
   return `grade-${id}`;
 }
 
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 function renderScore(result) {
   const scoreEl = $('#score-value');
   const gradeEl = $('#grade-label');
   const descEl = $('#grade-desc');
   const ring = $('#score-ring');
   const tagsEl = $('#tags');
+  const confEl = $('#avg-confidence');
 
   scoreEl.textContent = result.score;
   gradeEl.textContent = result.grade.label;
   gradeEl.className = `grade-badge ${gradeClass(result.grade.id)}`;
-  descEl.textContent = result.grade.description;
+  descEl.textContent =
+    result.grade.description +
+    ` | modo ${result.mode}` +
+    (result.correlationDelta ? ` | correlacao ${result.correlationDelta}` : '');
+
+  if (confEl) {
+    confEl.textContent = `Confianca media: ${Math.round((result.avgConfidence || 0) * 100)}%`;
+  }
 
   const circ = 2 * Math.PI * 54;
   const offset = circ - (result.score / 100) * circ;
   ring.style.strokeDasharray = `${circ}`;
   ring.style.strokeDashoffset = `${offset}`;
-  // SVGElement.className is SVGAnimatedString ??" use setAttribute
   ring.setAttribute('class', `score-ring ${gradeClass(result.grade.id)}`);
 
   tagsEl.innerHTML = '';
@@ -86,13 +121,33 @@ function renderScore(result) {
       tagsEl.appendChild(span);
     }
   }
+
+  renderClusters(result.clusters || []);
+}
+
+function renderClusters(clusters) {
+  const box = $('#clusters');
+  if (!box) return;
+  box.innerHTML = '';
+  if (!clusters.length) {
+    box.innerHTML = '<div class="cluster-empty">Nenhum cluster de risco correlacionado.</div>';
+    return;
+  }
+  for (const c of clusters) {
+    const div = document.createElement('div');
+    div.className = 'cluster-card';
+    div.innerHTML = `
+      <div class="cluster-title">${escapeHtml(c.label)} <span class="delta">${c.delta}</span></div>
+      <div class="cluster-detail">${escapeHtml(c.detail || '')}</div>
+    `;
+    box.appendChild(div);
+  }
 }
 
 function renderCategories(result) {
   const grid = $('#category-grid');
   grid.innerHTML = '';
-  const entries = Object.entries(result.categoryScores);
-  for (const [id, cat] of entries) {
+  for (const [, cat] of Object.entries(result.categoryScores)) {
     const card = document.createElement('div');
     card.className = 'cat-card';
     const color =
@@ -100,10 +155,10 @@ function renderCategories(result) {
     card.innerHTML = `
       <div class="cat-head">
         <span class="cat-name">${escapeHtml(cat.label)}</span>
-        <span class="cat-score ${color}">${cat.score}</span>
+        <span class="cat-score ${color}">${Math.round(cat.score)}</span>
       </div>
       <div class="cat-bar"><div class="cat-bar-fill ${color}" style="width:${cat.score}%"></div></div>
-      <div class="cat-meta">${cat.findingCount} finding(s) - ?" ${cat.delta}</div>
+      <div class="cat-meta">${cat.findingCount} finding(s) - d ${cat.delta}</div>
     `;
     grid.appendChild(card);
   }
@@ -114,41 +169,37 @@ function renderFindings(result) {
   tbody.innerHTML = '';
   if (!result.findings.length) {
     tbody.innerHTML =
-      '<tr><td colspan="5" class="empty">Nenhum finding. Fingerprint aparenta coerente.</td></tr>';
+      '<tr><td colspan="6" class="empty">Nenhum finding. Fingerprint aparenta coerente.</td></tr>';
     return;
   }
   for (const f of result.findings) {
     const tr = document.createElement('tr');
+    const conf = f.confidence != null ? Math.round(f.confidence * 100) + '%' : '-';
     tr.innerHTML = `
       <td><span class="sev sev-${f.severity}">${escapeHtml(severityLabel(f.severity))}</span></td>
       <td>${escapeHtml(f.moduleLabel || f.module || '')}</td>
       <td>${escapeHtml(f.title)}</td>
       <td class="detail">${escapeHtml(f.detail || '')}</td>
-      <td class="delta">${f.delta}</td>
+      <td class="conf">${conf}</td>
+      <td class="delta">${f.weightedDelta != null ? f.weightedDelta : f.delta}</td>
     `;
     tbody.appendChild(tr);
   }
 }
 
-function escapeHtml(s) {
-  return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
-async function runModuleSafe(mod) {
+async function runModuleSafe(mod, opts) {
   try {
-    const result = await mod.run();
-    return result || {
-      id: mod.id,
-      label: mod.label,
-      findings: [],
-      scoreDelta: 0,
-      raw: {},
-      status: 'empty',
-    };
+    const result = await mod.run(opts);
+    return (
+      result || {
+        id: mod.id,
+        label: mod.label,
+        findings: [],
+        scoreDelta: 0,
+        raw: {},
+        status: 'empty',
+      }
+    );
   } catch (e) {
     return {
       id: mod.id,
@@ -157,9 +208,11 @@ async function runModuleSafe(mod) {
         {
           id: `${mod.id}-crash`,
           severity: 'low',
-          title: 'Módulo falhou',
+          title: 'Modulo falhou',
           detail: String(e.message || e),
           delta: -1,
+          confidence: 1,
+          weightedDelta: -1,
           tags: [],
         },
       ],
@@ -167,6 +220,18 @@ async function runModuleSafe(mod) {
       raw: { error: String(e.message || e) },
       status: 'error',
     };
+  }
+}
+
+async function runBatch(list, basePct, spanPct, moduleResults) {
+  const total = list.length;
+  for (let i = 0; i < list.length; i += 4) {
+    const batch = list.slice(i, i + 4);
+    const batchResults = await Promise.all(batch.map((m) => runModuleSafe(m)));
+    moduleResults.push(...batchResults);
+    const done = moduleResults.length;
+    const pct = basePct + Math.round((Math.min(done, PHASE_A.length + PHASE_B.length) / (PHASE_A.length + PHASE_B.length)) * spanPct);
+    setProgress(pct, `${done} modulos - ${batch.map((b) => b.label).join(', ')}`);
   }
 }
 
@@ -179,41 +244,47 @@ async function runAnalysis() {
     bootErr.textContent = '';
   }
   btn.disabled = true;
-  btn.textContent = 'Analisando???';
+  btn.textContent = 'Analisando...';
   $('#progress-wrap').hidden = false;
   resultsPanel.hidden = true;
-  setProgress(0, 'Iniciando???');
+  setProgress(0, 'Fase A - checks rapidos...');
 
   try {
     const moduleResults = [];
-    const total = MODULES.length;
 
-    for (let i = 0; i < MODULES.length; i += 4) {
-      const batch = MODULES.slice(i, i + 4);
-      const batchResults = await Promise.all(batch.map((m) => runModuleSafe(m)));
-      moduleResults.push(...batchResults);
-      const done = moduleResults.length;
-      setProgress(
-        Math.round((done / total) * 100),
-        `${done}/${total} ??" ${batch.map((b) => b.label).join(', ')}`
-      );
-    }
+    // Phase A
+    await runBatch(PHASE_A, 0, 40, moduleResults);
 
-    const result = computeScore(moduleResults);
+    // Phase B
+    setProgress(45, 'Fase B - fingerprint profundo...');
+    await runBatch(PHASE_B, 40, 40, moduleResults);
+
+    // Phase C behavior
+    setProgress(85, behaviorEnabled ? 'Fase C - comportamento (3s)...' : 'Fase C - comportamento off');
+    const behaviorMod = {
+      id: 'behavior',
+      label: 'Comportamento',
+      run: (o) => runBehavior({ ...o, skip: !behaviorEnabled, durationMs: 3200 }),
+    };
+    moduleResults.push(await runModuleSafe(behaviorMod));
+
+    setProgress(95, 'Calculando score com correlacao...');
+    const result = computeScore(moduleResults, { mode: scoreMode });
     lastResult = result;
 
     renderScore(result);
     renderCategories(result);
     renderFindings(result);
-
     $('#summary-pre').textContent = buildSummaryText(result);
     resultsPanel.hidden = false;
-    setProgress(100, 'Concluído');
+    setProgress(100, 'Concluido');
     $('#btn-export').disabled = false;
     $('#btn-copy').disabled = false;
+  } catch (e) {
+    showBootError(e);
   } finally {
     btn.disabled = false;
-    btn.textContent = lastResult ? 'Reexecutar análise' : 'Iniciar análise';
+    btn.textContent = lastResult ? 'Reexecutar analise' : 'Iniciar analise';
   }
 }
 
@@ -222,7 +293,7 @@ function downloadJSON() {
   const blob = new Blob([exportJSON(lastResult)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `integrity-report-${Date.now()}.json`;
+  a.download = `integrity-report-v2-${Date.now()}.json`;
   a.click();
   URL.revokeObjectURL(a.href);
 }
@@ -239,7 +310,7 @@ async function copySummary() {
       btn.textContent = old;
     }, 1500);
   } catch {
-    alert('Não foi possível copiar. Selecione o resumo manualmente.');
+    alert('Nao foi possivel copiar. Selecione o resumo manualmente.');
   }
 }
 
@@ -255,14 +326,40 @@ function showBootError(err) {
 function init() {
   const btn = $('#btn-run');
   if (!btn) {
-    showBootError(new Error('Botão #btn-run não encontrado no DOM'));
+    showBootError(new Error('Botao #btn-run nao encontrado'));
     return;
   }
+
+  const modeSel = $('#score-mode');
+  if (modeSel) {
+    scoreMode = modeSel.value || 'strict';
+    modeSel.addEventListener('change', () => {
+      scoreMode = modeSel.value;
+      if (lastResult) {
+        // recompute from cached modules if available
+        const result = computeScore(lastResult.moduleResults, { mode: scoreMode });
+        lastResult = result;
+        renderScore(result);
+        renderCategories(result);
+        renderFindings(result);
+        $('#summary-pre').textContent = buildSummaryText(result);
+      }
+    });
+  }
+
+  const beh = $('#behavior-toggle');
+  if (beh) {
+    behaviorEnabled = beh.checked;
+    beh.addEventListener('change', () => {
+      behaviorEnabled = beh.checked;
+    });
+  }
+
   btn.addEventListener('click', () => {
     runAnalysis().catch((e) => {
       showBootError(e);
       btn.disabled = false;
-      btn.textContent = 'Iniciar análise';
+      btn.textContent = 'Iniciar analise';
     });
   });
   $('#btn-export').addEventListener('click', downloadJSON);
@@ -270,14 +367,13 @@ function init() {
   $('#btn-export').disabled = true;
   $('#btn-copy').disabled = true;
 
-  // Auto-run on load for convenience
   setTimeout(() => {
     runAnalysis().catch((e) => {
       showBootError(e);
       btn.disabled = false;
-      btn.textContent = 'Iniciar análise';
+      btn.textContent = 'Iniciar analise';
     });
-  }, 200);
+  }, 250);
 }
 
 try {

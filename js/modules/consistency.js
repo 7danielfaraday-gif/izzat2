@@ -1,6 +1,6 @@
 /** Matriz de consistência cross-API ??" cérebro estilo ads/banco */
 
-import { finding, finalizeResult, parseUserAgent, platformOs, safe } from '../utils.js?v2';
+import { finding, finalizeResult, parseUserAgent, platformOs, safe } from '../utils.js?v3';
 
 function getWebGLRenderer() {
   try {
@@ -253,13 +253,87 @@ export async function run(shared = {}) {
       finding(
         'cons-canvas-shared',
         'info',
-        'Canvas noise já reportado',
-        'Correlacionado com módulo Canvas.',
+        'Canvas noise ja reportado',
+        'Correlacionado com modulo Canvas.',
         0,
-        ['CANVAS_NOISE']
+        ['CANVAS_NOISE'],
+        1
       )
     );
   }
 
-  return finalizeResult('consistency', 'Consistência Cross-API', findings, raw);
+  // pointer / hover vs mobile (matchMedia)
+  try {
+    const fine = matchMedia('(pointer: fine)').matches;
+    const coarse = matchMedia('(pointer: coarse)').matches;
+    const hover = matchMedia('(hover: hover)').matches;
+    raw.pointerFine = fine;
+    raw.pointerCoarse = coarse;
+    raw.hover = hover;
+    if (ua.isMobile && fine && hover && touch === 0) {
+      findings.push(
+        finding(
+          'cons-mm-mobile-desktop',
+          'high',
+          'UA mobile com pointer:fine + hover',
+          'Perfil de mouse desktop sob UA mobile',
+          -15,
+          ['BAD_FP', 'ANTIDETECT_LIKELY'],
+          0.9
+        )
+      );
+    }
+    if (!ua.isMobile && !fine && coarse && touch > 0 && screen.width <= 500) {
+      findings.push(
+        finding(
+          'cons-desktop-phone-pointer',
+          'medium',
+          'UA desktop com pointer coarse de telefone',
+          '',
+          -7,
+          ['BAD_FP'],
+          0.7
+        )
+      );
+    }
+  } catch {
+    /* ignore */
+  }
+
+  // color-gamut vs colorDepth
+  try {
+    if (matchMedia('(color-gamut: p3)').matches && screen.colorDepth && screen.colorDepth <= 16) {
+      findings.push(
+        finding(
+          'cons-gamut-depth',
+          'medium',
+          'color-gamut p3 com colorDepth baixo',
+          `colorDepth=${screen.colorDepth}`,
+          -6,
+          ['BAD_FP'],
+          0.75
+        )
+      );
+    }
+  } catch {
+    /* ignore */
+  }
+
+  // Software GPU + high deviceMemory odd
+  const rSoft = `${gl.vendor || ''} ${gl.renderer || ''}`;
+  if (/swiftshader|llvmpipe|software/i.test(rSoft) && navigator.deviceMemory >= 8) {
+    findings.push(
+      finding(
+        'cons-softgpu-ram',
+        'medium',
+        'GPU software com muita RAM reportada',
+        rSoft,
+        -7,
+        ['HEADLESS', 'BAD_FP'],
+        0.75
+      )
+    );
+  }
+
+  return finalizeResult('consistency', 'Consistencia Cross-API', findings, raw);
 }

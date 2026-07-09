@@ -1,6 +1,6 @@
 /** WebRTC ICE candidates ??" IPs e mDNS */
 
-import { finding, finalizeResult, withTimeout } from '../utils.js?v2';
+import { finding, finalizeResult, withTimeout } from '../utils.js?v3';
 
 function gatherIce(timeoutMs = 3500) {
   return new Promise((resolve) => {

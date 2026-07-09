@@ -64,6 +64,83 @@ header {
   letter-spacing: -0.02em;
 }
 
+.brand .ver {
+  font-size: 0.75rem;
+  vertical-align: super;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.ctrl {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.ctrl select {
+  background: var(--bg3);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.35rem 0.5rem;
+  font-family: inherit;
+}
+
+.ctrl.checkbox {
+  user-select: none;
+  cursor: pointer;
+}
+
+.conf-line {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.clusters {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.65rem;
+  margin-bottom: 1.5rem;
+}
+
+.cluster-card {
+  background: rgba(248, 113, 113, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  border-radius: 10px;
+  padding: 0.75rem 0.9rem;
+}
+
+.cluster-title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.cluster-title .delta {
+  color: var(--bad);
+  font-size: 0.8rem;
+}
+
+.cluster-detail {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.cluster-empty {
+  color: var(--ok);
+  font-size: 0.85rem;
+  padding: 0.5rem 0 1rem;
+}
+
+td.conf {
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
 .brand p {
   margin: 0.25rem 0 0;
   color: var(--muted);

@@ -1,13 +1,13 @@
 /** Worker vs main thread ??" mismatch forte indica spoof no window apenas */
 
-import { finding, finalizeResult, withTimeout } from '../utils.js?v2';
+import { finding, finalizeResult, withTimeout } from '../utils.js?v3';
 
 function spawnWorkerSnapshot() {
   return new Promise((resolve) => {
     const code = `
       self.onmessage = function() {
         var nav = self.navigator || {};
-        self.postMessage({
+        var payload = {
           userAgent: nav.userAgent,
           platform: nav.platform,
           language: nav.language,
@@ -20,8 +20,34 @@ function spawnWorkerSnapshot() {
             mobile: nav.userAgentData.mobile,
             platform: nav.userAgentData.platform,
             brands: nav.userAgentData.brands
-          } : null
-        });
+          } : null,
+          canvasHash: null
+        };
+        try {
+          if (typeof OffscreenCanvas !== 'undefined') {
+            var c = new OffscreenCanvas(64, 32);
+            var ctx = c.getContext('2d');
+            if (ctx) {
+              ctx.fillStyle = '#f60';
+              ctx.fillRect(0, 0, 40, 20);
+              ctx.fillStyle = '#069';
+              ctx.font = '12px Arial';
+              ctx.fillText('WkrFp', 2, 16);
+              if (c.convertToBlob) {
+                c.convertToBlob().then(function(b) {
+                  payload.canvasHash = 'blob:' + b.size + ':' + b.type;
+                  self.postMessage(payload);
+                }).catch(function() {
+                  self.postMessage(payload);
+                });
+                return;
+              }
+            }
+          }
+        } catch (e) {
+          payload.canvasError = String(e.message || e);
+        }
+        self.postMessage(payload);
       };
     `;
     let worker;
@@ -164,7 +190,48 @@ export async function run() {
           'webdriver divergente main/worker',
           `main=${main.webdriver} worker=${worker.webdriver}`,
           -25,
-          ['WORKER_MISMATCH', 'AUTOMATION']
+          ['WORKER_MISMATCH', 'AUTOMATION'],
+          0.95
+        )
+      );
+    }
+  }
+
+  // Main-thread canvas blob size vs worker OffscreenCanvas
+  try {
+    const c = document.createElement('canvas');
+    c.width = 64;
+    c.height = 32;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#f60';
+    ctx.fillRect(0, 0, 40, 20);
+    ctx.fillStyle = '#069';
+    ctx.font = '12px Arial';
+    ctx.fillText('WkrFp', 2, 16);
+    const dataUrl = c.toDataURL();
+    raw.mainCanvasLen = dataUrl.length;
+    if (worker.canvasHash && typeof worker.canvasHash === 'string') {
+      raw.workerCanvasHash = worker.canvasHash;
+      // both should exist; if worker has canvas and main fails noise tests separately
+    }
+  } catch {
+    /* ignore */
+  }
+
+  // userAgentData brands mismatch
+  if (worker.userAgentData?.brands && navigator.userAgentData?.brands) {
+    const mb = navigator.userAgentData.brands.map((b) => b.brand + b.version).join('|');
+    const wb = worker.userAgentData.brands.map((b) => b.brand + b.version).join('|');
+    if (mb !== wb) {
+      findings.push(
+        finding(
+          'worker-uad-brands',
+          'high',
+          'userAgentData.brands main != worker',
+          '',
+          -14,
+          ['WORKER_MISMATCH', 'BAD_FP'],
+          0.88
         )
       );
     }

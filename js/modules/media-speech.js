@@ -1,6 +1,6 @@
 /** mediaDevices + speechSynthesis voices */
 
-import { finding, finalizeResult, parseUserAgent, withTimeout } from '../utils.js?v2';
+import { finding, finalizeResult, parseUserAgent, withTimeout } from '../utils.js?v3';
 
 async function getDevices() {
   if (!navigator.mediaDevices?.enumerateDevices) return { error: 'no-api' };

@@ -107,8 +107,27 @@ export function platformOs(platform = navigator.platform) {
   return 'unknown';
 }
 
-export function finding(id, severity, title, detail, delta, tags = []) {
-  return { id, severity, title, detail, delta, tags };
+/**
+ * @param {string} id
+ * @param {'critical'|'high'|'medium'|'low'|'info'} severity
+ * @param {string} title
+ * @param {string} detail
+ * @param {number} delta negative penalty
+ * @param {string[]} tags
+ * @param {number} [confidence=0.85] 0-1
+ */
+export function finding(id, severity, title, detail, delta, tags = [], confidence = 0.85) {
+  const conf = clamp(confidence == null ? 0.85 : confidence, 0, 1);
+  return {
+    id,
+    severity,
+    title,
+    detail,
+    delta,
+    tags,
+    confidence: conf,
+    weightedDelta: delta * conf,
+  };
 }
 
 export function emptyResult(moduleId, label) {
@@ -123,7 +142,7 @@ export function emptyResult(moduleId, label) {
 }
 
 export function finalizeResult(moduleId, label, findings, raw = {}, status = 'ok') {
-  const scoreDelta = findings.reduce((s, f) => s + (f.delta || 0), 0);
+  const scoreDelta = findings.reduce((s, f) => s + (f.weightedDelta != null ? f.weightedDelta : f.delta || 0), 0);
   return { id: moduleId, label, findings, scoreDelta, raw, status };
 }
 

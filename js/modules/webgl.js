@@ -1,6 +1,6 @@
 /** WebGL vendor/renderer, software GL, extensions, hash de render */
 
-import { finding, finalizeResult, hashString, parseUserAgent, safe } from '../utils.js?v2';
+import { finding, finalizeResult, hashString, parseUserAgent, safe } from '../utils.js?v3';
 
 const SOFTWARE_GL = [
   /swiftshader/i,

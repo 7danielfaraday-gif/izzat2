@@ -1,6 +1,6 @@
 /** Detecção de automação: WebDriver, CDP, Selenium, Puppeteer, Playwright */
 
-import { finding, finalizeResult, safe } from '../utils.js?v2';
+import { finding, finalizeResult, safe } from '../utils.js?v3';
 
 const KNOWN_GLOBAL_MARKERS = [
   '__webdriver_evaluate',
@@ -28,6 +28,15 @@ const KNOWN_GLOBAL_MARKERS = [
   '__puppeteer_evaluation_script__',
   '__playwright',
   '__pwInitScripts',
+  '__PUPPETEER_WORLD',
+  '__playwright_evaluation_script__',
+  '_WEBDRIVER_ELEM_CACHE',
+  'ChromeDriverw',
+  '__lastWatirAlert',
+  '__lastWatirConfirm',
+  '__lastWatirPrompt',
+  'webdriver_id',
+  'domAutomationController',
 ];
 
 function scanCdcProperties() {
@@ -186,10 +195,73 @@ export async function run() {
     );
   }
 
-  // Permissions quirk: Notification in headless often "denied" + empty plugins combo handled elsewhere
-  // chrome.app / runtime already in chrome-runtime module
+  // Error.prepareStackTrace hooked
+  raw.prepareStackTrace = typeof Error.prepareStackTrace;
+  if (typeof Error.prepareStackTrace === 'function') {
+    try {
+      const s = Function.prototype.toString.call(Error.prepareStackTrace);
+      if (!/\[native code\]/.test(s)) {
+        findings.push(
+          finding(
+            'auto-prepare-stack',
+            'medium',
+            'Error.prepareStackTrace customizado',
+            'Pode ser instrumentation/automacao',
+            -6,
+            ['AUTOMATION'],
+            0.55
+          )
+        );
+      }
+    } catch {
+      /* ignore */
+    }
+  }
 
-  // navigator.webdriver getter overridden to false still may leave prototype true in some cases ??" checked in prototype-lies
+  // navigator.webdriver on prototype vs instance
+  try {
+    const desc = Object.getOwnPropertyDescriptor(Navigator.prototype, 'webdriver');
+    raw.webdriverProto = desc ? { get: !!desc.get, value: desc.value } : null;
+    if (desc && desc.get) {
+      const viaProto = desc.get.call(navigator);
+      raw.webdriverViaProto = viaProto;
+      if (viaProto === true && wd !== true) {
+        findings.push(
+          finding(
+            'auto-webdriver-proto-lie',
+            'critical',
+            'webdriver true no prototype, false no instance',
+            'Spoof classico de stealth plugin',
+            -30,
+            ['AUTOMATION', 'PROTOTYPE_LIE', 'ANTIDETECT_LIKELY'],
+            0.95
+          )
+        );
+      }
+    }
+  } catch {
+    /* ignore */
+  }
 
-  return finalizeResult('automation', 'Automação & CDP', findings, raw);
+  const cdpBind =
+    safe(() => {
+      const keys = Object.getOwnPropertyNames(window);
+      return keys.filter((k) => /cdc_|\$chrome_async|__cdp/i.test(k));
+    }) || [];
+  raw.cdpBind = cdpBind;
+  if (cdpBind.length && !allMarkers.length) {
+    findings.push(
+      finding(
+        'auto-cdp-bind',
+        'critical',
+        'Residuos CDP no window',
+        cdpBind.slice(0, 6).join(', '),
+        -32,
+        ['AUTOMATION'],
+        0.9
+      )
+    );
+  }
+
+  return finalizeResult('automation', 'Automacao & CDP', findings, raw);
 }

@@ -1,6 +1,6 @@
 /** window.chrome, plugins, mimeTypes ??" headless e spoof fraco */
 
-import { finding, finalizeResult, parseUserAgent, safe } from '../utils.js?v2';
+import { finding, finalizeResult, parseUserAgent, safe } from '../utils.js?v3';
 
 export async function run() {
   const findings = [];

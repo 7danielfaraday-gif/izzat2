@@ -1,6 +1,6 @@
 /** Detecção de fontes instaladas vs OS declarado */
 
-import { finding, finalizeResult, parseUserAgent, platformOs } from '../utils.js?v2';
+import { finding, finalizeResult, parseUserAgent, platformOs } from '../utils.js?v3';
 
 const FONT_SETS = {
   windows: [

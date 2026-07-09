@@ -1,6 +1,6 @@
 /** Canvas fingerprint: estabilidade, noise antidetect, OffscreenCanvas */
 
-import { finding, finalizeResult, hashString, safe } from '../utils.js?v2';
+import { finding, finalizeResult, hashString, safe } from '../utils.js?v3';
 
 function drawScene(canvas) {
   const ctx = canvas.getContext('2d');

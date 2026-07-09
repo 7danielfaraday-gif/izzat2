@@ -1,6 +1,6 @@
 /** ClientRects / emoji geometry ??" varia por OS e fonte do sistema */
 
-import { finding, finalizeResult, parseUserAgent, platformOs } from '../utils.js?v2';
+import { finding, finalizeResult, parseUserAgent, platformOs } from '../utils.js?v3';
 
 function measureEmoji() {
   const el = document.createElement('div');

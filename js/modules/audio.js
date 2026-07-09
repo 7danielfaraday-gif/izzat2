@@ -1,6 +1,6 @@
 /** OfflineAudioContext fingerprint + estabilidade */
 
-import { finding, finalizeResult, hashString, safe, withTimeout } from '../utils.js?v2';
+import { finding, finalizeResult, hashString, safe, withTimeout } from '../utils.js?v3';
 
 function collectAudioFingerprint() {
   return new Promise((resolve) => {

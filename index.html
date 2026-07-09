@@ -5,21 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
-    <meta name="description" content="Browser Integrity Guard — detecção avançada de spoofing, antidetect e automação" />
-    <title>Browser Integrity Guard</title>
-    <link rel="stylesheet" href="css/styles.css?v=2" />
+    <meta name="description" content="Browser Integrity Guard v2 - deteccao avancada de spoofing, antidetect e automacao" />
+    <title>Browser Integrity Guard v2</title>
+    <link rel="stylesheet" href="css/styles.css?v=3" />
   </head>
   <body>
     <div class="container">
       <header>
         <div class="brand">
-          <h1>Browser Integrity Guard</h1>
+          <h1>Browser Integrity Guard <span class="ver">v2</span></h1>
           <p>
-            Análise avançada de fingerprint · detecção de spoofing / antidetect / automação
+            Deteccao reforçada: correlacao, matchMedia, iframes, WebGPU, comportamento
           </p>
         </div>
         <div class="actions">
-          <button type="button" class="primary" id="btn-run">Iniciar análise</button>
+          <label class="ctrl">
+            Modo
+            <select id="score-mode" title="Strict aplica 1.15x nas penalidades">
+              <option value="strict" selected>Strict</option>
+              <option value="balanced">Balanced</option>
+            </select>
+          </label>
+          <label class="ctrl checkbox">
+            <input type="checkbox" id="behavior-toggle" checked />
+            Comportamento 3s
+          </label>
+          <button type="button" class="primary" id="btn-run">Iniciar analise</button>
           <button type="button" id="btn-export" disabled>Exportar JSON</button>
           <button type="button" id="btn-copy" disabled>Copiar resumo</button>
         </div>
@@ -31,7 +42,7 @@
         <div class="progress-track">
           <div class="progress-bar" id="progress-bar"></div>
         </div>
-        <div class="progress-label" id="progress-label">Aguardando…</div>
+        <div class="progress-label" id="progress-label">Aguardando...</div>
       </div>
 
       <div id="results" hidden>
@@ -57,10 +68,14 @@
           <div class="score-meta">
             <h2>Trust Score</h2>
             <div class="grade-badge grade-trusted" id="grade-label">—</div>
-            <p id="grade-desc">Execute a análise para obter o score.</p>
+            <p id="grade-desc">Execute a analise para obter o score.</p>
+            <p id="avg-confidence" class="conf-line"></p>
             <div class="tags" id="tags"></div>
           </div>
         </section>
+
+        <h3 class="section-title">Clusters de risco (correlacao)</h3>
+        <div id="clusters" class="clusters"></div>
 
         <h3 class="section-title">Integridade por categoria</h3>
         <div class="category-grid" id="category-grid"></div>
@@ -71,10 +86,11 @@
             <thead>
               <tr>
                 <th>Severidade</th>
-                <th>Módulo</th>
+                <th>Modulo</th>
                 <th>Check</th>
                 <th>Detalhe</th>
-                <th>Δ</th>
+                <th>Conf.</th>
+                <th>d</th>
               </tr>
             </thead>
             <tbody id="findings-body"></tbody>
@@ -88,15 +104,11 @@
       </div>
 
       <footer>
-        Sistema client-side de auditoria de fingerprint. Não substitui sinais de rede (TLS JA3,
-        HTTP/2) usados em stacks bancárias completas.
+        Client-side v2: 25+ modulos + score com correlacao. Nao substitui TLS JA3 / HTTP2 (backend).
         <br />
-        Se o botão não reagir em guia normal, force atualização:
-        <code>Ctrl+Shift+R</code>
-        (cache do navegador). URL:
-        <code>http://localhost:8081/</code>
+        Use <code>http://localhost:8081/?v=3</code> e <code>Ctrl+Shift+R</code> se o cache atrapalhar.
       </footer>
     </div>
-    <script type="module" src="js/app.js?v=2"></script>
+    <script type="module" src="js/app.js?v=3"></script>
   </body>
 </html>

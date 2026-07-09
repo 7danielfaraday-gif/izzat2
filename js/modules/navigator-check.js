@@ -1,6 +1,6 @@
 /** Navigator, Client Hints e combinações de hardware */
 
-import { finding, finalizeResult, parseUserAgent, safe } from '../utils.js?v2';
+import { finding, finalizeResult, parseUserAgent, safe } from '../utils.js?v3';
 
 export async function run() {
   const findings = [];
