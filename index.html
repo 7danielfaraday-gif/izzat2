@@ -1,201 +1,442 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
-    <meta
-      name="description"
-      content="FP Scan — interface em pt-BR sobre o motor real de detecção CreepJS. Score, mentiras e evidências."
-    />
-    <title>FP Scan — CreepJS (pt-BR)</title>
-    <link rel="stylesheet" href="css/styles.css?v=7" />
-    <!-- Motor oficial CreepJS (MIT) — expõe window.Fingerprint e window.Creep -->
-    <script src="vendor/creepjs/creep.js" defer></script>
-  </head>
-  <body>
-    <!-- Host oculto: o CreepJS preenche #fingerprint-data (patch no DOM). UI amigável fica fora. -->
-    <div id="creepjs-host" class="creepjs-host" aria-hidden="true">
-      <div id="fingerprint-data">
-        <div class="fingerprint-header-container">
-          <div class="fingerprint-header">
-            <div id="creep-fingerprint" class="ellipsis-all">FP ID: Computing...</div>
-            <div id="fuzzy-fingerprint">
-              <div class="ellipsis-all fuzzy-fp">Fuzzy: <span class="blurred">…</span></div>
-            </div>
-            <div><span class="time">0 ms</span></div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kit 3 T-Shirts Oversized Classic Algodão | Izzat</title>
+  <meta name="description" content="Kit de 3 T-Shirts Oversized em algodão penteado premium. Off White, Preto e Marrom. De R$ 387 por R$ 97,98." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/spa-checkout.css" />
+</head>
+<body>
+  <!-- Top bar -->
+  <div class="topbar">
+    <p>Frete grátis acima de R$ 69,99 &nbsp;·&nbsp; Envio imediato</p>
+  </div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header__inner">
+      <button class="icon-btn header__menu" aria-label="Menu" id="menuToggle">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <a href="/" class="logo">IZZAT</a>
+      <nav class="nav">
+        <a href="#produto">T-Shirt</a>
+        <a href="#descricao">Sobre</a>
+        <a href="#cuidados">Cuidados</a>
+        <a href="#contato">Contato</a>
+      </nav>
+      <div class="header__actions">
+        <button class="icon-btn" aria-label="Buscar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg>
+        </button>
+        <button class="icon-btn cart-btn" aria-label="Sacola" id="cartBtn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 7h12l-1 12H7L6 7z"/><path d="M9 7V5a3 3 0 016 0v2"/></svg>
+          <span class="cart-count" id="cartCount">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile nav -->
+  <div class="mobile-nav" id="mobileNav">
+    <a href="#produto">T-Shirt</a>
+    <a href="#descricao">Sobre</a>
+    <a href="#cuidados">Cuidados</a>
+    <a href="#contato">Contato</a>
+  </div>
+
+  <main>
+    <!-- Product -->
+    <section class="product" id="produto">
+      <div class="product__gallery">
+        <div class="gallery" id="gallery">
+          <div class="gallery__viewport" id="galleryViewport">
+            <div class="gallery__track" id="galleryTrack"></div>
+          </div>
+          <button type="button" class="gallery__arrow gallery__arrow--prev" id="prevImg" aria-label="Foto anterior"></button>
+          <button type="button" class="gallery__arrow gallery__arrow--next" id="nextImg" aria-label="Próxima foto"></button>
+          <span class="badge badge--best">Best Sellers</span>
+          <div class="gallery__meta">
+            <div class="gallery__dots" id="galleryDots" aria-hidden="true"></div>
+            <span class="gallery__counter" id="galleryCounter">1 / 14</span>
           </div>
         </div>
-        <div id="webrtc-connection"></div>
-        <div id="status-info"></div>
+        <div class="gallery__thumbs" id="thumbs"></div>
+      </div>
+
+      <div class="product__info">
+        <p class="breadcrumb">Home / T-Shirt / Kit Oversized</p>
+        <h1 class="product__title">Kit 3 T-Shirts Oversized Classic Algodão</h1>
+        <div class="product__rating">
+          <span class="stars">★★★★★</span>
+          <span class="rating-text">4.9 · 2.184 avaliações</span>
+        </div>
+
+        <div class="product__price">
+          <span class="price--old">De: R$ 387,00</span>
+          <div class="price--row">
+            <span class="price--current">R$ 97,98</span>
+            <span class="price--installment">à vista no PIX</span>
+          </div>
+          <span class="price--unit">R$ 32,66 / unidade no kit</span>
+        </div>
+
+        <div class="product__option">
+          <label class="option__label">Cor <span id="selectedColor">Marrom / Preto / Off-White</span></label>
+          <div class="color-swatches">
+            <button class="swatch swatch--active" data-color="Marrom / Preto / Off-White" title="Kit clássico" style="background: linear-gradient(90deg, #8B6F5C 33%, #1a1a1a 33% 66%, #F5F0E8 66%);"></button>
+          </div>
+        </div>
+
+        <div class="product__option">
+          <label class="option__label">Tamanho <span id="selectedSize">Selecione</span></label>
+          <div class="size-list" id="sizeList">
+            <button class="size-btn" data-size="P">P</button>
+            <button class="size-btn" data-size="M">M</button>
+            <button class="size-btn" data-size="G">G</button>
+          </div>
+          <button class="link-btn" id="sizeGuideBtn">Guia de medidas</button>
+        </div>
+
+        <div class="product__option">
+          <label class="option__label">Quantidade</label>
+          <div class="qty-options qty-options--single">
+            <div class="qty-card qty-card--active" data-qty="3" data-price="32.66">
+              <span class="qty-card__badge">Mais vendido</span>
+              <span class="qty-card__title">Kit 3</span>
+              <span class="qty-card__price">R$ 32,66<span>/un</span></span>
+              <span class="qty-card__total">Total R$ 97,98</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="product__actions product__actions--single">
+          <button class="btn btn--primary" id="buyNow">Comprar Agora</button>
+        </div>
+
+        <div class="product__stock">
+          <span class="stock-dot"></span>
+          Peça em estoque com <strong>Envio Imediato</strong>
+        </div>
+
+        <div class="product__help">
+          <a href="https://wa.me/5500000000000" target="_blank" rel="noopener" class="help-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.198.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.605.605l4.53-1.49A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.95 9.95 0 01-5.09-1.39l-.364-.216-3.772 1.24 1.24-3.72-.237-.38A9.95 9.95 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+            Precisa de ajuda?
+          </a>
+        </div>
+
+        <div class="shipping-calc">
+          <label>Calcule o frete</label>
+          <div class="shipping-calc__row">
+            <input type="text" id="cepInput" placeholder="00000-000" maxlength="9" />
+            <button class="btn btn--dark" id="calcFrete">Calcular</button>
+          </div>
+          <p class="shipping-result" id="shippingResult"></p>
+        </div>
+
+        <ul class="product__perks">
+          <li>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Compra 100% segura
+          </li>
+          <li>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+            Pagamento exclusivo via PIX
+          </li>
+          <li>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7h13v10H3z"/><path d="M16 10h3l2 3v4h-5V10z"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="17.5" cy="17.5" r="1.5"/></svg>
+            Envio para todo o Brasil
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Description tabs -->
+    <section class="details" id="descricao">
+      <div class="details__inner">
+        <div class="tabs">
+          <button class="tab tab--active" data-tab="desc">Descrição</button>
+          <button class="tab" data-tab="comp">Composição</button>
+          <button class="tab" data-tab="diff">Diferenciais</button>
+          <button class="tab" data-tab="char">Características</button>
+        </div>
+
+        <div class="tab-panel tab-panel--active" id="panel-desc">
+          <p>O <strong>Kit de 3 T-Shirts Oversized Izzat</strong> foi desenvolvido para quem busca conforto, qualidade e versatilidade no dia a dia.</p>
+          <p>Confeccionadas em <strong>algodão penteado premium</strong>, as peças possuem toque extremamente macio, tecido leve e respirável, além de acabamento superior e alta durabilidade.</p>
+          <p>Com modelagem oversized e caimento naturalmente soltinho, as T-shirts proporcionam conforto absoluto sem abrir mão da elegância. Versáteis e atemporais, são ideais para compor produções modernas, casuais ou sofisticadas.</p>
+          <p>As camisetas possuem tecido natural, leve e respirável, perfeito para quem valoriza qualidade e bem-estar no uso diário.</p>
+          <h3>Como funciona o kit</h3>
+          <p>O kit é composto por 3 T-Shirts femininas oversized nas cores:</p>
+          <ul class="color-list">
+            <li><span class="dot" style="background:#F5F0E8;border:1px solid #ddd"></span> Off White</li>
+            <li><span class="dot" style="background:#1a1a1a"></span> Preto</li>
+            <li><span class="dot" style="background:#8B6F5C"></span> Marrom</li>
+          </ul>
+          <p>Tons clássicos e versáteis que combinam facilmente entre si e com diferentes estilos.</p>
+        </div>
+
+        <div class="tab-panel" id="panel-comp">
+          <h3>Corpo</h3>
+          <ul>
+            <li>100% Algodão Penteado Premium</li>
+          </ul>
+          <h3>Ribana</h3>
+          <ul>
+            <li>97% Algodão</li>
+            <li>3% Elastano</li>
+          </ul>
+          <h3 id="cuidados">Cuidados e Conservação</h3>
+          <p>Para preservar a qualidade da malha 100% algodão:</p>
+          <ul>
+            <li>Lavar até 30°C em processo suave</li>
+            <li>Utilizar sabão para roupa delicada</li>
+            <li>Não utilizar alvejantes</li>
+            <li>Secar em varal</li>
+            <li>Não utilizar secadora</li>
+            <li>Passar até 150°C</li>
+          </ul>
+        </div>
+
+        <div class="tab-panel" id="panel-diff">
+          <ul class="feature-grid">
+            <li>
+              <strong>Versatilidade</strong>
+              <span>Para o dia a dia e qualquer ocasião</span>
+            </li>
+            <li>
+              <strong>Durabilidade</strong>
+              <span>Tecido de alta qualidade e resistência</span>
+            </li>
+            <li>
+              <strong>Acabamento</strong>
+              <span>Costuras e detalhes de padrão premium</span>
+            </li>
+            <li>
+              <strong>Essencial</strong>
+              <span>Peça-chave no guarda-roupa Izzat</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="tab-panel" id="panel-char">
+          <ul class="feature-grid">
+            <li>
+              <strong>Modelagem ampla</strong>
+              <span>Silhueta oversized confortável</span>
+            </li>
+            <li>
+              <strong>Caimento soltinho</strong>
+              <span>Drapeado natural e elegante</span>
+            </li>
+            <li>
+              <strong>Tecido leve</strong>
+              <span>Respirável e ideal para o clima</span>
+            </li>
+            <li>
+              <strong>Toque macio</strong>
+              <span>Algodão natural de alta qualidade</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Lifestyle blocks -->
+    <section class="lifestyle">
+      <div class="lifestyle__grid">
+        <article class="lifestyle__card">
+          <div class="lifestyle__img">
+            <img src="https://cdn.vnda.com.br/cleastore/2026/01/27/16_56_20_711_1-16013550.jpg?v=1769543820" alt="Easy Urban" />
+          </div>
+          <div class="lifestyle__text">
+            <h2>Easy Urban</h2>
+            <p>A T-shirt Izzat traz praticidade para o guarda-roupa da mulher moderna, com cores atemporais que nunca saem de moda.</p>
+          </div>
+        </article>
+        <article class="lifestyle__card lifestyle__card--reverse">
+          <div class="lifestyle__img">
+            <img src="https://cdn.vnda.com.br/cleastore/2026/01/27/16_56_20_875_2-16013670.jpg?v=1769543822" alt="Para usar todos os dias" />
+          </div>
+          <div class="lifestyle__text">
+            <h2>Para usar todos os dias</h2>
+            <p>Confeccionada em 100% algodão, é fresca e confortável para o dia a dia. Possui modelagem ampla, pensada para oferecer mais versatilidade nas combinações.</p>
+          </div>
+        </article>
+        <article class="lifestyle__card">
+          <div class="lifestyle__img">
+            <img src="https://cdn.vnda.com.br/cleastore/2026/01/27/16_56_34_646_3-16014460.jpg?v=1769543825" alt="O combo" />
+          </div>
+          <div class="lifestyle__text">
+            <h2>O combo</h2>
+            <p>O kit de T-shirts foi pensado para facilitar a criação de looks no dia a dia, reunindo 3 peças essenciais de um guarda-roupa atemporal, em cores coringas para você usar muito.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Newsletter -->
+    <section class="newsletter" id="contato">
+      <div class="newsletter__inner">
+        <h2>Fique por dentro das novidades</h2>
+        <p>Receba com exclusividade a nossa newsletter com tendências, promoções e muito mais.</p>
+        <form class="newsletter__form" id="newsletterForm">
+          <input type="email" placeholder="Seu melhor e-mail" required />
+          <button type="submit" class="btn btn--primary">Cadastrar</button>
+        </form>
+        <p class="newsletter__msg" id="newsletterMsg"></p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <span class="logo logo--light">IZZAT</span>
+        <p>Essenciais atemporais em algodão premium para o dia a dia.</p>
+      </div>
+      <div>
+        <h4>Informações</h4>
+        <ul>
+          <li><a href="#">Trocas e devoluções</a></li>
+          <li><a href="#">Frete e entrega</a></li>
+          <li><a href="#">Formas de pagamento</a></li>
+          <li><a href="#">FAQ</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Sobre</h4>
+        <ul>
+          <li><a href="#">Nossa história</a></li>
+          <li><a href="#">Sustentabilidade</a></li>
+          <li><a href="#">Trabalhe conosco</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Privacidade</h4>
+        <ul>
+          <li><a href="#">Política de privacidade</a></li>
+          <li><a href="#">Termos de uso</a></li>
+        </ul>
+        <h4 class="mt">Pagamento</h4>
+        <p class="footer__pay">Pagamento exclusivo via PIX. Esta condição promocional é válida somente para compras finalizadas por PIX.</p>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <p>IZZAT · CNPJ: 67.960.309/0001-02 · Todos os direitos reservados</p>
+    </div>
+  </footer>
+
+  <!-- Cart drawer -->
+  <div class="overlay" id="overlay"></div>
+  <aside class="cart-drawer" id="cartDrawer">
+    <div class="cart-drawer__head">
+      <h3>Sua sacola</h3>
+      <button class="icon-btn" id="closeCart" aria-label="Fechar">✕</button>
+    </div>
+    <div class="cart-drawer__body" id="cartBody">
+      <p class="cart-empty">Sua sacola está vazia</p>
+    </div>
+    <div class="cart-drawer__foot" id="cartFoot" hidden>
+      <div class="cart-total">
+        <span>Total</span>
+        <strong id="cartTotal">R$ 0,00</strong>
+      </div>
+      <button class="btn btn--primary btn--block" id="checkoutBtn">Finalizar compra</button>
+      <button class="btn btn--outline btn--block" id="continueShopping">Continuar comprando</button>
+    </div>
+  </aside>
+
+  <!-- Size guide modal -->
+  <div class="modal" id="sizeModal">
+    <div class="modal__box">
+      <button class="icon-btn modal__close" id="closeSizeModal" aria-label="Fechar">✕</button>
+      <h3>Guia de medidas</h3>
+      <p class="modal__sub">Medidas aproximadas da peça (cm)</p>
+      <table class="size-table">
+        <thead>
+          <tr><th>Tamanho</th><th>Busto</th><th>Comprimento</th><th>Manga</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>P</td><td>104</td><td>68</td><td>18</td></tr>
+          <tr><td>M</td><td>108</td><td>70</td><td>19</td></tr>
+          <tr><td>G</td><td>112</td><td>72</td><td>20</td></tr>
+        </tbody>
+      </table>
+      <p class="modal__note">Modelagem oversized. Se preferir um caimento mais ajustado, escolha um tamanho menor.</p>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Cookie bar -->
+  <div class="cookie-bar" id="cookieBar">
+    <p>A Izzat usa cookies para personalizar a comunicação e melhorar a sua experiência no site. Ao continuar navegando, você concorda com a nossa <a href="#">Política de Privacidade</a>.</p>
+    <button class="btn btn--dark" id="acceptCookies">Continuar e fechar</button>
+  </div>
+
+  <!-- SPA Checkout (overlay, sem reload) -->
+  <div id="spa-checkout-wrapper" data-state="idle" style="display:none;" aria-hidden="true">
+    <div id="checkout-opening-overlay" aria-hidden="true">
+      <div style="text-align:center;">
+        <div class="spa-spinner"></div>
+        <div style="font-size:12px;color:#64748b;font-weight:600;letter-spacing:.01em;">Abrindo checkout seguro...</div>
       </div>
     </div>
 
-    <div class="app">
-      <header class="topbar">
-        <div class="brand">
-          <div class="logo" aria-hidden="true">
-            <svg viewBox="0 0 32 32" width="32" height="32">
-              <circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="2" />
-              <circle cx="16" cy="16" r="6" fill="currentColor" />
-              <path d="M16 2v4M16 26v4M2 16h4M26 16h4" stroke="currentColor" stroke-width="2" />
-            </svg>
-          </div>
-          <div>
-            <h1>FP Scan</h1>
-            <p class="tagline">
-              Interface amigável · <strong>motor CreepJS real</strong> · score e mentiras em pt-BR
-            </p>
-          </div>
+    <div id="skeleton-loader" style="display:none;">
+      <div class="progress-bar" style="width:25%;"></div>
+      <div class="static-nav">
+        <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="window.spaGoBack && window.spaGoBack()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         </div>
-        <div class="actions">
-          <button type="button" class="btn primary" id="btn-run">Iniciar análise</button>
-          <button type="button" class="btn" id="btn-export" disabled>Exportar JSON</button>
-          <button type="button" class="btn" id="btn-copy" disabled>Copiar resumo</button>
-        </div>
-      </header>
-
-      <div id="boot-error" class="boot-error" hidden></div>
-
-      <div class="progress-wrap" id="progress-wrap" hidden>
-        <div class="progress-track">
-          <div class="progress-bar" id="progress-bar"></div>
-        </div>
-        <div class="progress-label" id="progress-label">Aguardando CreepJS...</div>
+        <img alt="Izzat" src="assets/img/logo-small-120.webp" srcset="assets/img/logo-small-120.webp 120w, assets/img/logo-small-180.webp 180w, assets/img/logo-small.webp 240w" sizes="104px" onerror="this.onerror=null;this.src='assets/img/logo.webp'" style="height:32px;width:auto;object-fit:contain;" />
+        <div style="width:28px;"></div>
       </div>
-
-      <div id="results" hidden>
-        <section class="hero" aria-label="Pontuação de autenticidade">
-          <div class="hero-score">
-            <div class="score-circle">
-              <svg viewBox="0 0 120 120" aria-hidden="true">
-                <circle class="score-bg" cx="60" cy="60" r="54" />
-                <circle
-                  class="score-ring grade-trusted"
-                  id="score-ring"
-                  cx="60"
-                  cy="60"
-                  r="54"
-                  stroke-dasharray="339.292"
-                  stroke-dashoffset="339.292"
-                />
-              </svg>
-              <div class="score-center">
-                <div id="score-value">—</div>
-                <span class="sub">autenticidade</span>
-              </div>
+      <div class="static-container">
+        <div class="static-card">
+          <div class="static-badge">OFERTA</div>
+          <div class="static-img-box">
+            <img class="static-img" alt="Kit 3 T-Shirts" src="assets/img/product.jpg" width="80" height="80" />
+          </div>
+          <div class="static-info">
+            <h3 class="static-title">Kit 3 T-Shirts Oversized Classic Algodão</h3>
+            <div>
+              <span class="static-old-price">De R$ 387,00</span>
+              <span class="static-new-price">Por R$ 97,98</span>
             </div>
-            <div class="hero-meta">
-              <span class="hero-kicker">Score baseado nas mentiras do CreepJS</span>
-              <div class="grade-badge grade-trusted" id="grade-label">—</div>
-              <p id="grade-desc">Aguardando motor...</p>
-              <p id="avg-confidence" class="conf-line"></p>
-              <div class="tags" id="tags"></div>
+            <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+              <span style="font-size:10px;background:#f0fdf4;color:#166534;padding:3px 8px;border-radius:99px;font-weight:600;">Compra Segura</span>
+              <span style="font-size:10px;background:#eff6ff;color:#1e40af;padding:3px 8px;border-radius:99px;font-weight:600;">Pagamento via PIX</span>
             </div>
           </div>
-          <div class="hero-stats" id="hero-stats"></div>
-        </section>
-
-        <section class="panel">
-          <div class="panel-head">
-            <h2>Visão geral do navegador</h2>
-            <span class="panel-hint">Dados do window.Fingerprint (CreepJS)</span>
+        </div>
+        <div class="sk-form-block">
+          <div class="sk-form-header">
+            <div class="sk-circle">1</div>
+            <div class="sk-title">Dados Pessoais</div>
           </div>
-          <div class="snapshot-grid" id="snapshot-grid"></div>
-        </section>
-
-        <section class="panel panel-lies" id="lies-panel">
-          <div class="panel-head">
-            <h2><span class="icon-warn" aria-hidden="true">⚠</span> Mentiras e inconsistências</h2>
-            <span class="panel-hint" id="lies-count">—</span>
+          <div class="sk-body">
+            <div class="sk-input"></div>
+            <div class="sk-input"></div>
           </div>
-          <div id="lies-list" class="lies-list"></div>
-        </section>
-
-        <section class="panel">
-          <div class="panel-head">
-            <h2>Alertas (tags)</h2>
-            <span class="panel-hint">Derivadas dos achados reais do CreepJS</span>
-          </div>
-          <div id="tag-reasons" class="tag-reasons"></div>
-        </section>
-
-        <section class="panel">
-          <div class="panel-head">
-            <h2>Clusters de risco</h2>
-          </div>
-          <div id="clusters" class="clusters"></div>
-        </section>
-
-        <section class="panel">
-          <div class="panel-head">
-            <h2>Módulos CreepJS</h2>
-            <span class="panel-hint">OK ou LIED por seção do fingerprint</span>
-          </div>
-          <div class="category-grid" id="category-grid"></div>
-        </section>
-
-        <section class="panel">
-          <div class="panel-head">
-            <h2>Todos os achados</h2>
-          </div>
-          <div id="findings-cards" class="findings-cards"></div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Severidade</th>
-                  <th>Categoria</th>
-                  <th>Verificação</th>
-                  <th>Evidência</th>
-                  <th>Conf.</th>
-                  <th>Impacto</th>
-                </tr>
-              </thead>
-              <tbody id="findings-body"></tbody>
-            </table>
-          </div>
-        </section>
-
-        <section class="panel">
-          <div class="panel-head">
-            <h2>Resumo textual</h2>
-          </div>
-          <div class="summary-box">
-            <pre id="summary-pre"></pre>
-          </div>
-        </section>
-
-        <section class="panel panel-dev">
-          <div class="panel-head">
-            <h2>Console / debug</h2>
-            <span class="panel-hint">Objetos oficiais do CreepJS</span>
-          </div>
-          <p class="dev-note">
-            No DevTools: <code>window.Fingerprint</code>, <code>window.Creep</code>,
-            <code>window.FPScan.last</code>
-          </p>
-        </section>
+        </div>
+        <div style="text-align:center;margin-top:24px;color:#94a3b8;font-size:12px;font-weight:500;">Carregando ambiente seguro...</div>
       </div>
-
-      <footer>
-        <p>
-          <strong>Motor de detecção:</strong> código de
-          <a href="https://github.com/abrahamjuliot/creepjs" rel="noopener noreferrer" target="_blank"
-            >abrahamjuliot/creepjs</a
-          >
-          (MIT), arquivo <code>vendor/creepjs/creep.js</code>.
-        </p>
-        <p>
-          A marca <strong>CreepJS</strong> é do autor original — este site é uma interface própria (FP Scan) e
-          <strong>não</strong> é o projeto oficial.
-        </p>
-        <p class="footer-note">
-          Score alto = poucas mentiras. Score baixo = prototype lies, trash, headless ou seções com lied.
-        </p>
-      </footer>
     </div>
 
-    <script type="module" src="js/ui.js?v=7"></script>
-  </body>
+    <div id="checkout-root"></div>
+  </div>
+
+  <script src="js/spa-checkout.js"></script>
+  <script src="js/app.js"></script>
+</body>
 </html>

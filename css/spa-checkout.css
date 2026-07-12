@@ -1,0 +1,255 @@
+/* SPA Checkout overlay */
+#spa-checkout-wrapper {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  background: #e5e7eb;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+#spa-checkout-wrapper[data-state="opening"] #checkout-root {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+#spa-checkout-wrapper[data-state="ready"] #checkout-root {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity .18s ease;
+}
+
+#checkout-opening-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10002;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+#spa-checkout-wrapper[data-state="opening"] #checkout-opening-overlay {
+  display: flex;
+}
+
+#skeleton-loader {
+  position: relative;
+  z-index: 10000;
+  min-height: 100dvh;
+  background: #f8fafc;
+}
+
+#checkout-root {
+  position: relative;
+  z-index: 10001;
+  max-width: 480px;
+  margin: 0 auto;
+  transition: opacity .18s ease;
+}
+
+#checkout-root > div {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* Skeleton UI */
+#spa-checkout-wrapper .progress-bar {
+  height: 3px;
+  background: linear-gradient(90deg, #22c55e 0%, #4ade80 100%);
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 10000;
+  width: 25%;
+}
+
+#spa-checkout-wrapper .static-nav {
+  background: rgba(255, 255, 255, 0.98);
+  padding: 16px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  min-height: 56px;
+  backdrop-filter: blur(10px);
+}
+
+#spa-checkout-wrapper .static-container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+#spa-checkout-wrapper .static-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  gap: 16px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 20px rgb(0 0 0 / 0.03);
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+#spa-checkout-wrapper .static-badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: #16a34a;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-bottom-right-radius: 8px;
+  letter-spacing: .04em;
+}
+
+#spa-checkout-wrapper .static-img-box {
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #f1f5f9;
+  background: #fff;
+  margin-top: 8px;
+}
+
+#spa-checkout-wrapper .static-img,
+#checkout-root .checkout-product-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover !important;
+  object-position: center top !important;
+  display: block;
+}
+
+#spa-checkout-wrapper .static-info {
+  flex: 1;
+  min-width: 0;
+  margin-top: 8px;
+}
+
+#spa-checkout-wrapper .static-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1.3;
+  margin-bottom: 6px;
+}
+
+#spa-checkout-wrapper .static-old-price {
+  font-size: 12px;
+  color: #94a3b8;
+  text-decoration: line-through;
+  margin-right: 8px;
+}
+
+#spa-checkout-wrapper .static-new-price {
+  font-size: 20px;
+  font-weight: 800;
+  color: #16a34a;
+}
+
+#spa-checkout-wrapper .sk-form-block {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  overflow: hidden;
+}
+
+#spa-checkout-wrapper .sk-form-header {
+  background: #f8fafc;
+  padding: 12px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#spa-checkout-wrapper .sk-circle {
+  background: #16a34a;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#spa-checkout-wrapper .sk-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+#spa-checkout-wrapper .sk-body {
+  padding: 20px;
+}
+
+#spa-checkout-wrapper .sk-input {
+  background: #f1f5f9;
+  border-radius: 12px;
+  height: 48px;
+  margin-bottom: 16px;
+}
+
+@keyframes spa-spin {
+  to { transform: rotate(360deg); }
+}
+
+#spa-checkout-wrapper .spa-spinner {
+  width: 26px;
+  height: 26px;
+  border: 3px solid #dbeafe;
+  border-top-color: #22c55e;
+  border-radius: 9999px;
+  animation: spa-spin .8s linear infinite;
+  margin: 0 auto 10px;
+}
+
+/* Tailwind-ish fallbacks used by checkout React tree */
+#checkout-root input,
+#checkout-root select,
+#checkout-root textarea {
+  -webkit-appearance: none;
+  appearance: none;
+  border-style: solid;
+  border-width: 1px;
+  font-size: 16px !important;
+}
+
+body.spa-checkout-open {
+  overflow: hidden;
+  background: #e5e7eb;
+}
+
+body.spa-checkout-open .topbar,
+body.spa-checkout-open .header,
+body.spa-checkout-open .mobile-nav,
+body.spa-checkout-open main,
+body.spa-checkout-open .footer,
+body.spa-checkout-open .cookie-bar,
+body.spa-checkout-open .cart-drawer,
+body.spa-checkout-open .overlay,
+body.spa-checkout-open .toast,
+body.spa-checkout-open .modal {
+  display: none !important;
+}
