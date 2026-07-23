@@ -179,10 +179,10 @@ return { min: 4, max: 7 };
  
  // Deduplicação de ViewContent por sessão (evita "chuva" de eventos no Pixel Helper)
  const checkoutSource = window.__checkoutEntrySource === 'lp' ? 'lp' : 'direct';
- if (!(checkoutSource === 'lp' && hasRecentLandingViewContent())) {
+ 
  const vcId = claimCheckoutOpenEvent('ViewContent');
  if (vcId) trackEvent('ViewContent', { ...window.PRODUCT_CONTENT, event_id: vcId, content_name: PRODUCT_INFO.name });
- }
+ 
  } catch(e) {} 
  
  // Deduplicação de InitiateCheckout: se o usuário já iniciou checkout recentemente (30 min), 

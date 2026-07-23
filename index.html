@@ -3198,20 +3198,6 @@
                 window.__checkoutEntrySource = isDirectEntry ? 'direct' : 'lp';
                 window.__currentCheckoutOpenToken = 'checkout_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
 
-                // Dispara evento de ViewContent ao abrir o checkout via SPA
-                if (typeof fbq === 'function') {
-                    try {
-                        fbq('track', 'ViewContent', {
-                            content_name: 'Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI',
-                            content_category: 'Fritadeiras',
-                            content_ids: ['AFON-12L-BI'],
-                            content_type: 'product',
-                            value: 197.99,
-                            currency: 'BRL'
-                        });
-                    } catch (e) {}
-                }
-
                 setCheckoutOpeningState();
                 var checkoutStylesReady = ensureCheckoutStyles();
                 if (buyNow && buyNow.classList) buyNow.classList.remove('is-opening');
