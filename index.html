@@ -113,6 +113,8 @@
     <noscript>
         <link href="/assets/fonts/inter-local.css?v=20260518font1" rel="stylesheet" />
     </noscript>
+    <link crossorigin="" href="https://analytics.tiktok.com" rel="preconnect" />
+    <link href="//analytics.tiktok.com" rel="dns-prefetch" />
     <meta
         content="Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI. 2 em 1: Air Fryer + Forno. Economize 71% hoje. Frete Grátis e Envio Imediato."
         name="description" />
@@ -129,29 +131,21 @@
         imagesrcset="/assets/img/01-240.webp 240w, /assets/img/01-320.webp 320w, /assets/img/01-400.webp 400w"
         imagesizes="(max-width: 480px) 100vw, 400px" rel="preload" type="image/webp" />
     <noscript></noscript>
-    <!-- Meta (Facebook/Instagram) Pixel — ID público vindo de X_META_PID -->
     <script>
         if (!window.__TEST_MODE && !window.__LAB_MODE) {
-            !function (f, b, e, v, n, t, s) {
-                if (f.fbq) return; n = f.fbq = function () {
-                    n.callMethod ?
-                        n.callMethod.apply(n, arguments) : n.queue.push(arguments)
+            !function (w, d, t) {
+                w.TiktokAnalyticsObject = t; var ttq = w[t] = w[t] || []; ttq.methods = ["page", "track", "identify", "instances", "debug", "on", "off", "once", "ready", "alias", "group", "enableCookie", "disableCookie"], ttq.setAndDefer = function (t, e) { t[e] = function () { t.push([e].concat(Array.prototype.slice.call(arguments, 0))) } }; for (var i = 0; i < ttq.methods.length; i++)ttq.setAndDefer(ttq, ttq.methods[i]); ttq.instance = function (t) { for (var e = ttq._i[t] || [], n = 0; n < ttq.methods.length; n++)ttq.setAndDefer(e, ttq.methods[n]); return e }, ttq.load = function (e, n) {
+                    var i = "https://analytics.tiktok.com/i18n/pixel/events.js"; ttq._i = ttq._i || {}, ttq._i[e] = [], ttq._i[e]._u = i, ttq._t = ttq._t || {}, ttq._t[e] = +new Date, ttq._o = ttq._o || {}, ttq._o[e] = n || {};
+                    var o = document.createElement("script"); o.type = "text/javascript", o.async = !0, o.src = i + "?sdkid=" + e + "&lib=" + t;
+                    var scripts = document.getElementsByTagName("script");
+                    var a = scripts.length > 0 ? scripts[0] : null; if (a && a.parentNode) { a.parentNode.insertBefore(o, a); } else { document.head.appendChild(o); }
                 };
-                if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0';
-                n.queue = []; t = b.createElement(e); t.async = !0;
-                t.src = v; s = b.getElementsByTagName(e)[0];
-                s.parentNode.insertBefore(t, s)
-            }(window, document, 'script',
-                'https://connect.facebook.net/en_US/fbevents.js');
-            // ID do Pixel do Meta (público). Token de acesso (secreto) fica em X_META_TK.
-            fbq('init', '1476154184418659');
-            fbq('track', 'PageView');
+
+                ttq.load('D937JI3C77UB3EFMUNMG');
+                ttq.page();
+            }(window, document, 'ttq');
         }
     </script>
-    <noscript>
-        <img height="1" width="1" style="display:none"
-            src="https://www.facebook.com/tr?id=1476154184418659&ev=PageView&noscript=1" alt="" />
-    </noscript>
     <style>
         * {
             margin: 0;
@@ -2630,7 +2624,7 @@
             <div class="static-container">
                 <div class="static-left-col">
                     <div class="static-card">
-                        <div class="static-badge">OFERTA INSTAGRAM</div>
+                        <div class="static-badge">OFERTA TIKTOK</div>
                         <div class="static-img-box"><img alt="Fritadeira" class="static-img" decoding="async"
                                 height="80" loading="lazy" fetchpriority="low" sizes="80px" src="/assets/img/01-160.webp"
                                 srcset="/assets/img/01-160.webp 160w, /assets/img/01-240.webp 240w" width="80" /></div>
@@ -2951,7 +2945,7 @@
                 } catch (e) { }
             }
 
-            function getMetaEventSourceUrl() {
+            function getTikTokEventSourceUrl() {
                 try {
                     var u = new URL(window.location.href);
                     u.protocol = 'https:';
@@ -2959,11 +2953,11 @@
                     return u.toString();
                 } catch (_) { return 'https://izzatcasa.shop/'; }
             }
-            window.getMetaEventSourceUrl = getMetaEventSourceUrl;
+            window.getTikTokEventSourceUrl = getTikTokEventSourceUrl;
 
             async function sendCAPI(event, eventId, properties, user) {
                 try {
-                    await fetch('/api/meta-events', {
+                    await fetch('/api/tiktok-events', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ event: event, event_id: eventId, properties: properties, user: user })
@@ -2971,7 +2965,7 @@
                 } catch (e) { }
             }
 
-            function shouldSkipDuplicateMetaEvent(event, eventId, ttlMs) {
+            function shouldSkipDuplicateTikTokEvent(event, eventId, ttlMs) {
                 try {
                     if (!event || !eventId) return false;
                     var now = Date.now();
@@ -2988,7 +2982,7 @@
                 } catch (e) { }
                 return false;
             }
-            window.shouldSkipDuplicateMetaEvent = window.shouldSkipDuplicateMetaEvent || shouldSkipDuplicateMetaEvent;
+            window.shouldSkipDuplicateTikTokEvent = window.shouldSkipDuplicateTikTokEvent || shouldSkipDuplicateTikTokEvent;
 
             function trackPixel(event, data) {
                 if (window.__TEST_MODE || window.__LAB_MODE) { console.log('[TEST_MODE/LAB_MODE] Evento bloqueado:', event, data); return; }
@@ -3004,17 +2998,20 @@
                         if (finalData.email) finalData.email = normalizeEmail(finalData.email);
                         finalData = await hashIdentifiers(finalData);
                         var eventId = finalData.event_id || generateEventId();
-                        if (window.shouldSkipDuplicateMetaEvent && window.shouldSkipDuplicateMetaEvent(event, eventId)) return;
+                        if (window.shouldSkipDuplicateTikTokEvent && window.shouldSkipDuplicateTikTokEvent(event, eventId)) return;
+                        var browserIdentity = await buildTikTokBrowserIdentity(finalData);
+                        identifyTikTokBrowser(browserIdentity);
                         var payload = Object.assign({}, finalData, getStoredUTMs(), {
                             external_id: getExternalId(),
-                            event_source_url: getMetaEventSourceUrl(),
+                            ttclid: getTTCLID(),
+                            event_source_url: getTikTokEventSourceUrl(),
                             event_time: Math.floor(Date.now() / 1000)
                         });
-                        if (typeof fbq === 'function') {
+                        if (window.ttq && typeof window.ttq.track === 'function') {
                             try {
                                 var bp = Object.assign({}, payload);
                                 delete bp.event_id;
-                                fbq('track', event, bp, { eventID: eventId });
+                                window.ttq.track(event, bp, { event_id: eventId });
                             } catch (e) { }
                         }
                         var capiPayload = Object.assign({}, window.PRODUCT_CONTENT || {}, payload);
@@ -3025,7 +3022,9 @@
                             {
                                 email: finalData.email || undefined,
                                 phone_number: finalData.phone || undefined,
-                                external_id: getExternalId()
+                                external_id: getExternalId(),
+                                ttclid: getTTCLID(),
+                                ttp: getTTP()
                             }
                         );
                         if (typeof gtag === 'function') { try { gtag('event', event, payload); } catch (e) { } }
