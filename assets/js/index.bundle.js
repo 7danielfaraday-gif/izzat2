@@ -1,4 +1,4 @@
-﻿// ==================================================
+// ==================================================
     // 1. TRACKING TIKTOK TURBO (BEACON + FINGERPRINT)
     // ==================================================
     
@@ -221,28 +221,7 @@
         saveUTMs();
     });
 
-    // 2. ViewContent da LP (melhor prática para TikTok)
-    // O checkout só dispara ViewContent como fallback em entrada direta.
-    (function triggerLandingViewContent() {
-        if (/^\/c(?:\/|$)/i.test(window.location.pathname)) return;
-        try {
-            var now = Date.now();
-            var existing = null;
-            try { existing = JSON.parse(sessionStorage.getItem(LP_VIEW_CONTENT_KEY) || 'null'); } catch (e) {}
-            if (existing && existing.at && (now - existing.at) < (30 * 60 * 1000)) return;
-
-            var eventId = generateEventId();
-            try {
-                sessionStorage.setItem(LP_VIEW_CONTENT_KEY, JSON.stringify({ event_id: eventId, at: now, source: 'lp' }));
-            } catch (e) {}
-
-            trackViaZaraz('ViewContent', {
-                ...PRODUCT_CONTENT,
-                event_id: eventId,
-                content_name: PRODUCT_CONTENT.content_name
-            });
-        } catch (e) {}
-    })();
+    // 2. ViewContent removido da LP (agora dispara apenas no checkout)
 
     // 3. CTA Comprar Agora (WebView-safe: nÃ£o bloqueia navegaÃ§Ã£o)
     // Monta o link com parÃ¢metros (ttclid/utm/eid) ANTES do clique, evitando redirect com delay.
