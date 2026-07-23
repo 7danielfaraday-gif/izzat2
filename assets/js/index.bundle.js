@@ -1,4 +1,4 @@
-// ==================================================
+﻿// ==================================================
     // 1. TRACKING TIKTOK TURBO (BEACON + FINGERPRINT)
     // ==================================================
     
@@ -106,81 +106,106 @@
             url: window.location.href,
             referrer: document.referrer,
             timestamp: Math.floor(Date.now() / 1000),
-
-    function getExternalId() {
-        let eid = localStorage.getItem('user_external_id');
-        if (!eid) eid = getCookie('user_external_id'); 
-        
-        if (!eid) {
-            eid = 'user_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
-            localStorage.setItem('user_external_id', eid);
-            setCookie('user_external_id', eid, 365); 
-        }
-        return eid;
-    }
-
-    function getTTCLID() {
-        const urlParams = new URLSearchParams(window.location.search);
-        let clickId = urlParams.get('ttclid');
-        if (clickId) {
-            setCookie('ttclid', clickId, 90);
-            localStorage.setItem('ttclid', clickId);
-        } else {
-            clickId = localStorage.getItem('ttclid') || getCookie('ttclid');
-        }
-        return clickId;
-    }
-
-    function saveUTMs() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
-        utmKeys.forEach(key => {
-            const val = urlParams.get(key);
-            if (val) setCookie(key, val, 30);
-        });
-    }
-
-    function getStoredUTMs() {
-        const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
-        let utms = {};
-        utmKeys.forEach(key => {
-            const val = getCookie(key);
-            if (val) utms[key] = val;
-        });
-        return utms;
-    }
-
-    // Contexto AvanÃ§ado (Fingerprinting Lite)
-    function getContext() {
-        let connection = 'unknown';
-        if (navigator.connection) {
-            connection = navigator.connection.effectiveType; // '4g', '3g', etc.
-        }
-        
-        return {
-            user_agent: navigator.userAgent,
-            language: navigator.language,
-            url: window.location.href,
-            referrer: document.referrer,
-            timestamp: Math.floor(Date.now() / 1000),
             screen_resolution: window.screen.width + 'x' + window.screen.height,
             connection_type: connection
         };
     }
 
-    // --- FUNÃ‡ÃƒO DE DISPARO HÃ BRIDA (Browser Pixel + CAPI) ---
-    // Leitura do cookie _fbp (Meta Pixel cookie)
-    function getFBP() {
-        return (document.cookie.match(/(?:^|;\s*)_fbp=([^;]*)/) || [])[1] || undefined;
+    // --- FUNÃ‡ÃƒO DE DISPARO HÃBRIDA (Browser Pixel + CAPI) ---
+    // Leitura do cookie _ttp (TikTok Pixel cookie)
+    function getTTP() {
+        return (document.cookie.match(/(?:^|;\s*)_ttp=([^;]*)/) || [])[1] || undefined;
     }
 
-    function getMetaEventSourceUrl() {
+    function getTikTokEventSourceUrl() {
         try {
             var u = new URL(window.location.href);
             u.protocol = 'https:';
             u.host = 'izzatcasa.shop';
             return u.toString();
         } catch(_) { return 'https://izzatcasa.shop/'; }
+    }
+
+    async function sendCAPI(event, eventId, properties, user) {
+        try {
+            await fetch('/api/tiktok-events', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ event: event, event_id: eventId, properties: properties, user: user })
+            });
+        } catch(e) {}
+    }
+
+    function trackViaZaraz(event, data = {}) {
+        if (window.trackPixel) {
+            window.trackPixel(event, data);
+            return;
+        }
+        if (window.__TEST_MODE || window.__LAB_MODE) { console.log('[TEST_MODE/LAB_MODE] Evento bloqueado:', event, data); return; }
+        try {
+            const savedEmail = localStorage.getItem('user_hashed_email');
+            const savedPhone = localStorage.getItem('user_hashed_phone');
+
+            let payload = {
+                ...data,
+                ...getContext(),
+                external_id: getExternalId(),
+                ttclid: getTTCLID(),
+                ...getStoredUTMs()
+            };
+
+            payload.event_time = payload.timestamp || Math.floor(Date.now() / 1000);
+            payload.event_source_url = getTikTokEventSourceUrl();
+
+            if (savedEmail && !payload.email) payload.email = savedEmail;
+            if (savedPhone && !payload.phone) payload.phone = savedPhone;
+
+            var eventId = payload.event_id || window.generateEventId();
+            if (window.shouldSkipDuplicateTikTokEvent && window.shouldSkipDuplicateTikTokEvent(event, eventId)) return;
+
+            // 1. Browser Pixel (com event_id para deduplicaÃ§Ã£o)
+            if (window.ttq && typeof window.ttq.track === 'function') {
+                if (event !== 'PageView') {
+                    try {
+                        var bp = Object.assign({}, payload);
+                        delete bp.event_id;
+                        window.ttq.track(event, bp, { event_id: eventId });
+                    } catch(e) {}
+                }
+            }
+
+            // 2. CAPI server-side (dupla camada â€” mesmo event_id para deduplicaÃ§Ã£o)
+            var requiresCatalogContent = (event === 'ViewContent' || event === 'AddToCart');
+            var capiProperties = Object.assign(
+                {},
+                requiresCatalogContent ? PRODUCT_CONTENT : {},
+                data || {},
+                { event_source_url: getTikTokEventSourceUrl() }
+            );
+
+            if (!capiProperties.content_id) {
+                if (Array.isArray(capiProperties.contents) && capiProperties.contents[0] && capiProperties.contents[0].content_id) {
+                    capiProperties.content_id = capiProperties.contents[0].content_id;
+                } else if (Array.isArray(capiProperties.content_ids) && capiProperties.content_ids[0]) {
+                    capiProperties.content_id = capiProperties.content_ids[0];
+                }
+            }
+
+            sendCAPI(
+                event,
+                eventId,
+                capiProperties,
+                {
+                    email:       payload.email || undefined,
+                    phone_number: payload.phone || undefined,
+                    external_id: getExternalId(),
+                    ttclid:      getTTCLID(),
+                    ttp:         getTTP()
+                }
+            );
+
+        } catch (error) {
+            console.error('Tracking Error:', error);
         }
     }
     window.trackViaZaraz = trackViaZaraz;
@@ -196,9 +221,8 @@
         saveUTMs();
     });
 
-    // 2. ViewContent da LP
-    // [Removido] A pedido, o ViewContent dispara apenas no checkout.
-    /*
+    // 2. ViewContent da LP (melhor prática para TikTok)
+    // O checkout só dispara ViewContent como fallback em entrada direta.
     (function triggerLandingViewContent() {
         if (/^\/c(?:\/|$)/i.test(window.location.pathname)) return;
         try {
@@ -219,7 +243,6 @@
             });
         } catch (e) {}
     })();
-    */
 
     // 3. CTA Comprar Agora (WebView-safe: nÃ£o bloqueia navegaÃ§Ã£o)
     // Monta o link com parÃ¢metros (ttclid/utm/eid) ANTES do clique, evitando redirect com delay.

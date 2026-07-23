@@ -167,82 +167,6 @@ return { min: 4, max: 7 };
  if (document.activeElement === ref.current) {
  ref.current.setSelectionRange(pos, pos);
  }
-
- const useInputMask = (type) => {
- const mask = useMemo(() => {
- try {
- if (window.createInputMask) return window.createInputMask(type);
- } catch(e) {}
- return {
- format: function(value, selectionStart){
- var v = value || '';
- var pos = (selectionStart === undefined || selectionStart === null) ? v.length : selectionStart;
- return { formatted: v, cursorPosition: pos };
- }
- };
- }, [type]);
- const inputRef = useRef(null);
- return { mask, inputRef };
- };
-
- const Icons = {
- Lock: ({className}) => e("svg", {className: className || "w-3 h-3", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"}, e("rect", {x: "3", y: "11", width: "18", height: "11", rx: "2", ry: "2"}), e("path", {d: "M7 11V7a5 5 0 0 1 10 0v4"})),
- Truck: ({className}) => e("svg", {className: className || "w-4 h-4 flex-shrink-0 text-yellow-700", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"}, e("rect", {x: "1", y: "3", width: "15", height: "13"}), e("polygon", {points: "16 8 20 8 23 11 23 16 16 16 16 8"}), e("circle", {cx: "5.5", cy: "18.5", r: "2.5"}), e("circle", {cx: "18.5", cy: "18.5", r: "2.5"})),
- User: ({className}) => e("svg", {className: className || "w-5 h-5 text-gray-400", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"}, e("path", {d: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"}), e("circle", {cx: "12", cy: "7", r: "4"})),
- Mail: ({className}) => e("svg", {className: className || "w-5 h-5 text-gray-400", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"}, e("path", {d: "M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"}), e("polyline", {points: "22,6 12,13 2,6"})),
- Phone: ({className}) => e("svg", {className: className || "w-5 h-5 text-gray-400", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"}, e("path", {d: "M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"})),
- Shield: ({className}) => e("svg", {className: className || "w-5 h-5 text-gray-400", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"}, e("path", {d: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"}), e("path", {d: "m9 12 2 2 4-4"})),
- Check: ({className}) => e("svg", {className: className || "w-4 h-4 text-white", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3", strokeLinecap: "round", strokeLinejoin: "round"}, e("polyline", {points: "20 6 9 17 4 12"})),
- Copy: ({className}) => e("svg", {className: className || "w-5 h-5", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"}, e("rect", {x: "9", y: "9", width: "13", height: "13", rx: "2", ry: "2"}), e("path", {d: "M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"})),
- Info: ({className}) => e("svg", {className: className || "w-5 h-5", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"}, e("circle", {cx: "12", cy: "12", r: "10"}), e("line", {x1: "12", y1: "16", x2: "12", y2: "12"}), e("line", {x1: "12", y1: "8", x2: "12.01", y2: "8"})),
- Fire: ({className}) => e("svg", {className: className || "w-4 h-4", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"}, e("path", {d: "M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.6-3.3.39.94.86 2.26 3.4 4.8z"}), e("path", {d: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"})),
- Star: ({className}) => e("svg", {className: className || "w-4 h-4", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"}, e("polygon", {points: "12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"})),
- Package: ({className}) => e("svg", {className: className || "w-4 h-4", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"}, e("line", {x1: "16.5", y1: "9.4", x2: "7.5", y2: "4.21"}), e("path", {d: "M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"}), e("polyline", {points: "3.27 6.96 12 12.01 20.73 6.96"}), e("line", {x1: "12", y1: "22.08", x2: "12", y2: "12"}))
- };
-
- function CheckoutScreen({ onSuccess }) {
- const [loading, setLoading] = useState(false);
- const [loadingCep, setLoadingCep] = useState(false);
- const [cepFailed, setCepFailed] = useState(false);
- const [formData, setFormData] = useState(() => { 
- try { 
- const saved = localStorage.getItem('checkout_safe_data'); 
- return saved ? JSON.parse(saved) : { name: '', email: '', phone: '', cpf: '', cep: '', address: '', number: '', city: '' }; 
- } catch(e) { 
- return { name: '', email: '', phone: '', cpf: '', cep: '', address: '', number: '', city: '' }; 
- } 
- });
- 
- // ⭐️ SEGURANÇA: Lógica de tempo mantida para evitar ReferenceError (Crash)
- const [timeLeft, setTimeLeft] = useState(15 * 60);
- const [submitAttempted, setSubmitAttempted] = useState(false);
- const [isFormLocked, setIsFormLocked] = useState(false);
- const [isSubmitting, setIsSubmitting] = useState(false);
- 
- const cursorRef = useRef(null);
- const numberRef = useRef(null);
- const progressRef = useRef(null);
- const formRef = useRef(null);
- const hasTrackedStartRef = useRef(false);
- const submitButtonRef = useRef(null);
- const mobileSubmitButtonRef = useRef(null);
- 
- const { mask: phoneMask, inputRef: phoneInputRef } = useInputMask('phone');
- const { mask: cpfMask, inputRef: cpfInputRef } = useInputMask('cpf');
- const { mask: cepMask, inputRef: cepInputRef } = useInputMask('cep');
- const fetchingCepRef = useRef(false);
-
- useEffect(() => { try { localStorage.setItem('checkout_safe_data', JSON.stringify(formData)); } catch(e){} }, [formData]);
-
- useLayoutEffect(() => {
- if (!cursorRef.current) return;
- const { ref, pos } = cursorRef.current;
- if (ref && ref.current) {
- try {
- requestAnimationFrame(() => {
- if (document.activeElement === ref.current) {
- ref.current.setSelectionRange(pos, pos);
- }
  });
  } catch(e) {}
  }
@@ -250,12 +174,16 @@ return { min: 4, max: 7 };
  }); 
 
  useEffect(() => { 
-  try { 
-  window.scrollTo(0, 0); 
-  
-  const vcId = claimCheckoutOpenEvent('ViewContent');
-  if (vcId) trackEvent('ViewContent', { ...window.PRODUCT_CONTENT, event_id: vcId, content_name: PRODUCT_INFO.name });
-  } catch(e) {} 
+ try { 
+ window.scrollTo(0, 0); 
+ 
+ // Deduplicação de ViewContent por sessão (evita "chuva" de eventos no Pixel Helper)
+ const checkoutSource = window.__checkoutEntrySource === 'lp' ? 'lp' : 'direct';
+ if (!(checkoutSource === 'lp' && hasRecentLandingViewContent())) {
+ const vcId = claimCheckoutOpenEvent('ViewContent');
+ if (vcId) trackEvent('ViewContent', { ...window.PRODUCT_CONTENT, event_id: vcId, content_name: PRODUCT_INFO.name });
+ }
+ } catch(e) {} 
  
  // Deduplicação de InitiateCheckout: se o usuário já iniciou checkout recentemente (30 min), 
  // reaproveita o ID para o TikTok deduplicar no servidor e não poluir o painel.
@@ -527,7 +455,7 @@ e("img", { src: "/assets/img/logo-small-120.webp", srcSet: "/assets/img/logo-sma
  e("div", { className: "max-w-[480px] mx-auto p-4 pt-6 space-y-4 " },
  e("div", { className: "space-y-4 " },
  e("div", { className: "bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] p-5 flex gap-4 border border-slate-100 items-center relative overflow-hidden group" },
- e("div", { className: "absolute top-0 left-0 bg-green-600 text-white text-[10px] font-bold px-3 py-1 rounded-br-lg shadow-sm tracking-wide" }, "OFERTA INSTAGRAM"),
+ e("div", { className: "absolute top-0 left-0 bg-green-600 text-white text-[10px] font-bold px-3 py-1 rounded-br-lg shadow-sm tracking-wide" }, "OFERTA TIKTOK"),
  e("div", { className: "w-24 h-24 bg-white rounded-xl overflow-hidden flex-shrink-0 border border-slate-100 p-2 shadow-inner" }, e("img", { src: PRODUCT_INFO.image, className: "w-full h-full object-contain transform group-hover:scale-105 transition-transform duration-500", alt: PRODUCT_INFO.name, loading: "eager", decoding: "async", onError: (ev) => { try { const img = ev.target; if(!img.dataset.fallback){ img.dataset.fallback='1'; img.src = "/" + String(PRODUCT_INFO.image || '').replace(/^\/+/, ''); } } catch(e) {} } })),
  e("div", {className: "flex-1 min-w-0 mt-2"},
  e("h3", { className: "text-sm font-bold text-slate-800 leading-snug line-clamp-2 mb-1" }, PRODUCT_INFO.name),
