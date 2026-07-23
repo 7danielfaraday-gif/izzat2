@@ -1,11 +1,30 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./assets/js/checkout.app.js"
+    "./index.html",
+    "./c/index.html",
+    "./assets/js/checkout.app.js",
+    "./assets/js/index.bundle.js"
+  ],
+  safelist: [
+    "animate-fade-in",
+    "animate-pulse-urgent",
+    "animate-pulse-slow",
+    "bg-[#f8fafc]",
+    "shadow-[0_2px_8px_rgba(0,0,0,0.04)]",
+    "shadow-[0_2px_15px_rgb(0,0,0,0.03)]",
+    "shadow-[0_4px_20px_rgb(0,0,0,0.03)]",
+    "safe-area-padding",
+    "border-red-500",
+    "bg-red-50/30",
+    "border-green-500",
+    "bg-green-50/30",
+    "hover:shadow-green-500/50",
+    "hover:-translate-y-0.5"
   ],
   theme: {
     extend: {
-      fontFamily: { sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'] },
+      fontFamily: { sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'] },
       colors: { clifford: '#da373d' },
       spacing: {
           'safe-top': 'env(safe-area-inset-top)',

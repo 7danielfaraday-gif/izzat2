@@ -4,7 +4,6 @@
 // Storage: KV (binding name: PIX_STORE)
 
 const KEY = 'pix_config_v1';
-const DEFAULT_QRCODE_URL = '/assets/img/qrcode.webp';
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -31,38 +30,27 @@ function badRequest(msg) {
   return json({ ok: false, error: msg || 'bad_request' }, 400);
 }
 
-function normalizePixCode(value) {
-  return typeof value === 'string' ? value.trim() : '';
-}
-
-function isValidPixCode(value) {
-  const code = normalizePixCode(value);
-  return code.length >= 20 && /^000201/.test(code) && /br\.gov\.bcb\.pix/i.test(code);
-}
-
 async function getConfig(env) {
   const stored = await env.PIX_STORE.get(KEY, { type: 'json' });
   const fallback = {
-    pix_code: '',
-    qrcode_url: DEFAULT_QRCODE_URL,
+    pix_code:
+      '00020101021226900014br.gov.bcb.pix2568pix.adyen.com/pixqrcodelocation/pixloc/v1/loc/936hXbvVSumZfEhVNQKf8g5204000053039865802BR5925MONETIZZE IMPULSIONADORA 6009SAO PAULO62070503***63041AD0',
+    qrcode_url: '/assets/img/qrcode.webp',
     updated_at: null,
-    needs_config: true,
   };
 
   if (!stored || typeof stored !== 'object') return fallback;
-  const pixCode = normalizePixCode(stored.pix_code);
 
   return {
-    pix_code: isValidPixCode(pixCode) ? pixCode : '',
+    pix_code: typeof stored.pix_code === 'string' ? stored.pix_code : fallback.pix_code,
     // allow null to hide QR
     qrcode_url:
       stored.qrcode_url === null
         ? null
         : typeof stored.qrcode_url === 'string'
-          ? stored.qrcode_url.trim()
-          : DEFAULT_QRCODE_URL,
+          ? stored.qrcode_url
+          : fallback.qrcode_url,
     updated_at: stored.updated_at || null,
-    needs_config: !isValidPixCode(pixCode),
   };
 }
 
@@ -112,7 +100,7 @@ export async function onRequestPost(context) {
       return badRequest('invalid_json');
     }
 
-    const pix_code = normalizePixCode(body.pix_code);
+    const pix_code = typeof body.pix_code === 'string' ? body.pix_code.trim() : '';
     const qrcode_url =
       body.qrcode_url === null
         ? null
@@ -120,12 +108,12 @@ export async function onRequestPost(context) {
           ? body.qrcode_url.trim()
           : undefined;
 
-    if (!isValidPixCode(pix_code)) return badRequest('pix_code_invalid');
+    if (!pix_code || pix_code.length < 20) return badRequest('pix_code_invalid');
     if (qrcode_url !== undefined && qrcode_url !== null && qrcode_url.length < 3) return badRequest('qrcode_url_invalid');
 
     const payload = {
       pix_code,
-      qrcode_url: qrcode_url === undefined ? DEFAULT_QRCODE_URL : qrcode_url,
+      qrcode_url: qrcode_url === undefined ? '/assets/img/qrcode.webp' : qrcode_url,
       updated_at: new Date().toISOString(),
     };
 

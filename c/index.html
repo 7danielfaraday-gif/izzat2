@@ -1,25 +1,36 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 
 <html lang="pt-BR">
 <head>
 <script>(function(){var p=new URLSearchParams(window.location.search);window.__TEST_MODE=p.has('test_mode');window.__LAB_MODE=p.has('lab')||p.get('mode')==='lab'||/^\/lab(?:\/|$)/i.test(window.location.pathname);window.__checkoutEntrySource='direct';window.__currentCheckoutOpenToken='checkout_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);window.__prepareLabSession=window.__prepareLabSession||function(){if(!window.__LAB_MODE||window.__labPrepared)return;window.__labPrepared=true;window.__LAB_NONCE=Date.now().toString(36)+Math.random().toString(36).slice(2,8);function patchStorage(storage){if(!storage)return;try{storage.clear()}catch(e){}try{storage.setItem=function(){}}catch(e){}try{storage.removeItem=function(){}}catch(e){}try{storage.clear=function(){}}catch(e){}try{storage.getItem=function(){return null}}catch(e){}}try{patchStorage(window.localStorage)}catch(e){}try{patchStorage(window.sessionStorage)}catch(e){}try{document.cookie.split(';').forEach(function(cookie){var eq=cookie.indexOf('=');var name=(eq>-1?cookie.slice(0,eq):cookie).trim();if(!name)return;document.cookie=name+'=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax';document.cookie=name+'=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain='+window.location.hostname+'; SameSite=Lax';if(window.location.hostname.indexOf('.')>-1){document.cookie=name+'=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.'+window.location.hostname.replace(/^www\\./,'')+'; SameSite=Lax';}})}catch(e){}try{if(window.caches&&typeof window.caches.keys==='function'){window.caches.keys().then(function(keys){keys.forEach(function(key){window.caches.delete(key);});}).catch(function(){})}}catch(e){}try{if(window.indexedDB&&typeof window.indexedDB.databases==='function'){window.indexedDB.databases().then(function(dbs){(dbs||[]).forEach(function(db){if(db&&db.name){try{window.indexedDB.deleteDatabase(db.name)}catch(err){}}});}).catch(function(){})}}catch(e){}try{if(navigator.serviceWorker&&typeof navigator.serviceWorker.getRegistrations==='function'){navigator.serviceWorker.getRegistrations().then(function(registrations){registrations.forEach(function(registration){try{registration.unregister()}catch(err){}});}).catch(function(){})}}catch(e){}try{var labUrl=new URL(window.location.href);labUrl.searchParams.set('_lab_nonce',window.__LAB_NONCE);history.replaceState(history.state,document.title,labUrl.pathname+labUrl.search+labUrl.hash)}catch(e){}};if(window.__LAB_MODE)window.__prepareLabSession();})();</script>
-<script>(function(){if(window.__IZZAT_EARLY_DIAGNOSTICS_READY)return;window.__IZZAT_EARLY_DIAGNOSTICS_READY=true;var endpoint='/api/diagnostics';var startedAt=Date.now();var sent=window.__izzatDiagnosticsSentOnce||{};window.__izzatDiagnosticsSentOnce=sent;window.__izzatEarlyDiagStartedAt=startedAt;function clean(value,max){return String(value===undefined||value===null?'':value).replace(/\s+/g,' ').trim().slice(0,max||180)}function cookie(name){try{var parts=String(document.cookie||'').split(';');for(var i=0;i<parts.length;i++){var part=parts[i].trim();if(part.indexOf(name+'=')===0)return part.slice(name.length+1)}}catch(e){}return''}function sessionId(){var key='izz_diag_session_id';var fromCookie=clean(cookie(key),90);try{if(fromCookie){sessionStorage.setItem(key,fromCookie);return fromCookie}var existing=sessionStorage.getItem(key);if(existing)return existing;var next='diag_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,10);sessionStorage.setItem(key,next);return next}catch(e){return fromCookie||('diag_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8))}}var sid=sessionId();window.__izzatEarlyDiagSessionId=sid;function platform(ua){ua=String(ua||'').toLowerCase();if(/iphone|ipad|ipod/.test(ua))return'ios';if(/android/.test(ua))return'android';if(/windows/.test(ua))return'windows';if(/mac os/.test(ua))return'macos';return'unknown'}function browserFamily(ua){ua=String(ua||'').toLowerCase();if(/tiktok|musical_ly|bytedance|aweme/.test(ua))return'tiktok_in_app';if(/instagram/.test(ua))return'instagram_in_app';if(/fbav|fban|facebook/.test(ua))return'facebook_in_app';if(/ wv\)|; wv|version\/4\.0 chrome\//.test(ua))return'android_webview';if(/crios|chrome/.test(ua))return'chrome';if(/safari/.test(ua))return'safari';return'unknown'}function params(){var out={};try{var search=new URLSearchParams(window.location.search||'');['ttclid','utm_source','utm_medium','utm_campaign','utm_content','utm_term','gclid','fbclid','msclkid'].forEach(function(key){var value=search.get(key);if(value)out[key]=clean(value,key==='ttclid'?180:120)})}catch(e){}return out}function context(){var ua=navigator.userAgent||'';var p=params();var family=browserFamily(ua);var isTikTok=family==='tiktok_in_app'||/tiktok|musical_ly|bytedance|aweme/i.test(ua);var vv=window.visualViewport;return{session_id:sid,page_path:window.location.pathname||'',page_location:window.location.href||'',referrer:document.referrer||'',user_agent:ua,platform:platform(ua),browser_family:family,is_tiktok_ad:!!p.ttclid||/tiktok/i.test(p.utm_source||''),is_likely_in_app_browser:isTikTok||/instagram|fbav|fban| wv\)|; wv/i.test(ua),is_likely_tiktok_browser:isTikTok,has_visual_viewport:!!vv,viewport_width:window.innerWidth||0,viewport_height:window.innerHeight||0,visual_viewport_width:vv?vv.width:0,visual_viewport_height:vv?vv.height:0,device_pixel_ratio:window.devicePixelRatio||1,params:p}}function send(event,data,key){if(window.__LAB_MODE||window.__TEST_MODE)return;key=key||event;if(sent[key])return;sent[key]=true;var payload=JSON.stringify({event:event,context:context(),data:Object.assign({time_since_start_ms:Date.now()-startedAt},data||{})});function beacon(){try{if(navigator.sendBeacon)navigator.sendBeacon(endpoint,new Blob([payload],{type:'application/json'}))}catch(e){}}try{fetch(endpoint,{method:'POST',headers:{'content-type':'application/json'},body:payload,keepalive:true,cache:'no-store'}).catch(beacon)}catch(e){beacon()}}function assetName(url){url=String(url||'');if(/\/assets\/js\/diagnostics\.js/i.test(url))return'diagnostics_js';if(/\/assets\/js\/checkout\.app\.js/i.test(url))return'checkout_app_js';if(/\/assets\/css\/checkout\.tailwind\.css/i.test(url))return'checkout_tailwind_css';if(/\/cdn-cgi\/zaraz\/s\.js/i.test(url))return'zaraz_script';if(/\/cdn-cgi\/zaraz\/t/i.test(url))return'zaraz_track';return''}function markAsset(entry){var name=assetName(entry&&entry.name);if(!name)return;var event=name==='diagnostics_js'?'diagnostics_script_loaded':(name==='zaraz_script'?'zaraz_loaded':'critical_asset_loaded');send(event,{asset_name:name,asset_url:clean(entry.name||'',420),asset_type:clean(entry.initiatorType||'',80),initiator_type:clean(entry.initiatorType||'',80),ready_state:clean(document.readyState||'',40),start_time_ms:entry.startTime?Math.round(entry.startTime):0,duration_ms:entry.duration?Math.round(entry.duration):0,response_end_ms:entry.responseEnd?Math.round(entry.responseEnd):0,transfer_size:entry.transferSize?Math.round(entry.transferSize):0,encoded_body_size:entry.encodedBodySize?Math.round(entry.encodedBodySize):0,decoded_body_size:entry.decodedBodySize?Math.round(entry.decodedBodySize):0},'critical_asset:'+name)}function scanAssets(){try{(performance.getEntriesByType('resource')||[]).forEach(markAsset)}catch(e){}}window.__izzatEarlyDiagTrack=function(event,data,key){send(event,data||{},key)};send('client_boot_started',{source:'inline_head',ready_state:document.readyState||''},'client_boot_started');setTimeout(scanAssets,600);setTimeout(scanAssets,2200);setTimeout(scanAssets,6000);window.addEventListener('load',scanAssets,{once:true})})();</script>
 <meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" name="viewport"/>
-<link crossorigin="" href="https://analytics.tiktok.com" rel="preconnect"/>
-<link href="//analytics.tiktok.com" rel="dns-prefetch"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content" name="viewport"/>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="preload" as="style" href="/assets/fonts/inter-local.css?v=20260518font1" onload="this.onload=null;this.rel='stylesheet'"/>
+<noscript><link href="/assets/fonts/inter-local.css?v=20260518font1" rel="stylesheet"/></noscript>
 <title>Checkout - Fritadeira Elétrica Forno Oven 12L</title>
-<link rel="icon" href="data:,"/>
-<link as="image" fetchpriority="high" href="../assets/img/01.webp" rel="preload"/>
+<link as="image" fetchpriority="high" href="../assets/img/01-160.webp" rel="preload"/>
 <link href="https://viacep.com.br" rel="dns-prefetch"/>
+<link rel="stylesheet" href="/assets/css/tailwind-static.css?v=20260518tw1"/>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;tap-highlight-color:transparent}*:not(input):not(textarea){-webkit-user-select:none;user-select:none}.select-all{-webkit-user-select:text !important;user-select:text !important}input,select,textarea{font-size:16px !important;-webkit-box-shadow:0 0 0 100px white inset !important;box-shadow:0 0 0 100px white inset !important}html{overflow-x:hidden;scroll-padding-top:80px;-webkit-overflow-scrolling:touch;background:#e5e7eb;display:flex;justify-content:center;min-height:100vh}input,textarea,[contenteditable]{-webkit-user-select:text !important;user-select:text !important;scroll-margin-top:20px;-webkit-appearance:none;appearance:none;border-radius:0}body{overflow-x:hidden;scroll-padding-top:80px;-webkit-overflow-scrolling:touch;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background-color:#f8fafc;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh;width:100%;max-width:480px}.safe-area-padding{padding-bottom:env(safe-area-inset-bottom,20px)}:root{--safe-area-inset-top:env(safe-area-inset-top,0px);--safe-area-inset-bottom:env(safe-area-inset-bottom,0px)}#skeleton-loader{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;height:100%;background:#f8fafc;z-index:9999;display:flex;flex-direction:column;transition:opacity 0.4s ease-out}.progress-bar{height:3px;background:linear-gradient(90deg,#22c55e 0%,#4ade80 100%);position:absolute;top:0;left:0;z-index:10000;transition:width 0.4s cubic-bezier(0.4,0,0.2,1);width:25%}.static-nav{background:rgba(255,255,255,0.98);padding:16px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:calc(env(safe-area-inset-top) - 1px);z-index:30;min-height:56px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);max-width:480px;margin:0 auto}button,[role="button"],.btn-tactile{min-height:44px;min-width:44px;touch-action:manipulation;cursor:pointer}input[type="text"],input[type="email"],input[type="tel"]{min-height:44px;font-size:16px !important}.scrollbar-hidden{-ms-overflow-style:none;scrollbar-width:none}.scrollbar-hidden::-webkit-scrollbar{display:none}@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.fade-in{animation:fadeIn 0.4s ease-out forwards}.form-container{padding-bottom:calc(100px + env(safe-area-inset-bottom))}.spinner-mobile{width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-radius:50%;border-top-color:white;animation:spin 0.8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.static-container{display:flex;flex-direction:column;padding:20px;max-width:480px;margin:0 auto;gap:20px}.static-card{background:white;border-radius:16px;padding:20px;display:flex;gap:16px;border:1px solid #e2e8f0;position:relative}.static-badge{position:absolute;top:0;left:0;background:#16a34a;color:white;font-size:10px;font-weight:bold;padding:4px 12px;border-bottom-right-radius:8px}.static-title{font-size:14px;font-weight:700;color:#1e293b;margin-bottom:4px;line-height:1.4}.static-old-price{font-size:12px;color:#94a3b8;text-decoration:line-through;display:block}.static-new-price{font-size:24px;color:#16a34a;font-weight:800;display:block}.sk-form-block{background:white;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden}.sk-form-header{background:#f8fafc;padding:12px 20px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:12px}.sk-circle{width:24px;height:24px;background:#ff6b35;box-shadow:0 4px 10px rgba(255,107,53,.24);border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold}.sk-title{font-size:14px;font-weight:700;color:#334155;text-transform:uppercase}.sk-body{padding:20px}.sk-input{height:48px;background:#f1f5f9;border-radius:12px;margin-bottom:16px}.checkout-fixed-footer{display:none}#checkout-root{max-width:480px;margin:0 auto}#checkout-root>div{max-width:480px;margin:0 auto}@media (min-width:1024px){.static-container{max-width:480px;flex-direction:column}.checkout-fixed-footer{max-width:480px}}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;tap-highlight-color:transparent}*:not(input):not(textarea){-webkit-user-select:none;user-select:none}.select-all{-webkit-user-select:text !important;user-select:text !important}input,select,textarea{font-size:16px !important;-webkit-box-shadow:0 0 0 100px white inset !important;box-shadow:0 0 0 100px white inset !important}html{overflow-x:hidden;scroll-padding-top:80px;-webkit-overflow-scrolling:touch;background:#e5e7eb;display:flex;justify-content:center;min-height:100vh}input,textarea,[contenteditable]{-webkit-user-select:text !important;user-select:text !important;scroll-margin-top:20px;-webkit-appearance:none;appearance:none;border-radius:0}body{overflow-x:hidden;scroll-padding-top:80px;-webkit-overflow-scrolling:touch;margin:0;padding:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background-color:#f8fafc;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh;width:100%;max-width:480px}.safe-area-padding{padding-bottom:env(safe-area-inset-bottom,20px)}:root{--safe-area-inset-top:env(safe-area-inset-top,0px);--safe-area-inset-bottom:env(safe-area-inset-bottom,0px)}#skeleton-loader{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;height:100%;background:#f8fafc;z-index:9999;display:flex;flex-direction:column;transition:opacity 0.4s ease-out}.progress-bar{height:3px;background:linear-gradient(90deg,#22c55e 0%,#4ade80 100%);position:absolute;top:0;left:0;z-index:10000;transition:width 0.4s cubic-bezier(0.4,0,0.2,1);width:25%}.static-nav{background:rgba(255,255,255,0.98);padding:16px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:calc(env(safe-area-inset-top) - 1px);z-index:30;min-height:56px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);max-width:480px;margin:0 auto}button,[role="button"],.btn-tactile{min-height:44px;min-width:44px;touch-action:manipulation;cursor:pointer}input[type="text"],input[type="email"],input[type="tel"]{min-height:44px;font-size:16px !important}.scrollbar-hidden{-ms-overflow-style:none;scrollbar-width:none}.scrollbar-hidden::-webkit-scrollbar{display:none}@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.fade-in{animation:fadeIn 0.4s ease-out forwards}.form-container{padding-bottom:calc(100px + env(safe-area-inset-bottom))}.spinner-mobile{width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-radius:50%;border-top-color:white;animation:spin 0.8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.static-container{display:flex;flex-direction:column;padding:20px;max-width:480px;margin:0 auto;gap:20px}.static-card{background:white;border-radius:16px;padding:20px;display:flex;gap:16px;border:1px solid #e2e8f0;position:relative}.static-badge{position:absolute;top:0;left:0;background:#16a34a;color:white;font-size:10px;font-weight:bold;padding:4px 12px;border-bottom-right-radius:8px}.static-title{font-size:14px;font-weight:700;color:#1e293b;margin-bottom:4px;line-height:1.4}.static-old-price{font-size:12px;color:#94a3b8;text-decoration:line-through;display:block}.static-new-price{font-size:24px;color:#16a34a;font-weight:800;display:block}.sk-form-block{background:white;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden}.sk-form-header{background:#f8fafc;padding:12px 20px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:12px}.sk-circle{width:24px;height:24px;background:#16a34a;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold}.sk-title{font-size:14px;font-weight:700;color:#334155;text-transform:uppercase}.sk-body{padding:20px}.sk-input{height:48px;background:#f1f5f9;border-radius:12px;margin-bottom:16px}.checkout-fixed-footer{display:none}#checkout-root{max-width:480px;margin:0 auto}#checkout-root>div{max-width:480px;margin:0 auto}@media (min-width:1024px){.static-container{max-width:480px;flex-direction:column}.checkout-fixed-footer{max-width:480px}}
 </style>
-<!-- TikTok Pixel: removido deste arquivo.
-     O pixel é inicializado uma única vez em index.html (página raiz SPA).
-     Reinicializar pixel + pageview aqui causava LandingPageView/Pageview duplicados
-     pois o SDK da LP continuava ativo durante a navegação SPA para /c/.
--->
+<!-- Meta Pixel Base Code -->
+<script>
+    if (!window.__TEST_MODE && !window.__LAB_MODE) {
+        !function(f,b,e,v,n,t,s)
+        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', '1476154184418659');
+        fbq('track', 'PageView');
+    }
+</script>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1476154184418659&ev=PageView&noscript=1"/></noscript>
 <script>
         // Fallback robusto para libs locais (muito comum quebrar em rotas tipo /checkout/ no in-app do TikTok)
         window.__loadScript = window.__loadScript || function(src){
@@ -37,7 +48,6 @@
                 // Se já está disponível, não faz nada
                 if (which === 'react' && typeof window.React !== 'undefined') return;
                 if (which === 'react-dom' && typeof window.ReactDOM !== 'undefined') return;
-                if (which.indexOf('tailwind') === 0 && document.querySelector('script[src*="tailwindcss"]')) return;
 
                 window.__libFallbackCount = window.__libFallbackCount || {};
                 window.__libFallbackCount[which] = (window.__libFallbackCount[which] || 0) + 1;
@@ -46,7 +56,6 @@
                 var tries = [];
                 if (which === 'react') tries = ['/assets/vendor/react.production.min.js', 'https://unpkg.com/react@18/umd/react.production.min.js'];
                 if (which === 'react-dom') tries = ['/assets/vendor/react-dom.production.min.js', 'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js'];
-                if (which.indexOf('tailwind') === 0) tries = ['/assets/vendor/tailwindcss.js', 'https://cdn.tailwindcss.com'];
 
                 // primeira falha (geralmente rota /checkout/ tentando /checkout/js/...) => tenta raiz (/js/...)
                 // segunda falha => tenta CDN
@@ -54,7 +63,7 @@
                 if (!src) return;
 
                 window.__loadScript(src).then(function(){
-                    // quando o Tailwind carregar via CDN, mantém config existente
+                    // Reexecuta o checkout se uma lib base for carregada por fallback.
                     if (typeof window.initReactCheckout === 'function') {
                         try { window.initReactCheckout(); } catch(e) {}
                     }
@@ -66,37 +75,6 @@
     </script>
 <script defer="" onerror="window.__localLibFallback && window.__localLibFallback('react')" src="/assets/vendor/react.production.min.js"></script>
 <script defer="" onerror="window.__localLibFallback && window.__localLibFallback('react-dom')" src="/assets/vendor/react-dom.production.min.js"></script>
-<script>
-        window.tailwind = window.tailwind || {};
-        window.tailwind.config = { 
-            theme: { 
-                extend: {
-                    fontFamily: { sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'] },
-                    colors: { clifford: '#da373d' },
-                    spacing: {
-                        'safe-top': 'env(safe-area-inset-top)',
-                        'safe-bottom': 'env(safe-area-inset-bottom)',
-                    },
-                    keyframes: {
-                        fadeIn: {
-                            '0%': { opacity: '0', transform: 'translateY(10px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        },
-                        pulseUrgent: {
-                            '0%, 100%': { opacity: '1' },
-                            '50%': { opacity: '0.8' },
-                        }
-                    },
-                    animation: {
-                        'fade-in': 'fadeIn 0.5s ease-out forwards',
-                        'pulse-urgent': 'pulseUrgent 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                    }
-                } 
-            }
-        };
-    </script>
-<link rel="stylesheet" href="/assets/css/checkout.tailwind.css?v=20260423a" data-checkout-tailwind-css onload="window.__checkoutStylesReady=true;window.__izzatEarlyDiagTrack&&window.__izzatEarlyDiagTrack('critical_asset_loaded',{asset_name:'checkout_tailwind_css',asset_url:this.href||this.getAttribute('href')||'',asset_type:'style',ready_state:document.readyState},'critical_asset:checkout_tailwind_css')" onerror="window.__checkoutStylesReady=true;window.__izzatEarlyDiagTrack&&window.__izzatEarlyDiagTrack('critical_asset_missing',{asset_name:'checkout_tailwind_css',asset_url:this.href||this.getAttribute('href')||'',asset_type:'style',asset_status:'error',ready_state:document.readyState},'critical_asset:checkout_tailwind_css:error'); window.__localLibFallback && window.__localLibFallback('tailwind-local')"/>
 <style>
     /* 
        --- BULLETPROOF TAILWIND FALLBACKS ---
@@ -175,109 +153,6 @@
     .h-24 { height: 6rem !important; }
     .mx-auto { margin-left: auto !important; margin-right: auto !important; }
 
-    #checkout-root, #spa-checkout-wrapper { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.5; }
-    #checkout-root svg { display: block; vertical-align: middle; flex-shrink: 0; }
-    #checkout-root img { max-width: 100%; height: auto; }
-    #checkout-root .absolute { position: absolute !important; }
-    #checkout-root .relative { position: relative !important; }
-    #checkout-root .inset-y-0 { top: 0 !important; bottom: 0 !important; }
-    #checkout-root .left-0 { left: 0 !important; }
-    #checkout-root .right-3 { right: .75rem !important; }
-    #checkout-root .top-0 { top: 0 !important; }
-    #checkout-root .z-30 { z-index: 30 !important; }
-    #checkout-root .block { display: block !important; }
-    #checkout-root .grid { display: grid !important; }
-    #checkout-root .flex { display: flex !important; }
-    #checkout-root .flex-col { flex-direction: column !important; }
-    #checkout-root .flex-wrap { flex-wrap: wrap !important; }
-    #checkout-root .flex-1 { flex: 1 1 0% !important; }
-    #checkout-root .flex-shrink-0 { flex-shrink: 0 !important; }
-    #checkout-root .items-start { align-items: flex-start !important; }
-    #checkout-root .items-center { align-items: center !important; }
-    #checkout-root .justify-center { justify-content: center !important; }
-    #checkout-root .justify-between { justify-content: space-between !important; }
-    #checkout-root .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
-    #checkout-root .col-span-1 { grid-column: span 1 / span 1 !important; }
-    #checkout-root .col-span-2 { grid-column: span 2 / span 2 !important; }
-    #checkout-root .col-span-3 { grid-column: span 3 / span 3 !important; }
-    #checkout-root .col-span-4 { grid-column: span 4 / span 4 !important; }
-    #checkout-root .min-w-0 { min-width: 0 !important; }
-    #checkout-root .overflow-hidden { overflow: hidden !important; }
-    #checkout-root .whitespace-nowrap { white-space: nowrap !important; }
-    #checkout-root .break-all { word-break: break-all !important; }
-    #checkout-root .pointer-events-none { pointer-events: none !important; }
-    #checkout-root .line-clamp-2 { overflow: hidden !important; display: -webkit-box !important; -webkit-box-orient: vertical !important; -webkit-line-clamp: 2 !important; }
-    #checkout-root .w-3 { width: .75rem !important; }
-    #checkout-root .h-3 { height: .75rem !important; }
-    #checkout-root .w-3\.5 { width: .875rem !important; }
-    #checkout-root .h-3\.5 { height: .875rem !important; }
-    #checkout-root .w-4 { width: 1rem !important; }
-    #checkout-root .h-4 { height: 1rem !important; }
-    #checkout-root .w-5 { width: 1.25rem !important; }
-    #checkout-root .h-5 { height: 1.25rem !important; }
-    #checkout-root .w-7 { width: 1.75rem !important; }
-    #checkout-root .h-7 { height: 1.75rem !important; }
-    #checkout-root .w-12 { width: 3rem !important; }
-    #checkout-root .h-12 { height: 3rem !important; }
-    #checkout-root .w-20 { width: 5rem !important; }
-    #checkout-root .h-20 { height: 5rem !important; }
-    #checkout-root .min-h-screen { min-height: 100vh !important; }
-    #checkout-root .min-h-\[48px\] { min-height: 48px !important; }
-    #checkout-root .min-h-\[56px\] { min-height: 56px !important; }
-    #checkout-root .p-2\.5 { padding: .625rem !important; }
-    #checkout-root .p-3\.5 { padding: .875rem !important; }
-    #checkout-root .px-2\.5 { padding-left: .625rem !important; padding-right: .625rem !important; }
-    #checkout-root .pl-1 { padding-left: .25rem !important; }
-    #checkout-root .pl-3\.5 { padding-left: .875rem !important; }
-    #checkout-root .pt-5 { padding-top: 1.25rem !important; }
-    #checkout-root .mb-0\.5 { margin-bottom: .125rem !important; }
-    #checkout-root .mb-1 { margin-bottom: .25rem !important; }
-    #checkout-root .mb-1\.5 { margin-bottom: .375rem !important; }
-    #checkout-root .mb-4 { margin-bottom: 1rem !important; }
-    #checkout-root .mb-5 { margin-bottom: 1.25rem !important; }
-    #checkout-root .mt-0\.5 { margin-top: .125rem !important; }
-    #checkout-root .mt-1 { margin-top: .25rem !important; }
-    #checkout-root .mt-1\.5 { margin-top: .375rem !important; }
-    #checkout-root .mt-2 { margin-top: .5rem !important; }
-    #checkout-root .mt-3 { margin-top: .75rem !important; }
-    #checkout-root .gap-1\.5 { gap: .375rem !important; }
-    #checkout-root .gap-2\.5 { gap: .625rem !important; }
-    #checkout-root .gap-6 { gap: 1.5rem !important; }
-    #checkout-root .text-\[10px\] { font-size: 10px !important; }
-    #checkout-root .text-\[11px\] { font-size: 11px !important; }
-    #checkout-root .text-\[13px\] { font-size: 13px !important; }
-    #checkout-root .text-\[15px\] { font-size: 15px !important; }
-    #checkout-root .text-lg { font-size: 1.125rem !important; line-height: 1.75rem !important; }
-    #checkout-root .text-xl { font-size: 1.25rem !important; line-height: 1.75rem !important; }
-    #checkout-root .font-black { font-weight: 900 !important; }
-    #checkout-root .font-medium { font-weight: 500 !important; }
-    #checkout-root .uppercase { text-transform: uppercase !important; }
-    #checkout-root .leading-none { line-height: 1 !important; }
-    #checkout-root .leading-snug { line-height: 1.375 !important; }
-    #checkout-root .leading-tight { line-height: 1.25 !important; }
-    #checkout-root .tracking-tight { letter-spacing: -.025em !important; }
-    #checkout-root .tracking-wide { letter-spacing: .025em !important; }
-    #checkout-root .tracking-wider { letter-spacing: .05em !important; }
-    #checkout-root .line-through { text-decoration-line: line-through !important; }
-    #checkout-root .text-gray-400 { color: #9ca3af !important; }
-    #checkout-root .text-green-700 { color: #15803d !important; }
-    #checkout-root .text-green-800 { color: #166534 !important; }
-    #checkout-root .text-green-900 { color: #14532d !important; }
-    #checkout-root .text-indigo-800 { color: #3730a3 !important; }
-    #checkout-root .text-red-500 { color: #ef4444 !important; }
-    #checkout-root .text-white { color: #fff !important; }
-    #checkout-root .bg-green-500 { background-color: #22c55e !important; }
-    #checkout-root .bg-green-50\/30 { background-color: rgba(240,253,244,.3) !important; }
-    #checkout-root .bg-red-50\/30 { background-color: rgba(254,242,242,.3) !important; }
-    #checkout-root .border-green-100 { border-color: #dcfce7 !important; }
-    #checkout-root .border-green-300 { border-color: #86efac !important; }
-    #checkout-root .border-indigo-100 { border-color: #e0e7ff !important; }
-    #checkout-root .border-amber-100 { border-color: #fef3c7 !important; }
-    #checkout-root .object-contain { object-fit: contain !important; }
-    #checkout-root .shadow-\[0_4px_20px_rgb\(0\2c 0\2c 0\2c 0\.03\)\] { box-shadow: 0 4px 20px rgb(0,0,0,.03) !important; }
-    #checkout-root .transition-all { transition-property: all !important; transition-duration: .15s !important; }
-    #checkout-root .duration-200 { transition-duration: .2s !important; }
-
     /* Skeleton Loading Animado */
     .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
@@ -335,7 +210,7 @@
     }
     window.getTTCLID = getTTCLID;
 
-    const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'msclkid'];
+    const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid', 'msclkid'];
     function getStoredUTMs() {
         let utms = {};
         try { 
@@ -361,7 +236,7 @@
     }
     window.cleanPhone = cleanPhone;
 
-    // --- Normalização + Hash SHA-256 (Advanced Matching / Zaraz -> Events API) ---
+    // --- Normalização + Hash SHA-256 (Advanced Matching / Events API) ---
     function isSha256Hex(v) {
         return typeof v === 'string' && /^[a-f0-9]{64}$/i.test(v);
     }
@@ -373,7 +248,11 @@
 
     function normalizePhone(v) {
         if (!v) return null;
-        return String(v).replace(/\D/g, '');
+        var raw = String(v).trim().toLowerCase();
+        if (isSha256Hex(raw)) return raw;
+
+        var digits = raw.replace(/\D/g, '');
+        return digits || null;
     }
 
     async function sha256Hex(input) {
@@ -415,8 +294,11 @@
             if (phoneHashed) {
                 out.phone = phoneHashed;
                 try { localStorage.setItem('user_hashed_phone', phoneHashed); } catch(e) {}
+            } else {
+                delete out.phone;
             }
         } else {
+            delete out.phone;
             try {
                 var savedP = localStorage.getItem('user_hashed_phone');
                 if (savedP) out.phone = savedP;
@@ -426,306 +308,33 @@
         return out;
     }
 
-    function compactTikTokObject(obj) {
-        var out = {};
-        Object.keys(obj || {}).forEach(function(key) {
-            var value = obj[key];
-            if (value === undefined || value === null || value === '') return;
-            out[key] = value;
-        });
-        return out;
-    }
-
-    async function buildTikTokIdentifyData(data) {
-        var out = {};
-        var source = data || {};
-        var email = source.email || '';
-        var phone = source.phone || source.phone_number || '';
-        var externalId = window.getExternalId();
-
-        if (!email) {
-            try { email = localStorage.getItem('user_hashed_email') || ''; } catch(e) {}
-        }
-        if (!phone) {
-            try { phone = localStorage.getItem('user_hashed_phone') || ''; } catch(e) {}
-        }
-
-        if (email) {
-            if (isSha256Hex(email)) out.sha256_email = String(email).toLowerCase();
-            else {
-                var normalizedEmail = normalizeEmail(email);
-                if (normalizedEmail) out.email = normalizedEmail;
-            }
-        }
-        if (phone) {
-            if (isSha256Hex(phone)) out.sha256_phone_number = String(phone).toLowerCase();
-            else {
-                var normalizedPhone = normalizePhone(phone);
-                if (normalizedPhone) out.phone_number = normalizedPhone;
-            }
-        }
-        if (externalId) {
-            var normalizedExternalId = String(externalId).trim().toLowerCase();
-            out.external_id = isSha256Hex(normalizedExternalId)
-                ? normalizedExternalId
-                : ((await sha256Hex(normalizedExternalId)) || normalizedExternalId);
-        }
-        return compactTikTokObject(out);
-    }
-
-    async function identifyTikTokUser(data) {
-        var identifyData = await buildTikTokIdentifyData(data || {});
-        if (!Object.keys(identifyData).length) return identifyData;
-        if (window.ttq && typeof window.ttq.identify === 'function') {
-            try {
-                var signature = JSON.stringify(identifyData);
-                if (window.__lastTikTokIdentifySignature !== signature) {
-                    window.ttq.identify(identifyData);
-                    window.__lastTikTokIdentifySignature = signature;
-                }
-            } catch(e) {}
-        }
-        return identifyData;
-    }
-    window.identifyTikTokUser = identifyTikTokUser;
-
-    function prepareTikTokBrowserPayload(payload, identifyData) {
-        var out = compactTikTokObject(payload || {});
-        delete out.email;
-        delete out.phone;
-        delete out.phone_number;
-        if (identifyData && identifyData.sha256_email) out.sha256_email = identifyData.sha256_email;
-        if (identifyData && identifyData.email) out.email = identifyData.email;
-        if (identifyData && identifyData.sha256_phone_number) out.sha256_phone_number = identifyData.sha256_phone_number;
-        if (identifyData && identifyData.phone_number) out.phone_number = identifyData.phone_number;
-        return compactTikTokObject(out);
-    }
-    window.prepareTikTokBrowserPayload = prepareTikTokBrowserPayload;
-
     
     function generateEventId() {
         return 'evt_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
     }
     window.generateEventId = generateEventId;
 
-    // Leitura do cookie _ttp (TikTok Pixel cookie)
-    function getTTP() {
-        return (document.cookie.match(/(?:^|;\s*)_ttp=([^;]*)/) || [])[1] || undefined;
+    // Leitura do cookie _fbp (Meta Pixel cookie)
+    function getFBP() {
+        return (document.cookie.match(/(?:^|;\s*)_fbp=([^;]*)/) || [])[1] || undefined;
     }
-    window.getTTP = getTTP;
+    window.getFBP = getFBP;
 
     // Normalização da URL de origem
-    function getTikTokEventSourceUrl() {
+    function getMetaEventSourceUrl() {
         try {
             var u = new URL(window.location.href);
-            var host = String(u.hostname || '').toLowerCase();
             u.protocol = 'https:';
-            if (host === 'izzatcasa.shop' || host === 'oficial.izzatcasa.shop') {
-                u.hostname = host;
-            } else if (host === 'www.izzatcasa.shop') {
-                u.hostname = 'izzatcasa.shop';
-            } else {
-                u.hostname = 'izzatcasa.shop';
-            }
-            u.port = '';
+            u.host = 'izzatcasa.shop';
             return u.toString();
         } catch(_) { return 'https://izzatcasa.shop/'; }
     }
-    window.getTikTokEventSourceUrl = getTikTokEventSourceUrl;
-
-    window.GA_MEASUREMENT_ID = window.GA_MEASUREMENT_ID || 'G-QY6B4BXBLF';
-    window.__zarazGAQueue = window.__zarazGAQueue || [];
-
-    window.flushGAQueue = window.flushGAQueue || function() {
-        try {
-            if (!window.zaraz || typeof window.zaraz.track !== 'function' || !window.__zarazGAQueue || !window.__zarazGAQueue.length) return;
-            var queue = window.__zarazGAQueue.slice();
-            window.__zarazGAQueue = [];
-            queue.forEach(function(item) {
-                if (!item || !item.event) return;
-                try { window.zaraz.track(item.event, item.data || {}); } catch(e) {}
-            });
-        } catch(e) {}
-    };
-
-    window.trackZarazGAEvent = window.trackZarazGAEvent || function(event, data) {
-        if (window.__TEST_MODE || window.__LAB_MODE || !event) return;
-        try {
-            if (window.zaraz && typeof window.zaraz.track === 'function') {
-                window.zaraz.track(event, data || {});
-                return;
-            }
-            window.__zarazGAQueue = window.__zarazGAQueue || [];
-            window.__zarazGAQueue.push({ event: event, data: data || {} });
-        } catch(e) {}
-    };
-
-    var GA_EVENT_MAP = {
-        ViewContent: 'view_item',
-        AddToCart: 'add_to_cart',
-        InitiateCheckout: 'begin_checkout',
-        AddPaymentInfo: 'add_payment_info',
-        Pix_Copy_Click: 'pix_copy_click',
-        Checkout_Error: 'checkout_error',
-        InputCaptured: 'form_input_captured',
-        ClickButton: 'select_content',
-        Check_Reviews: 'check_reviews',
-        Interact_Gallery: 'interact_gallery',
-        ScrollDepth: 'scroll_depth',
-        CheckoutInteraction: 'checkout_interaction',
-        CheckoutFormFirstTouch: 'checkout_form_first_touch'
-    };
-
-    var GA_EVENT_LABELS_PT = {
-        page_view: 'Visualização da página',
-        view_item: 'Visualização do produto',
-        add_to_cart: 'Adicionar ao carrinho',
-        begin_checkout: 'Início do checkout',
-        add_payment_info: 'Informações de pagamento',
-        pix_copy_click: 'Clique no PIX copia e cola',
-        checkout_error: 'Erro no checkout',
-        form_input_captured: 'Campo do formulário capturado',
-        select_content: 'Clique em botão ou conteúdo',
-        check_reviews: 'Ver avaliações',
-        interact_gallery: 'Interação na galeria',
-        scroll_depth: 'Profundidade de rolagem',
-        checkout_interaction: 'Interação no checkout',
-        checkout_form_first_touch: 'Primeiro toque no formulário do checkout'
-    };
-
-    function getGAEventLabelPt(event, gaEvent) {
-        try {
-            return GA_EVENT_LABELS_PT[gaEvent] || GA_EVENT_LABELS_PT[event] || '';
-        } catch(e) { return ''; }
-    }
-
-    function getGAPageLocation() {
-        try { return window.location.origin + window.location.pathname; }
-        catch(_) { return window.location.href; }
-    }
-    window.getGAPageLocation = getGAPageLocation;
-
-    function getGAClientId() {
-        try {
-            var raw = decodeURIComponent(getCookieValue('_ga') || '');
-            var parts = raw.split('.');
-            if (parts.length >= 4) return parts.slice(-2).join('.');
-            if (raw) return raw;
-        } catch(e) { return ''; }
-        try {
-            var saved = localStorage.getItem('izz_ga_client_id');
-            if (saved) return saved;
-        } catch(e) {}
-        try {
-            var fallback = String(Math.floor(Date.now() / 1000)) + '.' + Math.random().toString(36).slice(2, 12);
-            try { localStorage.setItem('izz_ga_client_id', fallback); } catch(e) {}
-            try { setFirstPartyCookie('izz_ga_client_id', fallback, 730); } catch(e) {}
-            return fallback;
-        } catch(e) { return ''; }
-    }
-    window.getGAClientId = getGAClientId;
-
-    function getGASessionId() {
-        try {
-            var measurementId = String(window.GA_MEASUREMENT_ID || 'G-QY6B4BXBLF').replace(/^G-/, '').replace(/-/g, '_');
-            var raw = decodeURIComponent(getCookieValue('_ga_' + measurementId) || '');
-            if (!raw) return '';
-            var marker = raw.match(/(?:^|[.$])s(\d{8,})/);
-            if (marker && marker[1]) return marker[1];
-            var parts = raw.split('.');
-            return parts.length >= 3 ? parts[2] : '';
-        } catch(e) { return ''; }
-    }
-    window.getGASessionId = getGASessionId;
-
-    function buildGAItems(payload) {
-        var sourceItems = Array.isArray(payload && payload.contents) && payload.contents.length
-            ? payload.contents
-            : [{ id: payload && (payload.content_id || (Array.isArray(payload.content_ids) ? payload.content_ids[0] : '')), quantity: payload && payload.quantity, price: payload && payload.value }];
-        return sourceItems.map(function(item) {
-            if (!item || typeof item !== 'object') return null;
-            var itemId = item.item_id || item.id || item.content_id || (payload && payload.content_id);
-            if (!itemId) return null;
-            var price = item.price !== undefined ? item.price : (item.item_price !== undefined ? item.item_price : (payload && payload.value));
-            var quantity = item.quantity !== undefined ? item.quantity : 1;
-            return {
-                item_id: String(itemId),
-                item_name: String((payload && payload.content_name) || item.item_name || item.name || 'Produto'),
-                item_category: String((payload && (payload.content_category || payload.category)) || 'Eletroportateis'),
-                price: Number(price) || 0,
-                quantity: Number(quantity) || 1
-            };
-        }).filter(Boolean);
-    }
-
-    function buildGAPayload(event, payload, eventId) {
-        payload = payload || {};
-        var gaEvent = GA_EVENT_MAP[event] || event;
-        var eventLabelPt = getGAEventLabelPt(event, gaEvent);
-        var out = {
-            page_location: getGAPageLocation(),
-            page_path: window.location.pathname
-        };
-        if (eventLabelPt) out.nome_evento = eventLabelPt;
-        if (gaEvent) out.codigo_evento = String(gaEvent);
-        if (eventId) out.event_id = String(eventId);
-        if (payload.currency) out.currency = String(payload.currency).toUpperCase();
-        if (payload.value !== undefined && payload.value !== null && !isNaN(Number(payload.value))) out.value = Number(payload.value);
-        if (payload.order_id) out.transaction_id = String(payload.order_id);
-
-        var items = buildGAItems(payload);
-        if (items.length && /^(ViewContent|AddToCart|InitiateCheckout|AddPaymentInfo)$/.test(event)) out.items = items;
-
-        ['button_name', 'field_name', 'field_type', 'interaction_type', 'error_field', 'error_message', 'checkout_entry_source', 'checkout_visible_source', 'checkout_ready_state', 'order_id'].forEach(function(key) {
-            if (payload[key] !== undefined && payload[key] !== null && payload[key] !== '') out[key] = String(payload[key]).slice(0, 180);
-        });
-
-        if (event === 'ClickButton' && payload.button_name) out.content_type = 'button';
-        if (event === 'ScrollDepth' && payload.depth !== undefined && !isNaN(Number(payload.depth))) out.percent_scrolled = Number(payload.depth);
-        if (payload.scroll_top !== undefined && !isNaN(Number(payload.scroll_top))) out.scroll_top = Math.max(0, Math.round(Number(payload.scroll_top)));
-        return out;
-    }
-
-    function trackGAEvent(event, payload, eventId) {
-        if (window.__TEST_MODE || window.__LAB_MODE) return;
-        var gaEvent = GA_EVENT_MAP[event];
-        if (!gaEvent) return;
-        var gaPayload = buildGAPayload(event, payload || {}, eventId);
-        if (window.__izzatDiagnostics && typeof window.__izzatDiagnostics.track === 'function') {
-            try { window.__izzatDiagnostics.track('ga_event_seen', { event_name: gaEvent, event_id: eventId || '' }); } catch(e) {}
-        }
-        if (typeof window.trackZarazGAEvent === 'function') {
-            try { window.trackZarazGAEvent(gaEvent, gaPayload); } catch(e) {}
-        } else {
-            window.__zarazGAQueue = window.__zarazGAQueue || [];
-            window.__zarazGAQueue.push({ event: gaEvent, data: gaPayload });
-        }
-    }
-    window.trackGAEvent = trackGAEvent;
-
-    function getCookieValue(name) {
-        try {
-            var escaped = String(name || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            return (document.cookie.match(new RegExp('(?:^|;\\s*)' + escaped + '=([^;]*)')) || [])[1];
-        } catch (e) { return undefined; }
-    }
-
-    function setFirstPartyCookie(name, value, days) {
-        try {
-            if (!name || !value) return;
-            var cookie = String(name) + '=' + encodeURIComponent(String(value)) + '; path=/; SameSite=Lax';
-            if (typeof days === 'number' && isFinite(days)) cookie += '; Max-Age=' + Math.max(0, Math.floor(days * 86400));
-            var host = String(window.location.hostname || '').toLowerCase();
-            if (host === 'izzatcasa.shop' || host.endsWith('.izzatcasa.shop')) cookie += '; Domain=.izzatcasa.shop';
-            if (window.location.protocol === 'https:') cookie += '; Secure';
-            document.cookie = cookie;
-        } catch (e) { }
-    }
+    window.getMetaEventSourceUrl = getMetaEventSourceUrl;
 
     // CAPI server-side (Cloudflare Pages Function)
     async function sendCAPI(event, eventId, properties, user) {
         try {
-            await fetch('/api/tiktok-events', {
+            await fetch('/api/meta-events', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ event: event, event_id: eventId, properties: properties, user: user })
@@ -735,7 +344,7 @@
         }
     }
 
-    function shouldSkipDuplicateTikTokEvent(event, eventId, ttlMs) {
+    function shouldSkipDuplicateMetaEvent(event, eventId, ttlMs) {
         try {
             if (!event || !eventId) return false;
             var now = Date.now();
@@ -752,40 +361,41 @@
         } catch(e) {}
         return false;
     }
-    window.shouldSkipDuplicateTikTokEvent = window.shouldSkipDuplicateTikTokEvent || shouldSkipDuplicateTikTokEvent;
+    window.shouldSkipDuplicateMetaEvent = window.shouldSkipDuplicateMetaEvent || shouldSkipDuplicateMetaEvent;
 
     function trackPixel(event, data) {
         if (window.__TEST_MODE || window.__LAB_MODE) { console.log('[TEST_MODE/LAB_MODE] Evento bloqueado:', event, data); return; }
-        if (event === 'CompletePayment' || event === 'Purchase') return;
         data = data || {};
         requestAnimationFrame(function() {
             Promise.resolve().then(async function() {
                 var finalData = Object.assign({}, data);
 
                 // Normalização
-                if (finalData.phone) finalData.phone = normalizePhone(finalData.phone);
+                if (finalData.phone) {
+                    var normalizedPhone = normalizePhone(finalData.phone);
+                    if (normalizedPhone) finalData.phone = normalizedPhone;
+                    else delete finalData.phone;
+                }
                 if (finalData.email) finalData.email = normalizeEmail(finalData.email);
 
                 // Hash PII (email/phone) para Advanced Matching e Events API
                 finalData = await hashIdentifiers(finalData);
 
                 var eventId = finalData.event_id || generateEventId();
-                if (window.shouldSkipDuplicateTikTokEvent && window.shouldSkipDuplicateTikTokEvent(event, eventId)) return;
+                if (window.shouldSkipDuplicateMetaEvent && window.shouldSkipDuplicateMetaEvent(event, eventId)) return;
 
                 var payload = Object.assign({}, finalData, window.getStoredUTMs(), {
                     external_id: window.getExternalId(),
-                    ttclid: window.getTTCLID(),
-                    event_source_url: finalData.event_source_url || getTikTokEventSourceUrl(),
+                    event_source_url: getMetaEventSourceUrl(),
                     event_time: Math.floor(Date.now() / 1000)
                 });
-                var identifyData = await identifyTikTokUser(finalData);
 
                 // Browser Pixel (com event_id para deduplicação)
-                if (window.ttq && typeof window.ttq.track === 'function') {
+                if (typeof fbq === 'function') {
                     try {
-                        var bp = prepareTikTokBrowserPayload(payload, identifyData);
+                        var bp = Object.assign({}, payload);
                         delete bp.event_id;
-                        window.ttq.track(event, bp, { event_id: eventId });
+                        fbq('track', event, bp, { eventID: eventId });
                     } catch(e) {}
                 }
 
@@ -798,13 +408,13 @@
                     {
                         email:       finalData.email || undefined,
                         phone_number: finalData.phone || undefined,
-                        external_id: window.getExternalId(),
-                        ttclid:      window.getTTCLID(),
-                        ttp:         getTTP()
+                        external_id: window.getExternalId()
                     }
                 );
-                if (typeof window.trackGAEvent === 'function') {
-                    try { window.trackGAEvent(event, capiPayload, eventId); } catch(e) {}
+
+                // GA fallback
+                if (typeof gtag === 'function') {
+                    try { gtag('event', event, payload); } catch(e) {}
                 }
             }).catch(function(error) {
                 if (DEBUG_MODE) console.error('[trackPixel]', error);
@@ -833,133 +443,90 @@
     window.PRODUCT_CONTENT = PRODUCT_CONTENT;
 
     function loadAnalytics() {
-        if(window.__TEST_MODE || window.__LAB_MODE) return;
-        window.analyticsLoaded = true;
-        setTimeout(window.flushGAQueue, 800);
-        setTimeout(window.flushGAQueue, 2500);
-    }
-    
-    let INITIAL_HEIGHT = null;
-    let keyboardDetectionStarted = false;
-    
-    function setupKeyboardDetection() {
-        if (keyboardDetectionStarted) return;
-        keyboardDetectionStarted = true;
-        INITIAL_HEIGHT = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-        const isVisualViewportSupported = typeof window.visualViewport !== 'undefined';
-        let activeCheckoutField = null;
-        let focusScrollTimers = [];
+        if(window.__TEST_MODE || window.__LAB_MODE || window.analyticsLoaded || window.analyticsLoadScheduled) return;
+        window.analyticsLoadScheduled = true;
+        window.dataLayer = window.dataLayer || [];
+        window.__gaQueuedCalls = window.__gaQueuedCalls || [];
+        if (!window.gtag || !window.gtag.__isStub) {
+            const gaStub = function(){ window.__gaQueuedCalls.push([].slice.call(arguments)); };
+            gaStub.__isStub = true;
+            window.gtag = gaStub;
+        }
 
-        const isCheckoutTextField = (target) => {
-            if (!target || !target.tagName) return false;
-            const tag = String(target.tagName).toUpperCase();
-            if (tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT') return false;
-            if (target.type && String(target.type).toLowerCase() === 'hidden') return false;
-            return !!(target.closest && target.closest('#checkout-root, #spa-checkout-wrapper'));
+        const idle = (fn) => {
+            if ('requestIdleCallback' in window) requestIdleCallback(fn, { timeout: 3000 });
+            else setTimeout(fn, 0);
         };
 
-        const clearFocusScrollTimers = () => {
-            while (focusScrollTimers.length) clearTimeout(focusScrollTimers.pop());
-        };
+        const load = () => {
+            if(window.analyticsLoaded) return;
+            window.analyticsLoaded = true;
+            const s = document.createElement('script'); 
+            s.async = true; 
+            s.src = "https://www.googletagmanager.com/gtag/js?id=G-E373VKT4H4"; 
+            document.head.appendChild(s);
+            function gtag(){ window.dataLayer.push(arguments); }
+            window.gtag = gtag; 
+            gtag('js', new Date()); 
+            gtag('config', 'G-E373VKT4H4', { send_page_view: false });
+            
+            if (window.__gaQueuedCalls && window.__gaQueuedCalls.length) {
+                window.__gaQueuedCalls.forEach(args => window.dataLayer.push(args));
+                window.__gaQueuedCalls = [];
+            }
 
-        const getCheckoutHeaderOffset = () => {
-            return 24;
-        };
-
-        const getCheckoutScrollContainer = (field) => {
-            const wrapper = field && field.closest ? field.closest('#spa-checkout-wrapper') : null;
-            if (wrapper && window.getComputedStyle(wrapper).display !== 'none') return wrapper;
-            return document.scrollingElement || document.documentElement || document.body;
-        };
-
-        const scrollCheckoutBy = (container, delta) => {
-            if (!container || container === document.documentElement || container === document.body || container === document.scrollingElement) {
-                window.scrollBy({ top: delta, left: 0, behavior: 'auto' });
-            } else {
-                container.scrollTop += delta;
+            if (window.trackingQueue && window.trackingQueue.length > 0) {
+                setTimeout(() => {
+                    window.trackingQueue.forEach(item => {
+                        gtag('event', item.event, item.data);
+                    });
+                    window.trackingQueue = [];
+                }, 1000);
             }
         };
 
-        const getNextCheckoutField = (field) => {
-            let fields = Array.from(document.querySelectorAll('#checkout-root input, #checkout-root textarea, #checkout-root select, #spa-checkout-wrapper input, #spa-checkout-wrapper textarea, #spa-checkout-wrapper select'));
-            fields = fields.filter((item) => {
-                if (!isCheckoutTextField(item) || item.disabled) return false;
-                const rect = item.getBoundingClientRect();
-                return rect.width > 0 && rect.height > 0;
-            });
-            const index = fields.indexOf(field);
-            return index >= 0 && index + 1 < fields.length ? fields[index + 1] : null;
+        const schedule = () => {
+            if (window.analyticsInteractionScheduled || window.analyticsLoaded) return;
+            window.analyticsInteractionScheduled = true;
+            setTimeout(() => idle(load), 12000);
         };
 
-        const getEffectiveViewportBottom = (viewportHeight, containerBottom) => {
-            const layoutHeight = window.innerHeight || document.documentElement.clientHeight || viewportHeight;
-            const resizedForKeyboard = (INITIAL_HEIGHT - viewportHeight > 120) || (INITIAL_HEIGHT - layoutHeight > 120);
-            const keyboardLikelyOverlaying = !!activeCheckoutField && !resizedForKeyboard;
-            const estimatedKeyboardInset = keyboardLikelyOverlaying ? Math.max(260, Math.min(380, layoutHeight * 0.42)) : 0;
-            return Math.min(viewportHeight, containerBottom, layoutHeight - estimatedKeyboardInset);
-        };
-
-        const ensureCheckoutFieldVisible = (field) => {
-            if (!field || !document.contains(field) || !isCheckoutTextField(field)) return;
-            const scrollContainer = getCheckoutScrollContainer(field);
-            requestAnimationFrame(() => {
-                if (!field || !document.contains(field)) return;
-                const visualViewport = window.visualViewport;
-                const viewportHeight = visualViewport ? visualViewport.height : window.innerHeight;
-                const containerRect = scrollContainer && scrollContainer.getBoundingClientRect && scrollContainer !== document.documentElement && scrollContainer !== document.body && scrollContainer !== document.scrollingElement
-                    ? scrollContainer.getBoundingClientRect()
-                    : { top: 0, bottom: viewportHeight };
-                const rect = field.getBoundingClientRect();
-                const nextField = getNextCheckoutField(field);
-                const nextRect = nextField ? nextField.getBoundingClientRect() : null;
-                const topGuard = Math.max(containerRect.top + 20, getCheckoutHeaderOffset());
-                const keyboardComfortInset = Math.max(72, Math.min(120, viewportHeight * 0.22));
-                const visibleBottom = Math.max(topGuard + 150, getEffectiveViewportBottom(viewportHeight, containerRect.bottom) - keyboardComfortInset);
-                const nextReserve = nextRect ? Math.min(240, Math.max(150, nextRect.bottom - rect.top + 18)) : 150;
-                const desiredTop = Math.max(topGuard + 6, Math.min(visibleBottom - nextReserve, viewportHeight * 0.31));
-                let delta = 0;
-                if (nextRect && nextRect.bottom > visibleBottom) delta = Math.max(delta, nextRect.bottom - visibleBottom);
-                if (rect.bottom > visibleBottom) delta = Math.max(delta, rect.bottom - visibleBottom + 12);
-                if (rect.top > desiredTop + 18) delta = Math.max(delta, rect.top - desiredTop);
-                else if (rect.top < topGuard) delta = rect.top - topGuard;
-                if (Math.abs(delta) > 18) scrollCheckoutBy(scrollContainer, delta);
-            });
-        };
-
-        const scheduleCheckoutFieldScroll = (field) => {
-            if (!isCheckoutTextField(field)) return;
-            activeCheckoutField = field;
-            document.body.classList.add('keyboard-open');
-            clearFocusScrollTimers();
-            [120, 380, 760, 1120].forEach((delay) => {
-                focusScrollTimers.push(setTimeout(() => {
-                    if (activeCheckoutField === field) {
-                        ensureCheckoutFieldVisible(field);
-                        try {
-                            if (field.scrollIntoView) field.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'auto' });
-                        } catch (e) {}
-                    }
-                }, delay));
-            });
-        };
+        ['pointerdown', 'keydown', 'touchstart', 'scroll'].forEach((eventName) => {
+            window.addEventListener(eventName, schedule, { once: true, passive: true });
+        });
+        setTimeout(() => idle(load), 45000);
+    }
+    
+    let INITIAL_HEIGHT = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    
+    function setupKeyboardDetection() {
+        const isVisualViewportSupported = typeof window.visualViewport !== 'undefined';
         
         if (isVisualViewportSupported) {
             const visualViewport = window.visualViewport;
+            let keyboardResizeRaf = 0;
+            let lastKeyboardHeight = -1;
+            let lastKeyboardOpen = false;
             const handleResize = () => {
-                const currentHeight = visualViewport.height;
-                if (currentHeight > INITIAL_HEIGHT) INITIAL_HEIGHT = currentHeight;
-                const diff = INITIAL_HEIGHT - currentHeight;
-                
-                if (diff > 150) { 
-                    document.documentElement.style.setProperty('--keyboard-height', diff + 'px');
-                    document.body.classList.add('keyboard-open');
-                } else {
-                    document.body.classList.remove('keyboard-open');
-                    document.documentElement.style.setProperty('--keyboard-height', '0px');
-                }
-                if (activeCheckoutField) {
-                    ensureCheckoutFieldVisible(activeCheckoutField);
-                }
+                if (keyboardResizeRaf) return;
+                keyboardResizeRaf = requestAnimationFrame(() => {
+                    keyboardResizeRaf = 0;
+                    const currentHeight = visualViewport.height;
+                    if (currentHeight > INITIAL_HEIGHT) INITIAL_HEIGHT = currentHeight;
+                    const rawDiff = INITIAL_HEIGHT - currentHeight;
+                    const diff = rawDiff > 150 ? Math.round(rawDiff) : 0;
+                    const isOpen = diff > 0;
+
+                    if (diff !== lastKeyboardHeight) {
+                        lastKeyboardHeight = diff;
+                        document.documentElement.style.setProperty('--keyboard-height', diff + 'px');
+                    }
+
+                    if (isOpen !== lastKeyboardOpen) {
+                        lastKeyboardOpen = isOpen;
+                        document.body.classList.toggle('keyboard-open', isOpen);
+                    }
+                });
             };
             visualViewport.addEventListener('resize', handleResize);
         }
@@ -973,34 +540,26 @@
             } else {
                 document.body.classList.remove('keyboard-open');
             }
-            if (activeCheckoutField) {
-                ensureCheckoutFieldVisible(activeCheckoutField);
-            }
         });
 
         document.addEventListener('focusin', (e) => {
-            if (isCheckoutTextField(e.target)) scheduleCheckoutFieldScroll(e.target);
-        }, true);
+            if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
+                document.body.classList.add('keyboard-open');
+            }
+        });
         
         document.addEventListener('focusout', (e) => {
-            if (isCheckoutTextField(e.target)) {
+            if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
                setTimeout(() => {
-                   if (!isCheckoutTextField(document.activeElement)) {
-                       activeCheckoutField = null;
-                       clearFocusScrollTimers();
+                   if (document.activeElement && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
                        document.body.classList.remove('keyboard-open');
                    }
-               }, 180);
+               }, 150);
             }
-        }, true);
+        });
 
         window.addEventListener('orientationchange', () => {
-            setTimeout(() => {
-                INITIAL_HEIGHT = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-                if (activeCheckoutField) {
-                    ensureCheckoutFieldVisible(activeCheckoutField);
-                }
-            }, 250);
+            setTimeout(() => { INITIAL_HEIGHT = window.visualViewport ? window.visualViewport.height : window.innerHeight; }, 200);
         });
     }
     
@@ -1115,24 +674,27 @@
 <body>
 <div id="skeleton-loader" style="min-height: 100dvh; background: #f8fafc;">
 <div class="progress-bar" style="width: 25%;"></div>
+<div class="static-nav">
+<img alt="Logo" decoding="async" loading="lazy" onerror="this.onerror=null; this.src='/assets/img/logo.webp'" sizes="104px" src="../assets/img/logo-small-120.webp" srcset="../assets/img/logo-small-120.webp 120w, ../assets/img/logo-small-180.webp 180w, ../assets/img/logo-small.webp 240w" style="height: 32px; width: auto; object-fit: contain;"/>
+</div>
 <div class="static-container">
 <div class="static-left-col">
 <div class="static-card">
 <div class="static-badge">OFERTA TIKTOK</div>
-<div class="static-img-box"><img alt="Fritadeira" class="static-img" decoding="async" height="80" loading="eager" src="../assets/img/01.webp" width="80"/></div>
+<div class="static-img-box"><img alt="Fritadeira" class="static-img" decoding="async" height="80" loading="eager" sizes="80px" src="../assets/img/01-160.webp" srcset="../assets/img/01-160.webp 160w, ../assets/img/01-240.webp 240w" width="80"/></div>
 <div class="static-info">
 <h3 class="static-title">Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI</h3>
 <div><span class="static-old-price">De R$ 399,90</span><span class="static-new-price">Por R$ 197,99</span></div>
 <div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;">
 <span style="font-size: 10px; background: #f0fdf4; color: #166534; padding: 3px 8px; border-radius: 99px; display: inline-flex; align-items: center; gap: 3px; font-weight: 600;">Compra Segura</span>
-<span style="font-size: 10px; background: #fff3e0; color: #e65100; padding: 3px 8px; border-radius: 99px; display: inline-flex; align-items: center; gap: 3px; font-weight: 600;">Garantia 12 Meses</span>
+<span style="font-size: 10px; background: #eff6ff; color: #1e40af; padding: 3px 8px; border-radius: 99px; display: inline-flex; align-items: center; gap: 3px; font-weight: 600;">Garantia 12 Meses</span>
 </div>
 </div>
 </div>
 </div>
 <div class="static-right-col">
 <div class="sk-form-block">
-<div class="sk-form-header"><div class="sk-circle" style="background:#ff6b35;box-shadow:0 4px 10px rgba(255,107,53,.24);">1</div><div class="sk-title">Dados Pessoais</div></div>
+<div class="sk-form-header"><div class="sk-circle">1</div><div class="sk-title">Dados Pessoais</div></div>
 <div class="sk-body"><div class="sk-input"></div><div class="sk-input"></div></div>
 </div>
 <div style="text-align: center; margin-top: 24px; color: #94a3b8; font-size: 12px; font-weight: 500;">Carregando ambiente seguro...</div>
@@ -1140,10 +702,8 @@
 </div>
 </div>
 <div id="checkout-root"></div>
-<script defer="" crossorigin="anonymous" src="https://browser.sentry-cdn.com/10.22.0/bundle.tracing.min.js"></script>
-<script defer="" src="/assets/js/sentry-init.js?v=20260428sentry1"></script>
-<script defer="" src="/assets/js/diagnostics.js?v=20260428diag5" onload="window.__izzatEarlyDiagTrack&&window.__izzatEarlyDiagTrack('diagnostics_script_loaded',{asset_name:'diagnostics_js',asset_url:this.getAttribute('src')||'',asset_type:'script',ready_state:document.readyState},'critical_asset:diagnostics_js')" onerror="window.__izzatEarlyDiagTrack&&window.__izzatEarlyDiagTrack('critical_asset_missing',{asset_name:'diagnostics_js',asset_url:this.getAttribute('src')||'',asset_type:'script',asset_status:'error',ready_state:document.readyState},'critical_asset:diagnostics_js:error')"></script>
-<script defer="" src="/assets/js/checkout.app.js?v=20260428pixguard1" onload="window.__izzatEarlyDiagTrack&&window.__izzatEarlyDiagTrack('critical_asset_loaded',{asset_name:'checkout_app_js',asset_url:this.getAttribute('src')||'',asset_type:'script',ready_state:document.readyState},'critical_asset:checkout_app_js')" onerror="window.__izzatEarlyDiagTrack&&window.__izzatEarlyDiagTrack('critical_asset_missing',{asset_name:'checkout_app_js',asset_url:this.getAttribute('src')||'',asset_type:'script',asset_status:'error',ready_state:document.readyState},'critical_asset:checkout_app_js:error')"></script>
+<script defer="" src="/assets/js/checkout.app.js?v=20260601eventid1"></script>
+<script defer src="/assets/js/metrics.ping.js"></script>
 <script>
     window.addEventListener('load', function() {
         if(window.initReactCheckout) window.initReactCheckout();

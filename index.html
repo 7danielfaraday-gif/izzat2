@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 
 <html lang="pt-BR">
 
@@ -11,26 +11,8 @@
             window.__buyNowJsReady = false;
             window.__pendingCheckoutClick = false;
             window.__pendingCheckoutTarget = '/c/';
-            window.__checkoutOpenScheduled = false;
             window.__checkoutEntrySource = /^\/c(?:\/|$)/i.test(window.location.pathname) ? 'direct' : 'lp';
             window.__currentCheckoutOpenToken = null;
-            window.__scheduleCheckoutOpen = window.__scheduleCheckoutOpen || function (target) {
-                if (window.__checkoutOpenScheduled) return;
-                window.__checkoutOpenScheduled = true;
-                var open = function () {
-                    window.__checkoutOpenScheduled = false;
-                    if (typeof window.spaOpenCheckout === 'function') {
-                        window.__pendingCheckoutClick = false;
-                        window.spaOpenCheckout(target || window.__pendingCheckoutTarget || '/c/');
-                    }
-                };
-                var afterPaint = function () { setTimeout(open, 0); };
-                if (typeof window.requestAnimationFrame === 'function') {
-                    window.requestAnimationFrame(afterPaint);
-                } else {
-                    setTimeout(open, 0);
-                }
-            };
             window.__prepareLabSession = window.__prepareLabSession || function () {
                 if (!window.__LAB_MODE || window.__labPrepared) return;
                 window.__labPrepared = true;
@@ -111,179 +93,31 @@
                     window.__pendingCheckoutClick = true;
 
                     if (btn && btn.classList) btn.classList.add('is-opening');
-                    if (btn && typeof btn.setAttribute === 'function') btn.setAttribute('aria-busy', 'true');
 
-                    // Se a SPA já estiver disponível, abre após o primeiro paint do feedback visual.
+                    // Se a SPA já estiver disponível, abre imediatamente.
                     if (typeof window.spaOpenCheckout === 'function') {
-                        window.__scheduleCheckoutOpen(target);
+                        window.__pendingCheckoutClick = false;
+                        window.spaOpenCheckout(target);
                     }
                 } catch (e) { }
                 return false;
             };
         })();
-</script>
-<script>
-    (function () {
-        if (window.__IZZAT_EARLY_DIAGNOSTICS_READY) return;
-        window.__IZZAT_EARLY_DIAGNOSTICS_READY = true;
-        var endpoint = '/api/diagnostics';
-        var startedAt = Date.now();
-        var sent = window.__izzatDiagnosticsSentOnce || {};
-        window.__izzatDiagnosticsSentOnce = sent;
-        window.__izzatEarlyDiagStartedAt = startedAt;
-
-        function clean(value, max) {
-            return String(value === undefined || value === null ? '' : value).replace(/\s+/g, ' ').trim().slice(0, max || 180);
-        }
-        function cookie(name) {
-            try {
-                var parts = String(document.cookie || '').split(';');
-                for (var i = 0; i < parts.length; i++) {
-                    var part = parts[i].trim();
-                    if (part.indexOf(name + '=') === 0) return part.slice(name.length + 1);
-                }
-            } catch (e) { }
-            return '';
-        }
-        function sessionId() {
-            var key = 'izz_diag_session_id';
-            var fromCookie = clean(cookie(key), 90);
-            try {
-                if (fromCookie) {
-                    sessionStorage.setItem(key, fromCookie);
-                    return fromCookie;
-                }
-                var existing = sessionStorage.getItem(key);
-                if (existing) return existing;
-                var next = 'diag_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
-                sessionStorage.setItem(key, next);
-                return next;
-            } catch (e) {
-                return fromCookie || ('diag_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8));
-            }
-        }
-        var sid = sessionId();
-        window.__izzatEarlyDiagSessionId = sid;
-        function platform(ua) {
-            ua = String(ua || '').toLowerCase();
-            if (/iphone|ipad|ipod/.test(ua)) return 'ios';
-            if (/android/.test(ua)) return 'android';
-            if (/windows/.test(ua)) return 'windows';
-            if (/mac os/.test(ua)) return 'macos';
-            return 'unknown';
-        }
-        function browserFamily(ua) {
-            ua = String(ua || '').toLowerCase();
-            if (/tiktok|musical_ly|bytedance|aweme/.test(ua)) return 'tiktok_in_app';
-            if (/instagram/.test(ua)) return 'instagram_in_app';
-            if (/fbav|fban|facebook/.test(ua)) return 'facebook_in_app';
-            if (/ wv\)|; wv|version\/4\.0 chrome\//.test(ua)) return 'android_webview';
-            if (/crios|chrome/.test(ua)) return 'chrome';
-            if (/safari/.test(ua)) return 'safari';
-            return 'unknown';
-        }
-        function params() {
-            var out = {};
-            try {
-                var search = new URLSearchParams(window.location.search || '');
-                ['ttclid', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'gclid', 'fbclid', 'msclkid'].forEach(function (key) {
-                    var value = search.get(key);
-                    if (value) out[key] = clean(value, key === 'ttclid' ? 180 : 120);
-                });
-            } catch (e) { }
-            return out;
-        }
-        function context() {
-            var ua = navigator.userAgent || '';
-            var p = params();
-            var family = browserFamily(ua);
-            var isTikTok = family === 'tiktok_in_app' || /tiktok|musical_ly|bytedance|aweme/i.test(ua);
-            var vv = window.visualViewport;
-            return {
-                session_id: sid,
-                page_path: window.location.pathname || '',
-                page_location: window.location.href || '',
-                referrer: document.referrer || '',
-                user_agent: ua,
-                platform: platform(ua),
-                browser_family: family,
-                is_tiktok_ad: !!p.ttclid || /tiktok/i.test(p.utm_source || ''),
-                is_likely_in_app_browser: isTikTok || /instagram|fbav|fban| wv\)|; wv/i.test(ua),
-                is_likely_tiktok_browser: isTikTok,
-                has_visual_viewport: !!vv,
-                viewport_width: window.innerWidth || 0,
-                viewport_height: window.innerHeight || 0,
-                visual_viewport_width: vv ? vv.width : 0,
-                visual_viewport_height: vv ? vv.height : 0,
-                device_pixel_ratio: window.devicePixelRatio || 1,
-                params: p
-            };
-        }
-        function send(event, data, key) {
-            if (window.__LAB_MODE || window.__TEST_MODE) return;
-            key = key || event;
-            if (sent[key]) return;
-            sent[key] = true;
-            var payload = JSON.stringify({ event: event, context: context(), data: Object.assign({ time_since_start_ms: Date.now() - startedAt }, data || {}) });
-            function beacon() {
-                try {
-                    if (navigator.sendBeacon) navigator.sendBeacon(endpoint, new Blob([payload], { type: 'application/json' }));
-                } catch (e) { }
-            }
-            try {
-                fetch(endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: payload, keepalive: true, cache: 'no-store' }).catch(beacon);
-            } catch (e) { beacon(); }
-        }
-        function assetName(url) {
-            url = String(url || '');
-            if (/\/assets\/js\/diagnostics\.js/i.test(url)) return 'diagnostics_js';
-            if (/\/assets\/js\/checkout\.app\.js/i.test(url)) return 'checkout_app_js';
-            if (/\/assets\/css\/checkout\.tailwind\.css/i.test(url)) return 'checkout_tailwind_css';
-            if (/\/cdn-cgi\/zaraz\/s\.js/i.test(url)) return 'zaraz_script';
-            if (/\/cdn-cgi\/zaraz\/t/i.test(url)) return 'zaraz_track';
-            return '';
-        }
-        function markAsset(entry) {
-            var name = assetName(entry && entry.name);
-            if (!name) return;
-            var event = name === 'diagnostics_js' ? 'diagnostics_script_loaded' : (name === 'zaraz_script' ? 'zaraz_loaded' : 'critical_asset_loaded');
-            send(event, {
-                asset_name: name,
-                asset_url: clean(entry.name || '', 420),
-                asset_type: clean(entry.initiatorType || '', 80),
-                initiator_type: clean(entry.initiatorType || '', 80),
-                ready_state: clean(document.readyState || '', 40),
-                start_time_ms: entry.startTime ? Math.round(entry.startTime) : 0,
-                duration_ms: entry.duration ? Math.round(entry.duration) : 0,
-                response_end_ms: entry.responseEnd ? Math.round(entry.responseEnd) : 0,
-                transfer_size: entry.transferSize ? Math.round(entry.transferSize) : 0,
-                encoded_body_size: entry.encodedBodySize ? Math.round(entry.encodedBodySize) : 0,
-                decoded_body_size: entry.decodedBodySize ? Math.round(entry.decodedBodySize) : 0
-            }, 'critical_asset:' + name);
-        }
-        function scanAssets() {
-            try {
-                (performance.getEntriesByType('resource') || []).forEach(markAsset);
-            } catch (e) { }
-        }
-        window.__izzatEarlyDiagTrack = function (event, data, key) { send(event, data || {}, key); };
-        send('client_boot_started', { source: 'inline_head', ready_state: document.readyState || '' }, 'client_boot_started');
-        setTimeout(scanAssets, 600);
-        setTimeout(scanAssets, 2200);
-        setTimeout(scanAssets, 6000);
-        window.addEventListener('load', scanAssets, { once: true });
-    })();
-</script>
-<meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content"
+    </script>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
         name="viewport" />
-    <link crossorigin="" href="https://analytics.tiktok.com" rel="preconnect" />
-    <link href="//analytics.tiktok.com" rel="dns-prefetch" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" as="style" href="/assets/fonts/inter-local.css?v=20260518font1"
+        onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript>
+        <link href="/assets/fonts/inter-local.css?v=20260518font1" rel="stylesheet" />
+    </noscript>
     <meta
-        content="Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI. 2 em 1: Air Fryer + Forno. Economize R$ 201,91 hoje. Frete Grátis e Envio Imediato."
+        content="Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI. 2 em 1: Air Fryer + Forno. Economize 71% hoje. Frete Grátis e Envio Imediato."
         name="description" />
     <meta content="Fritadeira Elétrica Forno Oven 12L Mondial - Izzat" property="og:title" />
-    <meta content="A Air Fryer AFON-12L-BI da Mondial é 2 em 1. Capacidade de 12 Litros. Compre com 50% de desconto!"
+    <meta content="A Air Fryer AFON-12L-BI da Mondial é 2 em 1. Capacidade de 12 Litros. Compre com desconto!"
         property="og:description" />
     <meta content="/assets/img/01.webp" property="og:image" />
     <meta content="product" property="og:type" />
@@ -291,57 +125,33 @@
     <meta content="index, follow" name="robots" />
     <meta content="upgrade-insecure-requests; block-all-mixed-content;" http-equiv="Content-Security-Policy" />
     <title>Izzat - Fritadeira Elétrica Forno Oven 12L Mondial</title>
-    <link rel="icon" href="data:," />
-    <link as="image" href="/assets/img/01.webp" rel="preload" type="image/webp" fetchpriority="high" />
+    <link as="image" fetchpriority="high" href="/assets/img/01-400.webp"
+        imagesrcset="/assets/img/01-240.webp 240w, /assets/img/01-320.webp 320w, /assets/img/01-400.webp 400w"
+        imagesizes="(max-width: 480px) 100vw, 400px" rel="preload" type="image/webp" />
     <noscript></noscript>
+    <!-- Meta (Facebook/Instagram) Pixel — ID público vindo de X_META_PID -->
     <script>
         if (!window.__TEST_MODE && !window.__LAB_MODE) {
-            !function (w, d, t) {
-                w.TiktokAnalyticsObject = t; var ttq = w[t] = w[t] || []; ttq.methods = ["page", "track", "identify", "instances", "debug", "on", "off", "once", "ready", "alias", "group", "enableCookie", "disableCookie"], ttq.setAndDefer = function (t, e) { t[e] = function () { t.push([e].concat(Array.prototype.slice.call(arguments, 0))) } }; for (var i = 0; i < ttq.methods.length; i++)ttq.setAndDefer(ttq, ttq.methods[i]); ttq.instance = function (t) { for (var e = ttq._i[t] || [], n = 0; n < ttq.methods.length; n++)ttq.setAndDefer(e, ttq.methods[n]); return e }, ttq.load = function (e, n) {
-                    var i = "https://analytics.tiktok.com/i18n/pixel/events.js"; ttq._i = ttq._i || {}, ttq._i[e] = [], ttq._i[e]._u = i, ttq._t = ttq._t || {}, ttq._t[e] = +new Date, ttq._o = ttq._o || {}, ttq._o[e] = n || {};
-                    setTimeout(function () {
-                        var o = document.createElement("script"); o.type = "text/javascript", o.async = !0, o.src = i + "?sdkid=" + e + "&lib=" + t;
-                        var scripts = document.getElementsByTagName("script");
-                        var a = scripts.length > 0 ? scripts[0] : null; if (a && a.parentNode) { a.parentNode.insertBefore(o, a); } else { document.head.appendChild(o); }
-                    }, 2500);
+            !function (f, b, e, v, n, t, s) {
+                if (f.fbq) return; n = f.fbq = function () {
+                    n.callMethod ?
+                        n.callMethod.apply(n, arguments) : n.queue.push(arguments)
                 };
-                    function izzTtReadStorage(key) {
-                        try { return localStorage.getItem(key) || ''; } catch (e) { return ''; }
-                    }
-                    function izzTtWriteStorage(key, value) {
-                        try { if (value) localStorage.setItem(key, value); } catch (e) { }
-                    }
-                    function izzTtIsSha256(value) {
-                        return typeof value === 'string' && /^[a-f0-9]{64}$/i.test(value);
-                    }
-                    function izzTtGetExternalId() {
-                        var eid = '';
-                        try { eid = new URLSearchParams(window.location.search).get('eid') || ''; } catch (e) { }
-                        if (!eid) eid = izzTtReadStorage('user_external_id');
-                        if (!eid) eid = 'user_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
-                        izzTtWriteStorage('user_external_id', eid);
-                        return eid;
-                    }
-                    function izzTtBuildEarlyIdentify() {
-                        var out = {};
-                        var externalId = izzTtGetExternalId();
-                        var email = izzTtReadStorage('user_hashed_email');
-                        var phone = izzTtReadStorage('user_hashed_phone');
-                        if (externalId) out.external_id = externalId;
-                        if (izzTtIsSha256(email)) out.sha256_email = email.toLowerCase();
-                        if (izzTtIsSha256(phone)) out.sha256_phone_number = phone.toLowerCase();
-                        return out;
-                    }
-
-                    ttq.load('D7PPKERC77U4TTGIET70');
-                    try {
-                        var identifyData = izzTtBuildEarlyIdentify();
-                        if (Object.keys(identifyData).length) ttq.identify(identifyData);
-                    } catch (e) { }
-                    ttq.page();
-            }(window, document, 'ttq');
+                if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0';
+                n.queue = []; t = b.createElement(e); t.async = !0;
+                t.src = v; s = b.getElementsByTagName(e)[0];
+                s.parentNode.insertBefore(t, s)
+            }(window, document, 'script',
+                'https://connect.facebook.net/en_US/fbevents.js');
+            // ID do Pixel do Meta (público). Token de acesso (secreto) fica em X_META_TK.
+            fbq('init', '1476154184418659');
+            fbq('track', 'PageView');
         }
     </script>
+    <noscript>
+        <img height="1" width="1" style="display:none"
+            src="https://www.facebook.com/tr?id=1476154184418659&ev=PageView&noscript=1" alt="" />
+    </noscript>
     <style>
         * {
             margin: 0;
@@ -366,7 +176,7 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: #fff;
             color: #333;
             line-height: 1.4;
@@ -470,7 +280,7 @@
             transform: translate(-50%, -50%);
             color: #666;
             font-size: 14px;
-            display: block
+            display: none
         }
 
         .image-counter {
@@ -498,8 +308,8 @@
         }
 
         .nav-btn {
-            width: 44px;
-            height: 44px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             border: none;
             background: rgba(0, 0, 0, 0.5);
@@ -570,16 +380,7 @@
             border-radius: 50%;
             background: rgba(0, 0, 0, 0.3);
             cursor: pointer;
-            transition: all 0.2s ease-in-out;
-            position: relative;
-            touch-action: manipulation
-        }
-
-        .dot::before {
-            content: "";
-            position: absolute;
-            inset: -18px;
-            border-radius: 50%
+            transition: all 0.2s ease-in-out
         }
 
         .dot.active {
@@ -614,7 +415,7 @@
         }
 
         .price-main {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Inter', sans-serif;
             display: flex;
             align-items: baseline;
             gap: 6px;
@@ -640,7 +441,7 @@
         }
 
         .flash-deal-text {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Inter', sans-serif;
             display: flex;
             align-items: center;
             gap: 4px;
@@ -694,7 +495,7 @@
         }
 
         .product-title {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 17px;
             font-weight: 700;
             color: #222;
@@ -770,7 +571,7 @@
         }
 
         .tab {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Inter', sans-serif;
             flex: 1;
             padding: 16px 8px;
             text-align: center;
@@ -803,7 +604,7 @@
         }
 
         .section-title {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 16px;
             font-weight: 600;
             margin-bottom: 12px;
@@ -877,7 +678,7 @@
         }
 
         .reviews-title {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 16px;
             font-weight: 700;
             color: #111
@@ -991,9 +792,9 @@
             background: white;
             border-top: 1px solid #f0f0f0;
             display: flex;
-            padding: 10px 12px;
+            padding: 10px 15px;
             padding-bottom: calc(10px + env(safe-area-inset-bottom));
-            gap: 8px;
+            gap: 11px;
             z-index: 100
         }
 
@@ -1001,9 +802,6 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            min-width: 44px;
-            min-height: 44px;
             gap: 3px;
             font-size: 11px;
             color: #666;
@@ -1017,7 +815,7 @@
         }
 
         .add-cart-btn {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Inter', sans-serif;
             flex: 1;
             background: #f0f0f0;
             color: #333;
@@ -1029,8 +827,10 @@
         }
 
         .buy-btn {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Inter', sans-serif;
             flex: 1;
+            position: relative;
+            isolation: isolate;
             background: #ff2d55;
             color: white;
             border: none;
@@ -1039,7 +839,8 @@
             font-size: 13px;
             font-weight: 600;
             text-align: center;
-            transition: transform 0.12s ease, opacity 0.12s ease, filter 0.12s ease, background-color 0.12s ease
+            touch-action: manipulation;
+            transition: background-color 0.2s, opacity 0.2s, filter 0.2s
         }
 
         .buy-btn.disabled {
@@ -1052,12 +853,9 @@
         }
 
         .buy-btn.is-opening {
-            opacity: 0.96;
-            filter: saturate(0.95);
+            opacity: 0.92;
+            filter: saturate(0.9);
             cursor: progress;
-            background: #e02045;
-            box-shadow: inset 0 0 0 999px rgba(0, 0, 0, 0.06);
-            transform: scale(0.98);
         }
 
         @keyframes slideUp {
@@ -1070,34 +868,50 @@
             }
         }
 
-        @keyframes pulse-red {
+        @keyframes cta-ring-pulse {
             0% {
-                opacity: 1
+                transform: scale(1);
+                opacity: 0.32;
             }
 
-            50% {
-                opacity: 0.78
+            70% {
+                transform: scale(1.16);
+                opacity: 0;
             }
 
             100% {
-                opacity: 1
+                transform: scale(1.16);
+                opacity: 0;
             }
         }
 
         .pulsing-buy-btn {
-            animation: pulse-red 1.25s ease-in-out infinite;
-            will-change: opacity
-        }
-
-        .pulsing-buy-btn.is-opening {
             animation: none;
-            will-change: auto
         }
 
-        @media (prefers-reduced-motion: reduce) {
-            .pulsing-buy-btn {
-                animation: none
-            }
+        .pulsing-buy-btn::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: #ff2d55;
+            pointer-events: none;
+            z-index: -1;
+            animation: cta-ring-pulse 1.5s ease-out infinite;
+        }
+
+        .pulsing-buy-btn.disabled::after,
+        .pulsing-buy-btn.is-opening::after {
+            animation: none;
+            opacity: 0;
+        }
+
+        .footer {
+            background: white;
+            padding: 24px 16px;
+            border-top: 1px solid #f0f0f0;
+            margin-top: 40px;
+            padding-bottom: calc(80px + env(safe-area-inset-bottom))
         }
 
         .footer-logo {
@@ -1416,152 +1230,8 @@
             border-radius: 50%;
             display: inline-block
         }
-
-        .mobile-modal-overlay {
-            height: var(--modal-vh, 100dvh) !important;
-            max-height: var(--modal-vh, 100dvh);
-            overscroll-behavior-y: contain;
-            touch-action: pan-y;
-            padding-top: env(safe-area-inset-top)
-        }
-
-        .mobile-modal-sheet {
-            max-height: calc(var(--modal-vh, 100dvh) - env(safe-area-inset-top) - 8px);
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch
-        }
-
-        .modal-close-btn,
-        .modal-back-btn {
-            min-width: 44px;
-            min-height: 44px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            touch-action: manipulation;
-            cursor: pointer
-        }
-
-        .chat-faq-button {
-            min-height: 44px;
-            touch-action: manipulation
-        }
-
-        .review-action {
-            touch-action: manipulation
-        }
-
-        .modal-close-btn:focus-visible,
-        .modal-back-btn:focus-visible,
-        .chat-faq-button:focus-visible,
-        .review-action:focus-visible,
-        .thumbnail:focus-visible,
-        .dot:focus-visible,
-        #load-more-reviews:focus-visible {
-            outline: 2px solid #ff6b35;
-            outline-offset: 2px
-        }
     </style>
-    <script>
-        (function () {
-            window.GA_MEASUREMENT_ID = window.GA_MEASUREMENT_ID || 'G-QY6B4BXBLF';
-            window.__zarazGAQueue = window.__zarazGAQueue || [];
-            window.__directGAQueue = window.__directGAQueue || [];
-            window.__directGALoadRequested = window.__directGALoadRequested || false;
-            window.__directGAReady = window.__directGAReady || false;
-
-            window.flushDirectGAQueue = function () {
-                try {
-                    if (!window.__directGAReady || typeof window.gtag !== 'function' || !window.__directGAQueue || !window.__directGAQueue.length) return;
-                    var queue = window.__directGAQueue.slice();
-                    window.__directGAQueue = [];
-                    queue.forEach(function (item) {
-                        if (!item || !item.event) return;
-                        try { window.gtag('event', item.event, item.data || {}); } catch (e) { }
-                    });
-                } catch (e) { }
-            };
-
-            window.loadDirectGAFallback = function () {
-                if (window.__TEST_MODE || window.__LAB_MODE) return;
-                if (window.zaraz && typeof window.zaraz.track === 'function') return;
-                try {
-                    var measurementId = String(window.GA_MEASUREMENT_ID || '').trim();
-                    if (!/^G-[A-Z0-9]+$/i.test(measurementId)) return;
-                    if (window.__directGALoadRequested) {
-                        window.flushDirectGAQueue();
-                        return;
-                    }
-                    window.__directGALoadRequested = true;
-                    window.dataLayer = window.dataLayer || [];
-                    window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
-
-                    var script = document.createElement('script');
-                    script.async = true;
-                    script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(measurementId);
-                    script.onload = function () {
-                        try {
-                            window.__directGAReady = true;
-                            window.gtag('js', new Date());
-                            window.gtag('config', measurementId, {
-                                page_location: window.location.href,
-                                page_path: window.location.pathname
-                            });
-                            window.flushDirectGAQueue();
-                        } catch (e) { }
-                    };
-                    script.onerror = function () { window.__directGALoadRequested = false; };
-                    document.head.appendChild(script);
-                } catch (e) { }
-            };
-
-            window.flushGAQueue = function () {
-                try {
-                    if (!window.zaraz || typeof window.zaraz.track !== 'function' || !window.__zarazGAQueue || !window.__zarazGAQueue.length) return;
-                    var queue = window.__zarazGAQueue.slice();
-                    window.__zarazGAQueue = [];
-                    queue.forEach(function (item) {
-                        if (!item || !item.event) return;
-                        try { window.zaraz.track(item.event, item.data || {}); } catch (e) { }
-                    });
-                } catch (e) { }
-            };
-
-            window.trackZarazGAEvent = window.trackZarazGAEvent || function (event, data) {
-                if (window.__TEST_MODE || window.__LAB_MODE || !event) return;
-                try {
-                    if (window.zaraz && typeof window.zaraz.track === 'function') {
-                        window.zaraz.track(event, data || {});
-                        return;
-                    }
-                    if (window.__directGAReady && typeof window.gtag === 'function') {
-                        window.gtag('event', event, data || {});
-                        return;
-                    }
-                    window.__zarazGAQueue = window.__zarazGAQueue || [];
-                    window.__zarazGAQueue.push({ event: event, data: data || {} });
-                    window.__directGAQueue = window.__directGAQueue || [];
-                    window.__directGAQueue.push({ event: event, data: data || {} });
-                    setTimeout(window.loadDirectGAFallback, 3200);
-                } catch (e) { }
-            };
-
-            window.loadAnalytics = function () {
-                if (window.__TEST_MODE || window.__LAB_MODE) return;
-                window.analyticsLoaded = true;
-                setTimeout(window.flushGAQueue, 800);
-                setTimeout(window.flushGAQueue, 2500);
-                setTimeout(function () {
-                    if (!window.zaraz || typeof window.zaraz.track !== 'function') window.loadDirectGAFallback();
-                }, 3200);
-            };
-
-            if (!window.__TEST_MODE && !window.__LAB_MODE) {
-                if ('requestIdleCallback' in window) requestIdleCallback(window.loadAnalytics, { timeout: 2500 });
-                else setTimeout(window.loadAnalytics, 2000);
-            }
-        })();
-    </script>
+    <script>if (!window.__TEST_MODE && !window.__LAB_MODE) { !function () { var id = 'G-E373VKT4H4', q = [], scheduled = !1; window.dataLayer = window.dataLayer || []; window.gtag = window.gtag || function () { q.push([].slice.call(arguments)); }; function idle(fn) { if ('requestIdleCallback' in window) requestIdleCallback(fn, { timeout: 3000 }); else setTimeout(fn, 0); } function load() { if (window.__gaLoaded) return; window.__gaLoaded = !0; var s = document.createElement('script'); s.async = !0; s.src = 'https://www.googletagmanager.com/gtag/js?id=' + id; document.head.appendChild(s); window.gtag = function () { window.dataLayer.push(arguments); }; gtag('js', new Date()); gtag('config', id, { send_page_view: !1 }); gtag('event', 'page_view'); for (var i = 0; i < q.length; i++) window.dataLayer.push(q[i]); q = []; } function schedule() { if (scheduled || window.__gaLoaded) return; scheduled = !0; setTimeout(function () { idle(load); }, 12000); } ['pointerdown', 'keydown', 'touchstart', 'scroll'].forEach(function (ev) { window.addEventListener(ev, schedule, { once: !0, passive: !0 }); }); setTimeout(function () { idle(load); }, 45000); }(); }</script>
 </head>
 
 <body id="top">
@@ -1569,7 +1239,9 @@
         <section class="product-images">
             <div class="image-container">
                 <img alt="Fritadeira Elétrica Forno Oven 12L Mondial" class="product-main-image" decoding="async"
-                    fetchpriority="high" height="400" id="main-product-image" loading="eager" src="/assets/img/01.webp"
+                    fetchpriority="high" height="400" id="main-product-image" loading="eager"
+                    sizes="(max-width: 480px) 100vw, 400px" src="/assets/img/01-400.webp"
+                    srcset="/assets/img/01-240.webp 240w, /assets/img/01-320.webp 320w, /assets/img/01-400.webp 400w"
                     width="400" />
                 <div class="image-loading" id="image-loading">Carregando...</div>
                 <div class="image-counter" id="image-counter">1/8</div>
@@ -1597,7 +1269,7 @@
             <div class="price-row">
                 <div class="price-info">
                     <div class="price-main">
-                        <span style="text-decoration:line-through;color:#ffccaa;font-size:14px;">R$399,90</span>
+                        <span style="text-decoration:line-through;color:#ffccaa;font-size:14px;">R$399</span>
                         <span style="font-size:24px;font-weight:800;color:white;">R$197,99</span>
                     </div>
                 </div>
@@ -1611,7 +1283,7 @@
         <section class="discount-banner" style="padding:8px 16px;">
             <div class="discount-content">
                 <span class="discount-badge">Desconto de 50%</span>
-                <span class="discount-text">Economize R$ 201,91</span>
+                <span class="discount-text">Economize R$ 201,01</span>
             </div>
             <span style="color:#ccc;">›</span>
         </section>
@@ -1644,25 +1316,22 @@
                 <span style="color:#ccc;font-size:18px;">›</span>
             </div>
             <div id="shipping-location-row"
-                style="display:flex;align-items:center;gap:6px;margin-top:8px;padding-top:8px;min-height:44px;border-top:1px solid #e8e8e8;cursor:pointer;"
-                onclick="openModal('shipping-modal')" role="button" tabindex="0"
-                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openModal('shipping-modal')}">
+                style="display:flex;align-items:center;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid #e8e8e8;cursor:pointer;"
+                onclick="openModal('shipping-modal')">
                 <span style="color:#aaa;font-size:13px;">📍</span>
-                <span style="color:#888;font-size:12px;" id="shipping-location">Frete grátis para todo o Brasil</span>
+                <span style="color:#888;font-size:12px;" id="shipping-location">Envio para São Paulo, São Paulo</span>
             </div>
         </section>
-        <div id="shipping-modal" class="mobile-modal-overlay" aria-hidden="true"
-            style="display:none;position:fixed;top:0;left:0;width:100%;height:var(--modal-vh,100dvh);max-height:var(--modal-vh,100dvh);background:rgba(0,0,0,0.5);z-index:9999;justify-content:center;align-items:flex-end;">
-            <div class="mobile-modal-sheet"
+        <div id="shipping-modal"
+            style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;justify-content:center;align-items:flex-end;">
+            <div
                 style="background:#fff;width:100%;max-width:480px;border-radius:16px 16px 0 0;padding:0;animation:slideUp 0.3s ease-out;">
                 <div
                     style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid #f0f0f0;">
                     <div></div>
                     <span style="font-size:16px;font-weight:700;color:#222;">Envio</span>
-                    <span class="modal-close-btn" role="button" tabindex="0" aria-label="Fechar envio"
-                        onclick="closeModal('shipping-modal')"
-                        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();closeModal('shipping-modal')}"
-                        style="font-size:20px;color:#999;padding:4px;">✕</span>
+                    <span onclick="closeModal('shipping-modal')"
+                        style="cursor:pointer;font-size:20px;color:#999;padding:4px;">✕</span>
                 </div>
                 <div style="padding:20px;">
                     <div
@@ -1677,7 +1346,8 @@
                         style="display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f0;justify-content:space-between;">
                         <div style="display:flex;align-items:center;gap:12px;">
                             <span style="font-size:18px;">📍</span>
-                            <span style="font-size:14px;color:#444;" id="modal-destination">Todo o Brasil</span>
+                            <span style="font-size:14px;color:#444;" id="modal-destination">São Paulo, São Paulo,
+                                Brasil</span>
                         </div>
                         <span style="color:#ccc;font-size:16px;">›</span>
                     </div>
@@ -1697,7 +1367,7 @@
         <section style="background:#fff;padding:12px 16px;border-top:1px solid #eee;cursor:pointer;"
             onclick="openModal('seller-modal')">
             <div style="display:flex;align-items:center;gap:12px;">
-                <img alt="Izzat" decoding="async" loading="lazy" width="42" height="42" src="assets/img/seller-avatarr.webp"
+                <img alt="Izzat" decoding="async" loading="lazy" src="assets/img/seller-avatarr.webp"
                     style="width:42px;height:42px;border-radius:50%;object-fit:cover;" />
                 <div>
                     <div style="display:flex;align-items:center;gap:4px;font-size:15px;font-weight:700;color:#222;">
@@ -1707,25 +1377,23 @@
                                 d="M362.7 175.5l-142 160c-6.2 7-17.3 6.7-23.2-.7l-66-78c-6.1-7.2-5.2-18 2-24s18-5.2 24 2l53.9 63.8 130.7-147.2c6.3-7.1 17.3-7.8 24.3-1.5s7.9 17.4 1.3 24.6z"
                                 fill="#fff"></path>
                         </svg></div>
-                    <div style="color:#999;font-size:12px;margin-top:1px;">Informações da loja · Toque para saber mais</div>
+                    <div style="color:#999;font-size:12px;margin-top:1px;">Loja verificada · Toque para saber mais</div>
                 </div>
             </div>
         </section>
-        <div id="seller-modal" class="mobile-modal-overlay" aria-hidden="true"
-            style="display:none;position:fixed;top:0;left:0;width:100%;height:var(--modal-vh,100dvh);max-height:var(--modal-vh,100dvh);background:rgba(0,0,0,0.5);z-index:9999;justify-content:center;align-items:flex-end;">
-            <div class="mobile-modal-sheet"
-                style="background:#fff;width:100%;max-width:480px;border-radius:16px 16px 0 0;padding:0;animation:slideUp 0.3s ease-out;">
+        <div id="seller-modal"
+            style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;justify-content:center;align-items:flex-end;">
+            <div
+                style="background:#fff;width:100%;max-width:480px;border-radius:16px 16px 0 0;padding:0;animation:slideUp 0.3s ease-out;max-height:85vh;overflow-y:auto;">
                 <div style="display:flex;justify-content:center;padding:10px 0 0 0;">
                     <div style="width:36px;height:4px;background:#ddd;border-radius:4px;"></div>
                 </div>
                 <div style="position:absolute;top:12px;right:16px;">
-                    <span class="modal-close-btn" role="button" tabindex="0" aria-label="Fechar informações da loja"
-                        onclick="closeModal('seller-modal')"
-                        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();closeModal('seller-modal')}"
-                        style="width:32px;height:32px;background:#f0f0f0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;color:#666;">✕</span>
+                    <span onclick="closeModal('seller-modal')"
+                        style="cursor:pointer;width:32px;height:32px;background:#f0f0f0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;color:#666;">✕</span>
                 </div>
                 <div style="display:flex;flex-direction:column;align-items:center;padding:20px 24px 0;">
-                    <img src="assets/img/seller-avatarr.webp" alt="Izzat" loading="lazy" decoding="async" width="72" height="72"
+                    <img src="assets/img/seller-avatarr.webp" alt="Izzat"
                         style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid #00d4aa;margin-bottom:12px;" />
                     <div style="display:flex;align-items:center;gap:6px;font-size:20px;font-weight:800;color:#222;">
                         Izzat <svg height="20" width="20" viewbox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
@@ -1734,7 +1402,7 @@
                                 d="M362.7 175.5l-142 160c-6.2 7-17.3 6.7-23.2-.7l-66-78c-6.1-7.2-5.2-18 2-24s18-5.2 24 2l53.9 63.8 130.7-147.2c6.3-7.1 17.3-7.8 24.3-1.5s7.9 17.4 1.3 24.6z"
                                 fill="#fff"></path>
                         </svg></div>
-                    <div style="color:#999;font-size:13px;margin-top:4px;">Informações da loja</div>
+                    <div style="color:#999;font-size:13px;margin-top:4px;">Loja Oficial Verificada</div>
                 </div>
                 <div style="display:flex;justify-content:space-around;padding:20px 16px;margin-top:16px;">
                     <div style="flex:1;text-align:center;border-right:1px solid #f0f0f0;">
@@ -1801,11 +1469,11 @@
                 <div style="font-size:15px;font-weight:700;color:#222;margin-bottom:12px;">Variante</div>
                 <div
                     style="display:flex;align-items:center;gap:12px;padding:14px;border:2px solid #00d4aa;border-radius:12px;background:#f0fdfa;">
-                    <img src="/assets/img/01.webp" alt="Fritadeira preta bivolt 127V e 220V"
+                    <img src="/assets/img/01-160.webp" alt="Preto" loading="lazy" decoding="async" fetchpriority="low"
                         style="width:48px;height:48px;object-fit:contain;border-radius:8px;background:#fff;" />
                     <div style="flex:1;">
-                        <div style="font-size:14px;font-weight:700;color:#222;">Preto — 12L bivolt</div>
-                        <div style="font-size:12px;color:#888;margin-top:2px;">Funciona em 127V ou 220V</div>
+                        <div style="font-size:14px;font-weight:700;color:#222;">Preto — 12 Litros</div>
+                        <div style="font-size:12px;color:#888;margin-top:2px;">Única variante disponível</div>
                     </div>
                     <div
                         style="width:24px;height:24px;background:#00d4aa;border-radius:50%;display:flex;align-items:center;justify-content:center;">
@@ -1863,7 +1531,7 @@
                 </div>
                 <div class="rv" style="padding:14px 0;border-bottom:1px solid #f0f0f0;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-                        <img src="assets/img/foto1.webp" alt="" loading="lazy" decoding="async"
+                        <img src="assets/img/foto1.webp" alt="" loading="lazy" decoding="async" fetchpriority="low"
                             style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
                         <span style="font-size:14px;font-weight:700;color:#222;">Fernanda L.</span>
                     </div>
@@ -1875,13 +1543,13 @@
                     <div style="font-size:13px;color:#333;line-height:1.5;">Ela é maravilhosa, lindona! Já fiz a cura
                         dos componentes dela e coloquei meu almoço pra gratinar, já vi q está funcionando e até tenho q
                         por menos tempo ou diminuir a potência dela pq é mto boa. Super indico</div>
-                    <div style="margin-top:8px;"><img src="assets/img/review01.webp" alt="" loading="lazy" decoding="async" width="70" height="70"
+                    <div style="margin-top:8px;"><img src="assets/img/review01.webp" alt="" loading="lazy" decoding="async" fetchpriority="low"
                             style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;"
                             onclick="openLightbox(this.src)" /></div>
                 </div>
                 <div class="rv" style="padding:14px 0;border-bottom:1px solid #f0f0f0;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-                        <img src="assets/img/foto2.webp" alt="" loading="lazy" decoding="async"
+                        <img src="assets/img/foto2.webp" alt="" loading="lazy" decoding="async" fetchpriority="low"
                             style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
                         <span style="font-size:14px;font-weight:700;color:#222;">Bruna L.</span>
                     </div>
@@ -1893,13 +1561,13 @@
                     <div style="font-size:13px;color:#333;line-height:1.5;">A fritadeira é ótima, um sonho de consumo
                         rsrs, estou muito satisfeita com a minha compra. Já testei e as batatas fritas ficaram ótimas!
                         Chegou muito rápido e muito bem embalada.</div>
-                    <div style="margin-top:8px;"><img src="assets/img/review02.webp" alt="" loading="lazy" decoding="async" width="70" height="70"
+                    <div style="margin-top:8px;"><img src="assets/img/review02.webp" alt="" loading="lazy" decoding="async" fetchpriority="low"
                             style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;"
                             onclick="openLightbox(this.src)" /></div>
                 </div>
                 <div class="rv" style="padding:14px 0;border-bottom:1px solid #f0f0f0;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-                        <img src="assets/img/foto3.webp" alt="" loading="lazy" decoding="async"
+                        <img src="assets/img/foto3.webp" alt="" loading="lazy" decoding="async" fetchpriority="low"
                             style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
                         <span style="font-size:14px;font-weight:700;color:#222;">Marilia L.</span>
                     </div>
@@ -1909,13 +1577,13 @@
                     </div>
                     <div style="font-size:11px;color:#aaa;margin-bottom:8px;">Variação: 12 Litros — Preto</div>
                     <div style="font-size:13px;color:#333;line-height:1.5;">Lindo e eficiente.</div>
-                    <div style="margin-top:8px;"><img src="assets/img/review03.webp" alt="" loading="lazy" decoding="async" width="70" height="70"
+                    <div style="margin-top:8px;"><img src="assets/img/review03.webp" alt="" loading="lazy" decoding="async" fetchpriority="low"
                             style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;"
                             onclick="openLightbox(this.src)" /></div>
                 </div>
                 <div class="rv" style="padding:14px 0;border-bottom:1px solid #f0f0f0;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-                        <img src="assets/img/foto4.webp" alt="" loading="lazy" decoding="async"
+                        <img src="assets/img/foto4.webp" alt="" loading="lazy" decoding="async" fetchpriority="low"
                             style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
                         <span style="font-size:14px;font-weight:700;color:#222;">Karina A.</span>
                     </div>
@@ -1926,13 +1594,13 @@
                     <div style="font-size:11px;color:#aaa;margin-bottom:8px;">Variação: 12 Litros — Preto</div>
                     <div style="font-size:13px;color:#333;line-height:1.5;">Ótimo produto conforme anunciado. E chegou
                         antes do previsto. Super recomendo....</div>
-                    <div style="margin-top:8px;"><img src="assets/img/review04.webp" alt="" loading="lazy" decoding="async" width="70" height="70"
+                    <div style="margin-top:8px;"><img src="assets/img/review04.webp" alt="" loading="lazy" decoding="async" fetchpriority="low"
                             style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;"
                             onclick="openLightbox(this.src)" /></div>
                 </div>
                 <div class="rv" style="padding:14px 0;border-bottom:1px solid #f0f0f0;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-                        <img src="assets/img/foto5.webp" alt="" loading="lazy" decoding="async"
+                        <img src="assets/img/foto5.webp" alt="" loading="lazy" decoding="async" fetchpriority="low"
                             style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
                         <span style="font-size:14px;font-weight:700;color:#222;">Bruna S.</span>
                     </div>
@@ -1943,13 +1611,13 @@
                     <div style="font-size:11px;color:#aaa;margin-bottom:8px;">Variação: 12 Litros — Preto</div>
                     <div style="font-size:13px;color:#333;line-height:1.5;">Bonita grande e eficiente, nada a reclamar
                         até o momento.</div>
-                    <div style="margin-top:8px;"><img src="assets/img/review05.webp" alt="" loading="lazy" decoding="async" width="70" height="70"
+                    <div style="margin-top:8px;"><img src="assets/img/review05.webp" alt="" loading="lazy" decoding="async" fetchpriority="low"
                             style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;"
                             onclick="openLightbox(this.src)" /></div>
                 </div>
                 <div class="rv" style="padding:14px 0;border-bottom:1px solid #f0f0f0;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-                        <img src="assets/img/foto6.webp" alt="" loading="lazy" decoding="async"
+                        <img src="assets/img/foto6.webp" alt="" loading="lazy" decoding="async" fetchpriority="low"
                             style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
                         <span style="font-size:14px;font-weight:700;color:#222;">Kailane C.</span>
                     </div>
@@ -1960,13 +1628,13 @@
                     <div style="font-size:11px;color:#aaa;margin-bottom:8px;">Variação: 12 Litros — Preto</div>
                     <div style="font-size:13px;color:#333;line-height:1.5;">Gente eu ameiii, superou minhas
                         expectativas, lindaaa, ameiii!!!</div>
-                    <div style="margin-top:8px;"><img src="assets/img/review06.webp" alt="" loading="lazy" decoding="async" width="70" height="70"
+                    <div style="margin-top:8px;"><img src="assets/img/review06.webp" alt="" loading="lazy" decoding="async" fetchpriority="low"
                             style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;"
                             onclick="openLightbox(this.src)" /></div>
                 </div>
                 <div class="rv" style="padding:14px 0;border-bottom:1px solid #f0f0f0;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-                        <img src="assets/img/foto7.webp" alt="" loading="lazy" decoding="async"
+                        <img src="assets/img/foto7.webp" alt="" loading="lazy" decoding="async" fetchpriority="low"
                             style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
                         <span style="font-size:14px;font-weight:700;color:#222;">Mariana L.</span>
                     </div>
@@ -1977,15 +1645,14 @@
                     <div style="font-size:11px;color:#aaa;margin-bottom:8px;">Variação: 12 Litros — Preto</div>
                     <div style="font-size:13px;color:#333;line-height:1.5;">Simplesmente estou apaixonada, excelente
                         mesmo.</div>
-                    <div style="margin-top:8px;"><img src="assets/img/review07.webp" alt="" loading="lazy" decoding="async" width="70" height="70"
+                    <div style="margin-top:8px;"><img src="assets/img/review07.webp" alt="" loading="lazy" decoding="async" fetchpriority="low"
                             style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;"
                             onclick="openLightbox(this.src)" /></div>
                 </div>
                 <div id="extra-reviews"></div>
                 <div id="load-more-reviews"
                     style="text-align:center;padding:16px 0;border-top:1px solid #f0f0f0;cursor:pointer;"
-                    onclick="loadMoreReviews()" role="button" tabindex="0" aria-label="Carregar mais comentarios"
-                    onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();loadMoreReviews()}">
+                    onclick="loadMoreReviews()">
                     <span style="font-size:13px;color:#555;">&#8744;&nbsp;&nbsp;Carregar mais comentarios (<span
                             id="load-batch-count">5</span> de <span id="load-remaining-count">88</span>
                         restantes)</span>
@@ -1993,11 +1660,11 @@
             </section>
 
             <!-- Photo Lightbox -->
-            <div id="photo-lightbox" class="mobile-modal-overlay" aria-hidden="true"
-                style="display:none;position:fixed;top:0;left:0;width:100%;height:var(--modal-vh,100dvh);max-height:var(--modal-vh,100dvh);background:rgba(0,0,0,0.9);z-index:10000;align-items:center;justify-content:center;flex-direction:column;"
+            <div id="photo-lightbox"
+                style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:10000;align-items:center;justify-content:center;flex-direction:column;"
                 onclick="closeLightbox()">
-                <img id="lightbox-img" alt=""
-                    style="max-width:90%;max-height:calc(var(--modal-vh,100dvh) - 96px);object-fit:contain;border-radius:8px;" />
+                <img id="lightbox-img" src="" alt=""
+                    style="max-width:90%;max-height:80vh;object-fit:contain;border-radius:8px;" />
             </div>
         </div>
         <div class="content-section" id="description">
@@ -2097,24 +1764,22 @@
             </section>
         </div>
         <!-- Chat Modal -->
-        <div id="chat-modal" class="mobile-modal-overlay" aria-hidden="true"
-            style="display:none;position:fixed;top:0;left:0;width:100%;height:var(--modal-vh,100dvh);max-height:var(--modal-vh,100dvh);background:rgba(0,0,0,0.5);z-index:9999;align-items:flex-end;justify-content:center;"
+        <div id="chat-modal"
+            style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;align-items:flex-end;justify-content:center;"
             onclick="if(event.target===this)closeModal('chat-modal')">
-            <div class="mobile-modal-sheet"
-                style="width:100%;max-width:480px;height:min(92vh,calc(var(--modal-vh,100dvh) - 8px));background:#fff;border-radius:16px 16px 0 0;display:flex;flex-direction:column;overflow:hidden;animation:slideUp 0.3s ease;">
+            <div
+                style="width:100%;max-width:480px;height:92vh;background:#fff;border-radius:16px 16px 0 0;display:flex;flex-direction:column;overflow:hidden;animation:slideUp 0.3s ease;">
 
                 <!-- Header -->
                 <div
                     style="display:flex;align-items:center;gap:12px;padding:16px;border-bottom:1px solid #eee;flex-shrink:0;">
-                    <div class="modal-back-btn" role="button" tabindex="0" aria-label="Fechar chat"
-                        style="padding:4px;" onclick="closeModal('chat-modal')"
-                        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();closeModal('chat-modal')}">
+                    <div style="cursor:pointer;padding:4px;" onclick="closeModal('chat-modal')">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                             <path d="M15 18l-6-6 6-6" stroke="#333" stroke-width="2" stroke-linecap="round"
                                 stroke-linejoin="round" />
                         </svg>
                     </div>
-                    <img src="assets/img/seller-avatarr.webp" alt="Izzat" loading="lazy" decoding="async" width="40" height="40"
+                    <img src="assets/img/seller-avatarr.webp" alt="Izzat"
                         style="width:40px;height:40px;border-radius:50%;object-fit:cover;" />
                     <div>
                         <div style="font-size:15px;font-weight:700;color:#222;">Izzat</div>
@@ -2136,15 +1801,15 @@
                 <div id="chat-faq" style="padding:10px 16px;flex-shrink:0;border-bottom:1px solid #eee;">
                     <div style="font-size:11px;color:#888;margin-bottom:6px;">Perguntas frequentes:</div>
                     <div style="display:flex;flex-wrap:wrap;gap:6px;">
-                        <button type="button" class="chat-faq-button" onclick="chatAnswer(0)"
+                        <button onclick="chatAnswer(0)"
                             style="background:#fff;border:1px solid #e0e0e0;border-radius:20px;padding:8px 14px;font-size:12px;color:#333;font-family:inherit;cursor:pointer;">Como
                             faço meu pedido?</button>
-                        <button type="button" class="chat-faq-button" onclick="chatAnswer(1)"
+                        <button onclick="chatAnswer(1)"
                             style="background:#fff;border:1px solid #e0e0e0;border-radius:20px;padding:8px 14px;font-size:12px;color:#333;font-family:inherit;cursor:pointer;">Prazo
                             de entrega?</button>
-                        <button type="button" class="chat-faq-button" onclick="chatAnswer(2)"
+                        <button onclick="chatAnswer(2)"
                             style="background:#fff;border:1px solid #e0e0e0;border-radius:20px;padding:8px 14px;font-size:12px;color:#333;font-family:inherit;cursor:pointer;">Troca/devolução?</button>
-                        <button type="button" class="chat-faq-button" onclick="chatAnswer(3)"
+                        <button onclick="chatAnswer(3)"
                             style="background:#fff;border:1px solid #e0e0e0;border-radius:20px;padding:8px 14px;font-size:12px;color:#333;font-family:inherit;cursor:pointer;">Formas
                             de pagamento?</button>
                     </div>
@@ -2162,7 +1827,7 @@
                         </div>
                     </div>
                     <div style="display:flex;align-items:center;gap:6px;">
-                        <img src="assets/img/seller-avatarr.webp" alt="" loading="lazy" decoding="async" width="20" height="20"
+                        <img src="assets/img/seller-avatarr.webp" alt=""
                             style="width:20px;height:20px;border-radius:50%;object-fit:cover;" />
                         <span style="font-size:11px;color:#aaa;" id="chat-time"></span>
                     </div>
@@ -2209,10 +1874,13 @@
             </a>
             <button class="add-cart-btn">Ver Avaliações</button>
             <a class="buy-btn pulsing-buy-btn" href="javascript:void(0)" id="buy-now" data-checkout-target="/c/"
-                onclick="return window.__handleBuyNowClick ? window.__handleBuyNowClick(event, this) : true;"
+                onclick="return window.__handleBuyNowClick ? window.__handleBuyNowClick(event, this) : false;"
                 style="display: flex; align-items: center; justify-content: center; text-decoration: none; color: white;">Comprar
                 Agora</a>
         </nav>
+        <footer class="footer">
+            ...
+        </footer>
         <div class="sales-popup" id="sales-popup">
             <div class="popup-image">
                 <img alt="Cliente" decoding="async" id="popup-img" loading="lazy" src="assets/img/foto1.webp" />
@@ -2225,7 +1893,7 @@
                     <span class="live-dot"></span>
                     <span id="popup-action">Comprou agora mesmo</span>
                 </p>
-                <div style="font-size: 10px; color: #00d4aa; font-weight: 700;">Pedido recente</div>
+                <div style="font-size: 10px; color: #00d4aa; font-weight: 700;">Compra Verificada</div>
             </div>
         </div>
     </div>
@@ -2238,154 +1906,72 @@
                 if (el) el.textContent = 'Envio para ' + loc;
                 var dest = document.getElementById('modal-destination');
                 if (dest) dest.textContent = loc + ', Brasil';
-                try { localStorage.setItem('user_location', JSON.stringify({ city: city, state: state, source: 'cloudflare', at: Date.now() })); } catch (e) { }
+                try { localStorage.setItem('user_location', JSON.stringify({ city: city, state: state })); } catch (e) { }
             }
             try {
                 var saved = localStorage.getItem('user_location');
-                var hasFreshLocation = false;
-                if (saved) {
-                    var d = JSON.parse(saved);
-                    if (d.city && d.state && d.source === 'cloudflare') {
-                        updateLocation(d.city, d.state);
-                        hasFreshLocation = !!(d.at && (Date.now() - d.at) < 7 * 24 * 60 * 60 * 1000);
-                    }
-                }
+                if (saved) { var d = JSON.parse(saved); if (d.city && d.state) updateLocation(d.city, d.state); }
             } catch (e) { }
-            function fetchLocationInIdle() {
+            function refreshLocationWhenIdle() {
+                if (refreshLocationWhenIdle.done) return;
+                refreshLocationWhenIdle.done = true;
                 var options = {};
                 try {
-                    if (window.AbortSignal && typeof AbortSignal.timeout === 'function') options.signal = AbortSignal.timeout(5000);
+                    if (window.AbortSignal && typeof AbortSignal.timeout === 'function') {
+                        options.signal = AbortSignal.timeout(5000);
+                    }
                 } catch (e) { }
-                fetch('/api/location', {
-                    cache: 'no-store',
-                    credentials: 'same-origin',
-                    signal: options.signal
-                })
-                    .then(function (r) { return r && r.ok ? r.json() : null; })
-                    .then(function (data) { if (data && data.ok && data.city && data.state) updateLocation(data.city, data.state); })
+                fetch('https://ipapi.co/json/', options)
+                    .then(function (r) { return r.json() })
+                    .then(function (data) { if (data && data.city && data.region) updateLocation(data.city, data.region); })
                     .catch(function () { });
             }
-            if (!hasFreshLocation) {
-                if ('requestIdleCallback' in window) {
-                    requestIdleCallback(fetchLocationInIdle, { timeout: 5000 });
-                } else {
-                    window.addEventListener('load', function () { setTimeout(fetchLocationInIdle, 2000); }, { once: true });
-                }
+            function scheduleLocationRefresh(delay) {
+                setTimeout(function () {
+                    if ('requestIdleCallback' in window) {
+                        requestIdleCallback(refreshLocationWhenIdle, { timeout: 5000 });
+                    } else {
+                        refreshLocationWhenIdle();
+                    }
+                }, delay);
             }
+            ['pointerdown', 'touchstart', 'keydown', 'scroll'].forEach(function (eventName) {
+                window.addEventListener(eventName, function () { scheduleLocationRefresh(3000); }, { once: true, passive: true });
+            });
+            scheduleLocationRefresh(45000);
 
             // --- Modal helpers: scroll lock + swipe down to close ---
-            var modalLastFocus = null;
-            var modalViewportLastHeight = 0;
-            var modalViewportPendingHeight = 0;
-            var modalViewportFrame = 0;
-            var modalViewportScrollTimer = 0;
-            function hasOpenMobileModal() {
-                var openModal = document.querySelector('.mobile-modal-overlay[aria-hidden="false"]');
-                return !!(openModal && openModal.style.display !== 'none');
-            }
-            function getModalViewportHeight() {
-                var height = window.innerHeight || document.documentElement.clientHeight || 0;
-                if (window.visualViewport && window.visualViewport.height) {
-                    height = window.visualViewport.height;
-                }
-                return Math.round(height || 0);
-            }
-            function flushModalViewportHeight() {
-                modalViewportFrame = 0;
-                var height = modalViewportPendingHeight;
-                modalViewportPendingHeight = 0;
-                if (!height || Math.abs(height - modalViewportLastHeight) < 2) return;
-                modalViewportLastHeight = height;
-                document.documentElement.style.setProperty('--modal-vh', height + 'px');
-            }
-            function updateModalViewportHeight(force) {
-                if (!force && !hasOpenMobileModal()) return;
-                var height = getModalViewportHeight();
-                if (!height || Math.abs(height - modalViewportLastHeight) < 2) return;
-                modalViewportPendingHeight = height;
-                if (!modalViewportFrame) {
-                    modalViewportFrame = (window.requestAnimationFrame || function (fn) { return setTimeout(fn, 16); })(flushModalViewportHeight);
-                }
-            }
-            function updateModalViewportHeightSoon() {
-                if (modalViewportScrollTimer) return;
-                modalViewportScrollTimer = setTimeout(function () {
-                    modalViewportScrollTimer = 0;
-                    updateModalViewportHeight(false);
-                }, 80);
-            }
-            function handleModalViewportChange() {
-                updateModalViewportHeight(false);
-            }
-            function handleModalViewportScroll() {
-                updateModalViewportHeightSoon();
-            }
-            function focusFirstModalControl(modal) {
-                var target = modal.querySelector('[autofocus], .modal-close-btn, .modal-back-btn, button, [role="button"], a[href], input, select, textarea');
-                if (target && typeof target.focus === 'function') {
-                    try { target.focus({ preventScroll: true }); } catch (e) { target.focus(); }
-                }
-            }
             function openModal(id) {
                 var m = document.getElementById(id);
                 if (!m) return;
-                modalLastFocus = document.activeElement;
-                updateModalViewportHeight(true);
                 m.style.display = 'flex';
-                m.setAttribute('aria-hidden', 'false');
                 document.body.style.overflow = 'hidden';
-                setTimeout(function () { focusFirstModalControl(m); }, 0);
             }
             function closeModal(id) {
                 var m = document.getElementById(id);
                 if (!m) return;
                 m.style.display = 'none';
-                m.setAttribute('aria-hidden', 'true');
                 document.body.style.overflow = '';
-                if (modalLastFocus && typeof modalLastFocus.focus === 'function') {
-                    setTimeout(function () {
-                        try { modalLastFocus.focus({ preventScroll: true }); } catch (e) { }
-                    }, 0);
-                }
             }
             window.openModal = openModal;
             window.closeModal = closeModal;
-            window.addEventListener('resize', handleModalViewportChange, { passive: true });
-            window.addEventListener('orientationchange', handleModalViewportChange, { passive: true });
-            if (window.visualViewport) {
-                window.visualViewport.addEventListener('resize', handleModalViewportChange, { passive: true });
-                window.visualViewport.addEventListener('scroll', handleModalViewportScroll, { passive: true });
-            }
 
             // --- Photo Lightbox ---
             var lbStartY = 0, lbCurY = 0, lbDragging = false;
             window.openLightbox = function (src) {
                 var lb = document.getElementById('photo-lightbox');
                 var img = document.getElementById('lightbox-img');
-                if (!lb || !img) return;
-                if (!src) return;
-                modalLastFocus = document.activeElement;
-                updateModalViewportHeight(true);
                 img.src = src;
                 lb.style.display = 'flex';
-                lb.setAttribute('aria-hidden', 'false');
                 document.body.style.overflow = 'hidden';
             };
             window.closeLightbox = function () {
                 var lb = document.getElementById('photo-lightbox');
                 var img = document.getElementById('lightbox-img');
-                if (!lb || !img) return;
                 lb.style.display = 'none';
-                lb.setAttribute('aria-hidden', 'true');
                 document.body.style.overflow = '';
                 img.style.transform = '';
                 img.style.transition = '';
-                img.removeAttribute('src');
-                if (modalLastFocus && typeof modalLastFocus.focus === 'function') {
-                    setTimeout(function () {
-                        try { modalLastFocus.focus({ preventScroll: true }); } catch (e) { }
-                    }, 0);
-                }
             };
             (function () {
                 var lb = document.getElementById('photo-lightbox');
@@ -2414,39 +2000,6 @@
                     }
                 });
             })();
-
-            function enhanceReviewLightboxTargets(scope) {
-                var root = scope || document;
-                var imgs = root.querySelectorAll('img[onclick*="openLightbox"]');
-                imgs.forEach(function (img) {
-                    img.classList.add('review-action');
-                    img.setAttribute('role', 'button');
-                    img.setAttribute('tabindex', '0');
-                    img.setAttribute('aria-label', 'Abrir foto da avaliação');
-                    if (img.dataset.reviewKeyboardReady === '1') return;
-                    img.dataset.reviewKeyboardReady = '1';
-                    img.addEventListener('keydown', function (event) {
-                        if (event.key === 'Enter' || event.key === ' ') {
-                            event.preventDefault();
-                            openLightbox(img.src);
-                        }
-                    });
-                });
-            }
-            enhanceReviewLightboxTargets();
-            document.addEventListener('keydown', function (event) {
-                if (event.key !== 'Escape') return;
-                var ids = ['photo-lightbox', 'chat-modal', 'seller-modal', 'shipping-modal'];
-                for (var i = 0; i < ids.length; i++) {
-                    var modal = document.getElementById(ids[i]);
-                    if (modal && modal.style.display === 'flex') {
-                        event.preventDefault();
-                        if (ids[i] === 'photo-lightbox') closeLightbox();
-                        else closeModal(ids[i]);
-                        break;
-                    }
-                }
-            });
 
             // --- Extra Reviews (load more) ---
             var extraReviews = [
@@ -2620,13 +2173,12 @@
                     if (sortedImages[i]) {
                         html += '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">';
                         for (var j = 0; j < sortedImages[i].length; j++) {
-                            html += '<img class="review-action" src="assets/img/' + sortedImages[i][j] + '" alt="" loading="lazy" decoding="async" width="70" height="70" role="button" tabindex="0" aria-label="Abrir foto da avaliação" style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;" onclick="openLightbox(this.src)"/>';
+                            html += '<img src="assets/img/' + sortedImages[i][j] + '" alt="" loading="lazy" decoding="async" fetchpriority="low" style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;" onclick="openLightbox(this.src)"/>';
                         }
                         html += '</div>';
                     }
                     html += '</div>';
                     container.insertAdjacentHTML('beforeend', html);
-                    enhanceReviewLightboxTargets(container);
                 }
                 reviewsLoaded = end;
                 var remaining = sortedReviews.length - reviewsLoaded;
@@ -2673,13 +2225,13 @@
                 // User message (the question)
                 var userHtml = '<div style="display:flex;justify-content:flex-end;"><div style="max-width:75%;background:#dcf8c6;border-radius:12px 12px 4px 12px;padding:12px 14px;"><div style="font-size:13px;color:#333;line-height:1.5;">' + faq.q + '</div></div></div>';
                 msgs.insertAdjacentHTML('beforeend', userHtml);
-                requestAnimationFrame(function () { msgs.scrollTop = msgs.scrollHeight; });
+                setTimeout(function () { msgs.scrollTop = msgs.scrollHeight; }, 0);
 
                 // Typing indicator
                 var typingId = 'typing-' + Date.now();
                 var typingHtml = '<div id="' + typingId + '" style="display:flex;align-items:flex-end;gap:8px;"><div style="max-width:75%;background:#f0f0f0;border-radius:12px 12px 12px 4px;padding:12px 14px;"><div style="font-size:13px;color:#999;">digitando<span class="chat-dots">...</span></div></div></div>';
                 msgs.insertAdjacentHTML('beforeend', typingHtml);
-                requestAnimationFrame(function () { msgs.scrollTop = msgs.scrollHeight; });
+                setTimeout(function () { msgs.scrollTop = msgs.scrollHeight; }, 10);
 
                 // Answer after delay
                 setTimeout(function () {
@@ -2687,9 +2239,9 @@
                     if (typing) typing.remove();
                     var answerText = faq.a.replace(/\n/g, '<br>');
                     var ansHtml = '<div style="display:flex;align-items:flex-end;gap:8px;"><div style="max-width:75%;background:#f0f0f0;border-radius:12px 12px 12px 4px;padding:12px 14px;"><div style="font-size:13px;color:#333;line-height:1.5;">' + answerText + '</div></div></div>';
-                    ansHtml += '<div style="display:flex;align-items:center;gap:6px;"><img src="assets/img/seller-avatarr.webp" alt="" loading="lazy" decoding="async" width="20" height="20" style="width:20px;height:20px;border-radius:50%;object-fit:cover;"/><span style="font-size:11px;color:#aaa;">' + time + '</span></div>';
+                    ansHtml += '<div style="display:flex;align-items:center;gap:6px;"><img src="assets/img/seller-avatarr.webp" alt="" style="width:20px;height:20px;border-radius:50%;object-fit:cover;"/><span style="font-size:11px;color:#aaa;">' + time + '</span></div>';
                     msgs.insertAdjacentHTML('beforeend', ansHtml);
-                    requestAnimationFrame(function () { msgs.scrollTop = msgs.scrollHeight; });
+                    setTimeout(function () { msgs.scrollTop = msgs.scrollHeight; }, 10);
                 }, 1200);
             };
 
@@ -2728,15 +2280,14 @@
             });
         })();
     </script>
-    <script defer="" crossorigin="anonymous" src="https://browser.sentry-cdn.com/10.22.0/bundle.tracing.min.js"></script>
-    <script defer="" src="assets/js/sentry-init.js?v=20260428sentry1"></script>
-    <script defer="" src="assets/js/diagnostics.js?v=20260428diag5" onload="window.__izzatEarlyDiagTrack&&window.__izzatEarlyDiagTrack('diagnostics_script_loaded',{asset_name:'diagnostics_js',asset_url:this.getAttribute('src')||'',asset_type:'script',ready_state:document.readyState},'critical_asset:diagnostics_js')" onerror="window.__izzatEarlyDiagTrack&&window.__izzatEarlyDiagTrack('critical_asset_missing',{asset_name:'diagnostics_js',asset_url:this.getAttribute('src')||'',asset_type:'script',asset_status:'error',ready_state:document.readyState},'critical_asset:diagnostics_js:error')"></script>
-<script defer="" src="assets/js/index.bundle.js?v=20260430pixel1"></script>
+    <script defer="" src="assets/js/index.bundle.js?v=20260527r3"></script>
+    <script defer src="assets/js/metrics.ping.js"></script>
+
     <!-- ============================================= -->
     <!-- SPA CHECKOUT (carregado dinamicamente)        -->
     <!-- ============================================= -->
     <div id="spa-checkout-wrapper"
-        style="display:none; position:fixed; inset:0; width:100%; height:var(--checkout-spa-vh, 100dvh); max-height:var(--checkout-spa-vh, 100dvh); min-height:-webkit-fill-available; z-index:9999; background:#e5e7eb; overflow-x:hidden; overflow-y:scroll; -webkit-overflow-scrolling:touch; overscroll-behavior-y:contain; touch-action:pan-y; display:none;">
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:9999; background:#e5e7eb; overflow-y:auto; -webkit-overflow-scrolling:touch; display:none;">
         <style>
             /* 
        --- BULLETPROOF TAILWIND FALLBACKS ---
@@ -2980,137 +2531,6 @@
                 margin-right: auto !important;
             }
 
-            #checkout-root, #spa-checkout-wrapper {
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-                line-height: 1.5;
-            }
-
-            #checkout-root svg {
-                display: block;
-                vertical-align: middle;
-                flex-shrink: 0;
-            }
-
-            #checkout-root img {
-                max-width: 100%;
-                height: auto;
-            }
-
-            html.checkout-spa-open,
-            body.checkout-spa-open {
-                overflow: hidden !important;
-                overscroll-behavior: none;
-            }
-
-            #spa-checkout-wrapper {
-                scrollbar-width: none;
-                -ms-overflow-style: none;
-            }
-
-            #spa-checkout-wrapper::-webkit-scrollbar {
-                display: none;
-            }
-
-            #checkout-root .absolute { position: absolute !important; }
-            #checkout-root .relative { position: relative !important; }
-            #checkout-root .inset-y-0 { top: 0 !important; bottom: 0 !important; }
-            #checkout-root .left-0 { left: 0 !important; }
-            #checkout-root .right-3 { right: .75rem !important; }
-            #checkout-root .top-0 { top: 0 !important; }
-            #checkout-root .z-30 { z-index: 30 !important; }
-            #checkout-root .block { display: block !important; }
-            #checkout-root .grid { display: grid !important; }
-            #checkout-root .flex { display: flex !important; }
-            #checkout-root .flex-col { flex-direction: column !important; }
-            #checkout-root .flex-wrap { flex-wrap: wrap !important; }
-            #checkout-root .flex-1 { flex: 1 1 0% !important; }
-            #checkout-root .flex-shrink-0 { flex-shrink: 0 !important; }
-            #checkout-root .items-start { align-items: flex-start !important; }
-            #checkout-root .items-center { align-items: center !important; }
-            #checkout-root .justify-center { justify-content: center !important; }
-            #checkout-root .justify-between { justify-content: space-between !important; }
-            #checkout-root .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
-            #checkout-root .col-span-1 { grid-column: span 1 / span 1 !important; }
-            #checkout-root .col-span-2 { grid-column: span 2 / span 2 !important; }
-            #checkout-root .col-span-3 { grid-column: span 3 / span 3 !important; }
-            #checkout-root .col-span-4 { grid-column: span 4 / span 4 !important; }
-            #checkout-root .min-w-0 { min-width: 0 !important; }
-            #checkout-root .overflow-hidden { overflow: hidden !important; }
-            #checkout-root .whitespace-nowrap { white-space: nowrap !important; }
-            #checkout-root .break-all { word-break: break-all !important; }
-            #checkout-root .pointer-events-none { pointer-events: none !important; }
-            #checkout-root .line-clamp-2 { overflow: hidden !important; display: -webkit-box !important; -webkit-box-orient: vertical !important; -webkit-line-clamp: 2 !important; }
-            #checkout-root .w-3 { width: .75rem !important; }
-            #checkout-root .h-3 { height: .75rem !important; }
-            #checkout-root .w-3\.5 { width: .875rem !important; }
-            #checkout-root .h-3\.5 { height: .875rem !important; }
-            #checkout-root .w-4 { width: 1rem !important; }
-            #checkout-root .h-4 { height: 1rem !important; }
-            #checkout-root .w-5 { width: 1.25rem !important; }
-            #checkout-root .h-5 { height: 1.25rem !important; }
-            #checkout-root .w-7 { width: 1.75rem !important; }
-            #checkout-root .h-7 { height: 1.75rem !important; }
-            #checkout-root .w-12 { width: 3rem !important; }
-            #checkout-root .h-12 { height: 3rem !important; }
-            #checkout-root .w-20 { width: 5rem !important; }
-            #checkout-root .h-20 { height: 5rem !important; }
-            #checkout-root .min-h-screen { min-height: 100vh !important; }
-            #checkout-root .min-h-\[48px\] { min-height: 48px !important; }
-            #checkout-root .min-h-\[56px\] { min-height: 56px !important; }
-            #checkout-root .p-2\.5 { padding: .625rem !important; }
-            #checkout-root .p-3\.5 { padding: .875rem !important; }
-            #checkout-root .px-2\.5 { padding-left: .625rem !important; padding-right: .625rem !important; }
-            #checkout-root .pl-1 { padding-left: .25rem !important; }
-            #checkout-root .pl-3\.5 { padding-left: .875rem !important; }
-            #checkout-root .pt-5 { padding-top: 1.25rem !important; }
-            #checkout-root .mb-0\.5 { margin-bottom: .125rem !important; }
-            #checkout-root .mb-1 { margin-bottom: .25rem !important; }
-            #checkout-root .mb-1\.5 { margin-bottom: .375rem !important; }
-            #checkout-root .mb-4 { margin-bottom: 1rem !important; }
-            #checkout-root .mb-5 { margin-bottom: 1.25rem !important; }
-            #checkout-root .mt-0\.5 { margin-top: .125rem !important; }
-            #checkout-root .mt-1 { margin-top: .25rem !important; }
-            #checkout-root .mt-1\.5 { margin-top: .375rem !important; }
-            #checkout-root .mt-2 { margin-top: .5rem !important; }
-            #checkout-root .mt-3 { margin-top: .75rem !important; }
-            #checkout-root .gap-1\.5 { gap: .375rem !important; }
-            #checkout-root .gap-2\.5 { gap: .625rem !important; }
-            #checkout-root .gap-6 { gap: 1.5rem !important; }
-            #checkout-root .text-\[10px\] { font-size: 10px !important; }
-            #checkout-root .text-\[11px\] { font-size: 11px !important; }
-            #checkout-root .text-\[13px\] { font-size: 13px !important; }
-            #checkout-root .text-\[15px\] { font-size: 15px !important; }
-            #checkout-root .text-lg { font-size: 1.125rem !important; line-height: 1.75rem !important; }
-            #checkout-root .text-xl { font-size: 1.25rem !important; line-height: 1.75rem !important; }
-            #checkout-root .font-black { font-weight: 900 !important; }
-            #checkout-root .font-medium { font-weight: 500 !important; }
-            #checkout-root .uppercase { text-transform: uppercase !important; }
-            #checkout-root .leading-none { line-height: 1 !important; }
-            #checkout-root .leading-snug { line-height: 1.375 !important; }
-            #checkout-root .leading-tight { line-height: 1.25 !important; }
-            #checkout-root .tracking-tight { letter-spacing: -.025em !important; }
-            #checkout-root .tracking-wide { letter-spacing: .025em !important; }
-            #checkout-root .tracking-wider { letter-spacing: .05em !important; }
-            #checkout-root .line-through { text-decoration-line: line-through !important; }
-            #checkout-root .text-gray-400 { color: #9ca3af !important; }
-            #checkout-root .text-green-700 { color: #15803d !important; }
-            #checkout-root .text-green-800 { color: #166534 !important; }
-            #checkout-root .text-green-900 { color: #14532d !important; }
-            #checkout-root .text-indigo-800 { color: #3730a3 !important; }
-            #checkout-root .text-red-500 { color: #ef4444 !important; }
-            #checkout-root .text-white { color: #fff !important; }
-            #checkout-root .bg-green-500 { background-color: #22c55e !important; }
-            #checkout-root .bg-green-50\/30 { background-color: rgba(240,253,244,.3) !important; }
-            #checkout-root .bg-red-50\/30 { background-color: rgba(254,242,242,.3) !important; }
-            #checkout-root .border-green-100 { border-color: #dcfce7 !important; }
-            #checkout-root .border-green-300 { border-color: #86efac !important; }
-            #checkout-root .border-indigo-100 { border-color: #e0e7ff !important; }
-            #checkout-root .border-amber-100 { border-color: #fef3c7 !important; }
-            #checkout-root .object-contain { object-fit: contain !important; }
-            #checkout-root .shadow-\[0_4px_20px_rgb\(0\2c 0\2c 0\2c 0\.03\)\] { box-shadow: 0 4px 20px rgb(0,0,0,.03) !important; }
-            #checkout-root .transition-all { transition-property: all !important; transition-duration: .15s !important; }
-            #checkout-root .duration-200 { transition-duration: .2s !important; }
-
             /* Skeleton Loading Animado */
             .animate-pulse {
                 animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
@@ -3195,12 +2615,25 @@
         <!-- Skeleton do Checkout -->
         <div id="skeleton-loader" style="display:none; min-height: 100dvh; background: #f8fafc;">
             <div class="progress-bar" style="width: 25%;"></div>
+            <div class="static-nav">
+                <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="window.spaGoBack()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 12H5M12 19l-7-7 7-7" />
+                    </svg>
+                </div>
+                <img alt="Logo" decoding="async" loading="lazy" sizes="104px" src="/assets/img/logo-small-120.webp"
+                    srcset="/assets/img/logo-small-120.webp 120w, /assets/img/logo-small-180.webp 180w, /assets/img/logo-small.webp 240w"
+                    onerror="this.onerror=null; this.src='/assets/img/logo.webp'"
+                    style="height: 32px; width: auto; object-fit: contain;" />
+            </div>
             <div class="static-container">
                 <div class="static-left-col">
                     <div class="static-card">
-                        <div class="static-badge">OFERTA TIKTOK</div>
+                        <div class="static-badge">OFERTA INSTAGRAM</div>
                         <div class="static-img-box"><img alt="Fritadeira" class="static-img" decoding="async"
-                                height="80" loading="eager" src="/assets/img/01.webp" width="80" /></div>
+                                height="80" loading="lazy" fetchpriority="low" sizes="80px" src="/assets/img/01-160.webp"
+                                srcset="/assets/img/01-160.webp 160w, /assets/img/01-240.webp 240w" width="80" /></div>
                         <div class="static-info">
                             <h3 class="static-title">Fritadeira Elétrica Forno Oven 12L Mondial AFON-12L-BI</h3>
                             <div><span class="static-old-price">De R$ 399,90</span><span class="static-new-price">Por R$
@@ -3210,7 +2643,7 @@
                                     style="font-size: 10px; background: #f0fdf4; color: #166534; padding: 3px 8px; border-radius: 99px; display: inline-flex; align-items: center; gap: 3px; font-weight: 600;">Compra
                                     Segura</span>
                                 <span
-                                    style="font-size: 10px; background: #fff3e0; color: #e65100; padding: 3px 8px; border-radius: 99px; display: inline-flex; align-items: center; gap: 3px; font-weight: 600;">Garantia
+                                    style="font-size: 10px; background: #eff6ff; color: #1e40af; padding: 3px 8px; border-radius: 99px; display: inline-flex; align-items: center; gap: 3px; font-weight: 600;">Garantia
                                     12 Meses</span>
                             </div>
                         </div>
@@ -3219,7 +2652,7 @@
                 <div class="static-right-col">
                     <div class="sk-form-block">
                         <div class="sk-form-header">
-                            <div class="sk-circle" style="background:#ff6b35;box-shadow:0 4px 10px rgba(255,107,53,.24);">1</div>
+                            <div class="sk-circle">1</div>
                             <div class="sk-title">Dados Pessoais</div>
                         </div>
                         <div class="sk-body">
@@ -3329,147 +2762,38 @@
             }
 
             if (!window.setupKeyboardDetection) {
-                var keyboardDetectionStarted = false;
+                var INITIAL_H = 0;
                 window.setupKeyboardDetection = function () {
-                    if (keyboardDetectionStarted) return;
-                    keyboardDetectionStarted = true;
-                    var INITIAL_H = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-                    var activeCheckoutField = null;
-                    var focusScrollTimers = [];
-                    function isCheckoutTextField(target) {
-                        if (!target || !target.tagName) return false;
-                        var tag = String(target.tagName).toUpperCase();
-                        if (tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT') return false;
-                        if (target.type && String(target.type).toLowerCase() === 'hidden') return false;
-                        return !!(target.closest && target.closest('#checkout-root, #spa-checkout-wrapper'));
-                    }
-                    function clearFocusScrollTimers() {
-                        while (focusScrollTimers.length) clearTimeout(focusScrollTimers.pop());
-                    }
-                    function getCheckoutHeaderOffset() {
-                        return 24;
-                    }
-                    function getCheckoutScrollContainer(field) {
-                        var wrapper = field && field.closest ? field.closest('#spa-checkout-wrapper') : null;
-                        if (wrapper && window.getComputedStyle(wrapper).display !== 'none') return wrapper;
-                        return document.scrollingElement || document.documentElement || document.body;
-                    }
-                    function scrollCheckoutBy(container, delta) {
-                        if (!container || container === document.documentElement || container === document.body || container === document.scrollingElement) {
-                            window.scrollBy({ top: delta, left: 0, behavior: 'auto' });
-                        } else {
-                            container.scrollTop += delta;
-                        }
-                    }
-                    function getNextCheckoutField(field) {
-                        var fields = Array.prototype.slice.call(document.querySelectorAll('#checkout-root input, #checkout-root textarea, #checkout-root select, #spa-checkout-wrapper input, #spa-checkout-wrapper textarea, #spa-checkout-wrapper select'));
-                        fields = fields.filter(function (item) {
-                            if (!isCheckoutTextField(item) || item.disabled) return false;
-                            var rect = item.getBoundingClientRect();
-                            return rect.width > 0 && rect.height > 0;
-                        });
-                        var index = fields.indexOf(field);
-                        return index >= 0 && index + 1 < fields.length ? fields[index + 1] : null;
-                    }
-                    function getEffectiveViewportBottom(viewportHeight, containerBottom) {
-                        var layoutHeight = window.innerHeight || document.documentElement.clientHeight || viewportHeight;
-                        var resizedForKeyboard = (INITIAL_H - viewportHeight > 120) || (INITIAL_H - layoutHeight > 120);
-                        var keyboardLikelyOverlaying = !!activeCheckoutField && !resizedForKeyboard;
-                        var estimatedKeyboardInset = keyboardLikelyOverlaying ? Math.max(260, Math.min(380, layoutHeight * 0.42)) : 0;
-                        return Math.min(viewportHeight, containerBottom, layoutHeight - estimatedKeyboardInset);
-                    }
-                    function ensureCheckoutFieldVisible(field) {
-                        if (!field || !document.contains(field) || !isCheckoutTextField(field)) return;
-                        var scrollContainer = getCheckoutScrollContainer(field);
-                        requestAnimationFrame(function () {
-                            if (!field || !document.contains(field)) return;
-                            var vv = window.visualViewport;
-                            var viewportHeight = vv ? vv.height : window.innerHeight;
-                            var containerRect = scrollContainer && scrollContainer.getBoundingClientRect && scrollContainer !== document.documentElement && scrollContainer !== document.body && scrollContainer !== document.scrollingElement
-                                ? scrollContainer.getBoundingClientRect()
-                                : { top: 0, bottom: viewportHeight };
-                            var rect = field.getBoundingClientRect();
-                            var nextField = getNextCheckoutField(field);
-                            var nextRect = nextField ? nextField.getBoundingClientRect() : null;
-                            var topGuard = Math.max(containerRect.top + 20, getCheckoutHeaderOffset());
-                var keyboardComfortInset = Math.max(72, Math.min(120, viewportHeight * 0.22));
-                var visibleBottom = Math.max(topGuard + 150, getEffectiveViewportBottom(viewportHeight, containerRect.bottom) - keyboardComfortInset);
-                            var nextReserve = nextRect ? Math.min(240, Math.max(150, nextRect.bottom - rect.top + 18)) : 150;
-                            var desiredTop = Math.max(topGuard + 6, Math.min(visibleBottom - nextReserve, viewportHeight * 0.31));
-                            var delta = 0;
-                            if (nextRect && nextRect.bottom > visibleBottom) delta = Math.max(delta, nextRect.bottom - visibleBottom);
-                            if (rect.bottom > visibleBottom) delta = Math.max(delta, rect.bottom - visibleBottom + 12);
-                            if (rect.top > desiredTop + 18) delta = Math.max(delta, rect.top - desiredTop);
-                            else if (rect.top < topGuard) delta = rect.top - topGuard;
-                            if (Math.abs(delta) > 18) scrollCheckoutBy(scrollContainer, delta);
-                        });
-                    }
-                    function scheduleCheckoutFieldScroll(field) {
-                        if (!isCheckoutTextField(field)) return;
-                        activeCheckoutField = field;
-                        document.body.classList.add('keyboard-open');
-                        clearFocusScrollTimers();
-                        [120, 380, 760, 1120].forEach(function (delay) {
-                            focusScrollTimers.push(setTimeout(function () {
-                                if (activeCheckoutField === field) {
-                                    ensureCheckoutFieldVisible(field);
-                                    try {
-                                        if (field.scrollIntoView) field.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'auto' });
-                                    } catch (e) { }
-                                }
-                            }, delay));
-                        });
-                    }
+                    if (window.__keyboardDetectionReady) return;
+                    window.__keyboardDetectionReady = true;
                     if (typeof window.visualViewport !== 'undefined') {
                         var vv = window.visualViewport;
+                        INITIAL_H = vv.height || window.innerHeight || 0;
+                        var keyboardRaf = 0;
+                        var lastKeyboardHeight = -1;
+                        var lastKeyboardOpen = false;
                         vv.addEventListener('resize', function () {
-                            var ch = vv.height;
-                            if (ch > INITIAL_H) INITIAL_H = ch;
-                            var d = INITIAL_H - ch;
-                            if (d > 150) {
-                                document.documentElement.style.setProperty('--keyboard-height', d + 'px');
-                                document.body.classList.add('keyboard-open');
-                            } else {
-                                document.body.classList.remove('keyboard-open');
-                                document.documentElement.style.setProperty('--keyboard-height', '0px');
-                            }
-                            if (activeCheckoutField) {
-                                ensureCheckoutFieldVisible(activeCheckoutField);
-                            }
+                            if (keyboardRaf) return;
+                            keyboardRaf = requestAnimationFrame(function () {
+                                keyboardRaf = 0;
+                                var ch = vv.height;
+                                if (ch > INITIAL_H) INITIAL_H = ch;
+                                var rawDelta = INITIAL_H - ch;
+                                var d = rawDelta > 150 ? Math.round(rawDelta) : 0;
+                                var isOpen = d > 0;
+
+                                if (d !== lastKeyboardHeight) {
+                                    lastKeyboardHeight = d;
+                                    document.documentElement.style.setProperty('--keyboard-height', d + 'px');
+                                }
+
+                                if (isOpen !== lastKeyboardOpen) {
+                                    lastKeyboardOpen = isOpen;
+                                    document.body.classList.toggle('keyboard-open', isOpen);
+                                }
+                            });
                         });
                     }
-                    window.addEventListener('resize', function () {
-                        if (typeof window.visualViewport !== 'undefined') return;
-                        var ch = window.innerHeight;
-                        if (ch > INITIAL_H) INITIAL_H = ch;
-                        var d = INITIAL_H - ch;
-                        if (d > 150) document.body.classList.add('keyboard-open');
-                        else document.body.classList.remove('keyboard-open');
-                        if (activeCheckoutField) {
-                            ensureCheckoutFieldVisible(activeCheckoutField);
-                        }
-                    });
-                    document.addEventListener('focusin', function (e) {
-                        if (isCheckoutTextField(e.target)) scheduleCheckoutFieldScroll(e.target);
-                    }, true);
-                    document.addEventListener('focusout', function (e) {
-                        if (!isCheckoutTextField(e.target)) return;
-                        setTimeout(function () {
-                            if (!isCheckoutTextField(document.activeElement)) {
-                                activeCheckoutField = null;
-                                clearFocusScrollTimers();
-                                document.body.classList.remove('keyboard-open');
-                            }
-                        }, 180);
-                    }, true);
-                    window.addEventListener('orientationchange', function () {
-                        setTimeout(function () {
-                            INITIAL_H = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-                            if (activeCheckoutField) {
-                                ensureCheckoutFieldVisible(activeCheckoutField);
-                            }
-                        }, 250);
-                    });
                 };
             }
 
@@ -3504,7 +2828,7 @@
             }
             window.getTTCLID = getTTCLID;
 
-            const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'msclkid'];
+            const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid', 'msclkid'];
             function getStoredUTMs() {
                 let utms = {};
                 try {
@@ -3541,7 +2865,11 @@
 
             function normalizePhone(v) {
                 if (!v) return null;
-                return String(v).replace(/\D/g, '');
+                var raw = String(v).trim().toLowerCase();
+                if (isSha256Hex(raw)) return raw;
+
+                var digits = raw.replace(/\D/g, '');
+                return digits || null;
             }
 
             async function sha256Hex(input) {
@@ -3577,8 +2905,11 @@
                     if (phoneHashed) {
                         out.phone = phoneHashed;
                         try { localStorage.setItem('user_hashed_phone', phoneHashed); } catch (e) { }
+                    } else {
+                        delete out.phone;
                     }
                 } else {
+                    delete out.phone;
                     try {
                         var savedP = localStorage.getItem('user_hashed_phone');
                         if (savedP) out.phone = savedP;
@@ -3586,82 +2917,6 @@
                 }
                 return out;
             }
-
-            function compactTikTokObject(obj) {
-                var out = {};
-                Object.keys(obj || {}).forEach(function (key) {
-                    var value = obj[key];
-                    if (value === undefined || value === null || value === '') return;
-                    out[key] = value;
-                });
-                return out;
-            }
-
-            async function buildTikTokIdentifyData(data) {
-                var out = {};
-                var source = data || {};
-                var email = source.email || '';
-                var phone = source.phone || source.phone_number || '';
-                var externalId = getExternalId();
-
-                if (!email) {
-                    try { email = localStorage.getItem('user_hashed_email') || ''; } catch (e) { }
-                }
-                if (!phone) {
-                    try { phone = localStorage.getItem('user_hashed_phone') || ''; } catch (e) { }
-                }
-
-                if (email) {
-                    if (isSha256Hex(email)) out.sha256_email = String(email).toLowerCase();
-                    else {
-                        var normalizedEmail = normalizeEmail(email);
-                        if (normalizedEmail) out.email = normalizedEmail;
-                    }
-                }
-                if (phone) {
-                    if (isSha256Hex(phone)) out.sha256_phone_number = String(phone).toLowerCase();
-                    else {
-                        var normalizedPhone = normalizePhone(phone);
-                        if (normalizedPhone) out.phone_number = normalizedPhone;
-                    }
-                }
-                if (externalId) {
-                    var normalizedExternalId = String(externalId).trim().toLowerCase();
-                    out.external_id = isSha256Hex(normalizedExternalId)
-                        ? normalizedExternalId
-                        : ((await sha256Hex(normalizedExternalId)) || normalizedExternalId);
-                }
-                return compactTikTokObject(out);
-            }
-
-            async function identifyTikTokUser(data) {
-                var identifyData = await buildTikTokIdentifyData(data || {});
-                if (!Object.keys(identifyData).length) return identifyData;
-                if (window.ttq && typeof window.ttq.identify === 'function') {
-                    try {
-                        var signature = JSON.stringify(identifyData);
-                        if (window.__lastTikTokIdentifySignature !== signature) {
-                            window.ttq.identify(identifyData);
-                            window.__lastTikTokIdentifySignature = signature;
-                        }
-                    } catch (e) { }
-                }
-                return identifyData;
-            }
-            window.identifyTikTokUser = identifyTikTokUser;
-
-            function prepareTikTokBrowserPayload(payload, identifyData) {
-                var out = compactTikTokObject(payload || {});
-                delete out.email;
-                delete out.phone;
-                delete out.phone_number;
-                if (identifyData && identifyData.sha256_email) out.sha256_email = identifyData.sha256_email;
-                if (identifyData && identifyData.email) out.email = identifyData.email;
-                if (identifyData && identifyData.sha256_phone_number) out.sha256_phone_number = identifyData.sha256_phone_number;
-                if (identifyData && identifyData.phone_number) out.phone_number = identifyData.phone_number;
-                return compactTikTokObject(out);
-            }
-            window.prepareTikTokBrowserPayload = prepareTikTokBrowserPayload;
 
             function generateEventId() {
                 return 'evt_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
@@ -3673,199 +2928,50 @@
             }
             window.getTTP = getTTP;
 
-            function getTikTokEventSourceUrl() {
+            async function buildTikTokBrowserIdentity(finalData) {
+                var identity = {};
+                if (finalData && finalData.email) identity.email = finalData.email;
+                if (finalData && finalData.phone) identity.phone_number = finalData.phone;
+
+                var externalId = getExternalId();
+                if (externalId) {
+                    var normalizedExternalId = String(externalId).trim().toLowerCase();
+                    var externalIdHash = isSha256Hex(normalizedExternalId) ? normalizedExternalId : (await sha256Hex(normalizedExternalId));
+                    if (externalIdHash) identity.external_id = externalIdHash;
+                }
+                return identity;
+            }
+
+            function identifyTikTokBrowser(identity) {
+                try {
+                    if (!identity || Object.keys(identity).length === 0) return;
+                    if (window.ttq && typeof window.ttq.identify === 'function') {
+                        window.ttq.identify(identity);
+                    }
+                } catch (e) { }
+            }
+
+            function getMetaEventSourceUrl() {
                 try {
                     var u = new URL(window.location.href);
-                    var host = String(u.hostname || '').toLowerCase();
                     u.protocol = 'https:';
-                    if (host === 'izzatcasa.shop' || host === 'oficial.izzatcasa.shop') {
-                        u.hostname = host;
-                    } else if (host === 'www.izzatcasa.shop') {
-                        u.hostname = 'izzatcasa.shop';
-                    } else {
-                        u.hostname = 'izzatcasa.shop';
-                    }
-                    u.port = '';
+                    u.host = 'izzatcasa.shop';
                     return u.toString();
                 } catch (_) { return 'https://izzatcasa.shop/'; }
             }
-            window.getTikTokEventSourceUrl = getTikTokEventSourceUrl;
-
-            var GA_EVENT_MAP = {
-                ViewContent: 'view_item',
-                AddToCart: 'add_to_cart',
-                InitiateCheckout: 'begin_checkout',
-                AddPaymentInfo: 'add_payment_info',
-                Pix_Copy_Click: 'pix_copy_click',
-                Checkout_Error: 'checkout_error',
-                InputCaptured: 'form_input_captured',
-                ClickButton: 'select_content',
-                Check_Reviews: 'check_reviews',
-                Interact_Gallery: 'interact_gallery',
-                ScrollDepth: 'scroll_depth',
-                CheckoutInteraction: 'checkout_interaction',
-                CheckoutFormFirstTouch: 'checkout_form_first_touch'
-            };
-
-            var GA_EVENT_LABELS_PT = {
-                page_view: 'Visualização da página',
-                view_item: 'Visualização do produto',
-                add_to_cart: 'Adicionar ao carrinho',
-                begin_checkout: 'Início do checkout',
-                add_payment_info: 'Informações de pagamento',
-                pix_copy_click: 'Clique no PIX copia e cola',
-                checkout_error: 'Erro no checkout',
-                form_input_captured: 'Campo do formulário capturado',
-                select_content: 'Clique em botão ou conteúdo',
-                check_reviews: 'Ver avaliações',
-                interact_gallery: 'Interação na galeria',
-                scroll_depth: 'Profundidade de rolagem',
-                checkout_interaction: 'Interação no checkout',
-                checkout_form_first_touch: 'Primeiro toque no formulário do checkout'
-            };
-
-            function getGAEventLabelPt(event, gaEvent) {
-                try {
-                    return GA_EVENT_LABELS_PT[gaEvent] || GA_EVENT_LABELS_PT[event] || '';
-                } catch (e) { return ''; }
-            }
-
-            function getGAPageLocation() {
-                try {
-                    return window.location.origin + window.location.pathname;
-                } catch (_) { return window.location.href; }
-            }
-            window.getGAPageLocation = getGAPageLocation;
-
-            function getGAClientId() {
-                try {
-                    var raw = decodeURIComponent(getCookieValue('_ga') || '');
-                    var parts = raw.split('.');
-                    if (parts.length >= 4) return parts.slice(-2).join('.');
-                    if (raw) return raw;
-                } catch (e) { return ''; }
-                try {
-                    var saved = localStorage.getItem('izz_ga_client_id');
-                    if (saved) return saved;
-                } catch (e) { }
-                try {
-                    var fallback = String(Math.floor(Date.now() / 1000)) + '.' + Math.random().toString(36).slice(2, 12);
-                    try { localStorage.setItem('izz_ga_client_id', fallback); } catch (e) { }
-                    try { setFirstPartyCookie('izz_ga_client_id', fallback, 730); } catch (e) { }
-                    return fallback;
-                } catch (e) { return ''; }
-            }
-            window.getGAClientId = getGAClientId;
-
-            function getGASessionId() {
-                try {
-                    var measurementId = String(window.GA_MEASUREMENT_ID || 'G-QY6B4BXBLF').replace(/^G-/, '').replace(/-/g, '_');
-                    var raw = decodeURIComponent(getCookieValue('_ga_' + measurementId) || '');
-                    if (!raw) return '';
-                    var marker = raw.match(/(?:^|[.$])s(\d{8,})/);
-                    if (marker && marker[1]) return marker[1];
-                    var parts = raw.split('.');
-                    return parts.length >= 3 ? parts[2] : '';
-                } catch (e) { return ''; }
-            }
-            window.getGASessionId = getGASessionId;
-
-            function buildGAItems(payload) {
-                var sourceItems = Array.isArray(payload && payload.contents) && payload.contents.length
-                    ? payload.contents
-                    : [{ id: payload && (payload.content_id || (Array.isArray(payload.content_ids) ? payload.content_ids[0] : '')), quantity: payload && payload.quantity, price: payload && payload.value }];
-                return sourceItems.map(function (item) {
-                    if (!item || typeof item !== 'object') return null;
-                    var itemId = item.item_id || item.id || item.content_id || (payload && payload.content_id);
-                    if (!itemId) return null;
-                    var price = item.price !== undefined ? item.price : (item.item_price !== undefined ? item.item_price : (payload && payload.value));
-                    var quantity = item.quantity !== undefined ? item.quantity : 1;
-                    return {
-                        item_id: String(itemId),
-                        item_name: String((payload && payload.content_name) || item.item_name || item.name || 'Produto'),
-                        item_category: String((payload && (payload.content_category || payload.category)) || 'Eletroportateis'),
-                        price: Number(price) || 0,
-                        quantity: Number(quantity) || 1
-                    };
-                }).filter(Boolean);
-            }
-
-            function buildGAPayload(event, payload, eventId) {
-                payload = payload || {};
-                var gaEvent = GA_EVENT_MAP[event] || event;
-                var eventLabelPt = getGAEventLabelPt(event, gaEvent);
-                var out = {
-                    page_location: getGAPageLocation(),
-                    page_path: window.location.pathname
-                };
-                if (eventLabelPt) out.nome_evento = eventLabelPt;
-                if (gaEvent) out.codigo_evento = String(gaEvent);
-                if (eventId) out.event_id = String(eventId);
-                if (payload.currency) out.currency = String(payload.currency).toUpperCase();
-                if (payload.value !== undefined && payload.value !== null && !isNaN(Number(payload.value))) out.value = Number(payload.value);
-                if (payload.order_id) out.transaction_id = String(payload.order_id);
-
-                var items = buildGAItems(payload);
-                if (items.length && /^(ViewContent|AddToCart|InitiateCheckout|AddPaymentInfo)$/.test(event)) out.items = items;
-
-                ['button_name', 'field_name', 'field_type', 'interaction_type', 'error_field', 'error_message', 'checkout_entry_source', 'checkout_visible_source', 'checkout_ready_state', 'order_id'].forEach(function (key) {
-                    if (payload[key] !== undefined && payload[key] !== null && payload[key] !== '') out[key] = String(payload[key]).slice(0, 180);
-                });
-
-                if (event === 'ClickButton' && payload.button_name) out.content_type = 'button';
-                if (event === 'ScrollDepth' && payload.depth !== undefined && !isNaN(Number(payload.depth))) out.percent_scrolled = Number(payload.depth);
-                if (payload.scroll_top !== undefined && !isNaN(Number(payload.scroll_top))) out.scroll_top = Math.max(0, Math.round(Number(payload.scroll_top)));
-                return out;
-            }
-
-            function trackGAEvent(event, payload, eventId) {
-                if (window.__TEST_MODE || window.__LAB_MODE) return;
-                var gaEvent = GA_EVENT_MAP[event];
-                if (!gaEvent) return;
-                var gaPayload = buildGAPayload(event, payload || {}, eventId);
-                if (window.__izzatDiagnostics && typeof window.__izzatDiagnostics.track === 'function') {
-                    try { window.__izzatDiagnostics.track('ga_event_seen', { event_name: gaEvent, event_id: eventId || '' }); } catch (e) { }
-                }
-                if (typeof window.trackZarazGAEvent === 'function') {
-                    try { window.trackZarazGAEvent(gaEvent, gaPayload); } catch (e) { }
-                } else {
-                    window.__zarazGAQueue = window.__zarazGAQueue || [];
-                    window.__zarazGAQueue.push({ event: gaEvent, data: gaPayload });
-                }
-            }
-            window.trackGAEvent = trackGAEvent;
-
-            function getCookieValue(name) {
-                try {
-                    var escaped = String(name || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                    return (document.cookie.match(new RegExp('(?:^|;\\s*)' + escaped + '=([^;]*)')) || [])[1];
-                } catch (e) { return undefined; }
-            }
-
-            function setFirstPartyCookie(name, value, days) {
-                try {
-                    if (!name || !value) return;
-                    var cookie = String(name) + '=' + encodeURIComponent(String(value)) + '; path=/; SameSite=Lax';
-                    if (typeof days === 'number' && isFinite(days)) cookie += '; Max-Age=' + Math.max(0, Math.floor(days * 86400));
-                    var host = String(window.location.hostname || '').toLowerCase();
-                    if (host === 'izzatcasa.shop' || host.endsWith('.izzatcasa.shop')) cookie += '; Domain=.izzatcasa.shop';
-                    if (window.location.protocol === 'https:') cookie += '; Secure';
-                    document.cookie = cookie;
-                } catch (e) { }
-            }
+            window.getMetaEventSourceUrl = getMetaEventSourceUrl;
 
             async function sendCAPI(event, eventId, properties, user) {
                 try {
-                    await fetch('/api/tiktok-events', {
+                    await fetch('/api/meta-events', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        keepalive: true,
                         body: JSON.stringify({ event: event, event_id: eventId, properties: properties, user: user })
                     });
                 } catch (e) { }
             }
 
-            function shouldSkipDuplicateTikTokEvent(event, eventId, ttlMs) {
+            function shouldSkipDuplicateMetaEvent(event, eventId, ttlMs) {
                 try {
                     if (!event || !eventId) return false;
                     var now = Date.now();
@@ -3882,32 +2988,33 @@
                 } catch (e) { }
                 return false;
             }
-            window.shouldSkipDuplicateTikTokEvent = window.shouldSkipDuplicateTikTokEvent || shouldSkipDuplicateTikTokEvent;
+            window.shouldSkipDuplicateMetaEvent = window.shouldSkipDuplicateMetaEvent || shouldSkipDuplicateMetaEvent;
 
             function trackPixel(event, data) {
                 if (window.__TEST_MODE || window.__LAB_MODE) { console.log('[TEST_MODE/LAB_MODE] Evento bloqueado:', event, data); return; }
-                if (event === 'CompletePayment' || event === 'Purchase') return;
                 data = data || {};
                 requestAnimationFrame(function () {
                     Promise.resolve().then(async function () {
                         var finalData = Object.assign({}, data);
-                        if (finalData.phone) finalData.phone = normalizePhone(finalData.phone);
+                        if (finalData.phone) {
+                            var normalizedPhone = normalizePhone(finalData.phone);
+                            if (normalizedPhone) finalData.phone = normalizedPhone;
+                            else delete finalData.phone;
+                        }
                         if (finalData.email) finalData.email = normalizeEmail(finalData.email);
                         finalData = await hashIdentifiers(finalData);
                         var eventId = finalData.event_id || generateEventId();
-                        if (window.shouldSkipDuplicateTikTokEvent && window.shouldSkipDuplicateTikTokEvent(event, eventId)) return;
+                        if (window.shouldSkipDuplicateMetaEvent && window.shouldSkipDuplicateMetaEvent(event, eventId)) return;
                         var payload = Object.assign({}, finalData, getStoredUTMs(), {
                             external_id: getExternalId(),
-                            ttclid: getTTCLID(),
-                            event_source_url: finalData.event_source_url || getTikTokEventSourceUrl(),
+                            event_source_url: getMetaEventSourceUrl(),
                             event_time: Math.floor(Date.now() / 1000)
                         });
-                        var identifyData = await identifyTikTokUser(finalData);
-                        if (window.ttq && typeof window.ttq.track === 'function') {
+                        if (typeof fbq === 'function') {
                             try {
-                                var bp = prepareTikTokBrowserPayload(payload, identifyData);
+                                var bp = Object.assign({}, payload);
                                 delete bp.event_id;
-                                window.ttq.track(event, bp, { event_id: eventId });
+                                fbq('track', event, bp, { eventID: eventId });
                             } catch (e) { }
                         }
                         var capiPayload = Object.assign({}, window.PRODUCT_CONTENT || {}, payload);
@@ -3918,14 +3025,10 @@
                             {
                                 email: finalData.email || undefined,
                                 phone_number: finalData.phone || undefined,
-                                external_id: getExternalId(),
-                                ttclid: getTTCLID(),
-                                ttp: getTTP()
+                                external_id: getExternalId()
                             }
                         );
-                        if (typeof window.trackGAEvent === 'function') {
-                            try { window.trackGAEvent(event, capiPayload, eventId); } catch (e) { }
-                        }
+                        if (typeof gtag === 'function') { try { gtag('event', event, payload); } catch (e) { } }
                     }).catch(function (error) { if (DEBUG_MODE) console.error('[trackPixel]', error); });
                 });
             }
@@ -3946,74 +3049,46 @@
             // ---- SPA NAVIGATION ----
             var checkoutFallbackTimer = null;
             var checkoutForceReadyTimer = null;
-            var checkoutViewportTrackingStarted = false;
-            var checkoutViewportLastHeight = 0;
-            var checkoutViewportPendingHeight = 0;
-            var checkoutViewportFrame = 0;
-            var checkoutViewportScrollTimer = 0;
 
             function clearCheckoutOpenTimers() {
                 if (checkoutFallbackTimer) { clearTimeout(checkoutFallbackTimer); checkoutFallbackTimer = null; }
                 if (checkoutForceReadyTimer) { clearTimeout(checkoutForceReadyTimer); checkoutForceReadyTimer = null; }
             }
 
-            function updateCheckoutViewportHeight() {
-                try {
-                    var height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-                    if (!height || height < 320) height = window.innerHeight || document.documentElement.clientHeight || 640;
-                    height = Math.round(height);
-                    if (!height || Math.abs(height - checkoutViewportLastHeight) < 2) return;
-                    checkoutViewportPendingHeight = height;
-                    if (!checkoutViewportFrame) {
-                        checkoutViewportFrame = (window.requestAnimationFrame || function (fn) { return setTimeout(fn, 16); })(function () {
-                            checkoutViewportFrame = 0;
-                            var nextHeight = checkoutViewportPendingHeight;
-                            checkoutViewportPendingHeight = 0;
-                            if (!nextHeight || Math.abs(nextHeight - checkoutViewportLastHeight) < 2) return;
-                            checkoutViewportLastHeight = nextHeight;
-                            document.documentElement.style.setProperty('--checkout-spa-vh', nextHeight + 'px');
-                        });
+            function ensureCheckoutStyles() {
+                var href = '/assets/css/tailwind-static.css?v=20260518tw1';
+                var existing = document.getElementById('checkout-tailwind-static-css');
+                if (existing) {
+                    if (existing.dataset.loaded === 'true' || existing.sheet) return Promise.resolve();
+                    return new Promise(function (resolve) {
+                        var done = false;
+                        function finish() {
+                            if (done) return;
+                            done = true;
+                            resolve();
+                        }
+                        existing.addEventListener('load', finish, { once: true });
+                        existing.addEventListener('error', finish, { once: true });
+                        setTimeout(finish, 1200);
+                    });
+                }
+                return new Promise(function (resolve) {
+                    var link = document.createElement('link');
+                    var done = false;
+                    function finish() {
+                        if (done) return;
+                        done = true;
+                        link.dataset.loaded = 'true';
+                        resolve();
                     }
-                } catch (e) { }
-            }
-            function updateCheckoutViewportHeightSoon() {
-                if (checkoutViewportScrollTimer) return;
-                checkoutViewportScrollTimer = setTimeout(function () {
-                    checkoutViewportScrollTimer = 0;
-                    updateCheckoutViewportHeight();
-                }, 80);
-            }
-
-            function ensureCheckoutViewportTracking() {
-                if (checkoutViewportTrackingStarted) {
-                    updateCheckoutViewportHeight();
-                    return;
-                }
-                checkoutViewportTrackingStarted = true;
-                updateCheckoutViewportHeight();
-                if (window.visualViewport) {
-                    window.visualViewport.addEventListener('resize', updateCheckoutViewportHeight, { passive: true });
-                    window.visualViewport.addEventListener('scroll', updateCheckoutViewportHeightSoon, { passive: true });
-                }
-                window.addEventListener('resize', updateCheckoutViewportHeight, { passive: true });
-                window.addEventListener('orientationchange', function () {
-                    setTimeout(updateCheckoutViewportHeight, 120);
-                    setTimeout(updateCheckoutViewportHeight, 420);
-                }, { passive: true });
-            }
-
-            function setCheckoutPageScrollLocked(locked) {
-                try {
-                    document.documentElement.classList.toggle('checkout-spa-open', !!locked);
-                    document.body.classList.toggle('checkout-spa-open', !!locked);
-                    if (locked) updateCheckoutViewportHeight();
-                } catch (e) { }
-            }
-
-            function checkoutStylesAreReady() {
-                if (window.__checkoutStylesReady) return true;
-                var css = document.querySelector('link[data-checkout-tailwind-css]');
-                return !!(css && css.sheet);
+                    link.id = 'checkout-tailwind-static-css';
+                    link.rel = 'stylesheet';
+                    link.href = href;
+                    link.onload = finish;
+                    link.onerror = finish;
+                    setTimeout(finish, 1200);
+                    document.head.appendChild(link);
+                });
             }
 
             function setCheckoutOpeningState() {
@@ -4023,7 +3098,6 @@
                 if (!wrapper) return;
 
                 clearCheckoutOpenTimers();
-                window.__checkoutStylesReady = false;
                 wrapper.setAttribute('data-state', 'opening');
                 if (sk) { sk.style.display = 'none'; sk.style.opacity = '1'; sk.style.transition = ''; }
                 if (root) { root.style.visibility = 'hidden'; root.style.opacity = '0'; root.style.pointerEvents = 'none'; }
@@ -4037,33 +3111,25 @@
 
                 // Segurança: evita travar em "opening" caso algo falhe.
                 checkoutForceReadyTimer = setTimeout(function () {
-                    setCheckoutReadyState({ force: true });
+                    setCheckoutReadyState();
                 }, 7000);
             }
 
-            function setCheckoutReadyState(options) {
-                options = options || {};
+            function setCheckoutReadyState() {
                 var wrapper = document.getElementById('spa-checkout-wrapper');
                 var sk = document.getElementById('skeleton-loader');
                 var root = document.getElementById('checkout-root');
-                var buyNow = document.getElementById('buy-now');
                 if (!wrapper) return;
-
-                if (!options.force && wrapper.getAttribute('data-state') === 'opening' && !checkoutStylesAreReady()) {
-                    setTimeout(function () { setCheckoutReadyState(options); }, 60);
-                    return;
-                }
 
                 clearCheckoutOpenTimers();
                 wrapper.setAttribute('data-state', 'ready');
                 if (sk) sk.style.display = 'none';
                 if (root) { root.style.visibility = 'visible'; root.style.opacity = '1'; root.style.pointerEvents = 'auto'; }
-                if (buyNow && buyNow.classList) buyNow.classList.remove('is-opening');
-                if (buyNow && typeof buyNow.removeAttribute === 'function') buyNow.removeAttribute('aria-busy');
             }
 
-            function watchCheckoutRender(timeoutMs) {
+            function watchCheckoutRender(timeoutMs, stylesReady) {
                 var start = Date.now();
+                var ready = stylesReady || Promise.resolve();
                 (function check() {
                     var wrapper = document.getElementById('spa-checkout-wrapper');
                     if (!wrapper || wrapper.getAttribute('data-state') !== 'opening') return;
@@ -4071,13 +3137,15 @@
                     var rendered = !!(root && root.children && root.children.length > 0 && root.textContent && root.textContent.trim().length > 20);
 
                     if (rendered) {
-                        requestAnimationFrame(function () {
-                            requestAnimationFrame(function () { setCheckoutReadyState(); });
+                        ready.then(function () {
+                            requestAnimationFrame(function () {
+                                requestAnimationFrame(function () { setCheckoutReadyState(); });
+                            });
                         });
                         return;
                     }
                     if (Date.now() - start > timeoutMs) {
-                        setCheckoutReadyState();
+                        ready.then(setCheckoutReadyState);
                         return;
                     }
                     setTimeout(check, 80);
@@ -4085,8 +3153,7 @@
             }
 
             // Voltar para a LP
-            window.spaGoBack = function (options) {
-                options = options || {};
+            window.spaGoBack = function () {
                 var wrapper = document.getElementById('spa-checkout-wrapper');
                 var container = document.querySelector('.container');
                 var bottomNav = document.querySelector('.bottom-nav');
@@ -4094,15 +3161,11 @@
                 var buyNow = document.getElementById('buy-now');
 
                 clearCheckoutOpenTimers();
-                window.__checkoutOpenScheduled = false;
-                window.__pendingCheckoutClick = false;
                 if (wrapper) {
                     wrapper.style.display = 'none';
                     wrapper.setAttribute('data-state', 'idle');
                 }
-                setCheckoutPageScrollLocked(false);
                 if (buyNow && buyNow.classList) buyNow.classList.remove('is-opening');
-                if (buyNow && typeof buyNow.removeAttribute === 'function') buyNow.removeAttribute('aria-busy');
                 if (container) container.style.display = '';
                 if (bottomNav) bottomNav.style.display = '';
                 document.body.style.overflow = '';
@@ -4121,13 +3184,7 @@
                     oldRoot.parentNode.replaceChild(newRoot, oldRoot);
                 }
 
-                try {
-                    if (options.replace) {
-                        history.replaceState({ page: 'lp' }, '', '/');
-                    } else {
-                        history.pushState({ page: 'lp' }, '', '/');
-                    }
-                } catch (e) { }
+                history.pushState({ page: 'lp' }, '', '/');
                 document.title = 'Izzat - Fritadeira Elétrica Forno Oven 12L Mondial';
             };
 
@@ -4142,14 +3199,10 @@
 
                 window.__checkoutEntrySource = isDirectEntry ? 'direct' : 'lp';
                 window.__currentCheckoutOpenToken = 'checkout_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
-                window.__checkoutOpenScheduled = false;
-                window.__pendingCheckoutClick = false;
 
-                ensureCheckoutViewportTracking();
-                setCheckoutPageScrollLocked(true);
                 setCheckoutOpeningState();
+                var checkoutStylesReady = ensureCheckoutStyles();
                 if (buyNow && buyNow.classList) buyNow.classList.remove('is-opening');
-                if (buyNow && typeof buyNow.removeAttribute === 'function') buyNow.removeAttribute('aria-busy');
 
                 // Esconde a LP
                 if (container) container.style.display = 'none';
@@ -4160,59 +3213,19 @@
                 if (wrapper) {
                     wrapper.style.display = 'block';
                     wrapper.scrollTop = 0;
-                    requestAnimationFrame(function () { wrapper.scrollTop = 0; });
                 }
 
                 // Atualiza URL sem reload
                 var target = (typeof targetHref === 'string' && targetHref) ? targetHref : '/c/';
                 var checkoutUrl = window.buildCheckoutUrl ? window.buildCheckoutUrl(target) : target;
-                document.title = 'Checkout - Fritadeira Elétrica Forno Oven 12L';
                 try {
                     var u = new URL(checkoutUrl, window.location.origin);
-                    if (isDirectEntry) {
-                        history.replaceState({ page: 'checkout' }, '', u.pathname + u.search);
-                    } else {
-                        history.pushState({ page: 'checkout' }, '', u.pathname + u.search);
-                    }
+                    history.pushState({ page: 'checkout' }, '', u.pathname + u.search);
                 } catch (e) {
-                    if (isDirectEntry) {
-                        history.replaceState({ page: 'checkout' }, '', target);
-                    } else {
-                        history.pushState({ page: 'checkout' }, '', target);
-                    }
+                    history.pushState({ page: 'checkout' }, '', target);
                 }
 
-                // Configura Tailwind com o MESMO config de c/index.html
-                if (typeof window.tailwind !== 'undefined') {
-                    window.tailwind = window.tailwind || {};
-                    window.tailwind.config = {
-                        theme: {
-                            extend: {
-                                fontFamily: { sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'] },
-                                colors: { clifford: '#da373d' },
-                                spacing: {
-                                    'safe-top': 'env(safe-area-inset-top)',
-                                    'safe-bottom': 'env(safe-area-inset-bottom)'
-                                },
-                                keyframes: {
-                                    fadeIn: {
-                                        '0%': { opacity: '0', transform: 'translateY(10px)' },
-                                        '100%': { opacity: '1', transform: 'translateY(0)' }
-                                    },
-                                    pulseUrgent: {
-                                        '0%, 100%': { opacity: '1' },
-                                        '50%': { opacity: '0.8' }
-                                    }
-                                },
-                                animation: {
-                                    'fade-in': 'fadeIn 0.5s ease-out forwards',
-                                    'pulse-urgent': 'pulseUrgent 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                                    'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite'
-                                }
-                            }
-                        }
-                    };
-                }
+                document.title = 'Checkout - Fritadeira Elétrica Forno Oven 12L';
 
                 // CRITICAL: Reset React flags para permitir nova montagem
                 window.checkoutInitialized = false;
@@ -4226,43 +3239,57 @@
                     oldRoot.parentNode.replaceChild(newRoot, oldRoot);
                 }
 
-                // Garante CSS compilado do checkout sem executar Tailwind runtime no WebView.
-                function reloadTailwindAfterReact() {
+                // Tailwind agora e CSS estatico; aguarda o React renderizar antes de revelar.
+                function revealCheckoutAfterReact() {
                     var root = document.getElementById('checkout-root');
+                    var attempts = 0;
+                    function waitForRoot() {
+                        root = document.getElementById('checkout-root');
+                        attempts += 1;
+                        if (root && root.innerHTML.length >= 50) {
+                            checkoutStylesReady.then(function () { setTimeout(setCheckoutReadyState, 60); });
+                            return;
+                        }
+                        if (attempts < 45) {
+                            setTimeout(waitForRoot, 100);
+                            return;
+                        }
+                        checkoutStylesReady.then(setCheckoutReadyState);
+                    }
                     if (!root || root.innerHTML.length < 50) {
-                        setTimeout(reloadTailwindAfterReact, 150);
+                        waitForRoot();
                         return;
                     }
-                    var revealDone = false;
-                    var reveal = function () {
-                        if (revealDone) return;
-                        revealDone = true;
-                        setTimeout(setCheckoutReadyState, 60);
-                    };
-                    if (window.__ensureCheckoutStyles) {
-                        window.__ensureCheckoutStyles(reveal);
+                    checkoutStylesReady.then(function () { setTimeout(setCheckoutReadyState, 60); });
+                }
+
+                function startReactCheckout() {
+                    if (window.initReactCheckout) {
+                        try {
+                            window.initReactCheckout();
+                            setTimeout(revealCheckoutAfterReact, 300);
+                        } catch (err) { console.error('[SPA] Error:', err); }
                     } else {
-                        reveal();
+                        var poll = setInterval(function () {
+                            if (window.initReactCheckout) {
+                                clearInterval(poll);
+                                window.initReactCheckout();
+                                setTimeout(revealCheckoutAfterReact, 300);
+                            }
+                        }, 100);
                     }
                 }
 
-                // Inicia o React checkout
-                if (window.initReactCheckout) {
-                    try {
-                        window.initReactCheckout();
-                        setTimeout(reloadTailwindAfterReact, 300);
-                    } catch (err) { console.error('[SPA] Error:', err); }
+                // Carrega React/checkout sob demanda na LP. Isso evita disputar a primeira pintura/LCP.
+                if (window.ensureCheckoutRuntime) {
+                    window.ensureCheckoutRuntime().then(startReactCheckout).catch(function () {
+                        startReactCheckout();
+                    });
                 } else {
-                    var poll = setInterval(function () {
-                        if (window.initReactCheckout) {
-                            clearInterval(poll);
-                            window.initReactCheckout();
-                            setTimeout(reloadTailwindAfterReact, 300);
-                        }
-                    }, 100);
+                    startReactCheckout();
                 }
 
-                watchCheckoutRender(6500);
+                watchCheckoutRender(6500, checkoutStylesReady);
 
                 // Tracking: O InitiateCheckout agora é disparado exclusivamente pelo checkout.app.js (React)
                 // para evitar duplicidade no modo SPA.
@@ -4272,19 +3299,15 @@
             window.addEventListener('popstate', function (e) {
                 var wrapper = document.getElementById('spa-checkout-wrapper');
                 if (wrapper && wrapper.style.display !== 'none') {
-                    window.spaGoBack({ replace: true });
+                    window.spaGoBack();
                 }
             });
 
             // Deep link: se a URL já é /c/, abre checkout automaticamente
             if (window.__pendingCheckoutClick) {
                 try {
-                    if (typeof window.__scheduleCheckoutOpen === 'function') {
-                        window.__scheduleCheckoutOpen(window.__pendingCheckoutTarget || '/c/');
-                    } else {
-                        window.__pendingCheckoutClick = false;
-                        window.spaOpenCheckout(window.__pendingCheckoutTarget || '/c/');
-                    }
+                    window.__pendingCheckoutClick = false;
+                    window.spaOpenCheckout(window.__pendingCheckoutTarget || '/c/');
                 } catch (e) { }
             }
 
@@ -4312,17 +3335,15 @@
             try {
                 if (which === 'react' && typeof window.React !== 'undefined') return;
                 if (which === 'react-dom' && typeof window.ReactDOM !== 'undefined') return;
-                if (which.indexOf('tailwind') === 0 && document.querySelector('script[src*="tailwindcss"]')) return;
 
                 window.__libFallbackCount = window.__libFallbackCount || {};
                 window.__libFallbackCount[which] = (window.__libFallbackCount[which] || 0) + 1;
                 var n = window.__libFallbackCount[which];
 
                 var tries = [];
-                if (which === 'react') tries = ['assets/vendor/react.production.min.js', 'https://unpkg.com/react@18/umd/react.production.min.js'];
-                if (which === 'react-dom') tries = ['assets/vendor/react-dom.production.min.js', 'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js'];
-                if (which.indexOf('tailwind') === 0) tries = ['assets/vendor/tailwindcss.js', 'https://cdn.tailwindcss.com'];
-                if (which === 'checkoutapp') tries = ['assets/js/checkout.app.js?v=' + Date.now()];
+                if (which === 'react') tries = ['/assets/vendor/react.production.min.js', 'https://unpkg.com/react@18/umd/react.production.min.js'];
+                if (which === 'react-dom') tries = ['/assets/vendor/react-dom.production.min.js', 'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js'];
+                if (which === 'checkoutapp') tries = ['/assets/js/checkout.app.js?v=' + Date.now()];
 
                 var src = tries[Math.min(n - 1, tries.length - 1)];
                 if (!src) return;
@@ -4335,150 +3356,66 @@
             } catch (e) { }
         };
     </script>
-    <script defer onerror="window.__localLibFallback('react')" src="assets/vendor/react.production.min.js"></script>
-    <script defer onerror="window.__localLibFallback('react-dom')"
-        src="assets/vendor/react-dom.production.min.js"></script>
-    <script>
-        // Config usada apenas se o fallback do Tailwind runtime for necessario.
-        window.tailwind = window.tailwind || {};
-        window.tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'] },
-                    colors: { clifford: '#da373d' },
-                    spacing: {
-                        'safe-top': 'env(safe-area-inset-top)',
-                        'safe-bottom': 'env(safe-area-inset-bottom)',
-                    },
-                    keyframes: {
-                        fadeIn: {
-                            '0%': { opacity: '0', transform: 'translateY(10px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        },
-                        pulseUrgent: {
-                            '0%, 100%': { opacity: '1' },
-                            '50%': { opacity: '0.8' },
-                        }
-                    },
-                    animation: {
-                        'fade-in': 'fadeIn 0.5s ease-out forwards',
-                        'pulse-urgent': 'pulseUrgent 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                    }
-                }
-            }
-        };
-    </script>
     <script>
         (function () {
-            var href = '/assets/css/checkout.tailwind.css?v=20260423a';
-            var preloadStarted = false;
-            var applied = false;
+            if (window.ensureCheckoutRuntime) return;
+            var runtimePromise = null;
+            var warmScheduled = false;
 
-            function isLikelyTikTokInApp() {
-                try {
-                    var ua = navigator.userAgent || '';
-                    return /tiktok|musical_ly|bytedance|aweme/i.test(ua);
-                } catch (e) {
-                    return false;
-                }
+            function loadWhenMissing(name, src, isReady) {
+                if (isReady()) return Promise.resolve(src);
+                return window.__loadScript(src).then(function () {
+                    if (!isReady()) throw new Error(name + ' nao ficou disponivel');
+                    return src;
+                });
             }
 
-            function shouldSkipCheckoutPrefetch() {
-                return isLikelyTikTokInApp();
-            }
-
-            function applyPreload(preload, onReady) {
-                if (!preload || applied) {
-                    if (onReady) setTimeout(onReady, 0);
-                    return;
-                }
-                applied = true;
-                preload.rel = 'stylesheet';
-                preload.removeAttribute('as');
-                preload.removeAttribute('data-checkout-tailwind-preload');
-                preload.setAttribute('data-checkout-tailwind-css', '');
-                if (onReady) {
-                    if (preload.sheet) {
-                        window.__checkoutStylesReady = true;
-                        if (window.__izzatEarlyDiagTrack) window.__izzatEarlyDiagTrack('critical_asset_loaded', { asset_name: 'checkout_tailwind_css', asset_url: preload.href || href, asset_type: 'style', ready_state: document.readyState }, 'critical_asset:checkout_tailwind_css');
-                        requestAnimationFrame(function () { onReady(); });
-                    } else {
-                        preload.addEventListener('load', function () {
-                            window.__checkoutStylesReady = true;
-                            if (window.__izzatEarlyDiagTrack) window.__izzatEarlyDiagTrack('critical_asset_loaded', { asset_name: 'checkout_tailwind_css', asset_url: preload.href || href, asset_type: 'style', ready_state: document.readyState }, 'critical_asset:checkout_tailwind_css');
-                            requestAnimationFrame(function () { onReady(); });
-                        }, { once: true });
-                        preload.addEventListener('error', function () { if (window.__izzatEarlyDiagTrack) window.__izzatEarlyDiagTrack('critical_asset_missing', { asset_name: 'checkout_tailwind_css', asset_url: preload.href || href, asset_type: 'style', asset_status: 'error', ready_state: document.readyState }, 'critical_asset:checkout_tailwind_css:error'); onReady(); }, { once: true });
-                        setTimeout(function () { if (onReady) onReady(); }, 900);
-                    }
-                }
-            }
-
-            window.__preloadCheckoutStyles = window.__preloadCheckoutStyles || function () {
-                if (shouldSkipCheckoutPrefetch()) return;
-                if (preloadStarted || document.querySelector('link[data-checkout-tailwind-css],link[data-checkout-tailwind-preload]')) return;
-                preloadStarted = true;
-                var link = document.createElement('link');
-                link.rel = 'prefetch';
-                link.as = 'style';
-                link.href = href;
-                link.setAttribute('data-checkout-tailwind-preload', '');
-                link.onload = function () { link.dataset.loaded = '1'; if (window.__izzatEarlyDiagTrack) window.__izzatEarlyDiagTrack('critical_asset_loaded', { asset_name: 'checkout_tailwind_css', asset_url: link.href || href, asset_type: 'style', ready_state: document.readyState }, 'critical_asset:checkout_tailwind_css'); };
-                link.onerror = function () { preloadStarted = false; if (window.__izzatEarlyDiagTrack) window.__izzatEarlyDiagTrack('critical_asset_missing', { asset_name: 'checkout_tailwind_css', asset_url: link.href || href, asset_type: 'style', asset_status: 'prefetch_error', ready_state: document.readyState }, 'critical_asset:checkout_tailwind_css:error'); };
-                document.head.appendChild(link);
+            window.ensureCheckoutRuntime = function () {
+                if (runtimePromise) return runtimePromise;
+                runtimePromise = loadWhenMissing('react', '/assets/vendor/react.production.min.js', function () {
+                    return typeof window.React !== 'undefined';
+                }).then(function () {
+                    return loadWhenMissing('react-dom', '/assets/vendor/react-dom.production.min.js', function () {
+                        return typeof window.ReactDOM !== 'undefined';
+                    });
+                }).then(function () {
+                    return loadWhenMissing('checkoutapp', '/assets/js/checkout.app.js?v=20260601eventid1', function () {
+                        return typeof window.initReactCheckout === 'function';
+                    });
+                }).then(function () {
+                    window.__checkoutRuntimeReady = true;
+                    return true;
+                }).catch(function (err) {
+                    runtimePromise = null;
+                    throw err;
+                });
+                return runtimePromise;
             };
 
-            window.__ensureCheckoutStyles = window.__ensureCheckoutStyles || function (onReady) {
-                var css = document.querySelector('link[data-checkout-tailwind-css]');
-                if (css) {
-                    if (css.sheet) {
-                        window.__checkoutStylesReady = true;
-                        if (window.__izzatEarlyDiagTrack) window.__izzatEarlyDiagTrack('critical_asset_loaded', { asset_name: 'checkout_tailwind_css', asset_url: css.href || href, asset_type: 'style', ready_state: document.readyState }, 'critical_asset:checkout_tailwind_css');
-                        if (onReady) onReady();
-                    } else {
-                        css.addEventListener('load', function () { window.__checkoutStylesReady = true; if (window.__izzatEarlyDiagTrack) window.__izzatEarlyDiagTrack('critical_asset_loaded', { asset_name: 'checkout_tailwind_css', asset_url: css.href || href, asset_type: 'style', ready_state: document.readyState }, 'critical_asset:checkout_tailwind_css'); if (onReady) onReady(); }, { once: true });
-                        css.addEventListener('error', function () { if (window.__izzatEarlyDiagTrack) window.__izzatEarlyDiagTrack('critical_asset_missing', { asset_name: 'checkout_tailwind_css', asset_url: css.href || href, asset_type: 'style', asset_status: 'error', ready_state: document.readyState }, 'critical_asset:checkout_tailwind_css:error'); if (onReady) onReady(); }, { once: true });
-                        setTimeout(function () { if (onReady) onReady(); }, 900);
-                    }
-                    return;
-                }
-
-                var preload = document.querySelector('link[data-checkout-tailwind-preload]');
-                if (preload) {
-                    applyPreload(preload, onReady);
-                    return;
-                }
-
-                css = document.createElement('link');
-                css.rel = 'stylesheet';
-                css.href = href;
-                css.setAttribute('data-checkout-tailwind-css', '');
-                css.onload = function () { window.__checkoutStylesReady = true; if (window.__izzatEarlyDiagTrack) window.__izzatEarlyDiagTrack('critical_asset_loaded', { asset_name: 'checkout_tailwind_css', asset_url: css.href || href, asset_type: 'style', ready_state: document.readyState }, 'critical_asset:checkout_tailwind_css'); if (onReady) onReady(); };
-                css.onerror = function () {
-                    window.__pendingTailwindFallback = true;
-                    if (window.__izzatEarlyDiagTrack) window.__izzatEarlyDiagTrack('critical_asset_missing', { asset_name: 'checkout_tailwind_css', asset_url: css.href || href, asset_type: 'style', asset_status: 'error', ready_state: document.readyState }, 'critical_asset:checkout_tailwind_css:error');
-                    if (window.__localLibFallback) window.__localLibFallback('tailwind-local');
-                    if (onReady) onReady();
+            function warmCheckoutRuntime() {
+                if (warmScheduled || window.__checkoutRuntimeReady) return;
+                warmScheduled = true;
+                var run = function () {
+                    if (document.visibilityState === 'hidden') return;
+                    window.ensureCheckoutRuntime().catch(function () {
+                        try { window.__localLibFallback('checkoutapp'); } catch (e) { }
+                    });
                 };
-                setTimeout(function () { if (onReady) onReady(); }, 900);
-                document.head.appendChild(css);
-            };
+                if ('requestIdleCallback' in window) {
+                    requestIdleCallback(run, { timeout: 2500 });
+                } else {
+                    setTimeout(run, 1200);
+                }
+            }
 
-            ['pointerenter', 'touchstart', 'focus'].forEach(function (eventName) {
-                document.addEventListener(eventName, function (event) {
-                    var target = event.target && event.target.closest ? event.target.closest('#buy-now,.buy-btn,[data-checkout-target]') : null;
-                    if (target && window.__preloadCheckoutStyles) window.__preloadCheckoutStyles();
-                }, { passive: true, capture: true });
+            ['pointerdown', 'touchstart', 'keydown', 'scroll'].forEach(function (eventName) {
+                window.addEventListener(eventName, function () {
+                    setTimeout(warmCheckoutRuntime, 700);
+                }, { once: true, passive: true });
             });
-
-            var schedule = window.requestIdleCallback || function (fn) { return setTimeout(fn, 1600); };
-            schedule(function () {
-                if (window.__preloadCheckoutStyles) window.__preloadCheckoutStyles();
-            }, { timeout: 5000 });
+            setTimeout(warmCheckoutRuntime, 7000);
         })();
     </script>
-<script defer onload="window.__izzatEarlyDiagTrack&&window.__izzatEarlyDiagTrack('critical_asset_loaded',{asset_name:'checkout_app_js',asset_url:this.getAttribute('src')||'',asset_type:'script',ready_state:document.readyState},'critical_asset:checkout_app_js')" onerror="window.__izzatEarlyDiagTrack&&window.__izzatEarlyDiagTrack('critical_asset_missing',{asset_name:'checkout_app_js',asset_url:this.getAttribute('src')||'',asset_type:'script',asset_status:'error',ready_state:document.readyState},'critical_asset:checkout_app_js:error');window.__localLibFallback('checkoutapp')" src="assets/js/checkout.app.js?v=20260428pixguard1"></script>
 </body>
 
 </html>

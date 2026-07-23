@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LAB - Limpando ambiente</title>
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+</head>
+<body style="font-family: Inter, Arial, sans-serif; padding: 24px;">
+  <p>Preparando ambiente limpo para testes...</p>
+  <p><a id="lab-link" href="/?lab=1">Clique aqui se nao redirecionar.</a></p>
+  <script>
+    (function () {
+      var target = '/?lab=1&_lab_nonce=' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+      var link = document.getElementById('lab-link');
+      if (link) link.href = target;
+
+      function safe(fn) { try { fn(); } catch (e) {} }
+      safe(function () { localStorage.clear(); });
+      safe(function () { sessionStorage.clear(); });
+      safe(function () {
+        document.cookie.split(';').forEach(function (cookie) {
+          var eq = cookie.indexOf('=');
+          var name = (eq > -1 ? cookie.slice(0, eq) : cookie).trim();
+          if (!name) return;
+          document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax';
+        });
+      });
+      safe(function () {
+        if (window.caches && typeof window.caches.keys === 'function') {
+          window.caches.keys().then(function (keys) {
+            keys.forEach(function (key) { window.caches.delete(key); });
+          }).catch(function () {});
+        }
+      });
+      setTimeout(function () { window.location.replace(target); }, 80);
+    })();
+  </script>
+</body>
+</html>

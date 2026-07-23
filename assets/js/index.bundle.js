@@ -1,5 +1,5 @@
-﻿// ==================================================
-    // 1. TRACKING ZARAZ + TIKTOK TURBO (BEACON + FINGERPRINT)
+// ==================================================
+    // 1. TRACKING TIKTOK TURBO (BEACON + FINGERPRINT)
     // ==================================================
     
     // Dados do Produto
@@ -48,7 +48,7 @@
         return 'evt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     }
     window.generateEventId = generateEventId;
-    // trackViaZaraz será definida mais abaixo (Browser Pixel + CAPI)
+    // trackViaZaraz mantem nome legado, mas usa Browser Pixel + CAPI proprios.
 
     function getExternalId() {
         let eid = localStorage.getItem('user_external_id');
@@ -93,7 +93,64 @@
         return utms;
     }
 
-    // Contexto Avançado (Fingerprinting Lite)
+    // Contexto AvanÃ§ado (Fingerprinting Lite)
+    function getContext() {
+        let connection = 'unknown';
+        if (navigator.connection) {
+            connection = navigator.connection.effectiveType; // '4g', '3g', etc.
+        }
+        
+        return {
+            user_agent: navigator.userAgent,
+            language: navigator.language,
+            url: window.location.href,
+            referrer: document.referrer,
+            timestamp: Math.floor(Date.now() / 1000),
+
+    function getExternalId() {
+        let eid = localStorage.getItem('user_external_id');
+        if (!eid) eid = getCookie('user_external_id'); 
+        
+        if (!eid) {
+            eid = 'user_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+            localStorage.setItem('user_external_id', eid);
+            setCookie('user_external_id', eid, 365); 
+        }
+        return eid;
+    }
+
+    function getTTCLID() {
+        const urlParams = new URLSearchParams(window.location.search);
+        let clickId = urlParams.get('ttclid');
+        if (clickId) {
+            setCookie('ttclid', clickId, 90);
+            localStorage.setItem('ttclid', clickId);
+        } else {
+            clickId = localStorage.getItem('ttclid') || getCookie('ttclid');
+        }
+        return clickId;
+    }
+
+    function saveUTMs() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+        utmKeys.forEach(key => {
+            const val = urlParams.get(key);
+            if (val) setCookie(key, val, 30);
+        });
+    }
+
+    function getStoredUTMs() {
+        const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+        let utms = {};
+        utmKeys.forEach(key => {
+            const val = getCookie(key);
+            if (val) utms[key] = val;
+        });
+        return utms;
+    }
+
+    // Contexto AvanÃ§ado (Fingerprinting Lite)
     function getContext() {
         let connection = 'unknown';
         if (navigator.connection) {
@@ -111,124 +168,19 @@
         };
     }
 
-    // --- FUNÇÃO DE DISPARO HÍBRIDA (Browser Pixel + CAPI) ---
-    // Leitura do cookie _ttp (TikTok Pixel cookie)
-    function getTTP() {
-        return (document.cookie.match(/(?:^|;\s*)_ttp=([^;]*)/) || [])[1] || undefined;
+    // --- FUNÃ‡ÃƒO DE DISPARO HÃ BRIDA (Browser Pixel + CAPI) ---
+    // Leitura do cookie _fbp (Meta Pixel cookie)
+    function getFBP() {
+        return (document.cookie.match(/(?:^|;\s*)_fbp=([^;]*)/) || [])[1] || undefined;
     }
 
-    function getTikTokEventSourceUrl() {
+    function getMetaEventSourceUrl() {
         try {
             var u = new URL(window.location.href);
-            var host = String(u.hostname || '').toLowerCase();
             u.protocol = 'https:';
-            if (host === 'izzatcasa.shop' || host === 'oficial.izzatcasa.shop') {
-                u.hostname = host;
-            } else if (host === 'www.izzatcasa.shop') {
-                u.hostname = 'izzatcasa.shop';
-            } else {
-                u.hostname = 'izzatcasa.shop';
-            }
-            u.port = '';
+            u.host = 'izzatcasa.shop';
             return u.toString();
         } catch(_) { return 'https://izzatcasa.shop/'; }
-    }
-
-    async function sendCAPI(event, eventId, properties, user) {
-        try {
-            await fetch('/api/tiktok-events', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                keepalive: true,
-                body: JSON.stringify({ event: event, event_id: eventId, properties: properties, user: user })
-            });
-        } catch(e) {}
-    }
-
-    function trackViaZaraz(event, data = {}) {
-        if (event === 'CompletePayment' || event === 'Purchase') return;
-        if (window.trackPixel) {
-            window.trackPixel(event, data);
-            return;
-        }
-        if (window.__TEST_MODE || window.__LAB_MODE) { console.log('[TEST_MODE/LAB_MODE] Evento bloqueado:', event, data); return; }
-        try {
-            const savedEmail = localStorage.getItem('user_hashed_email');
-            const savedPhone = localStorage.getItem('user_hashed_phone');
-
-            let payload = {
-                ...data,
-                ...getContext(),
-                external_id: getExternalId(),
-                ttclid: getTTCLID(),
-                ...getStoredUTMs()
-            };
-
-            payload.event_time = payload.timestamp || Math.floor(Date.now() / 1000);
-            payload.event_source_url = payload.event_source_url || getTikTokEventSourceUrl();
-
-            if (savedEmail && !payload.email) payload.email = savedEmail;
-            if (savedPhone && !payload.phone) payload.phone = savedPhone;
-
-            var eventId = payload.event_id || window.generateEventId();
-            if (window.shouldSkipDuplicateTikTokEvent && window.shouldSkipDuplicateTikTokEvent(event, eventId)) return;
-
-            // 1. Browser Pixel (com event_id para deduplicação)
-            if (window.ttq && typeof window.ttq.track === 'function') {
-                if (event !== 'PageView') {
-                    var sendBrowserPixel = function(identifyData) {
-                        try {
-                            var bp = (typeof window.prepareTikTokBrowserPayload === 'function')
-                                ? window.prepareTikTokBrowserPayload(payload, identifyData || {})
-                                : Object.assign({}, payload);
-                            delete bp.event_id;
-                            window.ttq.track(event, bp, { event_id: eventId });
-                        } catch(e) {}
-                    };
-                    if (typeof window.identifyTikTokUser === 'function') {
-                        try {
-                            Promise.resolve(window.identifyTikTokUser(payload)).then(sendBrowserPixel).catch(function() {
-                                sendBrowserPixel({});
-                            });
-                        } catch(e) { sendBrowserPixel({}); }
-                    } else {
-                        sendBrowserPixel({});
-                    }
-                }
-            }
-
-            // 2. CAPI server-side (dupla camada — mesmo event_id para deduplicação)
-            var requiresCatalogContent = (event === 'ViewContent' || event === 'AddToCart');
-            var capiProperties = Object.assign(
-                {},
-                requiresCatalogContent ? PRODUCT_CONTENT : {},
-                data || {},
-                { event_source_url: payload.event_source_url || getTikTokEventSourceUrl() }
-            );
-
-            if (!capiProperties.content_id) {
-                if (Array.isArray(capiProperties.contents) && capiProperties.contents[0] && capiProperties.contents[0].content_id) {
-                    capiProperties.content_id = capiProperties.contents[0].content_id;
-                } else if (Array.isArray(capiProperties.content_ids) && capiProperties.content_ids[0]) {
-                    capiProperties.content_id = capiProperties.content_ids[0];
-                }
-            }
-
-            sendCAPI(
-                event,
-                eventId,
-                capiProperties,
-                {
-                    email:       payload.email || undefined,
-                    phone_number: payload.phone || undefined,
-                    external_id: getExternalId(),
-                    ttclid:      getTTCLID(),
-                    ttp:         getTTP()
-                }
-            );
-
-        } catch (error) {
-            console.error('Tracking Error:', error);
         }
     }
     window.trackViaZaraz = trackViaZaraz;
@@ -239,14 +191,14 @@
     if ('scrollRestoration' in history) {
         history.scrollRestoration = 'manual';
     }
-    window.scrollTo(0, 0);
 
     window.addEventListener('load', function() {
         saveUTMs();
     });
 
-    // 2. ViewContent da LP (melhor prática para TikTok)
-    // O checkout só dispara ViewContent como fallback em entrada direta.
+    // 2. ViewContent da LP
+    // [Removido] A pedido, o ViewContent dispara apenas no checkout.
+    /*
     (function triggerLandingViewContent() {
         if (/^\/c(?:\/|$)/i.test(window.location.pathname)) return;
         try {
@@ -267,14 +219,15 @@
             });
         } catch (e) {}
     })();
+    */
 
-    // 3. CTA Comprar Agora (WebView-safe: não bloqueia navegação)
-    // Monta o link com parâmetros (ttclid/utm/eid) ANTES do clique, evitando redirect com delay.
+    // 3. CTA Comprar Agora (WebView-safe: nÃ£o bloqueia navegaÃ§Ã£o)
+    // Monta o link com parÃ¢metros (ttclid/utm/eid) ANTES do clique, evitando redirect com delay.
     window.buildCheckoutUrl = function(baseHref) {
         try {
             const urlObj = new URL(baseHref, window.location.origin);
 
-            // 1) Mantém parâmetros atuais da URL (UTMs, ttclid etc.)
+            // 1) MantÃ©m parÃ¢metros atuais da URL (UTMs, ttclid etc.)
             const currentParams = new URLSearchParams(window.location.search);
             currentParams.forEach((value, key) => {
                 urlObj.searchParams.set(key, value);
@@ -310,49 +263,33 @@
         const btn = document.getElementById('buy-now') || document.querySelector('.buy-btn');
         if (!btn) return;
         const baseCheckoutPath = '/c/';
-        const inertCtaHref = 'javascript:void(0)';
         window.__buyNowJsReady = true;
 
-        // Mantém o CTA inerte para o in-browser do TikTok; o SPA usa data-checkout-target.
-        btn.href = inertCtaHref;
+        // Modo 100% SPA: nunca redireciona por href.
+        btn.href = 'javascript:void(0)';
 
-        // Mantém a URL de checkout com parâmetros em data-attribute.
+        // MantÃ©m a URL de checkout com parÃ¢metros em data-attribute.
         try {
             btn.dataset.checkoutTarget = window.buildCheckoutUrl(baseCheckoutPath);
         } catch (e) {}
-        btn.href = inertCtaHref;
 
         // Setup SPA Checkout instead of redirecting
         btn.addEventListener('click', (e) => {
             e.preventDefault();
-            if (btn.classList) btn.classList.add('is-opening');
-            if (typeof btn.setAttribute === 'function') btn.setAttribute('aria-busy', 'true');
+            if (btn.classList) btn.classList.remove('is-opening');
             const target = btn.dataset.checkoutTarget || baseCheckoutPath;
-            const addToCartEventSourceUrl = getTikTokEventSourceUrl();
-            window.__pendingCheckoutTarget = target;
-            window.__pendingCheckoutClick = true;
-            if (typeof window.__scheduleCheckoutOpen === 'function') {
-                window.__scheduleCheckoutOpen(target);
-            } else if (typeof window.spaOpenCheckout === 'function') {
-                const openAfterPaint = () => setTimeout(() => window.spaOpenCheckout(target), 0);
-                if (typeof window.requestAnimationFrame === 'function') {
-                    window.requestAnimationFrame(openAfterPaint);
-                } else {
-                    setTimeout(openAfterPaint, 0);
-                }
-            }
+            if (typeof window.spaOpenCheckout === 'function') window.spaOpenCheckout(target);
 
             const trackAddToCart = () => {
                 try {
                     trackViaZaraz('AddToCart', {
                         ...PRODUCT_CONTENT,
-                        event_source_url: addToCartEventSourceUrl,
                         event_id: generateEventId()
                     }, true);
                 } catch (err) {}
             };
 
-            // Evita custo extra no frame do clique (sensação de "botão travado")
+            // Evita custo extra no frame do clique (sensaÃ§Ã£o de "botÃ£o travado")
             if ('requestIdleCallback' in window) {
                 requestIdleCallback(trackAddToCart, { timeout: 1200 });
             } else {
@@ -361,25 +298,35 @@
         });
     })();
     // ==================================================
-    // 4. MICRO-CONVERSÕES (NOVO: ALIMENTA O ALGORITMO)
+    // 4. MICRO-CONVERSÃ•ES (NOVO: ALIMENTA O ALGORITMO)
     // ==================================================
 
     // A) Scroll Profundo (Leitura)
     let scroll50Fired = false;
-    window.addEventListener('scroll', function() {
-        if (scroll50Fired) return;
-        const scrollPercentage = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight * 100;
-        if (scrollPercentage >= 50) {
-            scroll50Fired = true;
-            trackViaZaraz('ScrollDepth', {
-                event_id: generateEventId(),
-                depth: '50%'
-            });
-        }
-    }, { passive: true });
+    let scrollDepthTicking = false;
+    function handleScrollDepth() {
+        if (scroll50Fired || scrollDepthTicking) return;
+        scrollDepthTicking = true;
+        requestAnimationFrame(function() {
+            scrollDepthTicking = false;
+            if (scroll50Fired) return;
+            const doc = document.documentElement;
+            const totalHeight = doc.scrollHeight || 1;
+            const scrollPercentage = (window.scrollY + window.innerHeight) / totalHeight * 100;
+            if (scrollPercentage >= 50) {
+                scroll50Fired = true;
+                window.removeEventListener('scroll', handleScrollDepth);
+                trackViaZaraz('ScrollDepth', {
+                    event_id: generateEventId(),
+                    depth: '50%'
+                });
+            }
+        });
+    }
+    window.addEventListener('scroll', handleScrollDepth, { passive: true });
 
 // ==================================================
-  // 2. FUNÇÕES VISUAIS DA LOJA (UI/UX)
+  // 2. FUNÃ‡Ã•ES VISUAIS DA LOJA (UI/UX)
   // ==================================================
   
   function showTab(tabName) {
@@ -407,7 +354,7 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     
-    // Cronômetro Persistente (Anti-Fake)
+    // CronÃ´metro Persistente (Anti-Fake)
     function startCountdown() {
       const countdownEl = document.getElementById('countdown-timer');
       if (!countdownEl) return;
@@ -416,7 +363,7 @@
       let savedTime = localStorage.getItem('offer_timer_v4');
       let timeLeft = savedTime ? parseInt(savedTime) : 900;
       
-      // Se o tempo acabou ou é inválido, reseta
+      // Se o tempo acabou ou Ã© invÃ¡lido, reseta
       if(isNaN(timeLeft) || timeLeft <= 0) timeLeft = 900;
 
       const updateDisplay = () => {
@@ -425,16 +372,21 @@
           countdownEl.textContent = `Termina em ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
       };
 
+      const persistTimer = () => {
+        try { localStorage.setItem('offer_timer_v4', timeLeft); } catch(e) {}
+      };
+      window.addEventListener('pagehide', persistTimer, { passive: true });
+
       updateDisplay(); // Atualiza imediatamente
 
       const timerInterval = setInterval(() => {
         if (timeLeft <= 0) {
-          // Quando acaba, reinicia discretamente para manter a pressão (loop infinito sutil)
+          // Quando acaba, reinicia discretamente para manter a pressÃ£o (loop infinito sutil)
           timeLeft = 900; 
         } else {
           timeLeft--;
         }
-        localStorage.setItem('offer_timer_v4', timeLeft);
+        if (timeLeft % 5 === 0) persistTimer();
         updateDisplay();
       }, 1000);
     }
@@ -476,20 +428,17 @@
     const viewReviewsBtn = document.querySelector('.add-cart-btn');
     const reviewsSection = document.querySelector('.reviews-section');
     
-    // CORREÇÃO: Remover loader ao carregar imagem
+    // CORRECAO: o onload pode ja ter disparado quando a imagem vem do cache.
     if (mainImage) {
-        const hideImageLoader = function() {
-            const loader = document.getElementById('image-loading');
-            if(loader) loader.style.display = 'none';
-        };
+        const loader = document.getElementById('image-loading');
+        if (loader && mainImage.complete) loader.style.display = 'none';
         mainImage.onload = function() {
-            hideImageLoader();
-        };
-        if (mainImage.complete) hideImageLoader();
+            if(loader) loader.style.display = 'none';
+        }
     }
 
-    // FIX INP: Otimização do botão "Ver Avaliações"
-    // ⭐️ NOVO: Rastreamento de Micro-Conversão (Click em Avaliações)
+    // FIX INP: OtimizaÃ§Ã£o do botÃ£o "Ver AvaliaÃ§Ãµes"
+    // â­ï¸ NOVO: Rastreamento de Micro-ConversÃ£o (Click em AvaliaÃ§Ãµes)
     if (viewReviewsBtn && reviewsSection) {
       viewReviewsBtn.addEventListener('click', (e) => {
         
@@ -498,7 +447,7 @@
             window.trackViaZaraz('Check_Reviews', { event_id: window.generateEventId() });
         }
 
-        // Envolve em requestAnimationFrame para não bloquear o clique inicial
+        // Envolve em requestAnimationFrame para nÃ£o bloquear o clique inicial
         requestAnimationFrame(() => {
             // FIX: Alterado de 'smooth' para 'auto' para garantir scroll em mobile (TikTok Browser)
             reviewsSection.scrollIntoView({ behavior: 'auto', block: 'start' });
@@ -515,19 +464,9 @@
         const dot = document.createElement('div');
         dot.classList.add('dot');
         dot.dataset.index = i;
-        dot.setAttribute('role', 'button');
-        dot.setAttribute('tabindex', '0');
-        dot.setAttribute('aria-label', `Ver imagem ${i}`);
         dot.addEventListener('click', () => {
           currentImageIndex = i;
           updateImageDisplay();
-        });
-        dot.addEventListener('keydown', event => {
-          if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            currentImageIndex = i;
-            updateImageDisplay();
-          }
         });
         imageDots.appendChild(dot);
       }
@@ -539,9 +478,6 @@
         const thumbWrapper = document.createElement('div');
         thumbWrapper.classList.add('thumbnail');
         thumbWrapper.dataset.index = i;
-        thumbWrapper.setAttribute('role', 'button');
-        thumbWrapper.setAttribute('tabindex', '0');
-        thumbWrapper.setAttribute('aria-label', `Ver miniatura ${i}`);
         
         const thumbImg = document.createElement('img');
         const imgName = 'thumb_' + padZero(i) + '.webp'; 
@@ -550,31 +486,38 @@
         thumbImg.alt = `Miniatura ${i}`;
         thumbImg.loading = 'lazy';
         thumbImg.decoding = 'async';
-        thumbImg.width = 100;
-        thumbImg.height = 100;
+        thumbImg.fetchPriority = 'low';
         
         thumbWrapper.appendChild(thumbImg);
         thumbWrapper.addEventListener('click', () => {
           currentImageIndex = i;
           updateImageDisplay();
         });
-        thumbWrapper.addEventListener('keydown', event => {
-          if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            currentImageIndex = i;
-            updateImageDisplay();
-          }
-        });
         imageThumbnails.appendChild(thumbWrapper);
       }
     }
 
-    function updateImageDisplay() {
-        // FIX INP: Manipulação de DOM pesada movida para requestAnimationFrame
+    function updateImageDisplay(options = {}) {
+        // FIX INP: ManipulaÃ§Ã£o de DOM pesada movida para requestAnimationFrame
         requestAnimationFrame(() => {
-          const imgName = padZero(currentImageIndex) + '.webp';
-          const nextSrc = '/assets/img/' + imgName;
-          if (mainImage.getAttribute('src') !== nextSrc) mainImage.src = nextSrc;
+          if (!options.skipImageUpdate) {
+            const imgName = padZero(currentImageIndex) + '.webp';
+            if (currentImageIndex === 1) {
+              const nextSrcset = '/assets/img/01-240.webp 240w, /assets/img/01-320.webp 320w, /assets/img/01-400.webp 400w';
+              const nextSizes = '(max-width: 480px) 100vw, 400px';
+              const nextSrc = '/assets/img/01-400.webp';
+              const nextAbsoluteSrc = new URL(nextSrc, window.location.origin).href;
+              if (mainImage.getAttribute('srcset') !== nextSrcset) mainImage.srcset = nextSrcset;
+              if (mainImage.getAttribute('sizes') !== nextSizes) mainImage.sizes = nextSizes;
+              if (mainImage.currentSrc !== nextAbsoluteSrc && mainImage.getAttribute('src') !== nextSrc) {
+                mainImage.src = nextSrc;
+              }
+            } else {
+              mainImage.removeAttribute('srcset');
+              mainImage.removeAttribute('sizes');
+              mainImage.src = '/assets/img/' + imgName;
+            }
+          }
           imageCounter.textContent = `${currentImageIndex}/${totalImages}`;
 
           imageDots.querySelectorAll('.dot').forEach((d, i) =>
@@ -585,7 +528,7 @@
       });
     }
 
-    // ⭐️ CORREÇÃO 1: Tornando a função GLOBAL para o HTML encontrar ⭐️
+    // â­ï¸ CORREÃ‡ÃƒO 1: Tornando a funÃ§Ã£o GLOBAL para o HTML encontrar â­ï¸
     window.changeImage = function(dir) {
       currentImageIndex += dir;
       if (currentImageIndex > totalImages) currentImageIndex = 1;
@@ -600,9 +543,8 @@
         const color = swatch.dataset.color;
         
         if (variantLinks[color]) {
-          const variantTarget = window.buildCheckoutUrl ? window.buildCheckoutUrl(variantLinks[color]) : variantLinks[color];
-          buyBtn.dataset.checkoutTarget = variantTarget;
-          buyBtn.href = 'javascript:void(0)';
+          buyBtn.href = "javascript:void(0)";
+          buyBtn.dataset.checkoutTarget = window.buildCheckoutUrl ? window.buildCheckoutUrl(variantLinks[color]) : variantLinks[color];
           buyBtn.removeAttribute('onclick');
         }
         
@@ -616,27 +558,26 @@
     if (defaultSwatch) {
         defaultSwatch.classList.add('selected');
         if (variantLinks[currentVariant]) {
-            const variantTarget = window.buildCheckoutUrl ? window.buildCheckoutUrl(variantLinks[currentVariant]) : variantLinks[currentVariant];
-            buyBtn.dataset.checkoutTarget = variantTarget;
-            buyBtn.href = 'javascript:void(0)';
+            buyBtn.href = "javascript:void(0)";
+            buyBtn.dataset.checkoutTarget = window.buildCheckoutUrl ? window.buildCheckoutUrl(variantLinks[currentVariant]) : variantLinks[currentVariant];
             buyBtn.removeAttribute('onclick');
         }
     }
 
     createImageDots();
     createThumbnails();
-    updateImageDisplay();
+    updateImageDisplay({ skipImageUpdate: true });
     startCountdown();     
     updateShippingDate(); 
     
-    // ⭐️ CORREÇÃO 2: SWIPE com verificação de eixo Y (Scroll) ⭐️
+    // â­ï¸ CORREÃ‡ÃƒO 2: SWIPE com verificaÃ§Ã£o de eixo Y (Scroll) â­ï¸
     const imgContainer = document.querySelector('.image-container');
     let touchStartX = 0;
     let touchStartY = 0;
     let touchEndX = 0;
     let touchEndY = 0;
     
-    // Controle de disparo único para evento de Galeria
+    // Controle de disparo Ãºnico para evento de Galeria
     let galleryEventFired = false;
 
     if (imgContainer) {
@@ -656,12 +597,12 @@
       const xDiff = touchEndX - touchStartX;
       const yDiff = touchEndY - touchStartY;
       
-      // Só muda imagem se movimento horizontal for maior que vertical (para não atrapalhar o scroll)
+      // SÃ³ muda imagem se movimento horizontal for maior que vertical (para nÃ£o atrapalhar o scroll)
       if (Math.abs(xDiff) > 50 && Math.abs(xDiff) > Math.abs(yDiff)) {
-        if (xDiff < 0) window.changeImage(1); // Swipe Esquerda -> Próxima
+        if (xDiff < 0) window.changeImage(1); // Swipe Esquerda -> PrÃ³xima
         else window.changeImage(-1); // Swipe Direita -> Anterior
         
-        // ⭐️ NOVO: Rastreia interação com galeria (Micro-Conversão)
+        // â­ï¸ NOVO: Rastreia interaÃ§Ã£o com galeria (Micro-ConversÃ£o)
         if (!galleryEventFired && window.trackViaZaraz) {
             galleryEventFired = true;
             window.trackViaZaraz('Interact_Gallery', { event_id: window.generateEventId() });
@@ -712,11 +653,8 @@
         }, 4000);
     }
 
-    // Sales popup desativado para reduzir risco de reprovação automática e desconfiança do cliente.
-    // Para reativar: troque SALES_POPUP_ENABLED para true.
-    const SALES_POPUP_ENABLED = true;
     // Show popup only once per session, after 15 seconds
-    if (SALES_POPUP_ENABLED && !sessionStorage.getItem('popup_shown')) {
+    if (!sessionStorage.getItem('popup_shown')) {
         setTimeout(() => {
             showSalesPopup();
             sessionStorage.setItem('popup_shown', '1');

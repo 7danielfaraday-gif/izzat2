@@ -3,7 +3,6 @@
 // Storage: KV (binding name: PIX_STORE)
 
 const KEY = 'pix_config_v1';
-const DEFAULT_QRCODE_URL = '/assets/img/qrcode.webp';
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -15,31 +14,26 @@ function json(data, status = 200) {
   });
 }
 
-function normalizePixCode(value) {
-  return typeof value === 'string' ? value.trim() : '';
-}
-
-function isValidPixCode(value) {
-  const code = normalizePixCode(value);
-  return code.length >= 20 && /^000201/.test(code) && /br\.gov\.bcb\.pix/i.test(code);
-}
-
 async function getConfig(env) {
   const stored = await env.PIX_STORE.get(KEY, { type: 'json' });
-  if (!stored || typeof stored !== 'object') return null;
+  const fallback = {
+    pix_code:
+      '00020101021226900014br.gov.bcb.pix2568pix.adyen.com/pixqrcodelocation/pixloc/v1/loc/936hXbvVSumZfEhVNQKf8g5204000053039865802BR5925MONETIZZE IMPULSIONADORA 6009SAO PAULO62070503***63041AD0',
+    qrcode_url: '/assets/img/qrcode.webp',
+    updated_at: null,
+  };
 
-  const pixCode = normalizePixCode(stored.pix_code);
-  if (!isValidPixCode(pixCode)) return null;
+  if (!stored || typeof stored !== 'object') return fallback;
 
   return {
-    pix_code: pixCode,
+    pix_code: typeof stored.pix_code === 'string' ? stored.pix_code : fallback.pix_code,
     // allow empty string to hide QR
     qrcode_url:
       stored.qrcode_url === null
         ? null
         : typeof stored.qrcode_url === 'string'
-          ? stored.qrcode_url.trim()
-          : DEFAULT_QRCODE_URL,
+          ? stored.qrcode_url
+          : fallback.qrcode_url,
     updated_at: stored.updated_at || null,
   };
 }
@@ -47,7 +41,6 @@ async function getConfig(env) {
 export async function onRequestGet(context) {
   try {
     const cfg = await getConfig(context.env);
-    if (!cfg) return json({ ok: false, error: 'pix_config_missing' }, 503);
     return json({ ok: true, ...cfg });
   } catch (e) {
     return json({ ok: false, error: 'server_error' }, 500);
