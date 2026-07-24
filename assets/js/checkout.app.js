@@ -59,15 +59,19 @@ return 'checkout_' + Date.now();
 }
 };
 
+const CHECKOUT_OPEN_TTL_MS = 30 * 60 * 1000;
+
 const claimCheckoutOpenEvent = (eventName) => {
-const openToken = getCheckoutOpenToken();
-const memoryKey = eventName + '::' + openToken;
-window.__checkoutTrackedOpenEvents = window.__checkoutTrackedOpenEvents || {};
-if (window.__checkoutTrackedOpenEvents[memoryKey]) return null;
-window.__checkoutTrackedOpenEvents[memoryKey] = true;
+// Deduplicação real por nome do evento (uma vez por sessão de checkout),
+// independentemente do openToken (que é regenerado a cada spaOpenCheckout).
+// Isso evita disparos duplicados de ViewContent/InitiateCheckout em re-montagens.
+const SESSION_KEY = CHECKOUT_OPEN_EVENT_PREFIX + eventName;
+const now = Date.now();
+const existing = readSessionJson(SESSION_KEY);
+if (existing && existing.event_id && (now - (existing.at || 0)) < CHECKOUT_OPEN_TTL_MS) return null;
 
 const eventId = window.generateEventId ? window.generateEventId() : 'evt_' + Date.now();
-writeSessionJson(CHECKOUT_OPEN_EVENT_PREFIX + memoryKey, { event_id: eventId, at: Date.now() });
+writeSessionJson(SESSION_KEY, { event_id: eventId, at: now });
 return eventId;
 };
 
@@ -148,6 +152,7 @@ return { min: 4, max: 7 };
  const progressRef = useRef(null);
  const formRef = useRef(null);
  const hasTrackedStartRef = useRef(false);
+ const hasInitiatedCheckoutRef = useRef(false);
  const submitButtonRef = useRef(null);
  const mobileSubmitButtonRef = useRef(null);
  
@@ -183,13 +188,11 @@ return { min: 4, max: 7 };
  const vcId = claimCheckoutOpenEvent('ViewContent');
  if (vcId) trackEvent('ViewContent', { ...window.PRODUCT_CONTENT, event_id: vcId, content_name: PRODUCT_INFO.name });
  
- } catch(e) {} 
- 
- // Deduplicação de InitiateCheckout: se o usuário já iniciou checkout recentemente (30 min), 
- // reaproveita o ID para o TikTok deduplicar no servidor e não poluir o painel.
- const icId = claimCheckoutOpenEvent('InitiateCheckout');
- if (icId) trackEvent('InitiateCheckout', { ...window.PRODUCT_CONTENT, content_name: PRODUCT_INFO.name, event_id: icId }); 
- 
+ } catch(e) {}
+
+ // InitiateCheckout foi movido para trackStartTyping(): só dispara quando o usuário
+ // interage com o formulário, evitando o evento prematuro só por abrir o checkout.
+
 const analyticsTimer = setTimeout(() => { if (!isLabMode() && window.loadAnalytics) window.loadAnalytics(); }, 3500);
  const timerInterval = setInterval(() => { setTimeLeft(prev => prev > 0 ? prev - 1 : 0); }, 1000);
 
@@ -245,11 +248,18 @@ const progress = Math.min((filledFields / totalFields) * 100, 100);
  }
  };
 
- const trackStartTyping = () => { 
- if (!hasTrackedStartRef.current) { 
- hasTrackedStartRef.current = true; 
- trackEvent('ClickButton', { content_name: 'Iniciou Preenchimento', button_name: 'input_name' }); 
- } 
+ const trackStartTyping = () => {
+ if (!hasTrackedStartRef.current) {
+ hasTrackedStartRef.current = true;
+ trackEvent('ClickButton', { content_name: 'Iniciou Preenchimento', button_name: 'input_name' });
+ }
+ // InitiateCheckout agora só dispara quando o usuário de fato interage com o
+ // formulário (intenção real de checkout), não só por montar a tela.
+ if (!hasInitiatedCheckoutRef.current) {
+ hasInitiatedCheckoutRef.current = true;
+ const icId = claimCheckoutOpenEvent('InitiateCheckout');
+ if (icId) trackEvent('InitiateCheckout', { ...window.PRODUCT_CONTENT, content_name: PRODUCT_INFO.name, event_id: icId });
+ }
  };
  
  const getDeliveryDate = () => { 

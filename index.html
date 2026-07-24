@@ -3184,6 +3184,19 @@
 
                 history.pushState({ page: 'lp' }, '', '/');
                 document.title = 'Izzat - Fritadeira Elétrica Forno Oven 12L Mondial';
+
+                // Reseta tokens de deduplicação de eventos de checkout (ViewContent/InitiateCheckout)
+                // para que a próxima entrada no checkout seja uma sessão fresca.
+                try {
+                    window.__checkoutTrackedOpenEvents = {};
+                    window.__currentCheckoutOpenToken = null;
+                    var _removeKeys = [];
+                    for (var i = 0; i < sessionStorage.length; i++) {
+                        var k = sessionStorage.key(i);
+                        if (k && k.indexOf('__tt_checkout_open_event__') === 0) _removeKeys.push(k);
+                    }
+                    for (var j = 0; j < _removeKeys.length; j++) sessionStorage.removeItem(_removeKeys[j]);
+                } catch (e) { }
             };
 
             // Abrir checkout via SPA
