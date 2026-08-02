@@ -1,0 +1,1442 @@
+[
+  {
+    "run": 1,
+    "elapsed": 14621,
+    "lcp": {
+      "startTime": 7772,
+      "renderTime": 7772,
+      "loadTime": 7734.4000000059605,
+      "size": 160000,
+      "id": "main-product-image",
+      "url": "https://izzatcasa.shop/assets/img/01-400.webp",
+      "tag": "IMG",
+      "selector": "#main-product-image"
+    },
+    "fcp": {
+      "name": "first-contentful-paint",
+      "startTime": 7732
+    },
+    "imgResource": {
+      "name": "https://izzatcasa.shop/assets/img/01-400.webp",
+      "initiatorType": "link",
+      "startTime": 7279.600000008941,
+      "responseEnd": 7502.5,
+      "duration": 222.8999999910593,
+      "transferSize": 9622,
+      "decodedBodySize": 9322
+    },
+    "mainImage": {
+      "complete": true,
+      "currentSrc": "https://izzatcasa.shop/assets/img/01-400.webp",
+      "rect": {
+        "top": 0,
+        "left": 0,
+        "width": 412,
+        "height": 400
+      }
+    },
+    "nav": {
+      "startTime": 0,
+      "responseStart": 7213,
+      "responseEnd": 7425.4000000059605,
+      "domInteractive": 7777.5,
+      "domContentLoadedEventEnd": 8875.10000000894,
+      "loadEventEnd": 10076.10000000894,
+      "transferSize": 35794,
+      "decodedBodySize": 165799
+    },
+    "longTasks": [
+      {
+        "startTime": 7318.300000011921,
+        "duration": 411,
+        "name": "unknown"
+      },
+      {
+        "startTime": 7788.800000011921,
+        "duration": 69,
+        "name": "unknown"
+      },
+      {
+        "startTime": 8802.10000000894,
+        "duration": 73,
+        "name": "self"
+      },
+      {
+        "startTime": 8905.10000000894,
+        "duration": 154,
+        "name": "unknown"
+      },
+      {
+        "startTime": 9433.20000000298,
+        "duration": 299,
+        "name": "self"
+      }
+    ],
+    "longTaskTotal": 756,
+    "layoutShiftSum": 0.03949211885062898,
+    "resources": [
+      {
+        "name": "https://izzatcasa.shop/assets/fonts/inter-local.css?v=20260518font1",
+        "initiatorType": "link",
+        "startTime": 7276.800000011921,
+        "responseEnd": 7447.5,
+        "duration": 170.69999998807907,
+        "transferSize": 1030,
+        "decodedBodySize": 11809
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/01-400.webp",
+        "initiatorType": "link",
+        "startTime": 7279.600000008941,
+        "responseEnd": 7502.5,
+        "duration": 222.8999999910593,
+        "transferSize": 9622,
+        "decodedBodySize": 9322
+      },
+      {
+        "name": "https://analytics.tiktok.com/i18n/pixel/events.js?sdkid=D86SK5BC77U97AFNPAP0&lib=ttq",
+        "initiatorType": "script",
+        "startTime": 7286,
+        "responseEnd": 7657,
+        "duration": 371,
+        "transferSize": 0,
+        "decodedBodySize": 0
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/seller-avatarr.webp",
+        "initiatorType": "img",
+        "startTime": 7310.70000000298,
+        "responseEnd": 7627.5,
+        "duration": 316.79999999701977,
+        "transferSize": 2010,
+        "decodedBodySize": 1710
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/foto1.webp",
+        "initiatorType": "img",
+        "startTime": 7725.4000000059605,
+        "responseEnd": 7968.800000011921,
+        "duration": 243.40000000596046,
+        "transferSize": 2560,
+        "decodedBodySize": 2260
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/review01.webp",
+        "initiatorType": "img",
+        "startTime": 7725.800000011921,
+        "responseEnd": 8090.100000008941,
+        "duration": 364.29999999701977,
+        "transferSize": 4644,
+        "decodedBodySize": 4344
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/foto2.webp",
+        "initiatorType": "img",
+        "startTime": 7726.20000000298,
+        "responseEnd": 7950.4000000059605,
+        "duration": 224.20000000298023,
+        "transferSize": 1896,
+        "decodedBodySize": 1596
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/review02.webp",
+        "initiatorType": "img",
+        "startTime": 7726.800000011921,
+        "responseEnd": 8043.100000008941,
+        "duration": 316.29999999701977,
+        "transferSize": 3480,
+        "decodedBodySize": 3180
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/foto3.webp",
+        "initiatorType": "img",
+        "startTime": 7727.4000000059605,
+        "responseEnd": 8012.9000000059605,
+        "duration": 285.5,
+        "transferSize": 2356,
+        "decodedBodySize": 2056
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/review03.webp",
+        "initiatorType": "img",
+        "startTime": 7728,
+        "responseEnd": 7981,
+        "duration": 253,
+        "transferSize": 2674,
+        "decodedBodySize": 2374
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/js/index.bundle.js?v=20260527r2",
+        "initiatorType": "script",
+        "startTime": 7745.5,
+        "responseEnd": 8215.10000000894,
+        "duration": 469.6000000089407,
+        "transferSize": 8274,
+        "decodedBodySize": 26931
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/js/metrics.ping.js",
+        "initiatorType": "script",
+        "startTime": 7746.9000000059605,
+        "responseEnd": 7965,
+        "duration": 218.09999999403954,
+        "transferSize": 1093,
+        "decodedBodySize": 1758
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/vendor/react.production.min.js",
+        "initiatorType": "script",
+        "startTime": 7775.5,
+        "responseEnd": 8152.70000000298,
+        "duration": 377.20000000298023,
+        "transferSize": 4721,
+        "decodedBodySize": 10750
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/vendor/react-dom.production.min.js",
+        "initiatorType": "script",
+        "startTime": 7775.9000000059605,
+        "responseEnd": 8787.5,
+        "duration": 1011.5999999940395,
+        "transferSize": 43899,
+        "decodedBodySize": 131834
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/js/checkout.app.js?v=20260527r2",
+        "initiatorType": "script",
+        "startTime": 7776.4000000059605,
+        "responseEnd": 8383.40000000596,
+        "duration": 607,
+        "transferSize": 15703,
+        "decodedBodySize": 55324
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_01.webp",
+        "initiatorType": "img",
+        "startTime": 8888.800000011921,
+        "responseEnd": 9284.40000000596,
+        "duration": 395.59999999403954,
+        "transferSize": 6942,
+        "decodedBodySize": 6642
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_02.webp",
+        "initiatorType": "img",
+        "startTime": 8889.20000000298,
+        "responseEnd": 9149.40000000596,
+        "duration": 260.20000000298023,
+        "transferSize": 1670,
+        "decodedBodySize": 1370
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_03.webp",
+        "initiatorType": "img",
+        "startTime": 8889.60000000894,
+        "responseEnd": 9146.300000011921,
+        "duration": 256.70000000298023,
+        "transferSize": 2218,
+        "decodedBodySize": 1918
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_04.webp",
+        "initiatorType": "img",
+        "startTime": 8890,
+        "responseEnd": 9177.300000011921,
+        "duration": 287.30000001192093,
+        "transferSize": 2506,
+        "decodedBodySize": 2206
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_05.webp",
+        "initiatorType": "img",
+        "startTime": 8890.40000000596,
+        "responseEnd": 9160.5,
+        "duration": 270.09999999403954,
+        "transferSize": 1740,
+        "decodedBodySize": 1440
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_06.webp",
+        "initiatorType": "img",
+        "startTime": 8890.90000000596,
+        "responseEnd": 9314.20000000298,
+        "duration": 423.29999999701977,
+        "transferSize": 7736,
+        "decodedBodySize": 7436
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_07.webp",
+        "initiatorType": "img",
+        "startTime": 8891.300000011921,
+        "responseEnd": 9284.70000000298,
+        "duration": 393.3999999910593,
+        "transferSize": 6500,
+        "decodedBodySize": 6200
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_08.webp",
+        "initiatorType": "img",
+        "startTime": 8891.60000000894,
+        "responseEnd": 9345.5,
+        "duration": 453.8999999910593,
+        "transferSize": 10272,
+        "decodedBodySize": 9972
+      }
+    ]
+  },
+  {
+    "run": 2,
+    "elapsed": 7673,
+    "lcp": {
+      "startTime": 760,
+      "renderTime": 760,
+      "loadTime": 561.2999999970198,
+      "size": 160000,
+      "id": "main-product-image",
+      "url": "https://izzatcasa.shop/assets/img/01-400.webp",
+      "tag": "IMG",
+      "selector": "#main-product-image"
+    },
+    "fcp": {
+      "name": "first-contentful-paint",
+      "startTime": 568
+    },
+    "imgResource": {
+      "name": "https://izzatcasa.shop/assets/img/01-400.webp",
+      "initiatorType": "link",
+      "startTime": 227.69999998807907,
+      "responseEnd": 457.29999999701977,
+      "duration": 229.6000000089407,
+      "transferSize": 9622,
+      "decodedBodySize": 9322
+    },
+    "mainImage": {
+      "complete": true,
+      "currentSrc": "https://izzatcasa.shop/assets/img/01-400.webp",
+      "rect": {
+        "top": 0,
+        "left": 0,
+        "width": 412,
+        "height": 400
+      }
+    },
+    "nav": {
+      "startTime": 0,
+      "responseStart": 127.29999999701977,
+      "responseEnd": 348.5,
+      "domInteractive": 855,
+      "domContentLoadedEventEnd": 1919,
+      "loadEventEnd": 3152.0999999940395,
+      "transferSize": 35716,
+      "decodedBodySize": 165799
+    },
+    "longTasks": [
+      {
+        "startTime": 253,
+        "duration": 306,
+        "name": "unknown"
+      },
+      {
+        "startTime": 597.5,
+        "duration": 161,
+        "name": "unknown"
+      },
+      {
+        "startTime": 776.1999999880791,
+        "duration": 72,
+        "name": "unknown"
+      },
+      {
+        "startTime": 1851.699999988079,
+        "duration": 67,
+        "name": "self"
+      },
+      {
+        "startTime": 1945.5,
+        "duration": 146,
+        "name": "unknown"
+      },
+      {
+        "startTime": 2470.2999999970198,
+        "duration": 357,
+        "name": "self"
+      }
+    ],
+    "longTaskTotal": 809,
+    "layoutShiftSum": 0.03949211885062898,
+    "resources": [
+      {
+        "name": "https://izzatcasa.shop/assets/fonts/inter-local.css?v=20260518font1",
+        "initiatorType": "link",
+        "startTime": 225.69999998807907,
+        "responseEnd": 395.29999999701977,
+        "duration": 169.6000000089407,
+        "transferSize": 1030,
+        "decodedBodySize": 11809
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/01-400.webp",
+        "initiatorType": "link",
+        "startTime": 227.69999998807907,
+        "responseEnd": 457.29999999701977,
+        "duration": 229.6000000089407,
+        "transferSize": 9622,
+        "decodedBodySize": 9322
+      },
+      {
+        "name": "https://analytics.tiktok.com/i18n/pixel/events.js?sdkid=D86SK5BC77U97AFNPAP0&lib=ttq",
+        "initiatorType": "script",
+        "startTime": 234.29999999701977,
+        "responseEnd": 473.09999999403954,
+        "duration": 238.79999999701977,
+        "transferSize": 0,
+        "decodedBodySize": 0
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/seller-avatarr.webp",
+        "initiatorType": "img",
+        "startTime": 252.59999999403954,
+        "responseEnd": 434.19999998807907,
+        "duration": 181.59999999403954,
+        "transferSize": 2010,
+        "decodedBodySize": 1710
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/foto1.webp",
+        "initiatorType": "img",
+        "startTime": 755.3999999910593,
+        "responseEnd": 983.0999999940395,
+        "duration": 227.70000000298023,
+        "transferSize": 2560,
+        "decodedBodySize": 2260
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/review01.webp",
+        "initiatorType": "img",
+        "startTime": 756,
+        "responseEnd": 1106.3999999910593,
+        "duration": 350.3999999910593,
+        "transferSize": 4644,
+        "decodedBodySize": 4344
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/foto2.webp",
+        "initiatorType": "img",
+        "startTime": 756.6999999880791,
+        "responseEnd": 997.7999999970198,
+        "duration": 241.1000000089407,
+        "transferSize": 1896,
+        "decodedBodySize": 1596
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/review02.webp",
+        "initiatorType": "img",
+        "startTime": 757.2999999970198,
+        "responseEnd": 1091.5,
+        "duration": 334.20000000298023,
+        "transferSize": 3480,
+        "decodedBodySize": 3180
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/foto3.webp",
+        "initiatorType": "img",
+        "startTime": 757.8999999910593,
+        "responseEnd": 1012.5999999940395,
+        "duration": 254.70000000298023,
+        "transferSize": 2356,
+        "decodedBodySize": 2056
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/review03.webp",
+        "initiatorType": "img",
+        "startTime": 758.6999999880791,
+        "responseEnd": 1012.6999999880791,
+        "duration": 254,
+        "transferSize": 2674,
+        "decodedBodySize": 2374
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/js/index.bundle.js?v=20260527r2",
+        "initiatorType": "script",
+        "startTime": 763.0999999940395,
+        "responseEnd": 1231.199999988079,
+        "duration": 468.09999999403954,
+        "transferSize": 8274,
+        "decodedBodySize": 26931
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/js/metrics.ping.js",
+        "initiatorType": "script",
+        "startTime": 763.8999999910593,
+        "responseEnd": 982.8999999910593,
+        "duration": 219,
+        "transferSize": 1093,
+        "decodedBodySize": 1758
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/vendor/react.production.min.js",
+        "initiatorType": "script",
+        "startTime": 852.0999999940395,
+        "responseEnd": 1199.7999999970198,
+        "duration": 347.70000000298023,
+        "transferSize": 4721,
+        "decodedBodySize": 10750
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/vendor/react-dom.production.min.js",
+        "initiatorType": "script",
+        "startTime": 852.7999999970198,
+        "responseEnd": 1837.699999988079,
+        "duration": 984.8999999910593,
+        "transferSize": 43899,
+        "decodedBodySize": 131834
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/js/checkout.app.js?v=20260527r2",
+        "initiatorType": "script",
+        "startTime": 853.1999999880791,
+        "responseEnd": 1433.3999999910593,
+        "duration": 580.2000000029802,
+        "transferSize": 15703,
+        "decodedBodySize": 55324
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_01.webp",
+        "initiatorType": "img",
+        "startTime": 1928.699999988079,
+        "responseEnd": 2314.5999999940395,
+        "duration": 385.90000000596046,
+        "transferSize": 6942,
+        "decodedBodySize": 6642
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_02.webp",
+        "initiatorType": "img",
+        "startTime": 1929.199999988079,
+        "responseEnd": 2190.699999988079,
+        "duration": 261.5,
+        "transferSize": 1670,
+        "decodedBodySize": 1370
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_03.webp",
+        "initiatorType": "img",
+        "startTime": 1929.3999999910593,
+        "responseEnd": 2188.2999999970198,
+        "duration": 258.90000000596046,
+        "transferSize": 2218,
+        "decodedBodySize": 1918
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_04.webp",
+        "initiatorType": "img",
+        "startTime": 1929.7999999970198,
+        "responseEnd": 2191.199999988079,
+        "duration": 261.3999999910593,
+        "transferSize": 2506,
+        "decodedBodySize": 2206
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_05.webp",
+        "initiatorType": "img",
+        "startTime": 1931.199999988079,
+        "responseEnd": 2206.699999988079,
+        "duration": 275.5,
+        "transferSize": 1740,
+        "decodedBodySize": 1440
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_06.webp",
+        "initiatorType": "img",
+        "startTime": 1932.199999988079,
+        "responseEnd": 2360.8999999910593,
+        "duration": 428.70000000298023,
+        "transferSize": 7736,
+        "decodedBodySize": 7436
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_07.webp",
+        "initiatorType": "img",
+        "startTime": 1932.8999999910593,
+        "responseEnd": 2345.0999999940395,
+        "duration": 412.20000000298023,
+        "transferSize": 6500,
+        "decodedBodySize": 6200
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_08.webp",
+        "initiatorType": "img",
+        "startTime": 1933.699999988079,
+        "responseEnd": 2392.8999999910593,
+        "duration": 459.20000000298023,
+        "transferSize": 10272,
+        "decodedBodySize": 9972
+      }
+    ]
+  },
+  {
+    "run": 3,
+    "elapsed": 7588,
+    "lcp": {
+      "startTime": 700,
+      "renderTime": 700,
+      "loadTime": 520.5999999940395,
+      "size": 160000,
+      "id": "main-product-image",
+      "url": "https://izzatcasa.shop/assets/img/01-400.webp",
+      "tag": "IMG",
+      "selector": "#main-product-image"
+    },
+    "fcp": {
+      "name": "first-contentful-paint",
+      "startTime": 520
+    },
+    "imgResource": {
+      "name": "https://izzatcasa.shop/assets/img/01-400.webp",
+      "initiatorType": "link",
+      "startTime": 230.59999999403954,
+      "responseEnd": 489.29999999701977,
+      "duration": 258.70000000298023,
+      "transferSize": 9622,
+      "decodedBodySize": 9322
+    },
+    "mainImage": {
+      "complete": true,
+      "currentSrc": "https://izzatcasa.shop/assets/img/01-400.webp",
+      "rect": {
+        "top": 0,
+        "left": 0,
+        "width": 412,
+        "height": 400
+      }
+    },
+    "nav": {
+      "startTime": 0,
+      "responseStart": 89.79999999701977,
+      "responseEnd": 351.29999999701977,
+      "domInteractive": 709.7999999970198,
+      "domContentLoadedEventEnd": 1837.8999999910593,
+      "loadEventEnd": 3066.2999999970198,
+      "transferSize": 35712,
+      "decodedBodySize": 165799
+    },
+    "longTasks": [
+      {
+        "startTime": 256.8999999910593,
+        "duration": 255,
+        "name": "unknown"
+      },
+      {
+        "startTime": 552.2999999970198,
+        "duration": 144,
+        "name": "unknown"
+      },
+      {
+        "startTime": 715.5999999940395,
+        "duration": 68,
+        "name": "unknown"
+      },
+      {
+        "startTime": 1771.3999999910593,
+        "duration": 66,
+        "name": "self"
+      },
+      {
+        "startTime": 1869.8999999910593,
+        "duration": 151,
+        "name": "unknown"
+      },
+      {
+        "startTime": 2398.199999988079,
+        "duration": 322,
+        "name": "self"
+      }
+    ],
+    "longTaskTotal": 706,
+    "layoutShiftSum": 0.03949211885062898,
+    "resources": [
+      {
+        "name": "https://izzatcasa.shop/assets/fonts/inter-local.css?v=20260518font1",
+        "initiatorType": "link",
+        "startTime": 228.19999998807907,
+        "responseEnd": 398.59999999403954,
+        "duration": 170.40000000596046,
+        "transferSize": 1030,
+        "decodedBodySize": 11809
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/01-400.webp",
+        "initiatorType": "link",
+        "startTime": 230.59999999403954,
+        "responseEnd": 489.29999999701977,
+        "duration": 258.70000000298023,
+        "transferSize": 9622,
+        "decodedBodySize": 9322
+      },
+      {
+        "name": "https://analytics.tiktok.com/i18n/pixel/events.js?sdkid=D86SK5BC77U97AFNPAP0&lib=ttq",
+        "initiatorType": "script",
+        "startTime": 236.69999998807907,
+        "responseEnd": 474.3999999910593,
+        "duration": 237.70000000298023,
+        "transferSize": 0,
+        "decodedBodySize": 0
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/seller-avatarr.webp",
+        "initiatorType": "img",
+        "startTime": 256.5,
+        "responseEnd": 444.8999999910593,
+        "duration": 188.3999999910593,
+        "transferSize": 2010,
+        "decodedBodySize": 1710
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/foto1.webp",
+        "initiatorType": "img",
+        "startTime": 692.3999999910593,
+        "responseEnd": 952.3999999910593,
+        "duration": 260,
+        "transferSize": 2560,
+        "decodedBodySize": 2260
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/review01.webp",
+        "initiatorType": "img",
+        "startTime": 694,
+        "responseEnd": 1104,
+        "duration": 410,
+        "transferSize": 4644,
+        "decodedBodySize": 4344
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/foto2.webp",
+        "initiatorType": "img",
+        "startTime": 695,
+        "responseEnd": 967.3999999910593,
+        "duration": 272.3999999910593,
+        "transferSize": 1896,
+        "decodedBodySize": 1596
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/review02.webp",
+        "initiatorType": "img",
+        "startTime": 695.7999999970198,
+        "responseEnd": 1043.5,
+        "duration": 347.70000000298023,
+        "transferSize": 3480,
+        "decodedBodySize": 3180
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/foto3.webp",
+        "initiatorType": "img",
+        "startTime": 696.3999999910593,
+        "responseEnd": 982.3999999910593,
+        "duration": 286,
+        "transferSize": 2356,
+        "decodedBodySize": 2056
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/review03.webp",
+        "initiatorType": "img",
+        "startTime": 696.8999999910593,
+        "responseEnd": 982.5,
+        "duration": 285.6000000089407,
+        "transferSize": 2674,
+        "decodedBodySize": 2374
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/js/index.bundle.js?v=20260527r2",
+        "initiatorType": "script",
+        "startTime": 701,
+        "responseEnd": 1182.0999999940395,
+        "duration": 481.09999999403954,
+        "transferSize": 8274,
+        "decodedBodySize": 26931
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/js/metrics.ping.js",
+        "initiatorType": "script",
+        "startTime": 701.2999999970198,
+        "responseEnd": 936.5999999940395,
+        "duration": 235.29999999701977,
+        "transferSize": 1093,
+        "decodedBodySize": 1758
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/vendor/react.production.min.js",
+        "initiatorType": "script",
+        "startTime": 708.1999999880791,
+        "responseEnd": 1119.5999999940395,
+        "duration": 411.40000000596046,
+        "transferSize": 4721,
+        "decodedBodySize": 10750
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/vendor/react-dom.production.min.js",
+        "initiatorType": "script",
+        "startTime": 708.6999999880791,
+        "responseEnd": 1753.7999999970198,
+        "duration": 1045.1000000089407,
+        "transferSize": 43899,
+        "decodedBodySize": 131834
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/js/checkout.app.js?v=20260527r2",
+        "initiatorType": "script",
+        "startTime": 709,
+        "responseEnd": 1337.7999999970198,
+        "duration": 628.7999999970198,
+        "transferSize": 15703,
+        "decodedBodySize": 55324
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_01.webp",
+        "initiatorType": "img",
+        "startTime": 1851.5999999940395,
+        "responseEnd": 2232.2999999970198,
+        "duration": 380.70000000298023,
+        "transferSize": 6942,
+        "decodedBodySize": 6642
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_02.webp",
+        "initiatorType": "img",
+        "startTime": 1852.199999988079,
+        "responseEnd": 2108,
+        "duration": 255.80000001192093,
+        "transferSize": 1670,
+        "decodedBodySize": 1370
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_03.webp",
+        "initiatorType": "img",
+        "startTime": 1853.2999999970198,
+        "responseEnd": 2108.199999988079,
+        "duration": 254.8999999910593,
+        "transferSize": 2218,
+        "decodedBodySize": 1918
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_04.webp",
+        "initiatorType": "img",
+        "startTime": 1853.699999988079,
+        "responseEnd": 2139.5999999940395,
+        "duration": 285.90000000596046,
+        "transferSize": 2506,
+        "decodedBodySize": 2206
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_05.webp",
+        "initiatorType": "img",
+        "startTime": 1854.0999999940395,
+        "responseEnd": 2139.3999999910593,
+        "duration": 285.29999999701977,
+        "transferSize": 1740,
+        "decodedBodySize": 1440
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_06.webp",
+        "initiatorType": "img",
+        "startTime": 1854.699999988079,
+        "responseEnd": 2278.7999999970198,
+        "duration": 424.1000000089407,
+        "transferSize": 7736,
+        "decodedBodySize": 7436
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_07.webp",
+        "initiatorType": "img",
+        "startTime": 1855.0999999940395,
+        "responseEnd": 2248.0999999940395,
+        "duration": 393,
+        "transferSize": 6500,
+        "decodedBodySize": 6200
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_08.webp",
+        "initiatorType": "img",
+        "startTime": 1855.3999999910593,
+        "responseEnd": 2309.0999999940395,
+        "duration": 453.70000000298023,
+        "transferSize": 10272,
+        "decodedBodySize": 9972
+      }
+    ]
+  },
+  {
+    "run": 4,
+    "elapsed": 7594,
+    "lcp": {
+      "startTime": 696,
+      "renderTime": 696,
+      "loadTime": 668.7000000029802,
+      "size": 160000,
+      "id": "main-product-image",
+      "url": "https://izzatcasa.shop/assets/img/01-400.webp",
+      "tag": "IMG",
+      "selector": "#main-product-image"
+    },
+    "fcp": {
+      "name": "first-contentful-paint",
+      "startTime": 664
+    },
+    "imgResource": {
+      "name": "https://izzatcasa.shop/assets/img/01-400.webp",
+      "initiatorType": "link",
+      "startTime": 232.6000000089407,
+      "responseEnd": 490.80000001192093,
+      "duration": 258.20000000298023,
+      "transferSize": 9622,
+      "decodedBodySize": 9322
+    },
+    "mainImage": {
+      "complete": true,
+      "currentSrc": "https://izzatcasa.shop/assets/img/01-400.webp",
+      "rect": {
+        "top": 0,
+        "left": 0,
+        "width": 412,
+        "height": 400
+      }
+    },
+    "nav": {
+      "startTime": 0,
+      "responseStart": 97.30000001192093,
+      "responseEnd": 368.40000000596046,
+      "domInteractive": 828.9000000059605,
+      "domContentLoadedEventEnd": 1860.6000000089407,
+      "loadEventEnd": 3071,
+      "transferSize": 35783,
+      "decodedBodySize": 165799
+    },
+    "longTasks": [
+      {
+        "startTime": 272.1000000089407,
+        "duration": 391,
+        "name": "unknown"
+      },
+      {
+        "startTime": 709.9000000059605,
+        "duration": 100,
+        "name": "unknown"
+      },
+      {
+        "startTime": 1789.4000000059605,
+        "duration": 71,
+        "name": "self"
+      },
+      {
+        "startTime": 1891.300000011921,
+        "duration": 161,
+        "name": "unknown"
+      },
+      {
+        "startTime": 2389.2000000029802,
+        "duration": 343,
+        "name": "self"
+      }
+    ],
+    "longTaskTotal": 816,
+    "layoutShiftSum": 0.03949211885062898,
+    "resources": [
+      {
+        "name": "https://izzatcasa.shop/assets/fonts/inter-local.css?v=20260518font1",
+        "initiatorType": "link",
+        "startTime": 230.80000001192093,
+        "responseEnd": 400.70000000298023,
+        "duration": 169.8999999910593,
+        "transferSize": 1030,
+        "decodedBodySize": 11809
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/01-400.webp",
+        "initiatorType": "link",
+        "startTime": 232.6000000089407,
+        "responseEnd": 490.80000001192093,
+        "duration": 258.20000000298023,
+        "transferSize": 9622,
+        "decodedBodySize": 9322
+      },
+      {
+        "name": "https://analytics.tiktok.com/i18n/pixel/events.js?sdkid=D86SK5BC77U97AFNPAP0&lib=ttq",
+        "initiatorType": "script",
+        "startTime": 239.70000000298023,
+        "responseEnd": 475.80000001192093,
+        "duration": 236.1000000089407,
+        "transferSize": 0,
+        "decodedBodySize": 0
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/seller-avatarr.webp",
+        "initiatorType": "img",
+        "startTime": 260.30000001192093,
+        "responseEnd": 445.20000000298023,
+        "duration": 184.8999999910593,
+        "transferSize": 2010,
+        "decodedBodySize": 1710
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/foto1.webp",
+        "initiatorType": "img",
+        "startTime": 660,
+        "responseEnd": 872,
+        "duration": 212,
+        "transferSize": 2560,
+        "decodedBodySize": 2260
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/review01.webp",
+        "initiatorType": "img",
+        "startTime": 660.8000000119209,
+        "responseEnd": 937.5,
+        "duration": 276.69999998807907,
+        "transferSize": 4644,
+        "decodedBodySize": 4344
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/foto2.webp",
+        "initiatorType": "img",
+        "startTime": 661.6000000089407,
+        "responseEnd": 891.5,
+        "duration": 229.8999999910593,
+        "transferSize": 1896,
+        "decodedBodySize": 1596
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/review02.webp",
+        "initiatorType": "img",
+        "startTime": 661.7000000029802,
+        "responseEnd": 937.7000000029802,
+        "duration": 276,
+        "transferSize": 3480,
+        "decodedBodySize": 3180
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/foto3.webp",
+        "initiatorType": "img",
+        "startTime": 662.3000000119209,
+        "responseEnd": 906.8000000119209,
+        "duration": 244.5,
+        "transferSize": 2356,
+        "decodedBodySize": 2056
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/review03.webp",
+        "initiatorType": "img",
+        "startTime": 663,
+        "responseEnd": 922.4000000059605,
+        "duration": 259.40000000596046,
+        "transferSize": 2674,
+        "decodedBodySize": 2374
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/js/index.bundle.js?v=20260527r2",
+        "initiatorType": "script",
+        "startTime": 811.8000000119209,
+        "responseEnd": 1185.1000000089407,
+        "duration": 373.29999999701977,
+        "transferSize": 8274,
+        "decodedBodySize": 26931
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/js/metrics.ping.js",
+        "initiatorType": "script",
+        "startTime": 812.9000000059605,
+        "responseEnd": 999.4000000059605,
+        "duration": 186.5,
+        "transferSize": 1093,
+        "decodedBodySize": 1758
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/vendor/react.production.min.js",
+        "initiatorType": "script",
+        "startTime": 821.1000000089407,
+        "responseEnd": 1122.6000000089407,
+        "duration": 301.5,
+        "transferSize": 4721,
+        "decodedBodySize": 10750
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/vendor/react-dom.production.min.js",
+        "initiatorType": "script",
+        "startTime": 827.2000000029802,
+        "responseEnd": 1774.7000000029802,
+        "duration": 947.5,
+        "transferSize": 43899,
+        "decodedBodySize": 131834
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/js/checkout.app.js?v=20260527r2",
+        "initiatorType": "script",
+        "startTime": 827.8000000119209,
+        "responseEnd": 1355.300000011921,
+        "duration": 527.5,
+        "transferSize": 15703,
+        "decodedBodySize": 55324
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_01.webp",
+        "initiatorType": "img",
+        "startTime": 1872.7000000029802,
+        "responseEnd": 2254.6000000089407,
+        "duration": 381.90000000596046,
+        "transferSize": 6942,
+        "decodedBodySize": 6642
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_02.webp",
+        "initiatorType": "img",
+        "startTime": 1873.4000000059605,
+        "responseEnd": 2117.1000000089407,
+        "duration": 243.70000000298023,
+        "transferSize": 1670,
+        "decodedBodySize": 1370
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_03.webp",
+        "initiatorType": "img",
+        "startTime": 1874,
+        "responseEnd": 2131.7000000029802,
+        "duration": 257.70000000298023,
+        "transferSize": 2218,
+        "decodedBodySize": 1918
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_04.webp",
+        "initiatorType": "img",
+        "startTime": 1874.800000011921,
+        "responseEnd": 2162.300000011921,
+        "duration": 287.5,
+        "transferSize": 2506,
+        "decodedBodySize": 2206
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_05.webp",
+        "initiatorType": "img",
+        "startTime": 1875.6000000089407,
+        "responseEnd": 2147.2000000029802,
+        "duration": 271.59999999403954,
+        "transferSize": 1740,
+        "decodedBodySize": 1440
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_06.webp",
+        "initiatorType": "img",
+        "startTime": 1876,
+        "responseEnd": 2301.1000000089407,
+        "duration": 425.1000000089407,
+        "transferSize": 7736,
+        "decodedBodySize": 7436
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_07.webp",
+        "initiatorType": "img",
+        "startTime": 1876.4000000059605,
+        "responseEnd": 2270.800000011921,
+        "duration": 394.40000000596046,
+        "transferSize": 6500,
+        "decodedBodySize": 6200
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_08.webp",
+        "initiatorType": "img",
+        "startTime": 1876.800000011921,
+        "responseEnd": 2332,
+        "duration": 455.19999998807907,
+        "transferSize": 10272,
+        "decodedBodySize": 9972
+      }
+    ]
+  },
+  {
+    "run": 5,
+    "elapsed": 7675,
+    "lcp": {
+      "startTime": 724,
+      "renderTime": 724,
+      "loadTime": 530.5,
+      "size": 160000,
+      "id": "main-product-image",
+      "url": "https://izzatcasa.shop/assets/img/01-400.webp",
+      "tag": "IMG",
+      "selector": "#main-product-image"
+    },
+    "fcp": {
+      "name": "first-contentful-paint",
+      "startTime": 532
+    },
+    "imgResource": {
+      "name": "https://izzatcasa.shop/assets/img/01-400.webp",
+      "initiatorType": "link",
+      "startTime": 227.70000000298023,
+      "responseEnd": 440.1000000089407,
+      "duration": 212.40000000596046,
+      "transferSize": 9622,
+      "decodedBodySize": 9322
+    },
+    "mainImage": {
+      "complete": true,
+      "currentSrc": "https://izzatcasa.shop/assets/img/01-400.webp",
+      "rect": {
+        "top": 0,
+        "left": 0,
+        "width": 412,
+        "height": 400
+      }
+    },
+    "nav": {
+      "startTime": 0,
+      "responseStart": 104,
+      "responseEnd": 349.40000000596046,
+      "domInteractive": 822.6000000089407,
+      "domContentLoadedEventEnd": 1895.1000000089407,
+      "loadEventEnd": 3148.1000000089407,
+      "transferSize": 35742,
+      "decodedBodySize": 165799
+    },
+    "longTasks": [
+      {
+        "startTime": 248.20000000298023,
+        "duration": 280,
+        "name": "unknown"
+      },
+      {
+        "startTime": 560.6000000089407,
+        "duration": 156,
+        "name": "unknown"
+      },
+      {
+        "startTime": 739,
+        "duration": 79,
+        "name": "unknown"
+      },
+      {
+        "startTime": 1825.7000000029802,
+        "duration": 69,
+        "name": "self"
+      },
+      {
+        "startTime": 1921.5,
+        "duration": 170,
+        "name": "unknown"
+      },
+      {
+        "startTime": 2434.7000000029802,
+        "duration": 354,
+        "name": "self"
+      }
+    ],
+    "longTaskTotal": 808,
+    "layoutShiftSum": 0.03949211885062898,
+    "resources": [
+      {
+        "name": "https://izzatcasa.shop/assets/fonts/inter-local.css?v=20260518font1",
+        "initiatorType": "link",
+        "startTime": 224.20000000298023,
+        "responseEnd": 394.6000000089407,
+        "duration": 170.40000000596046,
+        "transferSize": 1030,
+        "decodedBodySize": 11809
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/01-400.webp",
+        "initiatorType": "link",
+        "startTime": 227.70000000298023,
+        "responseEnd": 440.1000000089407,
+        "duration": 212.40000000596046,
+        "transferSize": 9622,
+        "decodedBodySize": 9322
+      },
+      {
+        "name": "https://analytics.tiktok.com/i18n/pixel/events.js?sdkid=D86SK5BC77U97AFNPAP0&lib=ttq",
+        "initiatorType": "script",
+        "startTime": 233,
+        "responseEnd": 532.7000000029802,
+        "duration": 299.70000000298023,
+        "transferSize": 0,
+        "decodedBodySize": 0
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/seller-avatarr.webp",
+        "initiatorType": "img",
+        "startTime": 541.4000000059605,
+        "responseEnd": 718.6000000089407,
+        "duration": 177.20000000298023,
+        "transferSize": 2010,
+        "decodedBodySize": 1710
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/foto1.webp",
+        "initiatorType": "img",
+        "startTime": 716.7000000029802,
+        "responseEnd": 963,
+        "duration": 246.29999999701977,
+        "transferSize": 2560,
+        "decodedBodySize": 2260
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/review01.webp",
+        "initiatorType": "img",
+        "startTime": 716.8000000119209,
+        "responseEnd": 1102.5,
+        "duration": 385.69999998807907,
+        "transferSize": 4644,
+        "decodedBodySize": 4344
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/foto2.webp",
+        "initiatorType": "img",
+        "startTime": 716.9000000059605,
+        "responseEnd": 985.5,
+        "duration": 268.59999999403954,
+        "transferSize": 1896,
+        "decodedBodySize": 1596
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/review02.webp",
+        "initiatorType": "img",
+        "startTime": 716.9000000059605,
+        "responseEnd": 1009,
+        "duration": 292.09999999403954,
+        "transferSize": 3480,
+        "decodedBodySize": 3180
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/foto3.webp",
+        "initiatorType": "img",
+        "startTime": 717,
+        "responseEnd": 948.3000000119209,
+        "duration": 231.30000001192093,
+        "transferSize": 2356,
+        "decodedBodySize": 2056
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/review03.webp",
+        "initiatorType": "img",
+        "startTime": 717.1000000089407,
+        "responseEnd": 977.7000000029802,
+        "duration": 260.59999999403954,
+        "transferSize": 2674,
+        "decodedBodySize": 2374
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/js/index.bundle.js?v=20260527r2",
+        "initiatorType": "script",
+        "startTime": 726.8000000119209,
+        "responseEnd": 1195.5,
+        "duration": 468.69999998807907,
+        "transferSize": 8274,
+        "decodedBodySize": 26931
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/js/metrics.ping.js",
+        "initiatorType": "script",
+        "startTime": 727.7000000029802,
+        "responseEnd": 948.1000000089407,
+        "duration": 220.40000000596046,
+        "transferSize": 1093,
+        "decodedBodySize": 1758
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/vendor/react.production.min.js",
+        "initiatorType": "script",
+        "startTime": 820.8000000119209,
+        "responseEnd": 1164.300000011921,
+        "duration": 343.5,
+        "transferSize": 4721,
+        "decodedBodySize": 10750
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/vendor/react-dom.production.min.js",
+        "initiatorType": "script",
+        "startTime": 821.2000000029802,
+        "responseEnd": 1810.5,
+        "duration": 989.2999999970198,
+        "transferSize": 43899,
+        "decodedBodySize": 131834
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/js/checkout.app.js?v=20260527r2",
+        "initiatorType": "script",
+        "startTime": 821.7000000029802,
+        "responseEnd": 1397.300000011921,
+        "duration": 575.6000000089407,
+        "transferSize": 15703,
+        "decodedBodySize": 55324
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_01.webp",
+        "initiatorType": "img",
+        "startTime": 1903.7000000029802,
+        "responseEnd": 2286.9000000059605,
+        "duration": 383.20000000298023,
+        "transferSize": 6942,
+        "decodedBodySize": 6642
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_02.webp",
+        "initiatorType": "img",
+        "startTime": 1904.300000011921,
+        "responseEnd": 2148.4000000059605,
+        "duration": 244.09999999403954,
+        "transferSize": 1670,
+        "decodedBodySize": 1370
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_03.webp",
+        "initiatorType": "img",
+        "startTime": 1904.9000000059605,
+        "responseEnd": 2163.300000011921,
+        "duration": 258.40000000596046,
+        "transferSize": 2218,
+        "decodedBodySize": 1918
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_04.webp",
+        "initiatorType": "img",
+        "startTime": 1905.300000011921,
+        "responseEnd": 2178.5,
+        "duration": 273.19999998807907,
+        "transferSize": 2506,
+        "decodedBodySize": 2206
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_05.webp",
+        "initiatorType": "img",
+        "startTime": 1905.9000000059605,
+        "responseEnd": 2194.1000000089407,
+        "duration": 288.20000000298023,
+        "transferSize": 1740,
+        "decodedBodySize": 1440
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_06.webp",
+        "initiatorType": "img",
+        "startTime": 1906.300000011921,
+        "responseEnd": 2332.7000000029802,
+        "duration": 426.3999999910593,
+        "transferSize": 7736,
+        "decodedBodySize": 7436
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_07.webp",
+        "initiatorType": "img",
+        "startTime": 1906.7000000029802,
+        "responseEnd": 2301.800000011921,
+        "duration": 395.1000000089407,
+        "transferSize": 6500,
+        "decodedBodySize": 6200
+      },
+      {
+        "name": "https://izzatcasa.shop/assets/img/thumb_08.webp",
+        "initiatorType": "img",
+        "startTime": 1907.1000000089407,
+        "responseEnd": 2362.7000000029802,
+        "duration": 455.59999999403954,
+        "transferSize": 10272,
+        "decodedBodySize": 9972
+      }
+    ]
+  }
+]
